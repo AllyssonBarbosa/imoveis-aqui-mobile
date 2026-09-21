@@ -11,8 +11,8 @@ nenhuma regra de negócio é decidida no celular — tudo vem calculado e filtra
 
 Este projeto entrega, além do app, **os endpoints públicos da API que o app consome**
 (`GET /cidades`, `GET /imoveis?cidade=...&filtros`), criados no repositório da API
-(`../imoveis-aqui/Web`, Django + DRF), coordenando com os colegas que constroem o model de
-Imóvel na frente web.
+(`../imoveis-aqui/Web`, Django + DRF), coordenando com os colegas que evoluem o model de
+Imóvel na frente web (a base do model já existe; falta a tipologia — ver Context).
 
 ## Core Value
 
@@ -50,7 +50,7 @@ recalculados dentro do aparelho.
 ## Context
 
 - **Duas frentes, um banco só.** Web (Django + DRF + PostgreSQL) é dona da regra e do dado, e publica a API. O app é a tela. Repositórios irmãos: `imoveis-aqui/` (API, do colega) e `imovies-aqui-mobile/` (este, o app).
-- **Estado atual da API** (repo `../imoveis-aqui/Web`, Django 5.2 + DRF): apps `localizacao` (model `Cidade` já existe), `core` (Endereco, base multitenant `EmpresaOwnedModel` + `EmpresaScopedQuerySetMixin`), `empresas` (`Empresa`), `contas` (`Usuario` por e-mail, perfis admin/gestor/corretor, auth por Token). Rotas prontas: `POST /api/auth/login/`, `GET /api/usuarios/`, `GET /api/publico/corretores/<id>/`, `GET /api/publico/empresas/<id>/`. **Ainda não existem:** `GET /cidades`, `GET /imoveis`, nem o model de Imóvel.
+- **Estado atual da API** (repo `../imoveis-aqui/Web`, Django 5.2 + DRF): apps `localizacao` (model `Cidade` já existe), `core` (Endereco com bairro/cidade/lat/long, base multitenant `EmpresaOwnedModel` + `EmpresaScopedQuerySetMixin`), `empresas` (`Empresa`), `contas` (`Usuario` por e-mail, perfis admin/gestor/corretor, auth por Token), e `imoveis` — o model **`Imovel` JÁ existe** (codigo, titulo, `finalidade` VENDA/ALUGUEL/VENDA_E_ALUGUEL, preços venda/aluguel/condomínio/iptu, descricao, `caracteristicas` M2M, `endereco`, `publicado`, criado_em), com `Caracteristica`, `FotoImovel` (capa/ordem) e um `ImovelViewSet` autenticado empresa-scoped em `/api/imoveis/`. Rotas públicas prontas: `POST /api/auth/login/`, `GET /api/usuarios/`, `GET /api/publico/corretores/<id>/`, `GET /api/publico/empresas/<id>/`. **Ainda faltam:** os endpoints públicos `GET /api/publico/cidades/` e `GET /api/publico/imoveis/`, e a **tipologia** do imóvel (natureza casa/apto/terreno/lote, quartos, suítes, vagas, área) — dependência da frente web (E2). Auditoria detalhada em `phases/01-.../01-CONTEXT.md`.
 - **Isolamento multitenant** é o critério de maior peso da avaliação: todo dado de acervo filtra pela empresa; trocar o ID na URL cai em 404. A API pública da vitrine não pede token e não devolve dado interno.
 - **Perfil do desenvolvedor:** backend forte em Java (Spring Boot) e Python (FastAPI); mindset de tipagem forte, OO, inversão de controle e tratamento explícito de erro. Explicações podem usar analogias com Java/Python.
 
