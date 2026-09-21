@@ -37,7 +37,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Cada desfecho de localização (autorizado / recusado / bloqueado-para-sempre / serviço-desligado / cidade-não-atendida) tem UI própria, tratado como estado explícito, nunca como exceção genérica.
   4. A cidade escolhida é guardada no aparelho (sem conta e sem senha), reusada nas próximas aberturas, e trocável num toque no topo da tela.
   5. Existe um documento de contrato (nomes de campo, enums, nomes de parâmetro de filtro, envelope de paginação) para `GET /cidades` e `GET /imoveis`, escrito e acordado com a frente web antes de qualquer código de APP02/APP03 ou do endpoint real de imóveis.
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 01-01-PLAN.md — Walking Skeleton: scaffold + manual city-select-and-persist tracer (LOC-04)
+- [ ] 01-02-PLAN.md — Frozen API contract for GET /cidades e GET /imoveis + example fixtures (API-01)
+- [ ] 01-03-PLAN.md — Location flow: priming, detection, 5 sealed outcomes, city-selection screen (LOC-01/02/03/06)
+- [ ] 01-04-PLAN.md — City switcher + returning-visitor launch routing (LOC-05)
 **UI hint**: yes
 
 ### Phase 2: Vitrine — Lista, Busca e Ordenação
@@ -87,7 +92,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Localização, Escolha de Cidade e Contrato da API | 0/TBD | Not started | - |
+| 1. Localização, Escolha de Cidade e Contrato da API | 0/4 | Planned | - |
 | 2. Vitrine — Lista, Busca e Ordenação | 0/TBD | Not started | - |
 | 3. Vitrine — Filtros Server-Side | 0/TBD | Not started | - |
 | 4. Imóveis Real — Endpoint Público e Integração Final | 0/TBD | Not started | - |
