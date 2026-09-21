@@ -164,17 +164,34 @@ this researcher's proposed default copy (not independently user-locked) and are 
 
 ## UI Considerations
 
-Applicable state considerations resolved: 5 covered, 2 backstop, 0 unresolved.
+> Populated by the ui-consideration probe (step 9.5), then resolved with the user. **19 applicable
+> considerations** across 5 surfaces (E1 priming, E2 city-selection screen, E3 city list, E4 city
+> switcher, E5 loading). Resolved: 19 (18 explicit, 1 backstop). E4 (`unclassified`) reviewed and
+> dismissed with reason. State/error COPY lives in the Copywriting Contract — this section covers
+> shape-rooted STATE coverage and references those rows.
 
-| Category | Element(s) | Status | Resolution / Reason |
-|----------|------------|--------|---------------------|
-| loading | location-permission-flow | ✅ covered | While GPS + reverse geocoding resolve, the screen shows a centered `CircularProgressIndicator` with the "Localizando você…" label (see Copywriting Contract); no sealed state renders until resolution or failure. |
-| populated (5 states) | city-selection-screen | ✅ covered | Each of the 5 desfechos (authorized-served / authorized-not-served / denied / deniedForever / location-service-off) plus the geocoding-failure fallback renders as a documented state variation of the same screen — see Copywriting Contract. |
-| empty | city-list | ✅ covered | City list is a bundled asset (D-13/D-16) mirroring the API's real Cidades (D-16); never empty at runtime — not a reachable state this phase. |
-| error | geocoding-failure | ✅ covered | Reverse-geocoding/network failure (D-12) falls back to the city list with the same light-notice treatment as not-served — never a dedicated error screen (LOC-06). |
-| overflow | city-list | 🧪 backstop | No search/filter field on the city list this phase (out of LOC-01..06 scope). List must stay scrollable (`ListView.builder`, no hard item cap) if the atendidas list grows past one screen. |
-| long-text | city-list-item | 🧪 backstop | Longer city names (e.g. "São José do Rio Preto") must wrap or ellipsize without breaking the `Card`/`ListTile` layout — verify at implementation against the longest name in `assets/cidades.json`. |
-| zero-one-many | location-outcome-state | ✅ covered | "One" = detected+served city enters directly, no list shown (D-10). "Many" = the other 4 desfechos all show the full atendidas list (D-06/D-07/D-11/D-12). |
+| Surface | Category | Status | Resolution (truth) |
+|---------|----------|--------|--------------------|
+| E1 priming | overflow | ✅ resolved | Content block wrapped in `SingleChildScrollView` + `SafeArea` — scrolls when it doesn't fit (short screens / desktop). |
+| E1 priming | long-text | ✅ resolved | Heading and body wrap (no truncation). |
+| E2 city-selection | loading | ✅ resolved | Centered `CircularProgressIndicator` + "Localizando você…" while GPS+geocoding resolve; no sealed state renders before resolution/failure. |
+| E2 city-selection | empty | ✅ resolved | Not reachable — city list is a bundled asset (D-13/D-16); never empty at runtime. |
+| E2 city-selection | error | ✅ resolved | Geocoding/network failure (D-12) → fallback to the list with a light notice; **asset load/parse failure → defensive error state "Não foi possível carregar as cidades" + "Tentar de novo"**. Never a fatal error screen (LOC-06). |
+| E2 city-selection | populated | ✅ resolved | The 5 desfechos + geocoding-failure fallback are documented state variations of one screen (D-07, see Copywriting Contract). |
+| E2 city-selection | partial | ✅ resolved | `fromJson` validates each city (nome+uf); invalid rows are dropped (with a log), screen continues with the valid ones. |
+| E2 city-selection | overflow | ✅ resolved | `ListView.builder`, no item cap — scrolls once the list exceeds one screen. |
+| E2 city-selection | zero-one-many | ✅ resolved | "One" = detected+served city enters directly, no list (D-10). "Many" = the other desfechos show the full served-city list (D-06/07/11/12). |
+| E3 city list | loading | ✅ resolved | Local asset resolves near-instantly; the same `CircularProgressIndicator` covers the brief window — no dedicated skeleton. |
+| E3 city list | empty | ✅ resolved | Bundled asset never empty (D-13/16) — not a reachable state. |
+| E3 city list | error | ✅ resolved | Asset load/parse failure → defensive error state + "Tentar de novo" (same as E2 error). |
+| E3 city list | populated | ✅ resolved | Each city = `Card` > `ListTile` (leading location `Icon` + name + trailing chevron). |
+| E3 city list | partial | ✅ resolved | Row with a missing field dropped at parse time (same rule as E2 partial). |
+| E3 city list | overflow | ✅ resolved | `ListView.builder`, scrollable, no cap. |
+| E3 city list | zero-one-many | ✅ resolved | Covered by D-10 (one=direct entry) and the other desfechos (many=list). |
+| E3 city list | long-text | 🧪 backstop | `{ statement: "Long city names (e.g. 'São José do Rio Preto') must wrap or ellipsize without breaking the Card/ListTile layout — verify against the longest name in assets/cidades.json at implementation", verification: backstop }` |
+| E4 city switcher | unclassified | ⊘ dismissed | Navigation affordance (label "{Cidade}, {UF}" + tap opens the list, LOC-05); press/disabled states use Material 3 defaults — no own data state to cover. |
+| E5 loading | overflow | ✅ resolved | Centered indicator + short label; nothing to overflow. |
+| E5 loading | long-text | ✅ resolved | Fixed short label ("Localizando você…"); no text-overflow risk. |
 
 ---
 
