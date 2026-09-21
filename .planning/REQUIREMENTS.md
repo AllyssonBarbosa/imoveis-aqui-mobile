@@ -68,17 +68,36 @@ Excluídos de propósito. Documentados para evitar scope creep.
 
 ## Traceability
 
-Preenchida na criação do roadmap.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (a mapear pelo roadmapper) | — | Pending |
+| LOC-01 | Phase 1 | Pending |
+| LOC-02 | Phase 1 | Pending |
+| LOC-03 | Phase 1 | Pending |
+| LOC-04 | Phase 1 | Pending |
+| LOC-05 | Phase 1 | Pending |
+| LOC-06 | Phase 1 | Pending |
+| API-01 | Phase 1 | Pending |
+| VIT-01 | Phase 2 | Pending |
+| VIT-02 | Phase 2 | Pending |
+| VIT-03 | Phase 2 | Pending |
+| VIT-04 | Phase 2 | Pending |
+| VIT-05 | Phase 2 | Pending |
+| VIT-06 | Phase 2 | Pending |
+| API-02 | Phase 2 | Pending |
+| API-04 | Phase 2 | Pending |
+| FIL-01 | Phase 3 | Pending |
+| FIL-02 | Phase 3 | Pending |
+| FIL-03 | Phase 3 | Pending |
+| FIL-04 | Phase 3 | Pending |
+| FIL-05 | Phase 3 | Pending |
+| FIL-06 | Phase 3 | Pending |
+| API-03 | Phase 4 | Pending |
 
 **Coverage:**
 - v1 requirements: 22 total
-- Mapped to phases: 0 (roadmap pendente)
-- Unmapped: 22 ⚠️
+- Mapped to phases: 22 (roadmap complete)
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-09-21*
-*Last updated: 2026-09-21 after initial definition*
+*Last updated: 2026-09-21 after roadmap creation (4 phases, full coverage)*
