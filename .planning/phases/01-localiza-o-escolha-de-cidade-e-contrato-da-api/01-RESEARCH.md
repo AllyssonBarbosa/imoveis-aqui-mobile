@@ -4,6 +4,31 @@
 **Domain:** Flutter Clean Architecture walking skeleton (location permission state machine + local persistence) + Django DRF public API contract design
 **Confidence:** MEDIUM-HIGH (stack/versions VERIFIED against pub.dev registry; API contract grounded in real model files; two open semantic questions genuinely need the web team, not resolvable from docs)
 
+## ⚠ Orchestrator Clarification (post-research, 2026-09-21) — RESOLVES Open Question 1 / A1
+
+**Target platforms are Android + iOS.** The user clarified during plan-phase: Windows and
+macOS M1 are only the *development machines* used to write code — the app itself ships to
+Android and iOS. This supersedes the `instruções.md` "Multiplataforma (Windows e macOS)"
+reading below wherever the two conflict.
+
+Consequences for planning:
+- The `geocoding` Windows gap (Pitfall 1 / assumption A1) is **NOT a product concern** —
+  `geocoding` supports Android and iOS natively (`CLGeocoder` / Play Services `Geocoder`), so
+  the auto-detect-city flow (LOC-02) is a first-class path on both real target platforms. The
+  only residual effect is that reverse geocoding won't resolve when a developer runs the app on
+  a Windows desktop; that is a dev-machine limitation, not a shipped behavior gap. No
+  Windows-specific network-geocoding fallback is in scope.
+- Native platform config the plan MUST cover is the **Android + iOS** setup: iOS
+  `Info.plist` `NSLocationWhenInUseUsageDescription`, Android `AndroidManifest.xml` location
+  permissions + `compileSdk 35`. Windows/macOS desktop location config is out of scope.
+- The five sealed location outcomes (authorized / denied / deniedForever / service-off /
+  city-not-served) remain exactly as designed — this clarification does not add or remove a
+  state; it only reframes which platforms exercise the auto-detect path.
+
+Open Questions 2–4 (quartos/suítes/vagas exact-vs-range, `VENDA_E_ALUGUEL` card price, `cidade`
+query-param format) remain genuinely open and are to be frozen in the contract doc as
+**explicitly-flagged items pending web-team sign-off**, not guessed.
+
 ## Summary
 
 Phase 1 has two independent halves that can be built in parallel: (1) a Flutter walking skeleton
