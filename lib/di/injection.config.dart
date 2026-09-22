@@ -15,16 +15,26 @@ import 'package:imoveis_aqui/data/datasources/cidade_local_datasource.dart'
     as _i736;
 import 'package:imoveis_aqui/data/datasources/cidade_prefs_datasource.dart'
     as _i94;
+import 'package:imoveis_aqui/data/gateways/geocoding_gateway_impl.dart'
+    as _i506;
+import 'package:imoveis_aqui/data/gateways/geolocator_gateway_impl.dart'
+    as _i777;
 import 'package:imoveis_aqui/data/repositories/cidade_repository_impl.dart'
     as _i912;
+import 'package:imoveis_aqui/domain/gateways/geocoding_gateway.dart' as _i881;
+import 'package:imoveis_aqui/domain/gateways/geolocator_gateway.dart' as _i246;
 import 'package:imoveis_aqui/domain/repositories/cidade_repository.dart'
     as _i146;
+import 'package:imoveis_aqui/domain/usecases/detectar_cidade_usecase.dart'
+    as _i502;
 import 'package:imoveis_aqui/domain/usecases/obter_cidade_salva_usecase.dart'
     as _i1060;
 import 'package:imoveis_aqui/domain/usecases/obter_cidades_atendidas_usecase.dart'
     as _i54;
 import 'package:imoveis_aqui/domain/usecases/salvar_cidade_usecase.dart'
     as _i589;
+import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_cubit.dart'
+    as _i765;
 import 'package:injectable/injectable.dart' as _i526;
 
 extension GetItInjectableX on _i174.GetIt {
@@ -40,10 +50,23 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i94.CidadePrefsDataSource>(
       () => _i94.CidadePrefsDataSource(),
     );
+    gh.lazySingleton<_i881.GeocodingGateway>(
+      () => _i506.GeocodingGatewayImpl(),
+    );
+    gh.lazySingleton<_i246.GeolocatorGateway>(
+      () => _i777.GeolocatorGatewayImpl(),
+    );
     gh.lazySingleton<_i146.CidadeRepository>(
       () => _i912.CidadeRepositoryImpl(
         gh<_i736.CidadeLocalDataSource>(),
         gh<_i94.CidadePrefsDataSource>(),
+      ),
+    );
+    gh.factory<_i502.DetectarCidadeUseCase>(
+      () => _i502.DetectarCidadeUseCase(
+        gh<_i246.GeolocatorGateway>(),
+        gh<_i881.GeocodingGateway>(),
+        gh<_i146.CidadeRepository>(),
       ),
     );
     gh.factory<_i1060.ObterCidadeSalvaUseCase>(
@@ -54,6 +77,13 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i589.SalvarCidadeUseCase>(
       () => _i589.SalvarCidadeUseCase(gh<_i146.CidadeRepository>()),
+    );
+    gh.factory<_i765.CidadeSelecaoCubit>(
+      () => _i765.CidadeSelecaoCubit(
+        gh<_i246.GeolocatorGateway>(),
+        gh<_i54.ObterCidadesAtendidasUseCase>(),
+        gh<_i502.DetectarCidadeUseCase>(),
+      ),
     );
     return this;
   }

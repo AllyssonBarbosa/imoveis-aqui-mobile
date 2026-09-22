@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'app_theme.dart';
 import 'di/injection.dart';
 import 'domain/entities/cidade.dart';
 import 'domain/usecases/obter_cidade_salva_usecase.dart';
+import 'presentation/cidade_selecao/cidade_selecao_cubit.dart';
 import 'presentation/cidade_selecao/cidade_selecao_screen.dart';
+import 'presentation/priming/priming_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,10 +17,6 @@ Future<void> main() async {
 
 /// Destino inicial do app, decidido a partir da cidade salva no aparelho
 /// (D-08: nunca re-pedir GPS se já existe cidade guardada).
-///
-/// Função pura e testável sem inicializar a árvore de widgets
-/// (`test/skeleton_flow_test.dart`) — o seam que os Planos 01-03/01-04
-/// expandem com priming/detecção/roteamento por localização.
 enum DestinoInicial { entraDireto, mostraLista }
 
 DestinoInicial decidirDestinoInicial(Cidade? cidadeSalva) {
@@ -39,11 +38,14 @@ class ImoveisAquiApp extends StatelessWidget {
   }
 }
 
-/// Decide, no lançamento, se entra direto na cidade guardada (D-08) ou mostra
-/// a lista de cidades. Nesta fatia mínima (walking skeleton) os dois casos
-/// renderizam a mesma [CidadeSelecaoScreen], com a cidade salva já marcada
-/// quando existir — a UI totalmente diferenciada por [DestinoInicial] chega
-/// nos Planos 01-03/01-04.
+/// Decide, no lançamento, o destino inicial (D-08):
+/// - Sem cidade salva → [PrimingScreen] (LOC-01, o prompt de localização só
+///   dispara a partir do toque no CTA — nunca aqui).
+/// - Com cidade salva → entra direto na [CidadeSelecaoScreen] já no estado
+///   `autorizadaEAtendida`, sem re-pedir GPS (D-08). A validação do
+///   `nome+uf` salvo contra a lista atendida atual é endurecida no Plano
+///   01-04 (RESEARCH Pitfall 5) — aqui a cidade guardada é confiada
+///   diretamente, preservando o comportamento já provado no Plano 01-01.
 class _TelaInicial extends StatefulWidget {
   const _TelaInicial();
 
@@ -78,7 +80,19 @@ class _TelaInicialState extends State<_TelaInicial> {
     if (_carregando) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-    // decidirDestinoInicial(_cidadeSalva) define a intenção — ver docstring.
-    return CidadeSelecaoScreen(cidadeInicial: _cidadeSalva);
+
+    final cidadeSalva = _cidadeSalva;
+    switch (decidirDestinoInicial(cidadeSalva)) {
+      case DestinoInicial.mostraLista:
+        return BlocProvider<CidadeSelecaoCubit>(
+          create: (_) => getIt<CidadeSelecaoCubit>(),
+          child: const PrimingScreen(),
+        );
+      case DestinoInicial.entraDireto:
+        return BlocProvider<CidadeSelecaoCubit>(
+          create: (_) => getIt<CidadeSelecaoCubit>()..entrarDireto(cidadeSalva!),
+          child: const CidadeSelecaoScreen(),
+        );
+    }
   }
 }
