@@ -1,0 +1,10 @@
+{
+  "next": null,
+  "previous": null,
+  "results": [
+    { "id": 1, "nome": "Campinas", "uf": "SP" },
+    { "id": 2, "nome": "Valinhos", "uf": "SP" },
+    { "id": 3, "nome": "Vinhedo", "uf": "SP" },
+    { "id": 4, "nome": "Indaiatuba", "uf": "SP" }
+  ]
+}
