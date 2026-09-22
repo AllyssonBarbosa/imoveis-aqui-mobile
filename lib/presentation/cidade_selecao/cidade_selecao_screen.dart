@@ -6,6 +6,7 @@ import '../../domain/entities/cidade.dart';
 import '../../domain/usecases/salvar_cidade_usecase.dart';
 import 'cidade_selecao_cubit.dart';
 import 'cidade_selecao_state.dart';
+import 'widgets/seletor_cidade_topo.dart';
 
 /// Tela de seleção de cidade — projeção exaustiva do [CidadeSelecaoCubit]
 /// (D-07): cada uma das 8 variantes seladas de [CidadeSelecaoState] tem sua
@@ -140,10 +141,9 @@ class _CorpoCidadeEntrada extends StatelessWidget {
             color: Theme.of(context).colorScheme.primary,
           ),
           const SizedBox(height: 16),
-          Text(
-            '${cidade.nome}, ${cidade.uf}',
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
+          // Cabeçalho tocável — trocar de cidade num toque, sem GPS (LOC-05,
+          // D-08).
+          SeletorCidadeTopo(cidade: cidade),
         ],
       ),
     );
