@@ -4,10 +4,10 @@ current_phase: 01
 current_phase_name: Localização, Escolha de Cidade e Contrato da API
 status: executing
 stopped_at: Completed 01-02-PLAN.md
-last_updated: "2026-09-22T15:04:23.314Z"
+last_updated: "2026-09-22T17:08:44.058Z"
 last_activity: 2026-09-22
 last_activity_desc: Phase 01 execution started
-state_head: 41df8871ec26745b388c3b0a4037885cf1090e20
+state_head: e7385400d4a8aa59a17482ae95f34444693dd777
 progress:
   total_phases: 4
   completed_phases: 0
@@ -80,6 +80,12 @@ None yet.
 
 - [Phase 4]: Externally blocked on the `Imóvel` model (owned by teammate E2 in `../imoveis-aqui/Web`) — Phases 1-3 do not require it (mock-first build), but Phase 4 cannot complete until that model lands.
 - [Phase 1]: API-AUDIT needs live coordination with the teammate on exact `Imóvel` field names/enum values (natureza, finalidade, características shape, quartos/suítes/vagas exact-vs-range semantics) — not resolvable from docs alone.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260922-jk3 | Reescrever README com preparo do ambiente e execução do app | 2026-09-22 | e738540 | [260922-jk3-reescrever-o-readme-md-do-projeto-hoje-b](./quick/260922-jk3-reescrever-o-readme-md-do-projeto-hoje-b/) |
 
 ## Deferred Items
 
