@@ -8,6 +8,7 @@ import 'package:imoveis_aqui/domain/gateways/geolocator_gateway.dart';
 import 'package:imoveis_aqui/domain/usecases/detectar_cidade_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/obter_cidades_atendidas_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/salvar_cidade_usecase.dart';
+import 'package:imoveis_aqui/domain/usecases/validar_cidade_atendida_usecase.dart';
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_cubit.dart';
 import 'package:imoveis_aqui/presentation/priming/priming_screen.dart';
 import 'package:mocktail/mocktail.dart';
@@ -20,12 +21,16 @@ class _ObterCidadesAtendidasUseCaseFalso extends Mock
 class _DetectarCidadeUseCaseFalso extends Mock
     implements DetectarCidadeUseCase {}
 
+class _ValidarCidadeAtendidaUseCaseFalso extends Mock
+    implements ValidarCidadeAtendidaUseCase {}
+
 class _SalvarCidadeUseCaseFalso extends Mock implements SalvarCidadeUseCase {}
 
 void main() {
   late _GeolocatorGatewayFalso geolocator;
   late _ObterCidadesAtendidasUseCaseFalso obterCidadesAtendidas;
   late _DetectarCidadeUseCaseFalso detectarCidade;
+  late _ValidarCidadeAtendidaUseCaseFalso validarCidadeAtendida;
   late CidadeSelecaoCubit cubit;
 
   const listaAtendida = <Cidade>[];
@@ -34,7 +39,13 @@ void main() {
     geolocator = _GeolocatorGatewayFalso();
     obterCidadesAtendidas = _ObterCidadesAtendidasUseCaseFalso();
     detectarCidade = _DetectarCidadeUseCaseFalso();
-    cubit = CidadeSelecaoCubit(geolocator, obterCidadesAtendidas, detectarCidade);
+    validarCidadeAtendida = _ValidarCidadeAtendidaUseCaseFalso();
+    cubit = CidadeSelecaoCubit(
+      geolocator,
+      obterCidadesAtendidas,
+      detectarCidade,
+      validarCidadeAtendida,
+    );
 
     // O toque no CTA navega para CidadeSelecaoScreen, que resolve
     // SalvarCidadeUseCase via getIt quando nenhum é injetado por construtor

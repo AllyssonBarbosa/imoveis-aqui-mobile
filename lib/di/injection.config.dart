@@ -33,6 +33,8 @@ import 'package:imoveis_aqui/domain/usecases/obter_cidades_atendidas_usecase.dar
     as _i54;
 import 'package:imoveis_aqui/domain/usecases/salvar_cidade_usecase.dart'
     as _i589;
+import 'package:imoveis_aqui/domain/usecases/validar_cidade_atendida_usecase.dart'
+    as _i14;
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_cubit.dart'
     as _i765;
 import 'package:injectable/injectable.dart' as _i526;
@@ -78,11 +80,17 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i589.SalvarCidadeUseCase>(
       () => _i589.SalvarCidadeUseCase(gh<_i146.CidadeRepository>()),
     );
+    gh.factory<_i14.ValidarCidadeAtendidaUseCase>(
+      () => _i14.ValidarCidadeAtendidaUseCase(
+        gh<_i54.ObterCidadesAtendidasUseCase>(),
+      ),
+    );
     gh.factory<_i765.CidadeSelecaoCubit>(
       () => _i765.CidadeSelecaoCubit(
         gh<_i246.GeolocatorGateway>(),
         gh<_i54.ObterCidadesAtendidasUseCase>(),
         gh<_i502.DetectarCidadeUseCase>(),
+        gh<_i14.ValidarCidadeAtendidaUseCase>(),
       ),
     );
     return this;
