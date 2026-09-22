@@ -41,7 +41,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. A cidade escolhida é guardada no aparelho (sem conta e sem senha), reusada nas próximas aberturas, e trocável num toque no topo da tela.
   5. Existe um documento de contrato (nomes de campo, enums, nomes de parâmetro de filtro, envelope de paginação) para `GET /cidades` e `GET /imoveis`, escrito e acordado com a frente web antes de qualquer código de APP02/APP03 ou do endpoint real de imóveis.
 
-**Plans**: 3/4 plans executed
+**Plans**: 4/4 plans executed
 Plans:
 **Wave 1**
 
@@ -54,7 +54,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 01-04-PLAN.md — City switcher + returning-visitor launch routing (LOC-05)
+- [x] 01-04-PLAN.md — City switcher + returning-visitor launch routing (LOC-05)
 
 **UI hint**: yes
 
@@ -114,7 +114,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Localização, Escolha de Cidade e Contrato da API | 3/4 | In Progress|  |
+| 1. Localização, Escolha de Cidade e Contrato da API | 4/4 | In Progress|  |
 | 2. Vitrine — Lista, Busca e Ordenação | 0/TBD | Not started | - |
 | 3. Vitrine — Filtros Server-Side | 0/TBD | Not started | - |
 | 4. Imóveis Real — Endpoint Público e Integração Final | 0/TBD | Not started | - |
