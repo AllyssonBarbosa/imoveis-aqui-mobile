@@ -41,11 +41,11 @@ class ImoveisAquiApp extends StatelessWidget {
 /// Decide, no lançamento, o destino inicial (D-08):
 /// - Sem cidade salva → [PrimingScreen] (LOC-01, o prompt de localização só
 ///   dispara a partir do toque no CTA — nunca aqui).
-/// - Com cidade salva → entra direto na [CidadeSelecaoScreen] já no estado
-///   `autorizadaEAtendida`, sem re-pedir GPS (D-08). A validação do
-///   `nome+uf` salvo contra a lista atendida atual é endurecida no Plano
-///   01-04 (RESEARCH Pitfall 5) — aqui a cidade guardada é confiada
-///   diretamente, preservando o comportamento já provado no Plano 01-01.
+/// - Com cidade salva → entra direto na [CidadeSelecaoScreen] via
+///   [CidadeSelecaoCubit.iniciarNaAberturaComCidadeSalva], que revalida a
+///   cidade salva contra a lista atendida ATUAL antes de confiar nela (D-08
+///   + RESEARCH Pitfall 5/A2) — sem re-pedir GPS em nenhum dos dois
+///   desfechos (servida ou não mais servida).
 class _TelaInicial extends StatefulWidget {
   const _TelaInicial();
 
@@ -90,7 +90,8 @@ class _TelaInicialState extends State<_TelaInicial> {
         );
       case DestinoInicial.entraDireto:
         return BlocProvider<CidadeSelecaoCubit>(
-          create: (_) => getIt<CidadeSelecaoCubit>()..entrarDireto(cidadeSalva!),
+          create: (_) => getIt<CidadeSelecaoCubit>()
+            ..iniciarNaAberturaComCidadeSalva(cidadeSalva!),
           child: const CidadeSelecaoScreen(),
         );
     }

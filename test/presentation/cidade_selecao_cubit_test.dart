@@ -5,6 +5,7 @@ import 'package:imoveis_aqui/domain/entities/cidade.dart';
 import 'package:imoveis_aqui/domain/gateways/geolocator_gateway.dart';
 import 'package:imoveis_aqui/domain/usecases/detectar_cidade_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/obter_cidades_atendidas_usecase.dart';
+import 'package:imoveis_aqui/domain/usecases/validar_cidade_atendida_usecase.dart';
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_cubit.dart';
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_state.dart';
 import 'package:mocktail/mocktail.dart';
@@ -17,10 +18,14 @@ class _ObterCidadesAtendidasUseCaseFalso extends Mock
 class _DetectarCidadeUseCaseFalso extends Mock
     implements DetectarCidadeUseCase {}
 
+class _ValidarCidadeAtendidaUseCaseFalso extends Mock
+    implements ValidarCidadeAtendidaUseCase {}
+
 void main() {
   late _GeolocatorGatewayFalso geolocator;
   late _ObterCidadesAtendidasUseCaseFalso obterCidadesAtendidas;
   late _DetectarCidadeUseCaseFalso detectarCidade;
+  late _ValidarCidadeAtendidaUseCaseFalso validarCidadeAtendida;
 
   const campinas = Cidade(nome: 'Campinas', uf: 'SP');
   const listaAtendida = [campinas, Cidade(nome: 'Valinhos', uf: 'SP')];
@@ -29,10 +34,15 @@ void main() {
     geolocator = _GeolocatorGatewayFalso();
     obterCidadesAtendidas = _ObterCidadesAtendidasUseCaseFalso();
     detectarCidade = _DetectarCidadeUseCaseFalso();
+    validarCidadeAtendida = _ValidarCidadeAtendidaUseCaseFalso();
   });
 
-  CidadeSelecaoCubit construir() =>
-      CidadeSelecaoCubit(geolocator, obterCidadesAtendidas, detectarCidade);
+  CidadeSelecaoCubit construir() => CidadeSelecaoCubit(
+    geolocator,
+    obterCidadesAtendidas,
+    detectarCidade,
+    validarCidadeAtendida,
+  );
 
   blocTest<CidadeSelecaoCubit, CidadeSelecaoState>(
     'serviço de localização desligado → emite servicoDesligado com a lista',
@@ -262,6 +272,62 @@ void main() {
       verifyNever(() => geolocator.isServicoHabilitado());
       verifyNever(() => geolocator.verificarPermissao());
       verifyNever(() => geolocator.solicitarPermissao());
+    },
+  );
+
+  blocTest<CidadeSelecaoCubit, CidadeSelecaoState>(
+    'iniciarNaAberturaComCidadeSalva: cidade salva AINDA atendida → emite '
+    'autorizadaEAtendida, sem tocar GPS/permissão (D-08)',
+    build: construir,
+    setUp: () {
+      when(() => validarCidadeAtendida(campinas)).thenAnswer(
+        (_) async => const CidadeSelecaoState.autorizadaEAtendida(campinas),
+      );
+    },
+    act: (cubit) => cubit.iniciarNaAberturaComCidadeSalva(campinas),
+    expect: () => [
+      const CidadeSelecaoState.localizando(),
+      const CidadeSelecaoState.autorizadaEAtendida(campinas),
+    ],
+    verify: (_) {
+      verifyNever(() => geolocator.isServicoHabilitado());
+      verifyNever(() => geolocator.verificarPermissao());
+      verifyNever(() => geolocator.solicitarPermissao());
+      verifyNever(() => geolocator.obterPosicaoAtual());
+      verifyNever(() => detectarCidade());
+    },
+  );
+
+  blocTest<CidadeSelecaoCubit, CidadeSelecaoState>(
+    'iniciarNaAberturaComCidadeSalva: cidade salva NÃO está mais atendida → '
+    'emite autorizadaNaoAtendida (cai na lista, nunca uma cidade fantasma), '
+    'sem tocar GPS/permissão (RESEARCH Pitfall 5/A2)',
+    build: construir,
+    setUp: () {
+      const cidadeRemovida = Cidade(nome: 'Sorocaba', uf: 'SP');
+      when(() => validarCidadeAtendida(cidadeRemovida)).thenAnswer(
+        (_) async => const CidadeSelecaoState.autorizadaNaoAtendida(
+          'Sorocaba',
+          listaAtendida,
+        ),
+      );
+    },
+    act: (cubit) => cubit.iniciarNaAberturaComCidadeSalva(
+      const Cidade(nome: 'Sorocaba', uf: 'SP'),
+    ),
+    expect: () => [
+      const CidadeSelecaoState.localizando(),
+      const CidadeSelecaoState.autorizadaNaoAtendida(
+        'Sorocaba',
+        listaAtendida,
+      ),
+    ],
+    verify: (_) {
+      verifyNever(() => geolocator.isServicoHabilitado());
+      verifyNever(() => geolocator.verificarPermissao());
+      verifyNever(() => geolocator.solicitarPermissao());
+      verifyNever(() => geolocator.obterPosicaoAtual());
+      verifyNever(() => detectarCidade());
     },
   );
 }

@@ -6,6 +6,7 @@ import '../../domain/entities/cidade.dart';
 import '../../domain/gateways/geolocator_gateway.dart';
 import '../../domain/usecases/detectar_cidade_usecase.dart';
 import '../../domain/usecases/obter_cidades_atendidas_usecase.dart';
+import '../../domain/usecases/validar_cidade_atendida_usecase.dart';
 import 'cidade_selecao_state.dart';
 
 /// Orquestra o fluxo de permissão de localização (RESEARCH Pattern 4) e
@@ -22,11 +23,13 @@ class CidadeSelecaoCubit extends Cubit<CidadeSelecaoState> {
     this._geolocator,
     this._obterCidadesAtendidas,
     this._detectarCidade,
+    this._validarCidadeAtendida,
   ) : super(const CidadeSelecaoState.localizando());
 
   final GeolocatorGateway _geolocator;
   final ObterCidadesAtendidasUseCase _obterCidadesAtendidas;
   final DetectarCidadeUseCase _detectarCidade;
+  final ValidarCidadeAtendidaUseCase _validarCidadeAtendida;
 
   /// Ponto de entrada único do fluxo de localização — chamado a partir do
   /// toque no CTA da tela de priming (D-05), nunca em `initState`.
@@ -65,12 +68,22 @@ class CidadeSelecaoCubit extends Cubit<CidadeSelecaoState> {
     await _emitirComListaAtendida(CidadeSelecaoState.recusada);
   }
 
-  /// Entrada direta numa cidade sem passar pelo fluxo de GPS — usada tanto
-  /// para a cidade já salva no aparelho (D-08, nunca re-pedir GPS) quanto
-  /// para a seleção manual de uma cidade na lista (D-10 aplicado por
-  /// analogia: sem passo de confirmação).
+  /// Entrada direta numa cidade sem passar pelo fluxo de GPS — usada para a
+  /// seleção manual de uma cidade na lista (D-10 aplicado por analogia: sem
+  /// passo de confirmação).
   void entrarDireto(Cidade cidade) {
     emit(CidadeSelecaoState.autorizadaEAtendida(cidade));
+  }
+
+  /// Ponto de entrada do lançamento com cidade já salva no aparelho (D-08):
+  /// revalida a cidade salva contra a lista atendida ATUAL antes de confiar
+  /// nela — nunca chama `GeolocatorGateway`/`GeocodingGateway` (D-08, sem
+  /// GPS na reabertura). Servida → entra direto (autorizadaEAtendida);
+  /// não mais servida → cai na lista em vez de uma vitrine fantasma sem
+  /// imóveis (RESEARCH Pitfall 5/A2).
+  Future<void> iniciarNaAberturaComCidadeSalva(Cidade cidadeSalva) async {
+    emit(const CidadeSelecaoState.localizando());
+    emit(await _validarCidadeAtendida(cidadeSalva));
   }
 
   /// Abre as configurações do sistema (D-06) — usado pelo CTA discreto
