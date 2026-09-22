@@ -4,10 +4,10 @@ current_phase: 01
 current_phase_name: Localização, Escolha de Cidade e Contrato da API
 status: executing
 stopped_at: Completed 01-02-PLAN.md
-last_updated: "2026-09-22T17:14:08.050Z"
+last_updated: "2026-09-22T18:05:23.731Z"
 last_activity: 2026-09-22
 last_activity_desc: Phase 01 execution started
-state_head: b40437ba48b7c82570fcf1f55f6a3fa228e586dd
+state_head: 559486aad290cd0033940a769ae6cc36d0aed7e1
 progress:
   total_phases: 4
   completed_phases: 0
@@ -87,6 +87,7 @@ None yet.
 |---|-------------|------|--------|-----------|
 | 260922-jk3 | Reescrever README com preparo do ambiente e execução do app | 2026-09-22 | e738540 | [260922-jk3-reescrever-o-readme-md-do-projeto-hoje-b](./quick/260922-jk3-reescrever-o-readme-md-do-projeto-hoje-b/) |
 | 2 | Adicionar setup de ambiente Windows ao README | 2026-09-22 | b40437b | — |
+| 3 | Corrigir compileSdk 35→36 (plugins exigem 36+); verificado com build real no emulador | 2026-09-22 | 559486a | — |
 
 ## Deferred Items
 
