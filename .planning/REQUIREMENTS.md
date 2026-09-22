@@ -13,7 +13,7 @@ Requisitos da primeira entrega (tarefas APP01, APP02, APP03 + os endpoints públ
 - [x] **LOC-02**: Autorizada, o app descobre a cidade (reverse geocoding) e já entra nela; se a cidade descoberta não estiver entre as atendidas, cai no fallback de escolha em vez de travar.
 - [x] **LOC-03**: Recusada ou bloqueada — caminho normal, não um beco — o app mostra a lista de cidades atendidas para o visitante escolher.
 - [x] **LOC-04**: A cidade escolhida é guardada no aparelho (sem conta e sem senha) e reusada nas próximas aberturas.
-- [ ] **LOC-05**: O visitante troca de cidade num toque no topo da tela; a nova escolha passa a ser a guardada.
+- [x] **LOC-05**: O visitante troca de cidade num toque no topo da tela; a nova escolha passa a ser a guardada.
 - [x] **LOC-06**: Os desfechos de localização são tratados como estados explícitos (autorizado / recusado / bloqueado-para-sempre / serviço-desligado / cidade-não-atendida), cada um com UI própria — nunca como exceção genérica.
 
 ### Vitrine da cidade (APP02)
@@ -74,7 +74,7 @@ Excluídos de propósito. Documentados para evitar scope creep.
 | LOC-02 | Phase 1 | Complete |
 | LOC-03 | Phase 1 | Complete |
 | LOC-04 | Phase 1 | Complete |
-| LOC-05 | Phase 1 | Pending |
+| LOC-05 | Phase 1 | Complete |
 | LOC-06 | Phase 1 | Complete |
 | API-01 | Phase 1 | Complete |
 | VIT-01 | Phase 2 | Pending |
