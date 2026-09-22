@@ -36,7 +36,7 @@ Requisitos da primeira entrega (tarefas APP01, APP02, APP03 + os endpoints públ
 
 ### API pública (endpoints que o app consome)
 
-- [ ] **API-01**: Auditar a API atual e congelar por escrito o contrato de `/cidades` e `/imoveis` (nomes de campos, enums, nomes dos params de filtro, envelope de paginação) antes de codar APP02/APP03 ou o endpoint real.
+- [x] **API-01**: Auditar a API atual e congelar por escrito o contrato de `/cidades` e `/imoveis` (nomes de campos, enums, nomes dos params de filtro, envelope de paginação) antes de codar APP02/APP03 ou o endpoint real.
 - [ ] **API-02**: `GET /api/publico/cidades/` — endpoint público sem token, expõe as cidades atendidas para a vitrine (app e site).
 - [ ] **API-03**: `GET /api/publico/imoveis/?cidade=...&filtros` — endpoint público sem token com busca, ordenação, filtros e paginação server-side; retorna só imóveis publicados; usa serializer público com allowlist (sem proprietário/documento/dado interno) e não quebra o isolamento multitenant.
 - [ ] **API-04**: A camada de dados do app é trocável (DataSource mock/fixture honrando o contrato → DataSource real por DI), permitindo desenvolver APP02/APP03 antes de o endpoint real de imóveis existir.
@@ -76,7 +76,7 @@ Excluídos de propósito. Documentados para evitar scope creep.
 | LOC-04 | Phase 1 | Pending |
 | LOC-05 | Phase 1 | Pending |
 | LOC-06 | Phase 1 | Pending |
-| API-01 | Phase 1 | Pending |
+| API-01 | Phase 1 | Complete |
 | VIT-01 | Phase 2 | Pending |
 | VIT-02 | Phase 2 | Pending |
 | VIT-03 | Phase 2 | Pending |
@@ -94,6 +94,7 @@ Excluídos de propósito. Documentados para evitar scope creep.
 | API-03 | Phase 4 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 22 total
 - Mapped to phases: 22 (roadmap complete)
 - Unmapped: 0

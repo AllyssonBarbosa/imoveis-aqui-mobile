@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 01
 current_phase_name: Localização, Escolha de Cidade e Contrato da API
 status: executing
-stopped_at: Phase 01 context gathered + UI-SPEC approved
-last_updated: "2026-09-21T21:55:30.366Z"
-last_activity: 2026-09-21
-last_activity_desc: Roadmap created (4 phases, 22/22 requirements mapped)
-state_head: a78d0f158c120677204d5f28f69bfbdacda7fff4
+stopped_at: Completed 01-02-PLAN.md
+last_updated: "2026-09-22T15:04:23.314Z"
+last_activity: 2026-09-22
+last_activity_desc: Phase 01 execution started
+state_head: 41df8871ec26745b388c3b0a4037885cf1090e20
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 4
-  completed_plans: 0
+  completed_plans: 1
   percent: 0
 ---
 
@@ -23,14 +23,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-21)
 
 **Core value:** A vitrine do app abre na cidade do usuário e mostra imóveis reais vindos da API, com a busca e o filtro resolvidos no servidor — o mesmo dado e a mesma regra do site, nunca recalculados dentro do aparelho.
-**Current focus:** Phase 1 — Localização, Escolha de Cidade e Contrato da API
+**Current focus:** Phase 01 — Localização, Escolha de Cidade e Contrato da API
 
 ## Current Position
 
-Phase: 01 (Localização, Escolha de Cidade e Contrato da API) — READY TO EXECUTE
-Plan: 0 of TBD in current phase
+Phase: 01 (Localização, Escolha de Cidade e Contrato da API) — EXECUTING
+Plan: 2 of 4
 Status: Ready to execute
-Last activity: 2026-09-21 — Roadmap created (4 phases, 22/22 requirements mapped)
+Last activity: 2026-09-22 — Phase 01 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -54,6 +54,11 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: -
 
 *Updated after each plan completion*
+**Per-Plan Metrics:**
+
+| Plan | Duration | Tasks | Files |
+|------|----------|-------|-------|
+| Phase 01 P02 | 6 min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -65,6 +70,7 @@ Recent decisions affecting current work:
 - [Roadmap]: API-01 (contract freeze) bundled into Phase 1 alongside APP01 rather than as a standalone phase — research called it parallelizable with zero-API-dependency APP01; keeps it from being a thin, non-user-observable single-requirement phase.
 - [Roadmap]: API-02 (`GET /cidades` real endpoint) folded into Phase 2 rather than a standalone phase — Phase 2 is where the app actually consumes it (VIT-06), so build+consume ship as one coherent, user-observable capability.
 - [Roadmap]: API-03 (`GET /imoveis` real endpoint) kept as its own final Phase 4 per explicit project constraint — genuinely gated on the teammate's (E2) `Imóvel` model landing in the sibling API repo.
+- [Phase 01]: GET /cidades e GET /imoveis frozen contract written (01-CONTRATO-API.md), grounded in real sibling Django models; corrected stale PROJECT.md note that the Imovel model didn't exist. — Public serializer must use an explicit allowlist and never the authenticated ImovelSerializer; tipologia fields marked PENDENTE E2; four semantically-open items (quartos/suites/vagas range-vs-exact, cidade param format, VENDA_E_ALUGUEL card price, ordenacao values) flagged for web-team sign-off instead of guessed.
 
 ### Pending Todos
 
@@ -85,6 +91,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-21T20:57:01.480Z
-Stopped at: Phase 01 context gathered + UI-SPEC approved
-Resume file: .planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/01-UI-SPEC.md
+Last session: 2026-09-22T15:04:23.300Z
+Stopped at: Completed 01-02-PLAN.md
+Resume file: None
