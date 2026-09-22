@@ -25,12 +25,16 @@ import 'package:imoveis_aqui/domain/gateways/geocoding_gateway.dart' as _i881;
 import 'package:imoveis_aqui/domain/gateways/geolocator_gateway.dart' as _i246;
 import 'package:imoveis_aqui/domain/repositories/cidade_repository.dart'
     as _i146;
+import 'package:imoveis_aqui/domain/usecases/detectar_cidade_usecase.dart'
+    as _i502;
 import 'package:imoveis_aqui/domain/usecases/obter_cidade_salva_usecase.dart'
     as _i1060;
 import 'package:imoveis_aqui/domain/usecases/obter_cidades_atendidas_usecase.dart'
     as _i54;
 import 'package:imoveis_aqui/domain/usecases/salvar_cidade_usecase.dart'
     as _i589;
+import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_cubit.dart'
+    as _i765;
 import 'package:injectable/injectable.dart' as _i526;
 
 extension GetItInjectableX on _i174.GetIt {
@@ -58,6 +62,13 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i94.CidadePrefsDataSource>(),
       ),
     );
+    gh.factory<_i502.DetectarCidadeUseCase>(
+      () => _i502.DetectarCidadeUseCase(
+        gh<_i246.GeolocatorGateway>(),
+        gh<_i881.GeocodingGateway>(),
+        gh<_i146.CidadeRepository>(),
+      ),
+    );
     gh.factory<_i1060.ObterCidadeSalvaUseCase>(
       () => _i1060.ObterCidadeSalvaUseCase(gh<_i146.CidadeRepository>()),
     );
@@ -66,6 +77,13 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i589.SalvarCidadeUseCase>(
       () => _i589.SalvarCidadeUseCase(gh<_i146.CidadeRepository>()),
+    );
+    gh.factory<_i765.CidadeSelecaoCubit>(
+      () => _i765.CidadeSelecaoCubit(
+        gh<_i246.GeolocatorGateway>(),
+        gh<_i54.ObterCidadesAtendidasUseCase>(),
+        gh<_i502.DetectarCidadeUseCase>(),
+      ),
     );
     return this;
   }
