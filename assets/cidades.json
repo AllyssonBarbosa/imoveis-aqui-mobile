@@ -1,0 +1,8 @@
+{
+  "next": null,
+  "previous": null,
+  "results": [
+    { "id": 1, "nome": "Campinas", "uf": "SP" },
+    { "id": 2, "nome": "Valinhos", "uf": "SP" }
+  ]
+}
