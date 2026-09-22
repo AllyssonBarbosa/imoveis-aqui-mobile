@@ -73,6 +73,13 @@ class CidadeSelecaoCubit extends Cubit<CidadeSelecaoState> {
     emit(CidadeSelecaoState.autorizadaEAtendida(cidade));
   }
 
+  /// Abre as configurações do sistema (D-06) — usado pelo CTA discreto
+  /// "Ativar localização nas Ajustes" no desfecho `bloqueadaParaSempre`.
+  /// A tela nunca chama o gateway diretamente (constraint de Clean
+  /// Architecture: nenhum Widget faz chamada de rede/plataforma direta).
+  Future<void> abrirConfiguracoesDoSistema() =>
+      _geolocator.abrirConfiguracoesApp();
+
   Future<void> _emitirComListaAtendida(
     CidadeSelecaoState Function(List<Cidade>) construirEstado,
   ) async {
