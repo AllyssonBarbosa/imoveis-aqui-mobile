@@ -6,9 +6,13 @@ plugins {
 
 android {
     namespace = "com.imoveisaqui.imoveis_aqui"
-    // Pinned to 35 (not the flutter.compileSdkVersion default) — geolocator ^14.0.3 requires
-    // compileSdkVersion 35+ (CLAUDE.md Version Compatibility table).
-    compileSdk = 35
+    // Pinned to 36 (not the flutter.compileSdkVersion default) — geolocator_android,
+    // geocoding_android, package_info_plus and shared_preferences_android all require
+    // compileSdk 36+ as of the versions resolved by pubspec.lock (verified via a real
+    // `flutter build apk` failure: "Dependency ':geolocator_android' requires ... compile
+    // against version 36"). compileSdk is backward compatible and does not change
+    // minSdk/targetSdk (still flutter.minSdkVersion/flutter.targetSdkVersion below).
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
