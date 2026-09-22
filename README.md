@@ -11,19 +11,37 @@ tudo vem calculado e filtrado pela API Django do projeto.
 
 ## Pré-requisitos
 
-- **Flutter 3.47.5 stable / Dart 3.13.4** (canal stable). No macOS (Apple Silicon/M1),
-  instale pelo [instalador oficial](https://docs.flutter.dev/get-started/install) ou via
-  Homebrew:
+- **Flutter 3.47.5 stable / Dart 3.13.4** (canal stable). Confirme a instalação com
+  `flutter --version` e valide o toolchain com `flutter doctor`.
 
-  ```bash
-  brew install --cask flutter
-  ```
+  - **macOS (Apple Silicon/M1):** instale pelo [instalador oficial](https://docs.flutter.dev/get-started/install)
+    ou via Homebrew:
 
-  Confirme a instalação com `flutter --version`.
+    ```bash
+    brew install --cask flutter
+    ```
 
-- Um dispositivo/emulador Android **ou** simulador iOS (os alvos de deploy são Android e
-  iOS — Windows e macOS são apenas máquinas de desenvolvimento). Rode `flutter doctor` para
-  checar o toolchain.
+  - **Windows:** instale pelo [instalador oficial](https://docs.flutter.dev/get-started/install/windows)
+    ou via winget/Chocolatey, adicione o Flutter ao `PATH` e reabra o terminal:
+
+    ```powershell
+    winget install --id Google.Flutter
+    # ou, com o Chocolatey:
+    choco install flutter
+    ```
+
+    Instale também o **Android Studio + Android SDK** e habilite o **Modo de Desenvolvedor**
+    do Windows (necessário para alguns plugins). Rode `flutter doctor` para conferir.
+
+- Um dispositivo ou emulador conforme o SO da máquina de desenvolvimento (os alvos de deploy
+  são Android e iOS — Windows e macOS são apenas máquinas de desenvolvimento):
+
+  - **macOS:** emulador Android **ou** simulador iOS.
+  - **Windows:** apenas Android (emulador ou dispositivo físico). Build e simulador **iOS
+    exigem macOS** — não há como compilar/rodar para iOS no Windows.
+
+  Os testes automatizados (`flutter test`) e a análise estática (`flutter analyze`) rodam em
+  qualquer SO, inclusive Windows, sem necessidade de emulador.
 
 ## Preparar o ambiente (setup)
 
