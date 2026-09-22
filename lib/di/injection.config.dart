@@ -15,8 +15,14 @@ import 'package:imoveis_aqui/data/datasources/cidade_local_datasource.dart'
     as _i736;
 import 'package:imoveis_aqui/data/datasources/cidade_prefs_datasource.dart'
     as _i94;
+import 'package:imoveis_aqui/data/gateways/geocoding_gateway_impl.dart'
+    as _i506;
+import 'package:imoveis_aqui/data/gateways/geolocator_gateway_impl.dart'
+    as _i777;
 import 'package:imoveis_aqui/data/repositories/cidade_repository_impl.dart'
     as _i912;
+import 'package:imoveis_aqui/domain/gateways/geocoding_gateway.dart' as _i881;
+import 'package:imoveis_aqui/domain/gateways/geolocator_gateway.dart' as _i246;
 import 'package:imoveis_aqui/domain/repositories/cidade_repository.dart'
     as _i146;
 import 'package:imoveis_aqui/domain/usecases/obter_cidade_salva_usecase.dart'
@@ -39,6 +45,12 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i94.CidadePrefsDataSource>(
       () => _i94.CidadePrefsDataSource(),
+    );
+    gh.lazySingleton<_i881.GeocodingGateway>(
+      () => _i506.GeocodingGatewayImpl(),
+    );
+    gh.lazySingleton<_i246.GeolocatorGateway>(
+      () => _i777.GeolocatorGatewayImpl(),
     );
     gh.lazySingleton<_i146.CidadeRepository>(
       () => _i912.CidadeRepositoryImpl(
