@@ -6,6 +6,7 @@ import 'package:injectable/injectable.dart';
 import '../../core/result.dart';
 import '../../domain/entities/cidade.dart';
 import '../../domain/entities/consulta_imoveis.dart';
+import '../../domain/entities/ordenacao_vitrine.dart';
 import '../../domain/usecases/buscar_imoveis_usecase.dart';
 import 'vitrine_state.dart';
 
@@ -22,10 +23,62 @@ class VitrineCubit extends Cubit<VitrineState> {
   Cidade? _cidade;
   int _versaoConsulta = 0;
 
+  /// Debounce da busca por texto (D-08) — `Timer` próprio, sem
+  /// `easy_debounce` (CLAUDE.md); cancelado a cada nova tecla e em [close].
+  Timer? _debounce;
+
   /// Ponto de entrada — chamado ao montar a vitrine para a cidade escolhida.
   void carregar(Cidade cidade) {
     _cidade = cidade;
     unawaited(_reiniciar());
+  }
+
+  /// Busca por texto (VIT-03) com debounce de 400 ms a partir de 2
+  /// caracteres (D-08): cancela qualquer debounce pendente a cada chamada;
+  /// campo vazio (após `trim`) volta à lista completa IMEDIATAMENTE, sem
+  /// esperar o debounce, mas só dispara se havia um termo aplicado; menos de
+  /// 2 caracteres não dispara nada e a lista atual continua; o mesmo termo já
+  /// aplicado nunca gera uma nova chamada (idempotência).
+  void buscar(String texto) {
+    _debounce?.cancel();
+    final termo = texto.trim();
+
+    if (termo.isEmpty) {
+      if (state.termoBusca != null) {
+        unawaited(
+          _aplicarConsulta(ordenacao: state.ordenacao, termoBusca: null),
+        );
+      }
+      return;
+    }
+
+    if (termo.length < 2) return;
+
+    _debounce = Timer(const Duration(milliseconds: 400), () {
+      if (termo == state.termoBusca) return;
+      unawaited(
+        _aplicarConsulta(ordenacao: state.ordenacao, termoBusca: termo),
+      );
+    });
+  }
+
+  /// Limpa a busca imediatamente (botão "Limpar busca", D-09) — mesmo efeito
+  /// de apagar o campo por completo em [buscar], mas chamado diretamente
+  /// pela UI (ex.: toque no "X" da `SearchBar` ou no botão do estado
+  /// sem-resultado).
+  void limparBusca() {
+    _debounce?.cancel();
+    if (state.termoBusca != null) {
+      unawaited(
+        _aplicarConsulta(ordenacao: state.ordenacao, termoBusca: null),
+      );
+    }
+  }
+
+  @override
+  Future<void> close() {
+    _debounce?.cancel();
+    return super.close();
   }
 
   /// Refaz a consulta atual — usado pelo "Tentar de novo" tanto no erro da
@@ -114,19 +167,37 @@ class VitrineCubit extends Cubit<VitrineState> {
     }
   }
 
-  Future<void> _reiniciar() async {
+  /// Refaz a consulta atual (mesmos `ordenacao`/`termoBusca` do estado) —
+  /// usada por [carregar]. Delega a [_aplicarConsulta].
+  Future<void> _reiniciar() =>
+      _aplicarConsulta(ordenacao: state.ordenacao, termoBusca: state.termoBusca);
+
+  /// Reinicia a lista do topo (D-13) com uma nova combinação de
+  /// `ordenacao`/`termoBusca`: incrementa o token de versão (descarta
+  /// qualquer resposta em voo — inclusive um `carregarMais()` — de uma
+  /// consulta anterior), emite UM único estado de loading (descartando
+  /// cursor/itens antigos) e então busca a primeira página. Usada por
+  /// [_reiniciar] (mesmos valores do estado), [buscar]/[limparBusca] (novo
+  /// `termoBusca`, mesma `ordenacao`) e `ordenarPor` (nova `ordenacao`, mesmo
+  /// `termoBusca`).
+  Future<void> _aplicarConsulta({
+    required OrdenacaoVitrine ordenacao,
+    required String? termoBusca,
+  }) async {
     final cidade = _cidade;
     if (cidade == null) return;
 
     final minhaVersao = ++_versaoConsulta;
-    emit(state.copyWith(conteudo: const ConteudoVitrine.carregando()));
+    emit(
+      state.copyWith(
+        ordenacao: ordenacao,
+        termoBusca: termoBusca,
+        conteudo: const ConteudoVitrine.carregando(),
+      ),
+    );
 
     final resultado = await _buscarImoveis(
-      ConsultaImoveis(
-        cidade: cidade,
-        busca: state.termoBusca,
-        ordenacao: state.ordenacao,
-      ),
+      ConsultaImoveis(cidade: cidade, busca: termoBusca, ordenacao: ordenacao),
     );
 
     // Resposta obsoleta (nova consulta disparada nesse meio-tempo) ou Cubit
@@ -135,11 +206,9 @@ class VitrineCubit extends Cubit<VitrineState> {
 
     switch (resultado) {
       case Success(:final data):
-        if (data.itens.isEmpty && state.termoBusca != null) {
+        if (data.itens.isEmpty && termoBusca != null) {
           emit(
-            state.copyWith(
-              conteudo: ConteudoVitrine.semResultado(state.termoBusca!),
-            ),
+            state.copyWith(conteudo: ConteudoVitrine.semResultado(termoBusca)),
           );
         } else if (data.itens.isEmpty) {
           emit(

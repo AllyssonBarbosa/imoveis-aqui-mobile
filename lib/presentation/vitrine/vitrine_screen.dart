@@ -34,6 +34,12 @@ class _VitrineScreenState extends State<VitrineScreen> {
     keepScrollOffset: false,
   );
 
+  // Dono da `SearchBar` (D-07) — a tela controla o texto para poder limpá-lo
+  // de dois lugares (o "X" da própria barra e o "Limpar busca" do estado
+  // sem-resultado), sem duplicar estado no Cubit (que só guarda o termo já
+  // aplicado, não o rascunho em digitação).
+  final TextEditingController _controleDeBusca = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -45,7 +51,13 @@ class _VitrineScreenState extends State<VitrineScreen> {
     _controleDeRolagem
       ..removeListener(_aoRolar)
       ..dispose();
+    _controleDeBusca.dispose();
     super.dispose();
+  }
+
+  void _limparBusca() {
+    _controleDeBusca.clear();
+    context.read<VitrineCubit>().limparBusca();
   }
 
   void _aoRolar() {
@@ -84,6 +96,28 @@ class _VitrineScreenState extends State<VitrineScreen> {
         children: [
           SeletorCidadeTopo(cidade: widget.cidade),
           const SizedBox(height: 16),
+          SearchBar(
+            controller: _controleDeBusca,
+            hintText: 'Buscar por título ou bairro',
+            leading: const Icon(Icons.search),
+            trailing: [
+              ListenableBuilder(
+                listenable: _controleDeBusca,
+                builder: (context, _) {
+                  if (_controleDeBusca.text.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+                  return IconButton(
+                    tooltip: 'Limpar busca',
+                    icon: const Icon(Icons.clear),
+                    onPressed: _limparBusca,
+                  );
+                },
+              ),
+            ],
+            onChanged: (texto) => context.read<VitrineCubit>().buscar(texto),
+          ),
+          const SizedBox(height: 16),
           Expanded(
             child: BlocBuilder<VitrineCubit, VitrineState>(
               builder: (context, state) {
@@ -102,10 +136,23 @@ class _VitrineScreenState extends State<VitrineScreen> {
                     ),
                   ),
                   VitrineSemResultado(:final termo) => Center(
-                    child: Text(
-                      'Nenhum imóvel encontrado para "$termo"',
-                      style: textTheme.bodyLarge,
-                      textAlign: TextAlign.center,
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Nenhum imóvel encontrado para "$termo"',
+                            style: textTheme.bodyLarge,
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 16),
+                          TextButton(
+                            onPressed: _limparBusca,
+                            child: const Text('Limpar busca'),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   VitrineErro() => Center(

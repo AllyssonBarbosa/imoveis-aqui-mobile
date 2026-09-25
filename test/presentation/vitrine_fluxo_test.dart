@@ -2,6 +2,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:imoveis_aqui/core/texto_normalizado.dart';
 import 'package:imoveis_aqui/data/datasources/imovel_mock_datasource.dart';
 import 'package:imoveis_aqui/data/mocks/imoveis_fixture.dart';
 import 'package:imoveis_aqui/data/repositories/imovel_repository_impl.dart';
@@ -172,6 +173,51 @@ void main() {
       }
 
       expect(conteudo.itens.map((i) => i.id).toList(), idsEsperados);
+    },
+  );
+
+  testWidgets(
+    'Campinas: digitar "cambui" na SearchBar e aguardar 400 ms mostra só os '
+    'imóveis cujo título ou bairro contém "Cambuí" (VIT-03, D-06, D-08)',
+    (tester) async {
+      await pumpVitrineDe(tester, campinas);
+
+      await tester.enterText(find.byType(SearchBar), 'cambui');
+      await tester.pump(const Duration(milliseconds: 400));
+      // Latência da DataSource é zero neste helper — mais um pump assenta a
+      // resposta que chega no microtask seguinte ao disparo do debounce.
+      await tester.pump();
+
+      bool linhaContemTermo(Map<String, Object?> linha) {
+        final tituloNormalizado = normalizarTexto(linha['titulo']! as String);
+        final bairroNormalizado = normalizarTexto(linha['bairro']! as String);
+        return tituloNormalizado.contains('cambui') ||
+            bairroNormalizado.contains('cambui');
+      }
+
+      final idsEsperados =
+          linhasAcervoFixture()
+              .where(
+                (l) =>
+                    (l['cidade']! as Map<String, Object?>)['nome'] ==
+                        'Campinas' &&
+                    linhaContemTermo(l),
+              )
+              .map((l) => l['id']! as int)
+              .toSet();
+      expect(idsEsperados, isNotEmpty);
+
+      final vitrineCubit = BlocProvider.of<VitrineCubit>(
+        tester.element(find.byType(ListView)),
+      );
+      final conteudo = vitrineCubit.state.conteudo as VitrineCarregada;
+      expect(conteudo.itens.map((i) => i.id).toSet(), idsEsperados);
+
+      final cards = tester.widgetList<ImovelCard>(find.byType(ImovelCard));
+      expect(cards, isNotEmpty);
+      for (final card in cards) {
+        expect(idsEsperados.contains(card.imovel.id), isTrue);
+      }
     },
   );
 }

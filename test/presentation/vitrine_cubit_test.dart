@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/core/result.dart';
 import 'package:imoveis_aqui/domain/entities/cidade.dart';
@@ -213,6 +214,220 @@ void main() {
       await Future<void>.delayed(Duration.zero);
     },
   );
+
+  group('buscar (VIT-03, D-08, D-09, D-13)', () {
+    late List<ConsultaImoveis> consultas;
+
+    /// Registra toda [ConsultaImoveis] enviada ao use case, para asserções
+    /// sobre a SEQUÊNCIA de chamadas (não apenas a última) — fica claro que
+    /// o debounce coalesceu digitações rápidas numa única chamada.
+    VitrineCubit construirComRegistro({
+      PaginaImoveis Function(ConsultaImoveis)? respostaPara,
+    }) {
+      consultas = [];
+      when(() => buscarImoveis(any())).thenAnswer((invocation) async {
+        final consulta =
+            invocation.positionalArguments.first as ConsultaImoveis;
+        consultas.add(consulta);
+        final pagina =
+            respostaPara?.call(consulta) ?? const PaginaImoveis(itens: []);
+        return Result.success(pagina);
+      });
+      return VitrineCubit(buscarImoveis);
+    }
+
+    test(
+      'buscar("c") (1 caractere) nunca dispara nada, mesmo após 1s de tempo '
+      'virtual — a lista atual continua (D-08)',
+      () {
+        fakeAsync((async) {
+          final cubit = construirComRegistro();
+          cubit.carregar(campinas);
+          async.flushMicrotasks();
+          expect(consultas, hasLength(1)); // só o carregar() inicial
+
+          cubit.buscar('c');
+          async.elapse(const Duration(seconds: 1));
+
+          expect(consultas, hasLength(1));
+          unawaited(cubit.close());
+        });
+      },
+    );
+
+    test(
+      'buscar("ca"): nada aos 399 ms, exatamente uma chamada aos 400 ms com '
+      'termoBusca "ca" (D-08)',
+      () {
+        fakeAsync((async) {
+          final cubit = construirComRegistro();
+          cubit.carregar(campinas);
+          async.flushMicrotasks();
+
+          cubit.buscar('ca');
+          async.elapse(const Duration(milliseconds: 399));
+          expect(consultas, hasLength(1));
+
+          async.elapse(const Duration(milliseconds: 1));
+          expect(consultas, hasLength(2));
+          expect(consultas.last.busca, 'ca');
+
+          unawaited(cubit.close());
+        });
+      },
+    );
+
+    test(
+      'digitar "ca" -> "cas" -> "casa" dentro de 400 ms gera exatamente uma '
+      'chamada, com o termo final "casa" (coalescência do debounce)',
+      () {
+        fakeAsync((async) {
+          final cubit = construirComRegistro();
+          cubit.carregar(campinas);
+          async.flushMicrotasks();
+
+          cubit.buscar('ca');
+          async.elapse(const Duration(milliseconds: 100));
+          cubit.buscar('cas');
+          async.elapse(const Duration(milliseconds: 100));
+          cubit.buscar('casa');
+          async.elapse(const Duration(milliseconds: 400));
+
+          expect(consultas, hasLength(2)); // carregar() + a única busca
+          expect(consultas.last.busca, 'casa');
+
+          unawaited(cubit.close());
+        });
+      },
+    );
+
+    test(
+      'buscar("") com termo aplicado recarrega IMEDIATAMENTE com busca '
+      'null (sem esperar debounce); buscar("") sem termo aplicado não '
+      'dispara nada (D-08)',
+      () {
+        fakeAsync((async) {
+          final cubit = construirComRegistro();
+          cubit.carregar(campinas);
+          async.flushMicrotasks();
+
+          cubit.buscar(''); // sem termo aplicado ainda
+          expect(consultas, hasLength(1));
+
+          cubit.buscar('casa');
+          async.elapse(const Duration(milliseconds: 400));
+          expect(consultas, hasLength(2));
+          expect(cubit.state.termoBusca, 'casa');
+
+          cubit.buscar(''); // termo aplicado — dispara na hora
+          expect(consultas, hasLength(3));
+          expect(consultas.last.busca, isNull);
+          expect(cubit.state.termoBusca, isNull);
+
+          unawaited(cubit.close());
+        });
+      },
+    );
+
+    test(
+      'buscar(termo já aplicado) nunca gera uma nova chamada (idempotência)',
+      () {
+        fakeAsync((async) {
+          final cubit = construirComRegistro();
+          cubit.carregar(campinas);
+          async.flushMicrotasks();
+
+          cubit.buscar('casa');
+          async.elapse(const Duration(milliseconds: 400));
+          expect(consultas, hasLength(2));
+
+          cubit.buscar('casa');
+          async.elapse(const Duration(milliseconds: 400));
+          expect(consultas, hasLength(2));
+
+          unawaited(cubit.close());
+        });
+      },
+    );
+
+    test(
+      'sucesso vazio com termo aplicado emite semResultado(termo) (D-09); '
+      'limparBusca() recarrega imediatamente sem termo',
+      () {
+        fakeAsync((async) {
+          final cubit = construirComRegistro();
+          cubit.carregar(campinas);
+          async.flushMicrotasks();
+
+          cubit.buscar('casa');
+          async.elapse(const Duration(milliseconds: 400));
+
+          expect(
+            cubit.state.conteudo,
+            const ConteudoVitrine.semResultado('casa'),
+          );
+
+          cubit.limparBusca();
+          expect(cubit.state.termoBusca, isNull);
+          expect(consultas.last.busca, isNull);
+
+          unawaited(cubit.close());
+        });
+      },
+    );
+
+    test(
+      'termo A em voo (Completer) é descartado quando o termo B já resolveu '
+      '— nunca sobrescreve a lista mais nova (D-13)',
+      () {
+        fakeAsync((async) {
+          final completerA = Completer<Result<PaginaImoveis>>();
+          when(() => buscarImoveis(any())).thenAnswer((invocation) {
+            final consulta =
+                invocation.positionalArguments.first as ConsultaImoveis;
+            if (consulta.busca == 'aaaa') return completerA.future;
+            return Future.value(
+              Result.success(PaginaImoveis(itens: [imovelDe(campinas, 9)])),
+            );
+          });
+
+          final cubit = VitrineCubit(buscarImoveis);
+          cubit.carregar(campinas);
+          async.flushMicrotasks();
+
+          cubit.buscar('aaaa');
+          async.elapse(const Duration(milliseconds: 400)); // A em voo
+
+          cubit.buscar('bbbb');
+          async.elapse(const Duration(milliseconds: 400)); // B resolve
+
+          completerA.complete(
+            Result.success(PaginaImoveis(itens: [imovelDe(campinas, 1)])),
+          );
+          async.flushMicrotasks();
+
+          final conteudo = cubit.state.conteudo as VitrineCarregada;
+          expect(conteudo.itens.single.id, 9);
+
+          unawaited(cubit.close());
+        });
+      },
+    );
+
+    test('close() com debounce pendente nunca dispara a chamada', () {
+      fakeAsync((async) {
+        final cubit = construirComRegistro();
+        cubit.carregar(campinas);
+        async.flushMicrotasks();
+
+        cubit.buscar('casa');
+        unawaited(cubit.close());
+        async.elapse(const Duration(milliseconds: 500));
+
+        expect(consultas, hasLength(1)); // só o carregar() inicial
+      });
+    });
+  });
 
   group('carregarMais (VIT-05, D-13)', () {
     Future<VitrineCubit> construirCarregada({

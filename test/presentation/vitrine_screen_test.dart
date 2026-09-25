@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/domain/entities/cidade.dart';
 import 'package:imoveis_aqui/domain/entities/imovel.dart';
+import 'package:imoveis_aqui/presentation/cidade_selecao/widgets/seletor_cidade_topo.dart';
 import 'package:imoveis_aqui/presentation/vitrine/vitrine_cubit.dart';
 import 'package:imoveis_aqui/presentation/vitrine/vitrine_screen.dart';
 import 'package:imoveis_aqui/presentation/vitrine/vitrine_state.dart';
@@ -33,6 +34,8 @@ void main() {
     cubit = _VitrineCubitFalso();
     when(() => cubit.carregarMais()).thenAnswer((_) async {});
     when(() => cubit.tentarNovamente()).thenReturn(null);
+    when(() => cubit.buscar(any())).thenReturn(null);
+    when(() => cubit.limparBusca()).thenReturn(null);
   });
 
   Future<void> pumpEstado(
@@ -88,7 +91,9 @@ void main() {
   );
 
   testWidgets(
-    'semResultado mostra texto próprio, distinto do vazio da cidade (D-09)',
+    'semResultado mostra texto próprio + "Limpar busca", distinto do vazio '
+    'da cidade (D-09); tocar "Limpar busca" chama limparBusca() e esvazia o '
+    'campo de busca',
     (tester) async {
       await pumpEstado(
         tester,
@@ -100,8 +105,79 @@ void main() {
         find.text('Ainda não há imóveis anunciados em Campinas.'),
         findsNothing,
       );
+      expect(find.text('Limpar busca'), findsOneWidget);
+
+      await tester.enterText(find.byType(SearchBar), 'xyz');
+      await tester.pump();
+      await tester.tap(find.text('Limpar busca'));
+      await tester.pump();
+
+      verify(() => cubit.limparBusca()).called(1);
+      final campo = tester.widget<SearchBar>(find.byType(SearchBar));
+      expect(campo.controller!.text, isEmpty);
     },
   );
+
+  group('SearchBar (VIT-03, D-07)', () {
+    testWidgets(
+      'SearchBar aparece abaixo do SeletorCidadeTopo, com o hint esperado',
+      (tester) async {
+        await pumpEstado(
+          tester,
+          const VitrineState(conteudo: ConteudoVitrine.carregando()),
+        );
+
+        expect(find.byType(SearchBar), findsOneWidget);
+        expect(find.text('Buscar por título ou bairro'), findsOneWidget);
+
+        final coluna = tester.widget<Column>(find.byType(Column).first);
+        final indiceSeletor = coluna.children.indexWhere(
+          (w) => w is SeletorCidadeTopo,
+        );
+        final indiceBusca = coluna.children.indexWhere((w) => w is SearchBar);
+        expect(indiceSeletor, greaterThanOrEqualTo(0));
+        expect(indiceBusca, greaterThan(indiceSeletor));
+      },
+    );
+
+    testWidgets('digitar na SearchBar chama cubit.buscar(texto)', (
+      tester,
+    ) async {
+      await pumpEstado(
+        tester,
+        const VitrineState(conteudo: ConteudoVitrine.carregando()),
+      );
+
+      await tester.enterText(find.byType(SearchBar), 'casa');
+      await tester.pump();
+
+      verify(() => cubit.buscar('casa')).called(1);
+    });
+
+    testWidgets(
+      'botão "X" só aparece com texto digitado; tocar limpa o campo e '
+      'chama limparBusca()',
+      (tester) async {
+        await pumpEstado(
+          tester,
+          const VitrineState(conteudo: ConteudoVitrine.carregando()),
+        );
+
+        expect(find.byIcon(Icons.clear), findsNothing);
+
+        await tester.enterText(find.byType(SearchBar), 'casa');
+        await tester.pump();
+        expect(find.byIcon(Icons.clear), findsOneWidget);
+
+        await tester.tap(find.byIcon(Icons.clear));
+        await tester.pump();
+
+        verify(() => cubit.limparBusca()).called(1);
+        final campo = tester.widget<SearchBar>(find.byType(SearchBar));
+        expect(campo.controller!.text, isEmpty);
+      },
+    );
+  });
 
   testWidgets(
     'erro mostra "Tentar de novo" e o toque chama tentarNovamente()',
