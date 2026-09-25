@@ -1,9 +1,9 @@
 import '../../core/result.dart';
 import '../entities/cidade.dart';
 
-/// Contrato de acesso a cidades. A impl concreta é local nesta fase (D-14,
-/// lê `assets/cidades.json`); a Fase 2 troca por uma impl remota via DI sem
-/// tocar `domain/` ou `presentation/`.
+/// Contrato de acesso a cidades. A impl concreta lê `GET
+/// /api/publico/cidades/` via Dio (VIT-06, D-16) — trocável por DI (F1/D-14)
+/// sem tocar `domain/` ou `presentation/`.
 abstract class CidadeRepository {
   Future<Result<List<Cidade>>> obterCidadesAtendidas();
 
