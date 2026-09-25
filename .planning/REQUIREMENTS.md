@@ -23,7 +23,7 @@ Requisitos da primeira entrega (tarefas APP01, APP02, APP03 + os endpoints públ
 - [ ] **VIT-03**: O visitante busca imóveis por texto, com debounce e estado de "nenhum resultado".
 - [ ] **VIT-04**: O visitante ordena por preço, área ou mais recentes.
 - [x] **VIT-05**: A lista carrega paginada (scroll infinito), com estados de loading, vazio, erro/retry e fim-da-lista.
-- [ ] **VIT-06**: A lista de cidades passa a vir da API (`GET /cidades`), substituindo a lista fixa de APP01.
+- [x] **VIT-06**: A lista de cidades passa a vir da API (`GET /cidades`), substituindo a lista fixa de APP01.
 
 ### Filtros da vitrine (APP03)
 
@@ -82,7 +82,7 @@ Excluídos de propósito. Documentados para evitar scope creep.
 | VIT-03 | Phase 2 | Pending |
 | VIT-04 | Phase 2 | Pending |
 | VIT-05 | Phase 2 | Complete |
-| VIT-06 | Phase 2 | Pending |
+| VIT-06 | Phase 2 | Complete |
 | API-02 | Phase 2 | Complete |
 | API-04 | Phase 2 | Complete |
 | FIL-01 | Phase 3 | Pending |
