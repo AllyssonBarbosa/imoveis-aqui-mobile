@@ -9,6 +9,7 @@ import 'package:imoveis_aqui/data/repositories/imovel_repository_impl.dart';
 import 'package:imoveis_aqui/domain/entities/cidade.dart';
 import 'package:imoveis_aqui/domain/entities/consulta_imoveis.dart';
 import 'package:imoveis_aqui/domain/usecases/buscar_imoveis_usecase.dart';
+import 'package:imoveis_aqui/domain/entities/ordenacao_vitrine.dart';
 import 'package:imoveis_aqui/domain/usecases/salvar_cidade_usecase.dart';
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_cubit.dart';
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_screen.dart';
@@ -218,6 +219,74 @@ void main() {
       for (final card in cards) {
         expect(idsEsperados.contains(card.imovel.id), isTrue);
       }
+    },
+  );
+
+  testWidgets(
+    'Campinas: escolher "Menor preço" no bottom sheet reordena pelo menor '
+    'preco_venda (nulls-last, D-12) e volta o scroll ao topo (VIT-04, D-13)',
+    (tester) async {
+      await pumpVitrineDe(tester, campinas);
+
+      // Rola para longe do topo ANTES de trocar a ordenação (D-13: a troca
+      // precisa voltar ao topo).
+      await tester.drag(find.byType(ListView), const Offset(0, -3000));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 20));
+      await tester.drag(find.byType(ListView), const Offset(0, -3000));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 20));
+
+      final buscaLista = find.descendant(
+        of: find.byType(ListView),
+        matching: find.byType(Scrollable),
+      );
+      final scrollableAntes = tester.state<ScrollableState>(buscaLista);
+      expect(scrollableAntes.position.pixels, greaterThan(0));
+
+      await tester.tap(find.textContaining('Ordenar:'));
+      await tester.pumpAndSettle();
+      expect(find.text('Ordenar por'), findsOneWidget);
+
+      await tester.tap(find.text('Menor preço'));
+      await tester.pumpAndSettle();
+
+      final vitrineCubit = BlocProvider.of<VitrineCubit>(
+        tester.element(find.byType(ListView)),
+      );
+      expect(vitrineCubit.state.ordenacao, OrdenacaoVitrine.precoAsc);
+      expect(find.textContaining('Ordenar: Menor preço'), findsOneWidget);
+
+      // Menor preco_venda entre as linhas de Campinas — nulls-last (D-12),
+      // desempate por id ascendente, derivado da própria fixture.
+      final linhasComPreco =
+          linhasAcervoFixture()
+              .where(
+                (l) =>
+                    (l['cidade']! as Map<String, Object?>)['nome'] ==
+                        'Campinas' &&
+                    l['preco_venda'] != null,
+              )
+              .toList()
+            ..sort((a, b) {
+              final precoA = double.parse(a['preco_venda']! as String);
+              final precoB = double.parse(b['preco_venda']! as String);
+              final comparacao = precoA.compareTo(precoB);
+              if (comparacao != 0) return comparacao;
+              return (a['id']! as int).compareTo(b['id']! as int);
+            });
+      final idEsperado = linhasComPreco.first['id']! as int;
+
+      final conteudo = vitrineCubit.state.conteudo as VitrineCarregada;
+      expect(conteudo.itens.first.id, idEsperado);
+
+      final scrollableDepois = tester.state<ScrollableState>(
+        find.descendant(
+          of: find.byType(ListView),
+          matching: find.byType(Scrollable),
+        ),
+      );
+      expect(scrollableDepois.position.pixels, 0);
     },
   );
 }

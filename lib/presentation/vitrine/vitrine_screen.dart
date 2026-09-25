@@ -1,12 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/entities/cidade.dart';
+import '../../domain/entities/ordenacao_vitrine.dart';
 import '../cidade_selecao/widgets/seletor_cidade_topo.dart';
 import 'vitrine_cubit.dart';
 import 'vitrine_state.dart';
 import 'widgets/imovel_card.dart';
+import 'widgets/ordenacao_bottom_sheet.dart';
 
 /// Tela da vitrine (VIT-01) — sem `Scaffold` próprio: vive dentro do
 /// `Scaffold`/`SafeArea` de `CidadeSelecaoScreen` no desfecho
@@ -117,9 +121,60 @@ class _VitrineScreenState extends State<VitrineScreen> {
             ],
             onChanged: (texto) => context.read<VitrineCubit>().buscar(texto),
           ),
+          const SizedBox(height: 8),
+          // Linha de ações logo abaixo da SearchBar (D-10): a 360dp a
+          // SearchBar + "Ordenar: Mais recentes" não cabem lado a lado numa
+          // única linha com o cabeçalho de cidade, então o botão de ordenar
+          // fica aqui, com um `Spacer` reservando o espaço à direita para o
+          // botão de filtros da Fase 3 — interpretação sinalizada no
+          // human-check de fim de fase para confirmação do usuário.
+          Row(
+            children: [
+              Flexible(
+                child: BlocSelector<VitrineCubit, VitrineState, OrdenacaoVitrine>(
+                  selector: (state) => state.ordenacao,
+                  builder: (context, ordenacao) {
+                    return OutlinedButton.icon(
+                      icon: const Icon(Icons.sort),
+                      label: Text(
+                        'Ordenar: ${ordenacao.rotulo}',
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      onPressed: () {
+                        final cubit = context.read<VitrineCubit>();
+                        unawaited(
+                          mostrarOrdenacaoBottomSheet(
+                            context,
+                            atual: ordenacao,
+                            aoEscolher: cubit.ordenarPor,
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+              const Spacer(), // reservado para o botão de filtros (Fase 3)
+            ],
+          ),
           const SizedBox(height: 16),
           Expanded(
-            child: BlocBuilder<VitrineCubit, VitrineState>(
+            child: BlocConsumer<VitrineCubit, VitrineState>(
+              // `keepScrollOffset: false` só restaura o topo quando um NOVO
+              // `ScrollPosition` é criado (ex.: nova `VitrineScreen` ao
+              // trocar de cidade) — uma troca de busca/ordenação reconstrói
+              // o MESMO `ListView`/`ScrollController` in-place, então o
+              // scroll não volta ao topo sozinho. `VitrineCarregando` só
+              // reaparece nesses reinícios (D-13) — nunca durante
+              // `carregarMais()`, que mantém `VitrineCarregada` — então
+              // pular para 0 aqui é seguro e nunca interfere com a
+              // paginação.
+              listener: (context, state) {
+                if (state.conteudo is VitrineCarregando &&
+                    _controleDeRolagem.hasClients) {
+                  _controleDeRolagem.jumpTo(0);
+                }
+              },
               builder: (context, state) {
                 final conteudo = state.conteudo;
                 _agendarCarregarMaisSeNaoPreencheATela(conteudo);

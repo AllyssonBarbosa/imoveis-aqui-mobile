@@ -81,6 +81,16 @@ class VitrineCubit extends Cubit<VitrineState> {
     return super.close();
   }
 
+  /// Ordena a vitrine (VIT-04) — sem efeito quando [ordenacao] já é a atual
+  /// (idempotência, mesma disciplina de [buscar]); caso contrário reinicia a
+  /// lista do topo (D-13) via [_aplicarConsulta], preservando o termo de
+  /// busca aplicado. O token de versão bumped por [_aplicarConsulta] também
+  /// invalida qualquer `carregarMais()` em voo.
+  Future<void> ordenarPor(OrdenacaoVitrine ordenacao) {
+    if (ordenacao == state.ordenacao) return Future<void>.value();
+    return _aplicarConsulta(ordenacao: ordenacao, termoBusca: state.termoBusca);
+  }
+
   /// Refaz a consulta atual — usado pelo "Tentar de novo" tanto no erro da
   /// primeira página ([VitrineErro]) quanto no erro de "carregar mais"
   /// ([VitrineCarregada.erroAoCarregarMais]). Retry é sempre explícito: o

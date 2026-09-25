@@ -7,6 +7,7 @@ import 'package:imoveis_aqui/core/result.dart';
 import 'package:imoveis_aqui/domain/entities/cidade.dart';
 import 'package:imoveis_aqui/domain/entities/consulta_imoveis.dart';
 import 'package:imoveis_aqui/domain/entities/imovel.dart';
+import 'package:imoveis_aqui/domain/entities/ordenacao_vitrine.dart';
 import 'package:imoveis_aqui/domain/entities/pagina_imoveis.dart';
 import 'package:imoveis_aqui/domain/usecases/buscar_imoveis_usecase.dart';
 import 'package:imoveis_aqui/presentation/vitrine/vitrine_cubit.dart';
@@ -427,6 +428,108 @@ void main() {
         expect(consultas, hasLength(1)); // só o carregar() inicial
       });
     });
+  });
+
+  group('ordenarPor (VIT-04, D-13)', () {
+    blocTest<VitrineCubit, VitrineState>(
+      'ordenarPor(precoAsc) a partir de mais_recentes emite UM reinício '
+      '(carregando com a nova ordenacao) e depois o resultado, mantendo o '
+      'termoBusca',
+      build: () => VitrineCubit(buscarImoveis),
+      setUp: () {
+        when(() => buscarImoveis(any())).thenAnswer(
+          (_) async =>
+              Result.success(PaginaImoveis(itens: [imovelDe(campinas, 1)])),
+        );
+      },
+      act: (cubit) async {
+        cubit.carregar(campinas);
+        await Future<void>.delayed(Duration.zero);
+        await cubit.ordenarPor(OrdenacaoVitrine.precoAsc);
+      },
+      expect: () => [
+        const VitrineState(conteudo: ConteudoVitrine.carregando()),
+        VitrineState(
+          conteudo: ConteudoVitrine.carregada(itens: [imovelDe(campinas, 1)]),
+        ),
+        const VitrineState(
+          ordenacao: OrdenacaoVitrine.precoAsc,
+          conteudo: ConteudoVitrine.carregando(),
+        ),
+        VitrineState(
+          ordenacao: OrdenacaoVitrine.precoAsc,
+          conteudo: ConteudoVitrine.carregada(itens: [imovelDe(campinas, 1)]),
+        ),
+      ],
+      verify: (_) {
+        verify(
+          () => buscarImoveis(
+            const ConsultaImoveis(
+              cidade: campinas,
+              ordenacao: OrdenacaoVitrine.precoAsc,
+            ),
+          ),
+        ).called(1);
+      },
+    );
+
+    test(
+      'ordenarPor(ordenacao já atual) não emite nada e não chama o use case '
+      'de novo (idempotência)',
+      () async {
+        when(() => buscarImoveis(any())).thenAnswer(
+          (_) async =>
+              Result.success(PaginaImoveis(itens: [imovelDe(campinas, 1)])),
+        );
+        final cubit = VitrineCubit(buscarImoveis);
+        cubit.carregar(campinas);
+        await Future<void>.delayed(Duration.zero);
+        final estadoAntes = cubit.state;
+
+        await cubit.ordenarPor(OrdenacaoVitrine.maisRecentes);
+
+        expect(cubit.state, estadoAntes);
+        verify(() => buscarImoveis(any())).called(1);
+        await cubit.close();
+      },
+    );
+
+    test(
+      'resposta atrasada de uma ordenacao anterior é descartada quando '
+      'ordenarPor troca de novo antes dela resolver (D-13)',
+      () async {
+        final completerAntiga = Completer<Result<PaginaImoveis>>();
+        when(() => buscarImoveis(any())).thenAnswer((invocation) {
+          final consulta =
+              invocation.positionalArguments.first as ConsultaImoveis;
+          if (consulta.ordenacao == OrdenacaoVitrine.precoAsc) {
+            return completerAntiga.future;
+          }
+          return Future.value(
+            Result.success(PaginaImoveis(itens: [imovelDe(campinas, 2)])),
+          );
+        });
+
+        final cubit = VitrineCubit(buscarImoveis);
+        cubit.carregar(campinas);
+        await Future<void>.delayed(Duration.zero);
+
+        unawaited(cubit.ordenarPor(OrdenacaoVitrine.precoAsc));
+        await Future<void>.delayed(Duration.zero); // precoAsc fica em voo
+
+        await cubit.ordenarPor(OrdenacaoVitrine.areaAsc);
+
+        completerAntiga.complete(
+          Result.success(PaginaImoveis(itens: [imovelDe(campinas, 1)])),
+        );
+        await Future<void>.delayed(Duration.zero);
+
+        final conteudo = cubit.state.conteudo as VitrineCarregada;
+        expect(conteudo.itens.single.id, 2);
+        expect(cubit.state.ordenacao, OrdenacaoVitrine.areaAsc);
+        await cubit.close();
+      },
+    );
   });
 
   group('carregarMais (VIT-05, D-13)', () {
