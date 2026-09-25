@@ -1,8 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:imoveis_aqui/core/result.dart';
+import 'package:imoveis_aqui/core/texto_normalizado.dart';
 import 'package:imoveis_aqui/data/datasources/imovel_mock_datasource.dart';
 import 'package:imoveis_aqui/data/mocks/imoveis_fixture.dart';
+import 'package:imoveis_aqui/data/models/imovel_model.dart';
+import 'package:imoveis_aqui/data/repositories/imovel_repository_impl.dart';
 import 'package:imoveis_aqui/domain/entities/cidade.dart';
 import 'package:imoveis_aqui/domain/entities/consulta_imoveis.dart';
+import 'package:imoveis_aqui/domain/entities/ordenacao_vitrine.dart';
 
 void main() {
   const campinas = Cidade(nome: 'Campinas', uf: 'SP');
@@ -14,6 +19,25 @@ void main() {
         linhas: linhasAcervoFixture(),
         tamanhoPagina: tamanhoPagina,
       );
+
+  /// Anda todas as páginas de uma consulta e devolve os `ImovelModel`s na
+  /// ordem em que o servidor simulado os devolveu — usado pelos testes de
+  /// busca/ordenação para comparar contra uma expectativa derivada da própria
+  /// fixture, em vez de uma lista de ids hardcoded (fica em sincronia com
+  /// qualquer mudança futura na fixture).
+  Future<List<ImovelModel>> andarTodasAsPaginas(
+    ImovelMockDataSource datasource,
+    ConsultaImoveis consulta,
+  ) async {
+    final resultados = <ImovelModel>[];
+    var envelope = await datasource.buscar(consulta);
+    resultados.addAll(envelope.results);
+    while (envelope.next != null) {
+      envelope = await datasource.seguir(envelope.next!);
+      resultados.addAll(envelope.results);
+    }
+    return resultados;
+  }
 
   group('linhasAcervoFixture (D-14, D-15)', () {
     test('é determinística — duas chamadas produzem listas iguais', () {
@@ -154,7 +178,11 @@ void main() {
     );
 
     test('busca aparece no next quando a consulta tem termo não-vazio', () async {
-      final datasource = construir();
+      // Página pequena o bastante para "cambuí" (poucos resultados em
+      // Campinas) continuar exigindo mais de uma página — a busca de fato
+      // filtra desde o plano 02-05 (Task 1), então usar o tamanho de página
+      // padrão faria a busca inteira caber numa única página (next nulo).
+      final datasource = construir(tamanhoPagina: 2);
 
       final envelope = await datasource.buscar(
         const ConsultaImoveis(cidade: campinas, busca: 'cambuí'),
@@ -292,5 +320,374 @@ void main() {
         throwsFormatException,
       );
     });
+  });
+
+  group('ImovelMockDataSource.buscar — busca por texto (D-05, D-06)', () {
+    bool linhaContemTermo(Map<String, Object?> linha, String termo) {
+      final palavras = normalizarTexto(termo)
+          .split(RegExp(r'\s+'))
+          .where((p) => p.isNotEmpty);
+      final tituloNormalizado = normalizarTexto(linha['titulo']! as String);
+      final bairroNormalizado = normalizarTexto(linha['bairro']! as String);
+      return palavras.every(
+        (palavra) =>
+            tituloNormalizado.contains(palavra) ||
+            bairroNormalizado.contains(palavra),
+      );
+    }
+
+    test(
+      'busca "cambui" devolve exatamente as linhas de Campinas cujo título '
+      'ou bairro normalizado contém "cambui" (acento/caixa-insensível)',
+      () async {
+        final datasource = construir(tamanhoPagina: 100);
+        final linhasCampinas = linhasAcervoFixture().where(
+          (l) => (l['cidade']! as Map<String, Object?>)['nome'] == 'Campinas',
+        );
+        final idsEsperados =
+            linhasCampinas
+                .where((l) => linhaContemTermo(l, 'cambui'))
+                .map((l) => l['id']! as int)
+                .toSet();
+        expect(idsEsperados, isNotEmpty);
+
+        final resultados = await andarTodasAsPaginas(
+          datasource,
+          const ConsultaImoveis(cidade: campinas, busca: 'cambui'),
+        );
+
+        expect(resultados.map((m) => m.id).toSet(), idsEsperados);
+      },
+    );
+
+    test('busca "APARTAMENTO" casa case-insensível com o título', () async {
+      final datasource = construir(tamanhoPagina: 100);
+      final linhasCampinas = linhasAcervoFixture().where(
+        (l) => (l['cidade']! as Map<String, Object?>)['nome'] == 'Campinas',
+      );
+      final idsEsperados =
+          linhasCampinas
+              .where((l) => linhaContemTermo(l, 'APARTAMENTO'))
+              .map((l) => l['id']! as int)
+              .toSet();
+      expect(idsEsperados, isNotEmpty);
+
+      final resultados = await andarTodasAsPaginas(
+        datasource,
+        const ConsultaImoveis(cidade: campinas, busca: 'APARTAMENTO'),
+      );
+
+      expect(resultados.map((m) => m.id).toSet(), idsEsperados);
+      expect(
+        resultados.every(
+          (m) => normalizarTexto(m.titulo).contains('apartamento'),
+        ),
+        isTrue,
+      );
+    });
+
+    test(
+      'busca "apartamento cambui" exige TODAS as palavras em título+bairro '
+      '(semântica de SearchFilter, DRF-like)',
+      () async {
+        final datasource = construir(tamanhoPagina: 100);
+        final linhasCampinas = linhasAcervoFixture().where(
+          (l) => (l['cidade']! as Map<String, Object?>)['nome'] == 'Campinas',
+        );
+        final idsEsperados =
+            linhasCampinas
+                .where((l) => linhaContemTermo(l, 'apartamento cambui'))
+                .map((l) => l['id']! as int)
+                .toSet();
+
+        final resultados = await andarTodasAsPaginas(
+          datasource,
+          const ConsultaImoveis(cidade: campinas, busca: 'apartamento cambui'),
+        );
+
+        expect(resultados.map((m) => m.id).toSet(), idsEsperados);
+      },
+    );
+
+    test(
+      'busca "reformado" (só existe na descrição do id 42) devolve zero '
+      'linhas — descrição nunca é buscada (D-06)',
+      () async {
+        final datasource = construir(tamanhoPagina: 100);
+
+        final resultados = await andarTodasAsPaginas(
+          datasource,
+          const ConsultaImoveis(cidade: campinas, busca: 'reformado'),
+        );
+
+        expect(resultados, isEmpty);
+      },
+    );
+
+    test(
+      'busca vazia (após trim) não filtra — mesmo resultado que sem busca',
+      () async {
+        final datasource = construir(tamanhoPagina: 100);
+
+        final semBusca = await andarTodasAsPaginas(
+          datasource,
+          const ConsultaImoveis(cidade: campinas),
+        );
+        final comBuscaEmBranco = await andarTodasAsPaginas(
+          datasource,
+          const ConsultaImoveis(cidade: campinas, busca: '   '),
+        );
+
+        expect(
+          comBuscaEmBranco.map((m) => m.id).toList(),
+          semBusca.map((m) => m.id).toList(),
+        );
+      },
+    );
+  });
+
+  group('ImovelMockDataSource — gatilho "erro" determinístico (D-15)', () {
+    test(
+      'busca "erro" (qualquer caixa/espaço) lança FalhaSimuladaDoMock após '
+      'a latência configurada',
+      () async {
+        final datasource = ImovelMockDataSource.paraTeste(
+          linhas: linhasAcervoFixture(),
+          latencia: const Duration(milliseconds: 5),
+        );
+
+        final cronometro = Stopwatch()..start();
+        await expectLater(
+          datasource.buscar(
+            const ConsultaImoveis(cidade: campinas, busca: '  ERRO  '),
+          ),
+          throwsA(isA<FalhaSimuladaDoMock>()),
+        );
+        cronometro.stop();
+
+        expect(cronometro.elapsedMilliseconds, greaterThanOrEqualTo(5));
+      },
+    );
+
+    test(
+      'busca "erro" através de ImovelRepositoryImpl vira Result.failure '
+      '(T-02-01-01 style, D-15)',
+      () async {
+        final datasource = construir();
+        final repositorio = ImovelRepositoryImpl(datasource);
+
+        final resultado = await repositorio.buscarImoveis(
+          const ConsultaImoveis(cidade: campinas, busca: 'erro'),
+        );
+
+        expect(resultado, isA<Failure<Object?>>());
+      },
+    );
+  });
+
+  group('ImovelMockDataSource — ordenação nulls-last (D-11, D-12)', () {
+    double? parseDecimal(String? valor) =>
+        valor == null ? null : double.parse(valor);
+
+    List<Map<String, Object?>> linhasDaCidade(Cidade cidade) =>
+        linhasAcervoFixture()
+            .where(
+              (l) =>
+                  (l['cidade']! as Map<String, Object?>)['nome'] ==
+                  cidade.nome,
+            )
+            .toList();
+
+    test(
+      'preco_asc: preco_venda ascendente, todo preco_venda nulo vai para o '
+      'fim (ordem estável por id asc dentro do grupo nulo)',
+      () async {
+        final datasource = construir(tamanhoPagina: 100);
+
+        final resultados = await andarTodasAsPaginas(
+          datasource,
+          const ConsultaImoveis(
+            cidade: campinas,
+            ordenacao: OrdenacaoVitrine.precoAsc,
+          ),
+        );
+
+        final linhas = linhasDaCidade(campinas);
+        expect(resultados.map((m) => m.id).toSet(), hasLength(40));
+        expect(
+          resultados.map((m) => m.id).toSet(),
+          linhas.map((l) => l['id']! as int).toSet(),
+        );
+
+        final comPreco = resultados
+            .where((m) => m.precoVenda != null)
+            .toList();
+        final semPreco = resultados
+            .where((m) => m.precoVenda == null)
+            .toList();
+
+        for (var i = 0; i < comPreco.length - 1; i++) {
+          expect(
+            parseDecimal(comPreco[i].precoVenda)!,
+            lessThanOrEqualTo(parseDecimal(comPreco[i + 1].precoVenda)!),
+          );
+        }
+        // Nulls-last: todo item sem preco_venda vem depois de todo item com.
+        expect(
+          resultados.indexOf(comPreco.isEmpty ? resultados.first : comPreco.last) <
+              resultados.length,
+          isTrue,
+        );
+        if (comPreco.isNotEmpty && semPreco.isNotEmpty) {
+          expect(
+            resultados.indexOf(comPreco.last) <
+                resultados.indexOf(semPreco.first),
+            isTrue,
+          );
+        }
+      },
+    );
+
+    test(
+      'preco_desc: preco_venda descendente, nulos continuam no fim (nunca '
+      'no início)',
+      () async {
+        final datasource = construir(tamanhoPagina: 100);
+
+        final resultados = await andarTodasAsPaginas(
+          datasource,
+          const ConsultaImoveis(
+            cidade: campinas,
+            ordenacao: OrdenacaoVitrine.precoDesc,
+          ),
+        );
+
+        final comPreco = resultados
+            .where((m) => m.precoVenda != null)
+            .toList();
+        final semPreco = resultados
+            .where((m) => m.precoVenda == null)
+            .toList();
+
+        for (var i = 0; i < comPreco.length - 1; i++) {
+          expect(
+            parseDecimal(comPreco[i].precoVenda)!,
+            greaterThanOrEqualTo(parseDecimal(comPreco[i + 1].precoVenda)!),
+          );
+        }
+        if (comPreco.isNotEmpty && semPreco.isNotEmpty) {
+          expect(
+            resultados.indexOf(comPreco.last) <
+                resultados.indexOf(semPreco.first),
+            isTrue,
+          );
+        }
+      },
+    );
+
+    test(
+      'area_asc / area_desc: mesma regra nulls-last aplicada a `area`',
+      () async {
+        final datasourceAsc = construir(tamanhoPagina: 100);
+        final resultadosAsc = await andarTodasAsPaginas(
+          datasourceAsc,
+          const ConsultaImoveis(
+            cidade: campinas,
+            ordenacao: OrdenacaoVitrine.areaAsc,
+          ),
+        );
+        final comAreaAsc = resultadosAsc
+            .where((m) => m.area != null)
+            .toList();
+        final semAreaAsc = resultadosAsc
+            .where((m) => m.area == null)
+            .toList();
+        for (var i = 0; i < comAreaAsc.length - 1; i++) {
+          expect(
+            parseDecimal(comAreaAsc[i].area)!,
+            lessThanOrEqualTo(parseDecimal(comAreaAsc[i + 1].area)!),
+          );
+        }
+        if (comAreaAsc.isNotEmpty && semAreaAsc.isNotEmpty) {
+          expect(
+            resultadosAsc.indexOf(comAreaAsc.last) <
+                resultadosAsc.indexOf(semAreaAsc.first),
+            isTrue,
+          );
+        }
+
+        final datasourceDesc = construir(tamanhoPagina: 100);
+        final resultadosDesc = await andarTodasAsPaginas(
+          datasourceDesc,
+          const ConsultaImoveis(
+            cidade: campinas,
+            ordenacao: OrdenacaoVitrine.areaDesc,
+          ),
+        );
+        final comAreaDesc = resultadosDesc
+            .where((m) => m.area != null)
+            .toList();
+        final semAreaDesc = resultadosDesc
+            .where((m) => m.area == null)
+            .toList();
+        for (var i = 0; i < comAreaDesc.length - 1; i++) {
+          expect(
+            parseDecimal(comAreaDesc[i].area)!,
+            greaterThanOrEqualTo(parseDecimal(comAreaDesc[i + 1].area)!),
+          );
+        }
+        if (comAreaDesc.isNotEmpty && semAreaDesc.isNotEmpty) {
+          expect(
+            resultadosDesc.indexOf(comAreaDesc.last) <
+                resultadosDesc.indexOf(semAreaDesc.first),
+            isTrue,
+          );
+        }
+      },
+    );
+
+    test(
+      'mais_recentes continua inalterado (criado_em desc, id desc) depois da '
+      'introdução das outras ordenações',
+      () async {
+        final datasource = construir(tamanhoPagina: 100);
+
+        final resultados = await andarTodasAsPaginas(
+          datasource,
+          const ConsultaImoveis(cidade: campinas),
+        );
+
+        expect(resultados.first.id, 42);
+        expect(resultados[1].id, 57);
+      },
+    );
+
+    test(
+      'andar todas as páginas com preco_asc não duplica ids e o next '
+      'preserva busca e ordenacao',
+      () async {
+        final datasource = construir();
+
+        var envelope = await datasource.buscar(
+          const ConsultaImoveis(
+            cidade: campinas,
+            busca: 'quartos',
+            ordenacao: OrdenacaoVitrine.precoAsc,
+          ),
+        );
+        final ids = <int>[...envelope.results.map((m) => m.id)];
+        if (envelope.next != null) {
+          final uri = Uri.parse(envelope.next!);
+          expect(uri.queryParameters['busca'], 'quartos');
+          expect(uri.queryParameters['ordenacao'], 'preco_asc');
+        }
+        while (envelope.next != null) {
+          envelope = await datasource.seguir(envelope.next!);
+          ids.addAll(envelope.results.map((m) => m.id));
+        }
+
+        expect(ids.toSet(), hasLength(ids.length));
+      },
+    );
   });
 }
