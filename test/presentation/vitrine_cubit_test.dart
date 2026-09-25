@@ -213,4 +213,248 @@ void main() {
       await Future<void>.delayed(Duration.zero);
     },
   );
+
+  group('carregarMais (VIT-05, D-13)', () {
+    Future<VitrineCubit> construirCarregada({
+      required List<Imovel> itens,
+      String? proximaPagina,
+    }) async {
+      when(() => buscarImoveis(any())).thenAnswer(
+        (_) async => Result.success(PaginaImoveis(itens: itens)),
+      );
+      final cubit = construir();
+      cubit.carregar(campinas);
+      await Future<void>.delayed(Duration.zero);
+      final atual = cubit.state.conteudo as VitrineCarregada;
+      // Substitui o proximaPagina direto no estado para testar carregarMais
+      // isoladamente, sem depender da forma exata do cursor.
+      cubit.emit(
+        cubit.state.copyWith(
+          conteudo: atual.copyWith(proximaPagina: proximaPagina),
+        ),
+      );
+      return cubit;
+    }
+
+    blocTest<VitrineCubit, VitrineState>(
+      'de VitrineCarregada(10, next=p2), carregarMais() emite carregandoMais '
+      'true e depois anexa os novos itens (20 no total) com o cursor da nova '
+      'página',
+      build: () => VitrineCubit(buscarImoveis),
+      setUp: () {
+        when(() => buscarImoveis(any())).thenAnswer(
+          (_) async => Result.success(
+            PaginaImoveis(itens: [imovelDe(campinas, 1)], proximaPagina: 'p2'),
+          ),
+        );
+        when(() => buscarImoveis.proximaPagina('p2')).thenAnswer(
+          (_) async => Result.success(
+            PaginaImoveis(itens: [imovelDe(campinas, 2)]),
+          ),
+        );
+      },
+      act: (cubit) async {
+        cubit.carregar(campinas);
+        await Future<void>.delayed(Duration.zero);
+        await cubit.carregarMais();
+      },
+      expect: () => [
+        const VitrineState(conteudo: ConteudoVitrine.carregando()),
+        VitrineState(
+          conteudo: ConteudoVitrine.carregada(
+            itens: [imovelDe(campinas, 1)],
+            proximaPagina: 'p2',
+          ),
+        ),
+        VitrineState(
+          conteudo: ConteudoVitrine.carregada(
+            itens: [imovelDe(campinas, 1)],
+            proximaPagina: 'p2',
+            carregandoMais: true,
+          ),
+        ),
+        VitrineState(
+          conteudo: ConteudoVitrine.carregada(
+            itens: [imovelDe(campinas, 1), imovelDe(campinas, 2)],
+          ),
+        ),
+      ],
+      verify: (_) {
+        verify(() => buscarImoveis.proximaPagina('p2')).called(1);
+      },
+    );
+
+    test(
+      'duas chamadas de carregarMais() com a primeira em voo -> '
+      'proximaPagina chamado exatamente uma vez',
+      () async {
+        final completer = Completer<Result<PaginaImoveis>>();
+        when(() => buscarImoveis(any())).thenAnswer(
+          (_) async => Result.success(
+            PaginaImoveis(itens: [imovelDe(campinas, 1)], proximaPagina: 'p2'),
+          ),
+        );
+        when(
+          () => buscarImoveis.proximaPagina('p2'),
+        ).thenAnswer((_) => completer.future);
+
+        final cubit = construir();
+        cubit.carregar(campinas);
+        await Future<void>.delayed(Duration.zero);
+
+        final futuro1 = cubit.carregarMais();
+        final futuro2 = cubit.carregarMais();
+
+        completer.complete(
+          Result.success(PaginaImoveis(itens: [imovelDe(campinas, 2)])),
+        );
+        await Future.wait([futuro1, futuro2]);
+
+        verify(() => buscarImoveis.proximaPagina('p2')).called(1);
+        final conteudo = cubit.state.conteudo as VitrineCarregada;
+        expect(conteudo.itens, hasLength(2));
+        await cubit.close();
+      },
+    );
+
+    test(
+      'proximaPagina nulo (fim da lista) -> carregarMais() não chama nada '
+      'e não emite',
+      () async {
+        final cubit = await construirCarregada(
+          itens: [imovelDe(campinas, 1)],
+        );
+        final estadoAntes = cubit.state;
+
+        await cubit.carregarMais();
+
+        expect(cubit.state, estadoAntes);
+        verifyNever(() => buscarImoveis.proximaPagina(any()));
+        await cubit.close();
+      },
+    );
+
+    test(
+      'conteudo diferente de VitrineCarregada (ex.: erro) -> carregarMais() '
+      'não chama nada',
+      () async {
+        when(
+          () => buscarImoveis(any()),
+        ).thenAnswer((_) async => Result.failure(Exception('falhou')));
+        final cubit = construir();
+        cubit.carregar(campinas);
+        await Future<void>.delayed(Duration.zero);
+        expect(cubit.state.conteudo, isA<VitrineErro>());
+
+        await cubit.carregarMais();
+
+        verifyNever(() => buscarImoveis.proximaPagina(any()));
+        await cubit.close();
+      },
+    );
+
+    test(
+      'falha ao carregar mais mantém os itens, liga erroAoCarregarMais; um '
+      'novo carregarMais() (scroll) não refaz a chamada; tentarNovamente() '
+      'refaz com o mesmo cursor e anexa em caso de sucesso',
+      () async {
+        final cubit = await construirCarregada(
+          itens: [imovelDe(campinas, 1)],
+          proximaPagina: 'p2',
+        );
+        when(
+          () => buscarImoveis.proximaPagina('p2'),
+        ).thenAnswer((_) async => Result.failure(Exception('falhou')));
+
+        await cubit.carregarMais();
+
+        final depoisDaFalha = cubit.state.conteudo as VitrineCarregada;
+        expect(depoisDaFalha.itens, hasLength(1));
+        expect(depoisDaFalha.carregandoMais, isFalse);
+        expect(depoisDaFalha.erroAoCarregarMais, isTrue);
+
+        // Scroll novamente enquanto erroAoCarregarMais == true: sem retry
+        // automático (T-02-03-01).
+        await cubit.carregarMais();
+        verify(() => buscarImoveis.proximaPagina('p2')).called(1);
+
+        when(() => buscarImoveis.proximaPagina('p2')).thenAnswer(
+          (_) async => Result.success(
+            PaginaImoveis(itens: [imovelDe(campinas, 2)]),
+          ),
+        );
+        cubit.tentarNovamente();
+        await Future<void>.delayed(Duration.zero);
+
+        final depoisDoRetry = cubit.state.conteudo as VitrineCarregada;
+        expect(depoisDoRetry.itens.map((i) => i.id), [1, 2]);
+        expect(depoisDoRetry.erroAoCarregarMais, isFalse);
+        verify(() => buscarImoveis.proximaPagina('p2')).called(1);
+        await cubit.close();
+      },
+    );
+
+    test(
+      'carregarMais em voo, depois carregar(outra cidade) -> a página '
+      'atrasada é descartada; o estado final tem só a primeira página da '
+      'outra cidade (D-13)',
+      () async {
+        final completer = Completer<Result<PaginaImoveis>>();
+        final cubit = await construirCarregada(
+          itens: [imovelDe(campinas, 1)],
+          proximaPagina: 'p2',
+        );
+        when(
+          () => buscarImoveis.proximaPagina('p2'),
+        ).thenAnswer((_) => completer.future);
+        when(() => buscarImoveis(any())).thenAnswer((invocation) async {
+          final consulta =
+              invocation.positionalArguments.first as ConsultaImoveis;
+          if (consulta.cidade == valinhos) {
+            return Result.success(
+              PaginaImoveis(itens: [imovelDe(valinhos, 9)]),
+            );
+          }
+          return Result.success(PaginaImoveis(itens: [imovelDe(campinas, 1)]));
+        });
+
+        final futuroCarregarMais = cubit.carregarMais();
+        cubit.carregar(valinhos);
+        await Future<void>.delayed(Duration.zero);
+
+        completer.complete(
+          Result.success(PaginaImoveis(itens: [imovelDe(campinas, 2)])),
+        );
+        await futuroCarregarMais;
+        await Future<void>.delayed(Duration.zero);
+
+        final conteudoFinal = cubit.state.conteudo as VitrineCarregada;
+        expect(conteudoFinal.itens.single.cidade, valinhos);
+        await cubit.close();
+      },
+    );
+
+    test(
+      'close() durante carregarMais() em voo não lança e não emite depois',
+      () async {
+        final completer = Completer<Result<PaginaImoveis>>();
+        final cubit = await construirCarregada(
+          itens: [imovelDe(campinas, 1)],
+          proximaPagina: 'p2',
+        );
+        when(
+          () => buscarImoveis.proximaPagina('p2'),
+        ).thenAnswer((_) => completer.future);
+
+        final futuro = cubit.carregarMais();
+        await cubit.close();
+        expect(cubit.isClosed, isTrue);
+
+        completer.complete(
+          Result.success(PaginaImoveis(itens: [imovelDe(campinas, 2)])),
+        );
+        await futuro;
+      },
+    );
+  });
 }

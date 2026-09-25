@@ -28,11 +28,90 @@ class VitrineCubit extends Cubit<VitrineState> {
     unawaited(_reiniciar());
   }
 
-  /// Refaz a consulta atual — usado pelo "Tentar de novo" no estado
-  /// [VitrineErro].
+  /// Refaz a consulta atual — usado pelo "Tentar de novo" tanto no erro da
+  /// primeira página ([VitrineErro]) quanto no erro de "carregar mais"
+  /// ([VitrineCarregada.erroAoCarregarMais]). Retry é sempre explícito: o
+  /// scroll nunca redispara sozinho depois de uma falha (T-02-03-01).
   void tentarNovamente() {
-    if (state.conteudo is! VitrineErro) return;
-    unawaited(_reiniciar());
+    final conteudo = state.conteudo;
+    if (conteudo is VitrineErro) {
+      unawaited(_reiniciar());
+    } else if (conteudo is VitrineCarregada && conteudo.erroAoCarregarMais) {
+      unawaited(_carregarProximaPagina());
+    }
+  }
+
+  /// Pede a próxima página (scroll infinito, VIT-05/D-13) — chamada pelo
+  /// listener do `ScrollController` a 90% do fim da lista. Sem efeito fora
+  /// de [VitrineCarregada], enquanto já há uma página em voo
+  /// (`carregandoMais`), depois de uma falha de "carregar mais"
+  /// (`erroAoCarregarMais` — retry é só via [tentarNovamente]) ou quando não
+  /// há próxima página (`proximaPagina == null`).
+  Future<void> carregarMais() async {
+    final conteudo = state.conteudo;
+    if (conteudo is! VitrineCarregada) return;
+    if (conteudo.carregandoMais || conteudo.erroAoCarregarMais) return;
+    if (conteudo.proximaPagina == null) return;
+    await _carregarProximaPagina();
+  }
+
+  /// Busca a página apontada por `proximaPagina` e a acrescenta aos itens já
+  /// visíveis — nunca os substitui nem os descarta em caso de falha
+  /// (prohibition do plano: uma falha ao carregar mais nunca derruba a
+  /// lista visível). Reaproveitada por [carregarMais] e por
+  /// [tentarNovamente] quando o erro é de "carregar mais".
+  Future<void> _carregarProximaPagina() async {
+    final conteudo = state.conteudo;
+    if (conteudo is! VitrineCarregada) return;
+    final proximaPagina = conteudo.proximaPagina;
+    if (proximaPagina == null) return;
+
+    // Captura a versão vigente SEM incrementar (D-13) — um reinício em
+    // paralelo (troca de cidade/busca/ordenação) incrementa `_versaoConsulta`
+    // em `_reiniciar`, invalidando esta requisição quando ela responder.
+    final minhaVersao = _versaoConsulta;
+    emit(
+      state.copyWith(
+        conteudo: conteudo.copyWith(
+          carregandoMais: true,
+          erroAoCarregarMais: false,
+        ),
+      ),
+    );
+
+    final resultado = await _buscarImoveis.proximaPagina(proximaPagina);
+
+    // Resposta obsoleta (consulta reiniciada nesse meio-tempo) ou Cubit
+    // fechado enquanto a página estava em voo — nunca emitir (D-13,
+    // T-02-03-04).
+    if (minhaVersao != _versaoConsulta || isClosed) return;
+
+    final conteudoAtual = state.conteudo;
+    if (conteudoAtual is! VitrineCarregada) return;
+
+    switch (resultado) {
+      case Success(:final data):
+        emit(
+          state.copyWith(
+            conteudo: conteudoAtual.copyWith(
+              itens: [...conteudoAtual.itens, ...data.itens],
+              proximaPagina: data.proximaPagina,
+              carregandoMais: false,
+            ),
+          ),
+        );
+      case Failure():
+        emit(
+          state.copyWith(
+            conteudo: conteudoAtual.copyWith(
+              carregandoMais: false,
+              erroAoCarregarMais: true,
+            ),
+          ),
+        );
+      case Loading():
+        break;
+    }
   }
 
   Future<void> _reiniciar() async {
