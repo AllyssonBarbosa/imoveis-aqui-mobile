@@ -2,17 +2,17 @@
 gsd_state_version: "1.0"
 current_phase: 02
 current_phase_name: Vitrine — Lista, Busca e Ordenação
-status: executing
-stopped_at: Completed 02-04-PLAN.md
-last_updated: "2026-09-25T22:59:49.280Z"
+status: verifying
+stopped_at: Completed 02-05-PLAN.md
+last_updated: "2026-09-25T23:28:24.432Z"
 last_activity: 2026-09-25
 last_activity_desc: Phase 02 execution started
-state_head: 073cb72b2ca8ef9782ab065564f6e50e92b4ac6e
+state_head: 00259e2e2db9e746caa3343c9690bb3c50ec149c
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 9
-  completed_plans: 8
+  completed_plans: 9
   percent: 0
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-21)
 
 Phase: 02 (Vitrine — Lista, Busca e Ordenação) — EXECUTING
 Plan: 5 of 5
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-09-25 — Phase 02 execution started
 
 Progress: [░░░░░░░░░░] 0%
@@ -63,6 +63,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02 P02 | 11min | 2 tasks | 8 files |
 | Phase 02 P03 | 22 min | 3 tasks | 9 files |
 | Phase 02 P04 | 27 min | 2 tasks | 22 files |
+| Phase 02 P05 | 17min | 3 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -80,6 +81,8 @@ Recent decisions affecting current work:
 - [Phase 02]: [Phase 02-02]: Adendos da Fase 2 (busca D-05, ordenacao D-11, preço-base nulls-last D-12 + risco CursorPagination) registrados em 01-CONTRATO-API.md §9, pendentes de sign-off do E2
 - [Phase 02]: [Phase 02-03]: Instante-base da fixture (2026-07-20) escolhido anterior a todas as 3 datas verbatim do contrato — linhas 42/57/63 continuam na 1a pagina apos expandir para 40 imoveis/cidade
 - [Phase 02]: [Phase 02-04]: Cidades trocadas do asset fixo para GET /api/publico/cidades/ via Dio (D-16/D-17); falha do endpoint nao bloqueia mais quem ja tem cidade salva (autorizadaEAtendida direto)
+- [Phase 02]: [Phase 02-05]: D-10 interpretado como botão Ordenar na linha logo abaixo da SearchBar (nao lado a lado) - a 360dp os dois nao cabem juntos; sinalizado no human-check de fim de fase para confirmacao do usuario
+- [Phase 02]: [Phase 02-05]: keepScrollOffset:false so restaura o topo com um ScrollPosition NOVO; troca de busca/ordenacao reconstroi o mesmo ListView/controller in-place, entao D-13 precisou de jumpTo(0) explicito num BlocConsumer.listener quando ConteudoVitrine.carregando reaparece
 
 ### Pending Todos
 
@@ -108,6 +111,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-25T22:59:49.256Z
-Stopped at: Completed 02-04-PLAN.md
+Last session: 2026-09-25T23:28:24.410Z
+Stopped at: Completed 02-05-PLAN.md
 Resume file: None
