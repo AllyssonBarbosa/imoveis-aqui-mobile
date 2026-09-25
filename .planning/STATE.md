@@ -1,18 +1,18 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 2
+current_phase: 02
 current_phase_name: Vitrine — Lista, Busca e Ordenação
 status: executing
-stopped_at: Phase 2 context gathered
-last_updated: "2026-09-25T18:56:17.373Z"
-last_activity: 2026-09-22
-last_activity_desc: Phase 01 execution started
-state_head: 4646f06c8b5287a58b7e3be463a56e562590433a
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-09-25T20:03:03.685Z"
+last_activity: 2026-09-25
+last_activity_desc: Phase 02 execution started
+state_head: 5d42d1f1cf571aae27772bf5ae5b8a7cb0d3fcbf
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 9
-  completed_plans: 4
+  completed_plans: 5
   percent: 0
 ---
 
@@ -23,14 +23,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-21)
 
 **Core value:** A vitrine do app abre na cidade do usuário e mostra imóveis reais vindos da API, com a busca e o filtro resolvidos no servidor — o mesmo dado e a mesma regra do site, nunca recalculados dentro do aparelho.
-**Current focus:** Phase 01 — Localização, Escolha de Cidade e Contrato da API
+**Current focus:** Phase 02 — Vitrine — Lista, Busca e Ordenação
 
 ## Current Position
 
-Phase: 2 (Vitrine — Lista, Busca e Ordenação) — READY TO EXECUTE
-Plan: 2 of 4
+Phase: 02 (Vitrine — Lista, Busca e Ordenação) — EXECUTING
+Plan: 2 of 5
 Status: Ready to execute
-Last activity: 2026-09-22 — Phase 01 execution started
+Last activity: 2026-09-25 — Phase 02 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -59,6 +59,7 @@ Progress: [░░░░░░░░░░] 0%
 | Plan | Duration | Tasks | Files |
 |------|----------|-------|-------|
 | Phase 01 P02 | 6 min | 2 tasks | 3 files |
+| Phase 02 P01 | 25min | 2 tasks | 36 files |
 
 ## Accumulated Context
 
@@ -71,6 +72,7 @@ Recent decisions affecting current work:
 - [Roadmap]: API-02 (`GET /cidades` real endpoint) folded into Phase 2 rather than a standalone phase — Phase 2 is where the app actually consumes it (VIT-06), so build+consume ship as one coherent, user-observable capability.
 - [Roadmap]: API-03 (`GET /imoveis` real endpoint) kept as its own final Phase 4 per explicit project constraint — genuinely gated on the teammate's (E2) `Imóvel` model landing in the sibling API repo.
 - [Phase 01]: GET /cidades e GET /imoveis frozen contract written (01-CONTRATO-API.md), grounded in real sibling Django models; corrected stale PROJECT.md note that the Imovel model didn't exist. — Public serializer must use an explicit allowlist and never the authenticated ImovelSerializer; tipologia fields marked PENDENTE E2; four semantically-open items (quartos/suites/vagas range-vs-exact, cidade param format, VENDA_E_ALUGUEL card price, ordenacao values) flagged for web-team sign-off instead of guessed.
+- [Phase 02]: ImovelMockDataSource filtra/ordena sobre mapas de wire (snake_case) e só então parseia via ImoveisEnvelopeModel.fromJson — Garante que o parsing exercitado nos testes é idêntico ao usado contra o endpoint real na Fase 4
 
 ### Pending Todos
 
@@ -99,6 +101,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-25T18:02:18.011Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-vitrine-lista-busca-e-ordena-o/02-CONTEXT.md
+Last session: 2026-09-25T20:03:03.661Z
+Stopped at: Completed 02-01-PLAN.md
+Resume file: None
