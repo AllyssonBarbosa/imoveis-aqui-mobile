@@ -210,6 +210,29 @@ void main() {
   );
 
   testWidgets(
+    'lista de cidades atendidas vazia: mensagem própria + "Tentar de novo" '
+    'chamando carregarLista(), nunca uma lista vazia muda',
+    (tester) async {
+      await pumpEstado(tester, const CidadeSelecaoState.recusada([]));
+
+      expect(
+        find.text('Nenhuma cidade atendida no momento.'),
+        findsOneWidget,
+      );
+      expect(
+        find.widgetWithText(TextButton, 'Tentar de novo'),
+        findsOneWidget,
+      );
+      expect(find.byType(Card), findsNothing);
+      expect(find.byType(ErrorWidget), findsNothing);
+
+      await tester.tap(find.widgetWithText(TextButton, 'Tentar de novo'));
+      await tester.pump();
+      verify(() => cubit.carregarLista()).called(1);
+    },
+  );
+
+  testWidgets(
     'tocar uma cidade da lista persiste via SalvarCidadeUseCase e entra '
     'direto (D-10 aplicado à seleção manual)',
     (tester) async {
