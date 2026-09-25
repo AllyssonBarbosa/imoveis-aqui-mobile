@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/entities/cidade.dart';
@@ -11,10 +12,67 @@ import 'widgets/imovel_card.dart';
 /// `Scaffold`/`SafeArea` de `CidadeSelecaoScreen` no desfecho
 /// `autorizadaEAtendida`. `switch` exaustivo sobre [ConteudoVitrine], sem
 /// ramo abrangente, igual à convenção de `CidadeSelecaoScreen`.
-class VitrineScreen extends StatelessWidget {
+///
+/// `StatefulWidget` só para hospedar o `ScrollController` do scroll infinito
+/// (VIT-05): o listener chama `carregarMais()` a 90% do fim da lista
+/// (RESEARCH Pattern 4); a guarda contra disparos duplicados vive inteira no
+/// Cubit.
+class VitrineScreen extends StatefulWidget {
   const VitrineScreen({super.key, required this.cidade});
 
   final Cidade cidade;
+
+  @override
+  State<VitrineScreen> createState() => _VitrineScreenState();
+}
+
+class _VitrineScreenState extends State<VitrineScreen> {
+  // `keepScrollOffset: false` — uma lista reiniciada (nova cidade/busca/
+  // ordenação) sempre volta ao topo (D-13), nunca preserva o offset de
+  // rolagem de uma consulta anterior.
+  final ScrollController _controleDeRolagem = ScrollController(
+    keepScrollOffset: false,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _controleDeRolagem.addListener(_aoRolar);
+  }
+
+  @override
+  void dispose() {
+    _controleDeRolagem
+      ..removeListener(_aoRolar)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _aoRolar() {
+    if (!_controleDeRolagem.hasClients) return;
+    final posicao = _controleDeRolagem.position;
+    if (posicao.pixels >= posicao.maxScrollExtent * 0.9) {
+      context.read<VitrineCubit>().carregarMais();
+    }
+  }
+
+  /// Se a primeira página não preencher a tela (lista não rolável) e ainda
+  /// houver próxima página, pede a próxima automaticamente depois do
+  /// primeiro frame — sem isso, a paginação travaria em telas altas, já que
+  /// o listener de rolagem nunca dispararia (nada para rolar).
+  void _agendarCarregarMaisSeNaoPreencheATela(ConteudoVitrine conteudo) {
+    if (conteudo is! VitrineCarregada) return;
+    if (conteudo.carregandoMais || conteudo.erroAoCarregarMais) return;
+    if (conteudo.proximaPagina == null) return;
+
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (!_controleDeRolagem.hasClients) return;
+      if (_controleDeRolagem.position.maxScrollExtent <= 0) {
+        context.read<VitrineCubit>().carregarMais();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,18 +82,21 @@ class VitrineScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SeletorCidadeTopo(cidade: cidade),
+          SeletorCidadeTopo(cidade: widget.cidade),
           const SizedBox(height: 16),
           Expanded(
             child: BlocBuilder<VitrineCubit, VitrineState>(
               builder: (context, state) {
-                return switch (state.conteudo) {
+                final conteudo = state.conteudo;
+                _agendarCarregarMaisSeNaoPreencheATela(conteudo);
+                return switch (conteudo) {
                   VitrineCarregando() => const Center(
                     child: CircularProgressIndicator(),
                   ),
                   VitrineVaziaNaCidade() => Center(
                     child: Text(
-                      'Ainda não há imóveis anunciados em ${cidade.nome}.',
+                      'Ainda não há imóveis anunciados em '
+                      '${widget.cidade.nome}.',
                       style: textTheme.bodyLarge,
                       textAlign: TextAlign.center,
                     ),
@@ -69,16 +130,30 @@ class VitrineScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  VitrineCarregada(:final itens) => ListView.builder(
-                    itemCount: itens.length,
-                    itemBuilder: (context, index) {
-                      final imovel = itens[index];
-                      return ImovelCard(
-                        key: ValueKey('imovel-${imovel.id}'),
-                        imovel: imovel,
-                      );
-                    },
-                  ),
+                  VitrineCarregada(
+                    :final itens,
+                    :final proximaPagina,
+                    :final carregandoMais,
+                    :final erroAoCarregarMais,
+                  ) =>
+                    ListView.builder(
+                      controller: _controleDeRolagem,
+                      itemCount: itens.length + 1,
+                      itemBuilder: (context, index) {
+                        if (index == itens.length) {
+                          return _RodapePaginacao(
+                            carregandoMais: carregandoMais,
+                            erroAoCarregarMais: erroAoCarregarMais,
+                            temProximaPagina: proximaPagina != null,
+                          );
+                        }
+                        final imovel = itens[index];
+                        return ImovelCard(
+                          key: ValueKey('imovel-${imovel.id}'),
+                          imovel: imovel,
+                        );
+                      },
+                    ),
                 };
               },
             ),
@@ -86,5 +161,73 @@ class VitrineScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+/// Rodapé da lista da vitrine (VIT-05): carregando-mais (spinner pequeno),
+/// erro-ao-carregar-mais (mensagem + "Tentar de novo") ou fim-da-lista —
+/// mutuamente exclusivos, nessa ordem de prioridade.
+class _RodapePaginacao extends StatelessWidget {
+  const _RodapePaginacao({
+    required this.carregandoMais,
+    required this.erroAoCarregarMais,
+    required this.temProximaPagina,
+  });
+
+  final bool carregandoMais;
+  final bool erroAoCarregarMais;
+  final bool temProximaPagina;
+
+  @override
+  Widget build(BuildContext context) {
+    if (carregandoMais) {
+      return const Padding(
+        padding: EdgeInsets.all(16),
+        child: Center(
+          child: SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      );
+    }
+
+    if (erroAoCarregarMais) {
+      return Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Não foi possível carregar mais imóveis',
+              style: Theme.of(context).textTheme.bodyMedium,
+              textAlign: TextAlign.center,
+            ),
+            TextButton(
+              onPressed: () => context.read<VitrineCubit>().tentarNovamente(),
+              child: const Text('Tentar de novo'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (!temProximaPagina) {
+      return Padding(
+        padding: const EdgeInsets.all(16),
+        child: Center(
+          child: Text(
+            'Você chegou ao fim da lista',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
+
+    return const SizedBox.shrink();
   }
 }
