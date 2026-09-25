@@ -37,7 +37,7 @@ Requisitos da primeira entrega (tarefas APP01, APP02, APP03 + os endpoints públ
 ### API pública (endpoints que o app consome)
 
 - [x] **API-01**: Auditar a API atual e congelar por escrito o contrato de `/cidades` e `/imoveis` (nomes de campos, enums, nomes dos params de filtro, envelope de paginação) antes de codar APP02/APP03 ou o endpoint real.
-- [ ] **API-02**: `GET /api/publico/cidades/` — endpoint público sem token, expõe as cidades atendidas para a vitrine (app e site).
+- [x] **API-02**: `GET /api/publico/cidades/` — endpoint público sem token, expõe as cidades atendidas para a vitrine (app e site).
 - [ ] **API-03**: `GET /api/publico/imoveis/?cidade=...&filtros` — endpoint público sem token com busca, ordenação, filtros e paginação server-side; retorna só imóveis publicados; usa serializer público com allowlist (sem proprietário/documento/dado interno) e não quebra o isolamento multitenant.
 - [x] **API-04**: A camada de dados do app é trocável (DataSource mock/fixture honrando o contrato → DataSource real por DI), permitindo desenvolver APP02/APP03 antes de o endpoint real de imóveis existir.
 
@@ -83,7 +83,7 @@ Excluídos de propósito. Documentados para evitar scope creep.
 | VIT-04 | Phase 2 | Pending |
 | VIT-05 | Phase 2 | Pending |
 | VIT-06 | Phase 2 | Pending |
-| API-02 | Phase 2 | Pending |
+| API-02 | Phase 2 | Complete |
 | API-04 | Phase 2 | Complete |
 | FIL-01 | Phase 3 | Pending |
 | FIL-02 | Phase 3 | Pending |

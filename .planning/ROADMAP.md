@@ -72,12 +72,12 @@ Plans:
   4. A lista rola infinita com os quatro estados (loading, vazio, erro/retry, fim-da-lista), sem cards duplicados ou embaralhados.
   5. O seletor de cidade passa a listar as cidades vindas de `GET /api/publico/cidades/` (endpoint público real, substituindo a lista fixa de APP01), enquanto o acervo de imóveis é servido por uma DataSource trocável (mock/fixture hoje, honrando o contrato da Fase 1; real depois, via DI).
 
-**Plans**: 1/5 plans executed
+**Plans**: 2/5 plans executed
 Plans:
 **Wave 1**
 
 - [x] 02-01-PLAN.md — Tracer: vitrine da cidade escolhida ponta a ponta sobre a DataSource mock + card completo (VIT-01, VIT-02, API-04)
-- [ ] 02-02-PLAN.md — `GET /api/publico/cidades/` no repo irmão (feat/APP02, sem commit sem aval) + seed de dev + adendos ao contrato (API-02)
+- [x] 02-02-PLAN.md — `GET /api/publico/cidades/` no repo irmão (feat/APP02, sem commit sem aval) + seed de dev + adendos ao contrato (API-02)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -130,6 +130,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Localização, Escolha de Cidade e Contrato da API | 4/4 | In Progress|  |
-| 2. Vitrine — Lista, Busca e Ordenação | 1/5 | In Progress|  |
+| 2. Vitrine — Lista, Busca e Ordenação | 2/5 | In Progress|  |
 | 3. Vitrine — Filtros Server-Side | 0/TBD | Not started | - |
 | 4. Imóveis Real — Endpoint Público e Integração Final | 0/TBD | Not started | - |
