@@ -53,7 +53,9 @@ sealed class CidadeSelecaoState with _$CidadeSelecaoState {
     List<Cidade> cidadesAtendidas,
   ) = FalhaGeocodificacao;
 
-  /// Falha ao carregar/parsear o asset de cidades — estado defensivo,
-  /// nunca uma tela fatal (UI-SPEC E2/E3 error).
+  /// Falha ao carregar `GET /api/publico/cidades/` (VIT-06, D-16) — estado
+  /// defensivo, nunca uma tela fatal (UI-SPEC E2/E3 error). Quem já tem
+  /// cidade salva não passa por aqui: entra direto mesmo com o endpoint
+  /// fora do ar (ver `ValidarCidadeAtendidaUseCase`).
   const factory CidadeSelecaoState.erroCarregarCidades() = ErroCarregarCidades;
 }

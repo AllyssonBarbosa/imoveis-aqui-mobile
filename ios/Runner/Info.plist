@@ -28,6 +28,14 @@
 	<true/>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Usamos sua localização só para abrir o app já na cidade certa.</string>
+	<!-- Libera apenas rede local (simulador/dispositivo -> servidor Django de
+	     dev em 127.0.0.1 ou no IP da rede local, D-17) sem desligar o ATS
+	     globalmente — NSAllowsArbitraryLoads nunca é usado aqui. -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

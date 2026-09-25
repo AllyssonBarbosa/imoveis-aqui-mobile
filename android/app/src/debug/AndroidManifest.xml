@@ -4,4 +4,12 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <application
+        android:usesCleartextTraffic="true">
+        <!-- Cleartext (HTTP não criptografado) habilitado só no build de
+             debug/profile, para o emulador Android alcançar
+             http://10.0.2.2:8000 (alias do localhost do Mac rodando
+             `manage.py runserver`, D-17). O manifest principal NUNCA recebe
+             esse atributo — builds de release seguem HTTPS-only. -->
+    </application>
 </manifest>

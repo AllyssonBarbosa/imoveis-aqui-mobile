@@ -3,6 +3,11 @@
          D-01..07 / LOC-01: a app pede localização só para entrar direto na cidade certa. -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!-- Necessária em builds de release para consumir a API Django
+         (GET /api/publico/cidades/, VIT-06, D-17) — antes só o manifest de
+         debug declarava INTERNET. Cleartext HTTP continua desligado aqui;
+         só o manifest de debug habilita (ver android/app/src/debug). -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <application
         android:label="imoveis_aqui"
         android:name="${applicationName}"

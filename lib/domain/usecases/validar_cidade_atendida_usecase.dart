@@ -8,7 +8,9 @@ import 'obter_cidades_atendidas_usecase.dart';
 /// Revalida uma cidade salva no aparelho contra a lista atendida ATUAL antes
 /// de confiar nela na reabertura do app (D-08 + RESEARCH Pitfall 5/A2) — uma
 /// cidade que deixou de ser atendida entre sessões nunca deve entrar direto
-/// numa vitrine fantasma sem imóveis.
+/// numa vitrine fantasma sem imóveis. Se `GET /api/publico/cidades/` falhar,
+/// a cidade salva entra direto mesmo assim (D-16, F1/D-08) — quem já tem
+/// cidade salva não depende do endpoint de cidades estar no ar.
 ///
 /// Casamento por `chaveNatural` (nome+uf normalizado, D-09), reaproveitando a
 /// mesma regra do Plano 01-03. Segue o mesmo padrão de
@@ -41,7 +43,9 @@ class ValidarCidadeAtendidaUseCase {
         );
       case Failure():
       case Loading():
-        return const CidadeSelecaoState.erroCarregarCidades();
+        // Falha ao carregar /api/publico/cidades/ (ou estado transiente) não
+        // impede quem já tem cidade salva de entrar direto (D-16, F1/D-08).
+        return CidadeSelecaoState.autorizadaEAtendida(cidadeSalva);
     }
   }
 }

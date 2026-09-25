@@ -53,12 +53,16 @@ class CidadeSelecaoScreen extends StatelessWidget {
                   cidades: cidadesAtendidas,
                   onTocarCidade: (cidade) =>
                       _selecionarCidade(context, salvarCidade, cidade),
+                  onRecarregar: () =>
+                      context.read<CidadeSelecaoCubit>().carregarLista(),
                 ),
               Recusada(:final cidadesAtendidas) => _CorpoLista(
                 titulo: 'Escolha sua cidade',
                 cidades: cidadesAtendidas,
                 onTocarCidade: (cidade) =>
                     _selecionarCidade(context, salvarCidade, cidade),
+                onRecarregar: () =>
+                    context.read<CidadeSelecaoCubit>().carregarLista(),
               ),
               BloqueadaParaSempre(:final cidadesAtendidas) => _CorpoLista(
                 titulo:
@@ -70,6 +74,8 @@ class CidadeSelecaoScreen extends StatelessWidget {
                 onAtivarNasAjustes: () => context
                     .read<CidadeSelecaoCubit>()
                     .abrirConfiguracoesDoSistema(),
+                onRecarregar: () =>
+                    context.read<CidadeSelecaoCubit>().carregarLista(),
               ),
               ServicoDesligado(:final cidadesAtendidas) => _CorpoLista(
                 titulo:
@@ -78,6 +84,8 @@ class CidadeSelecaoScreen extends StatelessWidget {
                 cidades: cidadesAtendidas,
                 onTocarCidade: (cidade) =>
                     _selecionarCidade(context, salvarCidade, cidade),
+                onRecarregar: () =>
+                    context.read<CidadeSelecaoCubit>().carregarLista(),
               ),
               FalhaGeocodificacao(:final cidadesAtendidas) => _CorpoLista(
                 aviso:
@@ -86,6 +94,8 @@ class CidadeSelecaoScreen extends StatelessWidget {
                 cidades: cidadesAtendidas,
                 onTocarCidade: (cidade) =>
                     _selecionarCidade(context, salvarCidade, cidade),
+                onRecarregar: () =>
+                    context.read<CidadeSelecaoCubit>().carregarLista(),
               ),
               ErroCarregarCidades() => _CorpoErro(
                 onTentarNovamente: () =>
@@ -159,6 +169,7 @@ class _CorpoLista extends StatelessWidget {
     required this.cidades,
     required this.onTocarCidade,
     this.onAtivarNasAjustes,
+    this.onRecarregar,
   }) : assert(
          titulo != null || aviso != null,
          'titulo ou aviso deve ser informado',
@@ -177,6 +188,11 @@ class _CorpoLista extends StatelessWidget {
 
   /// Presente apenas no desfecho `bloqueadaParaSempre` (D-06).
   final VoidCallback? onAtivarNasAjustes;
+
+  /// Refaz a chamada a `GET /api/publico/cidades/` — usado pelo "Tentar de
+  /// novo" do estado de lista vazia (D-16: servidor devolveu zero cidades
+  /// atendidas, nunca uma lista vazia muda).
+  final VoidCallback? onRecarregar;
 
   @override
   Widget build(BuildContext context) {
@@ -206,25 +222,60 @@ class _CorpoLista extends StatelessWidget {
           ),
         ),
         Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: cidades.length,
-            itemBuilder: (context, index) {
-              final cidade = cidades[index];
-              return Card(
-                child: ListTile(
-                  leading: const Icon(Icons.location_on),
-                  // Long-city-name backstop: Text sem maxLines quebra em
-                  // múltiplas linhas em vez de estourar o layout do Card.
-                  title: Text('${cidade.nome}, ${cidade.uf}'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => onTocarCidade(cidade),
+          child: cidades.isEmpty
+              ? _CorpoListaVazia(onRecarregar: onRecarregar)
+              : ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: cidades.length,
+                  itemBuilder: (context, index) {
+                    final cidade = cidades[index];
+                    return Card(
+                      child: ListTile(
+                        leading: const Icon(Icons.location_on),
+                        // Long-city-name backstop: Text sem maxLines quebra
+                        // em múltiplas linhas em vez de estourar o layout
+                        // do Card.
+                        title: Text('${cidade.nome}, ${cidade.uf}'),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => onTocarCidade(cidade),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
         ),
       ],
+    );
+  }
+}
+
+/// Servidor devolveu zero cidades atendidas (D-16) — distinto de uma lista
+/// vazia muda: mensagem própria + CTA para tentar de novo.
+class _CorpoListaVazia extends StatelessWidget {
+  const _CorpoListaVazia({required this.onRecarregar});
+
+  final VoidCallback? onRecarregar;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Nenhuma cidade atendida no momento.',
+              style: Theme.of(context).textTheme.bodyLarge,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            TextButton(
+              onPressed: onRecarregar,
+              child: const Text('Tentar de novo'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
