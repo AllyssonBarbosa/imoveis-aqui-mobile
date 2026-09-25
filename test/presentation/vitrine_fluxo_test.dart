@@ -46,6 +46,15 @@ void main() {
   });
 
   Future<void> pumpVitrineDe(WidgetTester tester, Cidade cidade) async {
+    // Viewport alto o bastante para o ListView.builder montar todos os
+    // cards da fixture (cada ImovelCard completo, com foto 16:9, é bem mais
+    // alto que o card mínimo — sem isso, cards fora do cache extent nunca
+    // chegam a ser construídos e o teste vê menos cards do que existem).
+    tester.view.physicalSize = const Size(400, 2400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
     whenListen(
       cidadeSelecaoCubit,
       Stream<CidadeSelecaoState>.value(
