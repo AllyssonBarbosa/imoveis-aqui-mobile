@@ -4,35 +4,43 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../di/injection.dart';
 import '../../domain/entities/cidade.dart';
 import '../../domain/usecases/salvar_cidade_usecase.dart';
+import '../vitrine/vitrine_cubit.dart';
+import '../vitrine/vitrine_screen.dart';
 import 'cidade_selecao_cubit.dart';
 import 'cidade_selecao_state.dart';
-import 'widgets/seletor_cidade_topo.dart';
 
 /// Tela de seleção de cidade — projeção exaustiva do [CidadeSelecaoCubit]
 /// (D-07): cada uma das 8 variantes seladas de [CidadeSelecaoState] tem sua
-/// própria UI, nunca um `default`/catch-all (LOC-06). O `switch` do Dart 3
-/// sobre uma classe selada é checado em tempo de compilação — se um novo
-/// desfecho for adicionado ao estado sem um `case` aqui, o build falha.
+/// própria UI, nunca um ramo abrangente/coringa (LOC-06). O `switch` do
+/// Dart 3 sobre uma classe selada é checado em tempo de compilação — se um
+/// novo desfecho for adicionado ao estado sem um `case` aqui, o build falha.
 class CidadeSelecaoScreen extends StatelessWidget {
   const CidadeSelecaoScreen({
     super.key,
     SalvarCidadeUseCase? salvarCidade,
+    VitrineCubit Function()? criarVitrineCubit,
     // ignore: prefer_initializing_formals
-  }) : _salvarCidade = salvarCidade;
+  }) : _salvarCidade = salvarCidade,
+       // ignore: prefer_initializing_formals
+       _criarVitrineCubit = criarVitrineCubit;
 
   final SalvarCidadeUseCase? _salvarCidade;
+  final VitrineCubit Function()? _criarVitrineCubit;
 
   @override
   Widget build(BuildContext context) {
     final salvarCidade = _salvarCidade ?? getIt<SalvarCidadeUseCase>();
+    final criarVitrineCubit =
+        _criarVitrineCubit ?? () => getIt<VitrineCubit>();
     return BlocBuilder<CidadeSelecaoCubit, CidadeSelecaoState>(
       builder: (context, state) {
         return Scaffold(
           body: SafeArea(
             child: switch (state) {
               Localizando() => const _CorpoCarregando(),
-              AutorizadaEAtendida(:final cidade) => _CorpoCidadeEntrada(
+              AutorizadaEAtendida(:final cidade) => _CorpoVitrine(
                 cidade: cidade,
+                criarVitrineCubit: criarVitrineCubit,
               ),
               AutorizadaNaoAtendida(
                 :final cidadeDetectada,
@@ -124,28 +132,22 @@ class _CorpoCarregando extends StatelessWidget {
   }
 }
 
-class _CorpoCidadeEntrada extends StatelessWidget {
-  const _CorpoCidadeEntrada({required this.cidade});
+/// Desfecho `autorizadaEAtendida` (D-10): monta a vitrine da cidade
+/// escolhida, com o próprio `SeletorCidadeTopo` (LOC-05, D-08) já embutido
+/// dentro de [VitrineScreen] — substitui o antigo placeholder
+/// `_CorpoCidadeEntrada`.
+class _CorpoVitrine extends StatelessWidget {
+  const _CorpoVitrine({required this.cidade, required this.criarVitrineCubit});
 
   final Cidade cidade;
+  final VitrineCubit Function() criarVitrineCubit;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 64),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            Icons.location_on,
-            color: Theme.of(context).colorScheme.primary,
-          ),
-          const SizedBox(height: 16),
-          // Cabeçalho tocável — trocar de cidade num toque, sem GPS (LOC-05,
-          // D-08).
-          SeletorCidadeTopo(cidade: cidade),
-        ],
-      ),
+    return BlocProvider<VitrineCubit>(
+      key: ValueKey(cidade.chaveNatural),
+      create: (_) => criarVitrineCubit()..carregar(cidade),
+      child: VitrineScreen(cidade: cidade),
     );
   }
 }
