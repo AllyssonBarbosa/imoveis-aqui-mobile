@@ -39,9 +39,17 @@ class GeolocatorGatewayImpl implements GeolocatorGateway {
   @override
   Future<Result<GatewayPosicao>> obterPosicaoAtual() async {
     try {
+      // timeLimit é obrigatório: sem ele, getCurrentPosition() nunca
+      // completa quando não há fix de GPS disponível (comum em emulador
+      // sem GPS simulado, indoors, ou hardware fraco) — o app ficava
+      // travado para sempre em "Localizando você...", nunca alcançando o
+      // desfecho falhaGeocodificacao (D-12) já previsto para esse caso.
+      // Geolocator lança TimeoutException (subtipo de Exception) quando
+      // o limite estoura, capturado abaixo como qualquer outra falha.
       final posicao = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.medium,
+          timeLimit: Duration(seconds: 15),
         ),
       );
       return Result.success(

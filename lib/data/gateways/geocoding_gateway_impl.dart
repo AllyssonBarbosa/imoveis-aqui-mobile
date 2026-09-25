@@ -22,10 +22,13 @@ class GeocodingGatewayImpl implements GeocodingGateway {
     double longitude,
   ) async {
     try {
-      final lugares = await _geocoding.placemarkFromCoordinates(
-        latitude,
-        longitude,
-      );
+      // O pacote `geocoding` não expõe timeout próprio — sem um `.timeout()`
+      // explícito, uma chamada nativa que nunca retorna (sem rede, geocoder
+      // travado) deixaria o app preso para sempre em vez de cair no
+      // desfecho falhaGeocodificacao já previsto para "timeout" (D-12).
+      final lugares = await _geocoding
+          .placemarkFromCoordinates(latitude, longitude)
+          .timeout(const Duration(seconds: 15));
       if (lugares.isEmpty) {
         return Result.failure(Exception('Reverse geocoding sem resultado'));
       }
