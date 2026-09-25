@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 02
 current_phase_name: Vitrine — Lista, Busca e Ordenação
 status: executing
-stopped_at: Completed 02-02-PLAN.md
-last_updated: "2026-09-25T20:16:44.582Z"
+stopped_at: Completed 02-03-PLAN.md
+last_updated: "2026-09-25T20:44:01.208Z"
 last_activity: 2026-09-25
 last_activity_desc: Phase 02 execution started
-state_head: 9c34d8c6a1f200f6dd7a2e2f610bc77bcd4a3703
+state_head: 137c4bc9eab15ee4453c259d1529d4791c16b900
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 9
-  completed_plans: 6
+  completed_plans: 7
   percent: 0
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-09-21)
 ## Current Position
 
 Phase: 02 (Vitrine — Lista, Busca e Ordenação) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 Status: Ready to execute
 Last activity: 2026-09-25 — Phase 02 execution started
 
@@ -61,6 +61,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P02 | 6 min | 2 tasks | 3 files |
 | Phase 02 P01 | 25min | 2 tasks | 36 files |
 | Phase 02 P02 | 11min | 2 tasks | 8 files |
+| Phase 02 P03 | 22 min | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -76,6 +77,7 @@ Recent decisions affecting current work:
 - [Phase 02]: ImovelMockDataSource filtra/ordena sobre mapas de wire (snake_case) e só então parseia via ImoveisEnvelopeModel.fromJson — Garante que o parsing exercitado nos testes é idêntico ao usado contra o endpoint real na Fase 4
 - [Phase 02]: [Phase 02-02]: GET /api/publico/cidades/ real criado no repo irmão (AllowAny, cursor page_size=50, servido-only) + seed idempotente semear_vitrine_dev; tudo uncommitted em feat/APP02 aguardando autorização do usuário
 - [Phase 02]: [Phase 02-02]: Adendos da Fase 2 (busca D-05, ordenacao D-11, preço-base nulls-last D-12 + risco CursorPagination) registrados em 01-CONTRATO-API.md §9, pendentes de sign-off do E2
+- [Phase 02]: [Phase 02-03]: Instante-base da fixture (2026-07-20) escolhido anterior a todas as 3 datas verbatim do contrato — linhas 42/57/63 continuam na 1a pagina apos expandir para 40 imoveis/cidade
 
 ### Pending Todos
 
@@ -104,6 +106,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-25T20:16:44.550Z
-Stopped at: Completed 02-02-PLAN.md
+Last session: 2026-09-25T20:44:01.186Z
+Stopped at: Completed 02-03-PLAN.md
 Resume file: None
