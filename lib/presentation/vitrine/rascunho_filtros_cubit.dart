@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/entities/filtros_vitrine.dart';
+import '../../domain/entities/imovel.dart';
 
 /// Rascunho do sheet de filtros (D-08) — Cubit de vida curta, criado pelo
 /// próprio `showModalBottomSheet` (via `BlocProvider` inline) e descartado
@@ -28,4 +29,32 @@ class RascunhoFiltrosCubit extends Cubit<FiltrosVitrine> {
   /// ainda precisa tocar "Ver imóveis" para aplicar (nunca mexe nos filtros
   /// já aplicados, que ficam em `VitrineState`).
   void limpar() => emit(const FiltrosVitrine());
+
+  /// Marca/desmarca uma natureza no rascunho (FIL-02, D-05, D-11) — multi-
+  /// seleção, OU entre valores resolvido pelo servidor simulado; nenhum
+  /// outro campo do rascunho é tocado.
+  void alternarNatureza(NaturezaImovel natureza, {required bool marcada}) {
+    final naturezas = Set<NaturezaImovel>.of(state.naturezas);
+    if (marcada) {
+      naturezas.add(natureza);
+    } else {
+      naturezas.remove(natureza);
+    }
+    emit(state.copyWith(naturezas: naturezas));
+  }
+
+  /// Define o mínimo de quartos do rascunho — "N ou mais" (D-01, D-10);
+  /// `null` volta para "Qualquer".
+  void definirQuartosMin(int? minimo) =>
+      emit(state.copyWith(quartosMin: minimo));
+
+  /// Define o mínimo de suítes do rascunho — mesma semântica de
+  /// [definirQuartosMin].
+  void definirSuitesMin(int? minimo) =>
+      emit(state.copyWith(suitesMin: minimo));
+
+  /// Define o mínimo de vagas do rascunho — mesma semântica de
+  /// [definirQuartosMin].
+  void definirVagasMin(int? minimo) =>
+      emit(state.copyWith(vagasMin: minimo));
 }

@@ -344,10 +344,16 @@ void main() {
 
       // Reabre o sheet, escolhe "Qualquer" e aplica — volta a mostrar um
       // imóvel exclusivamente aluguel (id 57, "Casa térrea 3 quartos no
-      // Taquaral").
+      // Taquaral"). "Qualquer" também rotula a opção padrão dos ChoiceChips
+      // de mínimo (Task 2) — escopa ao SegmentedButton de finalidade.
       await tester.tap(find.textContaining('Filtros ('));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Qualquer'));
+      await tester.tap(
+        find.descendant(
+          of: find.byWidgetPredicate((widget) => widget is SegmentedButton),
+          matching: find.text('Qualquer'),
+        ),
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.text('Ver imóveis'));
       await tester.pumpAndSettle();

@@ -31,6 +31,14 @@ void main() {
       await tester.pumpAndSettle();
     }
 
+    // "Qualquer" também rotula a opção padrão de cada ChoiceChip de mínimo
+    // (Quartos/Suítes/Vagas, Task 2) — este finder escopa ao SegmentedButton
+    // de finalidade para continuar único.
+    final qualquerFinalidade = find.descendant(
+      of: find.byWidgetPredicate((widget) => widget is SegmentedButton),
+      matching: find.text('Qualquer'),
+    );
+
     testWidgets(
       'mostra o título "Filtros" e os 3 segmentos de finalidade, com '
       '"Qualquer" selecionado quando aplicados está vazio',
@@ -42,7 +50,7 @@ void main() {
         );
 
         expect(find.text('Filtros'), findsOneWidget);
-        expect(find.text('Qualquer'), findsOneWidget);
+        expect(qualquerFinalidade, findsOneWidget);
         expect(find.text('Venda'), findsOneWidget);
         expect(find.text('Aluguel'), findsOneWidget);
         expect(find.text('Limpar'), findsOneWidget);
