@@ -8,7 +8,24 @@ import 'package:imoveis_aqui/data/repositories/imovel_repository_impl.dart';
 import 'package:imoveis_aqui/domain/entities/cidade.dart';
 import 'package:imoveis_aqui/domain/entities/consulta_imoveis.dart';
 import 'package:imoveis_aqui/domain/entities/filtros_vitrine.dart';
+import 'package:imoveis_aqui/domain/entities/imovel.dart';
 import 'package:imoveis_aqui/domain/entities/ordenacao_vitrine.dart';
+
+/// Catálogo completo de características da fixture (mesmos 10 valores de
+/// `_caracteristicasDisponiveis`, duplicado aqui só para o teste — a fonte
+/// de verdade continua em `imoveis_fixture.dart`).
+const _caracteristicasCatalogo = [
+  'Portão eletrônico',
+  'Ar-condicionado',
+  'Varanda gourmet',
+  'Quintal',
+  'Churrasqueira',
+  'Piscina',
+  'Elevador',
+  'Área de serviço',
+  'Armários planejados',
+  'Vista para o parque',
+];
 
 void main() {
   const campinas = Cidade(nome: 'Campinas', uf: 'SP');
@@ -100,6 +117,146 @@ void main() {
       // constroem o envelope via ImoveisEnvelopeModel.fromJson — se
       // qualquer linha não parseasse, esses testes lançariam.
       expect(linhasAcervoFixture(), isNotEmpty);
+    });
+
+    test(
+      'cada cidade atendida tem linhas com quartos 0, 1, 2, 3 e >= 4 (D-24)',
+      () {
+        for (final nomeCidade in ['Campinas', 'Valinhos', 'Vinhedo']) {
+          final quartosDaCidade = linhasAcervoFixture()
+              .where(
+                (l) =>
+                    (l['cidade']! as Map<String, Object?>)['nome'] ==
+                    nomeCidade,
+              )
+              .map((l) => l['quartos']! as int)
+              .toSet();
+
+          expect(quartosDaCidade, contains(0), reason: nomeCidade);
+          expect(quartosDaCidade, contains(1), reason: nomeCidade);
+          expect(quartosDaCidade, contains(2), reason: nomeCidade);
+          expect(quartosDaCidade, contains(3), reason: nomeCidade);
+          expect(
+            quartosDaCidade.any((q) => q >= 4),
+            isTrue,
+            reason: nomeCidade,
+          );
+        }
+      },
+    );
+
+    test('cada cidade atendida tem linhas com suítes e vagas 0..4 (D-24)', () {
+      for (final nomeCidade in ['Campinas', 'Valinhos', 'Vinhedo']) {
+        final linhasDaCidade = linhasAcervoFixture().where(
+          (l) =>
+              (l['cidade']! as Map<String, Object?>)['nome'] == nomeCidade,
+        );
+        final suitesDaCidade = linhasDaCidade
+            .map((l) => l['suites']! as int)
+            .toSet();
+        final vagasDaCidade = linhasDaCidade
+            .map((l) => l['vagas']! as int)
+            .toSet();
+
+        for (var valor = 0; valor <= 4; valor++) {
+          expect(
+            suitesDaCidade,
+            contains(valor),
+            reason: '$nomeCidade suites',
+          );
+          expect(
+            vagasDaCidade,
+            contains(valor),
+            reason: '$nomeCidade vagas',
+          );
+        }
+      }
+    });
+
+    test(
+      'cada cidade atendida tem ao menos uma linha com cada característica '
+      'do catálogo (D-24)',
+      () {
+        for (final nomeCidade in ['Campinas', 'Valinhos', 'Vinhedo']) {
+          final caracteristicasDaCidade = linhasAcervoFixture()
+              .where(
+                (l) =>
+                    (l['cidade']! as Map<String, Object?>)['nome'] ==
+                    nomeCidade,
+              )
+              .expand((l) => l['caracteristicas']! as List<Object?>)
+              .cast<String>()
+              .toSet();
+
+          for (final caracteristica in _caracteristicasCatalogo) {
+            expect(
+              caracteristicasDaCidade,
+              contains(caracteristica),
+              reason: '$nomeCidade: $caracteristica',
+            );
+          }
+        }
+      },
+    );
+
+    test(
+      'alguma linha tem Piscina sem Portão eletrônico e outra tem Portão '
+      'eletrônico sem Piscina, em cada cidade atendida (D-24, combinação '
+      'não-prefixo)',
+      () {
+        for (final nomeCidade in ['Campinas', 'Valinhos', 'Vinhedo']) {
+          final linhasDaCidade = linhasAcervoFixture().where(
+            (l) =>
+                (l['cidade']! as Map<String, Object?>)['nome'] == nomeCidade,
+          );
+          bool tem(Map<String, Object?> l, String c) =>
+              (l['caracteristicas']! as List<Object?>).contains(c);
+
+          expect(
+            linhasDaCidade.any(
+              (l) => tem(l, 'Piscina') && !tem(l, 'Portão eletrônico'),
+            ),
+            isTrue,
+            reason: '$nomeCidade: Piscina sem Portão eletrônico',
+          );
+          expect(
+            linhasDaCidade.any(
+              (l) => tem(l, 'Portão eletrônico') && !tem(l, 'Piscina'),
+            ),
+            isTrue,
+            reason: '$nomeCidade: Portão eletrônico sem Piscina',
+          );
+        }
+      },
+    );
+
+    test(
+      'Campinas tem uma linha com Piscina e Churrasqueira ao mesmo tempo '
+      '(D-24)',
+      () {
+        final linhasCampinas = linhasAcervoFixture().where(
+          (l) => (l['cidade']! as Map<String, Object?>)['nome'] == 'Campinas',
+        );
+        bool tem(Map<String, Object?> l, String c) =>
+            (l['caracteristicas']! as List<Object?>).contains(c);
+
+        expect(
+          linhasCampinas.any(
+            (l) => tem(l, 'Piscina') && tem(l, 'Churrasqueira'),
+          ),
+          isTrue,
+        );
+      },
+    );
+
+    test('nenhum bairro ou característica contém vírgula (risco D-06)', () {
+      for (final linha in linhasAcervoFixture()) {
+        expect((linha['bairro']! as String).contains(','), isFalse);
+        for (final caracteristica
+            in linha['caracteristicas']! as List<Object?>) {
+          expect((caracteristica! as String).contains(','), isFalse);
+        }
+      }
     });
   });
 
@@ -832,4 +989,253 @@ void main() {
       },
     );
   });
+
+  group(
+    'ImovelMockDataSource — natureza, bairro, características e mínimos '
+    '(D-01, D-04, D-05, D-24)',
+    () {
+      Set<int> idsCampinasQue(bool Function(Map<String, Object?>) aceita) =>
+          linhasAcervoFixture()
+              .where(
+                (l) =>
+                    (l['cidade']! as Map<String, Object?>)['nome'] ==
+                        'Campinas' &&
+                    aceita(l),
+              )
+              .map((l) => l['id']! as int)
+              .toSet();
+
+      test(
+        'natureza=CASA,APARTAMENTO devolve exatamente as linhas casa OU '
+        'apartamento de Campinas (D-05)',
+        () async {
+          final datasource = construir(tamanhoPagina: 100);
+          final idsEsperados = idsCampinasQue(
+            (l) =>
+                l['natureza'] == 'CASA' || l['natureza'] == 'APARTAMENTO',
+          );
+          expect(idsEsperados, isNotEmpty);
+
+          final resultados = await andarTodasAsPaginas(
+            datasource,
+            const ConsultaImoveis(
+              cidade: campinas,
+              filtros: FiltrosVitrine(
+                naturezas: {NaturezaImovel.casa, NaturezaImovel.apartamento},
+              ),
+            ),
+          );
+
+          expect(resultados.map((m) => m.id).toSet(), idsEsperados);
+        },
+      );
+
+      test(
+        'quartos_min=2 devolve todas as linhas com quartos >= 2, INCLUINDO '
+        'as de exatamente 2 quartos (D-01, nunca ==)',
+        () async {
+          final datasource = construir(tamanhoPagina: 100);
+          final idsEsperados = idsCampinasQue(
+            (l) => (l['quartos']! as int) >= 2,
+          );
+          final idsExatamenteDois = idsCampinasQue(
+            (l) => (l['quartos']! as int) == 2,
+          );
+          expect(idsExatamenteDois, isNotEmpty);
+          expect(idsExatamenteDois, everyElement(isIn(idsEsperados)));
+
+          final resultados = await andarTodasAsPaginas(
+            datasource,
+            const ConsultaImoveis(
+              cidade: campinas,
+              filtros: FiltrosVitrine(quartosMin: 2),
+            ),
+          );
+
+          final idsObtidos = resultados.map((m) => m.id).toSet();
+          expect(idsObtidos, idsEsperados);
+          expect(idsExatamenteDois.every(idsObtidos.contains), isTrue);
+        },
+      );
+
+      test('suites_min=2 devolve todas as linhas com suítes >= 2', () async {
+        final datasource = construir(tamanhoPagina: 100);
+        final idsEsperados = idsCampinasQue(
+          (l) => (l['suites']! as int) >= 2,
+        );
+        expect(idsEsperados, isNotEmpty);
+
+        final resultados = await andarTodasAsPaginas(
+          datasource,
+          const ConsultaImoveis(
+            cidade: campinas,
+            filtros: FiltrosVitrine(suitesMin: 2),
+          ),
+        );
+
+        expect(resultados.map((m) => m.id).toSet(), idsEsperados);
+      });
+
+      test('vagas_min=2 devolve todas as linhas com vagas >= 2', () async {
+        final datasource = construir(tamanhoPagina: 100);
+        final idsEsperados = idsCampinasQue((l) => (l['vagas']! as int) >= 2);
+        expect(idsEsperados, isNotEmpty);
+
+        final resultados = await andarTodasAsPaginas(
+          datasource,
+          const ConsultaImoveis(
+            cidade: campinas,
+            filtros: FiltrosVitrine(vagasMin: 2),
+          ),
+        );
+
+        expect(resultados.map((m) => m.id).toSet(), idsEsperados);
+      });
+
+      test(
+        'bairro=Cambuí,Taquaral devolve linhas de qualquer um dos dois, '
+        'acento/caixa-insensível ("cambui" também casa, D-05)',
+        () async {
+          final datasource = construir(tamanhoPagina: 100);
+          final idsEsperados = idsCampinasQue(
+            (l) => l['bairro'] == 'Cambuí' || l['bairro'] == 'Taquaral',
+          );
+          expect(idsEsperados, isNotEmpty);
+
+          final resultados = await andarTodasAsPaginas(
+            datasource,
+            const ConsultaImoveis(
+              cidade: campinas,
+              filtros: FiltrosVitrine(bairros: {'cambui', 'taquaral'}),
+            ),
+          );
+
+          expect(resultados.map((m) => m.id).toSet(), idsEsperados);
+        },
+      );
+
+      test(
+        'características=Portão eletrônico,Piscina devolve só linhas com '
+        'AMBAS (E), um subconjunto estrito das que têm QUALQUER uma delas '
+        '(D-04)',
+        () async {
+          final datasource = construir(tamanhoPagina: 100);
+          bool tem(Map<String, Object?> l, String c) =>
+              (l['caracteristicas']! as List<Object?>).contains(c);
+
+          final idsComAmbas = idsCampinasQue(
+            (l) => tem(l, 'Portão eletrônico') && tem(l, 'Piscina'),
+          );
+          final idsComQualquer = idsCampinasQue(
+            (l) => tem(l, 'Portão eletrônico') || tem(l, 'Piscina'),
+          );
+          expect(idsComAmbas, isNotEmpty);
+          expect(idsComAmbas.length, lessThan(idsComQualquer.length));
+
+          final resultados = await andarTodasAsPaginas(
+            datasource,
+            const ConsultaImoveis(
+              cidade: campinas,
+              filtros: FiltrosVitrine(
+                caracteristicas: {'Portão eletrônico', 'Piscina'},
+              ),
+            ),
+          );
+
+          expect(resultados.map((m) => m.id).toSet(), idsComAmbas);
+        },
+      );
+
+      test(
+        'natureza=CASA + quartos_min=3 combina com E (só casas com 3+ '
+        'quartos, nunca terrenos nem casas com menos)',
+        () async {
+          final datasource = construir(tamanhoPagina: 100);
+          final idsEsperados = idsCampinasQue(
+            (l) =>
+                l['natureza'] == 'CASA' && (l['quartos']! as int) >= 3,
+          );
+          expect(idsEsperados, isNotEmpty);
+
+          final resultados = await andarTodasAsPaginas(
+            datasource,
+            const ConsultaImoveis(
+              cidade: campinas,
+              filtros: FiltrosVitrine(
+                naturezas: {NaturezaImovel.casa},
+                quartosMin: 3,
+              ),
+            ),
+          );
+
+          final idsObtidos = resultados.map((m) => m.id).toSet();
+          expect(idsObtidos, idsEsperados);
+          expect(
+            idsObtidos.every(
+              (id) =>
+                  linhasAcervoFixture().firstWhere(
+                        (l) => l['id'] == id,
+                      )['natureza'] ==
+                  'CASA',
+            ),
+            isTrue,
+          );
+        },
+      );
+
+      test(
+        'natureza=TERRENO + quartos_min=1 devolve zero linhas em toda '
+        'cidade atendida (D-22 combinação determinística)',
+        () async {
+          for (final cidade in [campinas, valinhos]) {
+            final datasource = construir(tamanhoPagina: 100);
+
+            final resultados = await andarTodasAsPaginas(
+              datasource,
+              ConsultaImoveis(
+                cidade: cidade,
+                filtros: const FiltrosVitrine(
+                  naturezas: {NaturezaImovel.terreno},
+                  quartosMin: 1,
+                ),
+              ),
+            );
+
+            expect(resultados, isEmpty, reason: cidade.nome);
+          }
+        },
+      );
+
+      test(
+        'ids permanecem únicos ao longo de todas as páginas com natureza+'
+        'quartos_min ativos, e next preserva os dois params',
+        () async {
+          final datasource = construir(tamanhoPagina: 3);
+
+          final envelope = await datasource.buscar(
+            const ConsultaImoveis(
+              cidade: campinas,
+              filtros: FiltrosVitrine(
+                naturezas: {NaturezaImovel.casa, NaturezaImovel.apartamento},
+                quartosMin: 1,
+              ),
+            ),
+          );
+          expect(envelope.next, isNotNull);
+          final uri = Uri.parse(envelope.next!);
+          expect(uri.queryParameters['natureza'], 'CASA,APARTAMENTO');
+          expect(uri.queryParameters['quartos_min'], '1');
+
+          final ids = <int>[...envelope.results.map((m) => m.id)];
+          var proxima = envelope;
+          while (proxima.next != null) {
+            proxima = await datasource.seguir(proxima.next!);
+            ids.addAll(proxima.results.map((m) => m.id));
+          }
+
+          expect(ids.toSet(), hasLength(ids.length));
+        },
+      );
+    },
+  );
 }
