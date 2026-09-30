@@ -80,17 +80,17 @@ void main() {
   );
 
   test(
-    'falha ao carregar a lista atendida → erroCarregarCidades, nunca uma '
-    'tela fatal (LOC-06)',
+    'falha ao carregar a lista atendida → cidade salva entra direto '
+    '(autorizadaEAtendida), sem depender do endpoint de cidades (D-16)',
     () async {
       const cidadeSalva = campinas;
       when(() => obterCidadesAtendidas()).thenAnswer(
-        (_) async => Result.failure(Exception('parse falhou')),
+        (_) async => Result.failure(Exception('GET /cidades falhou')),
       );
 
       final estado = await caso(cidadeSalva);
 
-      expect(estado, const CidadeSelecaoState.erroCarregarCidades());
+      expect(estado, const CidadeSelecaoState.autorizadaEAtendida(campinas));
       verifyZeroInteractions(geolocator);
       verifyZeroInteractions(geocoding);
     },

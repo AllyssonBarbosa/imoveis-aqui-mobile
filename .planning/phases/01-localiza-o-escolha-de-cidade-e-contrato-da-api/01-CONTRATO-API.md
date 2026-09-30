@@ -73,6 +73,11 @@ reaproveitar esse serializer sem alteração.
 
 Ver §4 para a especificação completa da paginação (D-01).
 
+**Adendo Fase 2 (implementado):** o endpoint real usa `page_size = 50` fixo (sem
+`page_size_query_param`) e `ordering = ("nome", "uf")` — o mesmo `Cidade.Meta.ordering`,
+estável e não-nulo. `next`/`previous` são URLs absolutas (RESEARCH.md Pattern 5 / A2); o app
+percorre `next` até `null` para montar a lista completa de cidades atendidas.
+
 ### 2.3 Regra do conjunto servido ("atendidas")
 
 `GET /cidades` **NÃO** é `Cidade.objects.all()`. Uma linha em `Cidade` pode existir sem
@@ -90,6 +95,15 @@ Ou seja: só entram cidades com pelo menos uma `Empresa` ativa (`ativa=True`) at
 Esta regra deve ser aplicada de forma **idêntica** pela `assets/cidades.json` fixa desta
 fase (D-13/D-16) e pelo endpoint real da Fase 2 — senão a lista fixa e a lista real
 divergem silenciosamente (Pitfall 4 do RESEARCH.md).
+
+**Adendo Fase 2 (D-16, implementado):** a partir desta fase o app removeu o asset local
+`assets/cidades.json` e a `CidadeLocalDataSource` — `GET /api/publico/cidades/` passa a ser a
+**única fonte da verdade** para a lista de cidades (não há mais lista fixa para divergir). O
+comando de desenvolvimento `semear_vitrine_dev` (repo irmão `../imoveis-aqui/Web`,
+`empresas/management/commands/`) semeia exatamente as mesmas 4 cidades de
+`contrato/cidades.example.json` e da fixture mock de imóveis do app — Campinas, Valinhos,
+Vinhedo, Indaiatuba (SP) — evitando o drift entre as duas fontes descrito no Pitfall 4 do
+RESEARCH.md.
 
 ---
 
@@ -192,6 +206,7 @@ Ambos os endpoints (`GET /cidades` e `GET /imoveis`) usam **DRF `CursorPaginatio
 | `natureza` | string (enum) | `CASA`\|`APARTAMENTO`\|`TERRENO`\|`LOTE` — PENDENTE E2 (campo não existe ainda) | pendente E2 |
 | `finalidade` | string (enum) | `VENDA`\|`ALUGUEL`\|`VENDA_E_ALUGUEL` | congelado |
 | `bairro` | string | Filtro textual de bairro | congelado (nome) |
+| `busca` | string | Busca textual em `titulo` + `endereco__bairro` (`descricao` fica de fora), case/acento-insensível no que o backend permitir. Django: `SearchFilter` com `search_param = "busca"` | **adendo Fase 2 (D-05/D-06) — aguardando sign-off do E2** |
 | `area_min` | decimal | Área mínima em m² — PENDENTE E2 | pendente E2 |
 | `area_max` | decimal | Área máxima em m² — PENDENTE E2 | pendente E2 |
 | `caracteristicas` | lista (CSV ou múltiplos params) | Filtra por características marcadas | congelado (nome) |
@@ -267,10 +282,43 @@ um precisa de uma decisão explícita do E2 (ou do time) antes deste contrato vi
    param, não forma de dado): `preco_asc`, `preco_desc`, `area_asc`, `area_desc`,
    `mais_recentes`. **Não congelado** — precisa validação do E2, especialmente porque
    `area_asc`/`area_desc` dependem dos campos PENDENTE E2 (§3.2) existirem.
+   **Atualização Fase 2 (D-11) — adendo Fase 2 aguardando sign-off do E2:** o app adotou estes
+   cinco valores como valores de trabalho no enum de domínio `OrdenacaoVitrine.valorApi`; os
+   rótulos em português ficam na UI e os valores (em inglês/snake_case acima) atravessam a
+   API. Continua sujeito à aprovação do E2 — ver adendo consolidado em §9.
 
 Nenhum destes quatro itens deve ser tratado como decidido pela app ou pela API antes do
 sign-off — congelar um chute aqui é exatamente o erro que este documento existe para
 evitar.
+
+### 7.5 Preço-base da ordenação e nulos (adendo Fase 2 — aguardando sign-off do E2)
+
+A ordenação por preço usa `preco_venda` como base; imóveis sem `preco_venda` (só aluguel) vão
+para o fim da lista em ambas as direções (**nulls last**), sem misturar as escalas de venda e
+aluguel (D-12). Na Fase 3, com o filtro `finalidade=ALUGUEL` aplicado, a ordenação por preço
+passa a usar `preco_aluguel`. As ordenações `area_asc`/`area_desc` com `area` nulo seguem a
+mesma regra (nulls last). Esta é uma regra do **servidor** (e do mock que o simula nesta fase)
+— nunca decidida no app.
+
+**Risco técnico aberto (RESEARCH.md Pitfall 3):** o `CursorPagination` do DRF exige que o
+campo de `ordering` seja não-nulo — a documentação oficial afirma explicitamente que deve ser
+"a non-nullable value that can be coerced to a string", e uma discussion do próprio
+repositório do DRF (`encode/django-rest-framework#9456`) confirma que sobrescrever a ordenação
+via um `OrderingFilter` customizado não resolve, porque o `CursorPagination` reaplica sua
+própria ordenação por cima. Como `preco_venda`, `preco_aluguel` e `area` são `nullable=True`
+no model `Imovel`, isso bloqueia a implementação literal de nulls-last no endpoint real de
+`/imoveis`. Opções para o E2 decidir antes da Fase 4 (nenhuma escolhida aqui):
+
+- Anotar o queryset com `Coalesce(F('preco_venda'), Value(<sentinela>))` para transformar o
+  nulo num valor real e ordenável — exige escolher uma sentinela segura, fora da faixa de
+  preços reais.
+- Trocar `CursorPagination` por `PageNumberPagination` só para as ordenações por preço/área —
+  provavelmente pior, pois quebra a garantia "sem cards duplicados/embaralhados" que o próprio
+  D-01 deste contrato exige para o scroll infinito.
+
+Nesta fase o `ImovelMockDataSource` (Dart puro) implementa nulls-last trivialmente com um
+`Comparator` — isso **não bloqueia** a Fase 2, mas **bloqueia a Fase 4** se não for resolvido
+antes.
 
 ---
 
@@ -289,3 +337,27 @@ de coordenação (fora do escopo automatizável deste plano):
 Enquanto o sign-off não acontece, `contrato/cidades.example.json` e
 `contrato/imoveis.example.json` (ver Task 2) servem como fixtures de mock para as Fases
 2/3 (API-04), permitindo que o app avance sem bloquear na resposta do E2.
+
+---
+
+## 9. Adendos da Fase 2 (aguardando sign-off do E2)
+
+A Fase 2 (Vitrine — Lista, Busca e Ordenação) adiciona os itens abaixo a este contrato, todos
+como **propostas de trabalho do app**, ainda pendentes do sign-off do E2 — o mesmo processo de
+sincronização de §8 se aplica igualmente a eles:
+
+1. **Param `busca`** (§5) — busca textual em `titulo` + `endereco__bairro`, via `SearchFilter`
+   com `search_param = "busca"` (D-05/D-06).
+2. **Valores do enum `ordenacao`** (§7.4) — `mais_recentes` (padrão), `preco_asc`, `preco_desc`,
+   `area_asc`, `area_desc`, adotados como valores de trabalho no domínio do app (D-11).
+3. **Preço-base da ordenação com nulls last** (§7.5) — `preco_venda` (ou `preco_aluguel` na
+   Fase 3 com `finalidade=ALUGUEL`) como base, nulos sempre por último; risco técnico aberto do
+   `CursorPagination` do DRF registrado para decisão do E2 antes da Fase 4 (opções: `Coalesce`
+   com sentinela, ou `PageNumberPagination` só para essas ordenações).
+4. **Formato do param `cidade`** (§7 item 2, já pendente desde a Fase 1) — o mock desta fase usa
+   a chave natural `nome-uf` (ex. `Campinas-SP`), seguindo a recomendação provisória do próprio
+   §7.2, isolado na `ImovelMockDataSource` para trocar fácil se o E2 decidir por `id`. Ainda não
+   é uma decisão congelada.
+
+Assim como os itens de §7, nenhum destes quatro deve ser tratado como decidido pela app ou pela
+API antes do sign-off explícito do E2.

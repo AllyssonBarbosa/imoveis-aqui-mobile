@@ -9,6 +9,8 @@ import 'package:imoveis_aqui/main.dart';
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_cubit.dart';
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_state.dart';
 import 'package:imoveis_aqui/presentation/priming/priming_screen.dart';
+import 'package:imoveis_aqui/presentation/vitrine/vitrine_cubit.dart';
+import 'package:imoveis_aqui/presentation/vitrine/vitrine_state.dart';
 import 'package:mocktail/mocktail.dart';
 
 /// Testa APENAS o roteamento/wiring de `main.dart` — QUEM ele chama e com
@@ -22,6 +24,9 @@ import 'package:mocktail/mocktail.dart';
 /// certo, nunca o fluxo de detecção/GPS diretamente.
 class _CidadeSelecaoCubitFalso extends MockCubit<CidadeSelecaoState>
     implements CidadeSelecaoCubit {}
+
+class _VitrineCubitFalso extends MockCubit<VitrineState>
+    implements VitrineCubit {}
 
 class _ObterCidadeSalvaUseCaseFalso extends Mock
     implements ObterCidadeSalvaUseCase {}
@@ -51,6 +56,22 @@ void main() {
     getIt.registerFactory<ObterCidadeSalvaUseCase>(() => obterCidadeSalva);
     getIt.registerFactory<CidadeSelecaoCubit>(() => cubit);
     getIt.registerFactory<SalvarCidadeUseCase>(_SalvarCidadeUseCaseFalso.new);
+    // Fake num estado NÃO-animante (`vazioNaCidade`) — os testes deste
+    // arquivo usam `pump()` fixo, mas uma nova instância por chamada evita
+    // reusar um cubit já fechado quando `_CorpoVitrine` remonta com outra
+    // `key` (`Cidade.chaveNatural`).
+    getIt.registerFactory<VitrineCubit>(() {
+      final vitrineCubit = _VitrineCubitFalso();
+      when(() => vitrineCubit.carregar(any())).thenReturn(null);
+      whenListen(
+        vitrineCubit,
+        const Stream<VitrineState>.empty(),
+        initialState: const VitrineState(
+          conteudo: ConteudoVitrine.vazioNaCidade(),
+        ),
+      );
+      return vitrineCubit;
+    });
   });
 
   tearDown(() async {

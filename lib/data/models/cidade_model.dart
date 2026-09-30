@@ -5,9 +5,9 @@ import '../../domain/entities/cidade.dart';
 part 'cidade_model.freezed.dart';
 part 'cidade_model.g.dart';
 
-/// Modelo de transporte para uma linha de `GET /cidades` (ou do fixture local
-/// `assets/cidades.json`, mesma forma, D-13). `id` existe no contrato, mas
-/// NÃO é o que persistimos — ver D-15 / [Cidade.chaveNatural].
+/// Modelo de transporte para uma linha de `GET /api/publico/cidades/`
+/// (VIT-06, D-16). `id` existe no contrato, mas NÃO é o que persistimos —
+/// ver D-15 / [Cidade.chaveNatural].
 @freezed
 abstract class CidadeModel with _$CidadeModel {
   const CidadeModel._();

@@ -3,24 +3,25 @@ import 'package:injectable/injectable.dart';
 import '../../core/result.dart';
 import '../../domain/entities/cidade.dart';
 import '../../domain/repositories/cidade_repository.dart';
-import '../datasources/cidade_local_datasource.dart';
 import '../datasources/cidade_prefs_datasource.dart';
+import '../datasources/cidade_remote_datasource.dart';
 
-/// Impl local de [CidadeRepository] (D-14) — compõe a fonte de dados de
-/// cidades atendidas (asset) e a de persistência da escolha (prefs). Fase 2
-/// troca [CidadeLocalDataSource] por uma impl remota via DI, sem tocar
-/// `domain/`/`presentation/`.
+/// Impl de [CidadeRepository] apoiada em [CidadeRemoteDataSource] (VIT-06,
+/// D-16) — a lista de cidades atendidas vem de `GET /api/publico/cidades/`,
+/// fonte única da verdade (o antigo asset local foi removido). Compõe a
+/// DataSource remota com a de persistência da escolha (prefs); a interface
+/// [CidadeRepository] não muda (F1/D-14).
 @LazySingleton(as: CidadeRepository)
 class CidadeRepositoryImpl implements CidadeRepository {
-  CidadeRepositoryImpl(this._local, this._prefs);
+  CidadeRepositoryImpl(this._remoto, this._prefs);
 
-  final CidadeLocalDataSource _local;
+  final CidadeRemoteDataSource _remoto;
   final CidadePrefsDataSource _prefs;
 
   @override
   Future<Result<List<Cidade>>> obterCidadesAtendidas() async {
     try {
-      final modelos = await _local.obterCidades();
+      final modelos = await _remoto.obterCidades();
       final cidades = modelos.map((modelo) => modelo.paraEntidade()).toList();
       return Result.success(cidades);
     } on Exception catch (erro) {

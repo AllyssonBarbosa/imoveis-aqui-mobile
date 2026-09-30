@@ -13,10 +13,15 @@ import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_cubit.da
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_screen.dart';
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_state.dart';
 import 'package:imoveis_aqui/presentation/cidade_selecao/widgets/seletor_cidade_topo.dart';
+import 'package:imoveis_aqui/presentation/vitrine/vitrine_cubit.dart';
+import 'package:imoveis_aqui/presentation/vitrine/vitrine_state.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _CidadeSelecaoCubitFalso extends MockCubit<CidadeSelecaoState>
     implements CidadeSelecaoCubit {}
+
+class _VitrineCubitFalso extends MockCubit<VitrineState>
+    implements VitrineCubit {}
 
 class _GeolocatorGatewayFalso extends Mock implements GeolocatorGateway {}
 
@@ -111,13 +116,33 @@ void main() {
 
     tearDown(() => cubit.close());
 
+    // Nova instância a cada chamada — `_CorpoVitrine` troca de `key`
+    // (`Cidade.chaveNatural`) sempre que a cidade muda, então o
+    // `BlocProvider` anterior fecha seu cubit ao sair da árvore; reusar a
+    // mesma instância quebraria a segunda tela ("já fechado").
+    VitrineCubit criarVitrineCubitFalso() {
+      final vitrineCubit = _VitrineCubitFalso();
+      when(() => vitrineCubit.carregar(any())).thenReturn(null);
+      whenListen(
+        vitrineCubit,
+        const Stream<VitrineState>.empty(),
+        initialState: const VitrineState(
+          conteudo: ConteudoVitrine.vazioNaCidade(),
+        ),
+      );
+      return vitrineCubit;
+    }
+
     Future<void> abrirNaCidadeEntrada(WidgetTester tester) async {
       cubit.entrarDireto(campinas);
       await tester.pumpWidget(
         MaterialApp(
           home: BlocProvider<CidadeSelecaoCubit>.value(
             value: cubit,
-            child: CidadeSelecaoScreen(salvarCidade: salvarCidade),
+            child: CidadeSelecaoScreen(
+              salvarCidade: salvarCidade,
+              criarVitrineCubit: criarVitrineCubitFalso,
+            ),
           ),
         ),
       );

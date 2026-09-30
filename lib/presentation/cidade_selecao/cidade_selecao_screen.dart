@@ -4,35 +4,43 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../di/injection.dart';
 import '../../domain/entities/cidade.dart';
 import '../../domain/usecases/salvar_cidade_usecase.dart';
+import '../vitrine/vitrine_cubit.dart';
+import '../vitrine/vitrine_screen.dart';
 import 'cidade_selecao_cubit.dart';
 import 'cidade_selecao_state.dart';
-import 'widgets/seletor_cidade_topo.dart';
 
 /// Tela de seleção de cidade — projeção exaustiva do [CidadeSelecaoCubit]
 /// (D-07): cada uma das 8 variantes seladas de [CidadeSelecaoState] tem sua
-/// própria UI, nunca um `default`/catch-all (LOC-06). O `switch` do Dart 3
-/// sobre uma classe selada é checado em tempo de compilação — se um novo
-/// desfecho for adicionado ao estado sem um `case` aqui, o build falha.
+/// própria UI, nunca um ramo abrangente/coringa (LOC-06). O `switch` do
+/// Dart 3 sobre uma classe selada é checado em tempo de compilação — se um
+/// novo desfecho for adicionado ao estado sem um `case` aqui, o build falha.
 class CidadeSelecaoScreen extends StatelessWidget {
   const CidadeSelecaoScreen({
     super.key,
     SalvarCidadeUseCase? salvarCidade,
+    VitrineCubit Function()? criarVitrineCubit,
     // ignore: prefer_initializing_formals
-  }) : _salvarCidade = salvarCidade;
+  }) : _salvarCidade = salvarCidade,
+       // ignore: prefer_initializing_formals
+       _criarVitrineCubit = criarVitrineCubit;
 
   final SalvarCidadeUseCase? _salvarCidade;
+  final VitrineCubit Function()? _criarVitrineCubit;
 
   @override
   Widget build(BuildContext context) {
     final salvarCidade = _salvarCidade ?? getIt<SalvarCidadeUseCase>();
+    final criarVitrineCubit =
+        _criarVitrineCubit ?? () => getIt<VitrineCubit>();
     return BlocBuilder<CidadeSelecaoCubit, CidadeSelecaoState>(
       builder: (context, state) {
         return Scaffold(
           body: SafeArea(
             child: switch (state) {
               Localizando() => const _CorpoCarregando(),
-              AutorizadaEAtendida(:final cidade) => _CorpoCidadeEntrada(
+              AutorizadaEAtendida(:final cidade) => _CorpoVitrine(
                 cidade: cidade,
+                criarVitrineCubit: criarVitrineCubit,
               ),
               AutorizadaNaoAtendida(
                 :final cidadeDetectada,
@@ -45,12 +53,16 @@ class CidadeSelecaoScreen extends StatelessWidget {
                   cidades: cidadesAtendidas,
                   onTocarCidade: (cidade) =>
                       _selecionarCidade(context, salvarCidade, cidade),
+                  onRecarregar: () =>
+                      context.read<CidadeSelecaoCubit>().carregarLista(),
                 ),
               Recusada(:final cidadesAtendidas) => _CorpoLista(
                 titulo: 'Escolha sua cidade',
                 cidades: cidadesAtendidas,
                 onTocarCidade: (cidade) =>
                     _selecionarCidade(context, salvarCidade, cidade),
+                onRecarregar: () =>
+                    context.read<CidadeSelecaoCubit>().carregarLista(),
               ),
               BloqueadaParaSempre(:final cidadesAtendidas) => _CorpoLista(
                 titulo:
@@ -62,6 +74,8 @@ class CidadeSelecaoScreen extends StatelessWidget {
                 onAtivarNasAjustes: () => context
                     .read<CidadeSelecaoCubit>()
                     .abrirConfiguracoesDoSistema(),
+                onRecarregar: () =>
+                    context.read<CidadeSelecaoCubit>().carregarLista(),
               ),
               ServicoDesligado(:final cidadesAtendidas) => _CorpoLista(
                 titulo:
@@ -70,6 +84,8 @@ class CidadeSelecaoScreen extends StatelessWidget {
                 cidades: cidadesAtendidas,
                 onTocarCidade: (cidade) =>
                     _selecionarCidade(context, salvarCidade, cidade),
+                onRecarregar: () =>
+                    context.read<CidadeSelecaoCubit>().carregarLista(),
               ),
               FalhaGeocodificacao(:final cidadesAtendidas) => _CorpoLista(
                 aviso:
@@ -78,6 +94,8 @@ class CidadeSelecaoScreen extends StatelessWidget {
                 cidades: cidadesAtendidas,
                 onTocarCidade: (cidade) =>
                     _selecionarCidade(context, salvarCidade, cidade),
+                onRecarregar: () =>
+                    context.read<CidadeSelecaoCubit>().carregarLista(),
               ),
               ErroCarregarCidades() => _CorpoErro(
                 onTentarNovamente: () =>
@@ -124,28 +142,22 @@ class _CorpoCarregando extends StatelessWidget {
   }
 }
 
-class _CorpoCidadeEntrada extends StatelessWidget {
-  const _CorpoCidadeEntrada({required this.cidade});
+/// Desfecho `autorizadaEAtendida` (D-10): monta a vitrine da cidade
+/// escolhida, com o próprio `SeletorCidadeTopo` (LOC-05, D-08) já embutido
+/// dentro de [VitrineScreen] — substitui o antigo placeholder
+/// `_CorpoCidadeEntrada`.
+class _CorpoVitrine extends StatelessWidget {
+  const _CorpoVitrine({required this.cidade, required this.criarVitrineCubit});
 
   final Cidade cidade;
+  final VitrineCubit Function() criarVitrineCubit;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 64),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            Icons.location_on,
-            color: Theme.of(context).colorScheme.primary,
-          ),
-          const SizedBox(height: 16),
-          // Cabeçalho tocável — trocar de cidade num toque, sem GPS (LOC-05,
-          // D-08).
-          SeletorCidadeTopo(cidade: cidade),
-        ],
-      ),
+    return BlocProvider<VitrineCubit>(
+      key: ValueKey(cidade.chaveNatural),
+      create: (_) => criarVitrineCubit()..carregar(cidade),
+      child: VitrineScreen(cidade: cidade),
     );
   }
 }
@@ -157,6 +169,7 @@ class _CorpoLista extends StatelessWidget {
     required this.cidades,
     required this.onTocarCidade,
     this.onAtivarNasAjustes,
+    this.onRecarregar,
   }) : assert(
          titulo != null || aviso != null,
          'titulo ou aviso deve ser informado',
@@ -175,6 +188,11 @@ class _CorpoLista extends StatelessWidget {
 
   /// Presente apenas no desfecho `bloqueadaParaSempre` (D-06).
   final VoidCallback? onAtivarNasAjustes;
+
+  /// Refaz a chamada a `GET /api/publico/cidades/` — usado pelo "Tentar de
+  /// novo" do estado de lista vazia (D-16: servidor devolveu zero cidades
+  /// atendidas, nunca uma lista vazia muda).
+  final VoidCallback? onRecarregar;
 
   @override
   Widget build(BuildContext context) {
@@ -204,25 +222,60 @@ class _CorpoLista extends StatelessWidget {
           ),
         ),
         Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: cidades.length,
-            itemBuilder: (context, index) {
-              final cidade = cidades[index];
-              return Card(
-                child: ListTile(
-                  leading: const Icon(Icons.location_on),
-                  // Long-city-name backstop: Text sem maxLines quebra em
-                  // múltiplas linhas em vez de estourar o layout do Card.
-                  title: Text('${cidade.nome}, ${cidade.uf}'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => onTocarCidade(cidade),
+          child: cidades.isEmpty
+              ? _CorpoListaVazia(onRecarregar: onRecarregar)
+              : ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: cidades.length,
+                  itemBuilder: (context, index) {
+                    final cidade = cidades[index];
+                    return Card(
+                      child: ListTile(
+                        leading: const Icon(Icons.location_on),
+                        // Long-city-name backstop: Text sem maxLines quebra
+                        // em múltiplas linhas em vez de estourar o layout
+                        // do Card.
+                        title: Text('${cidade.nome}, ${cidade.uf}'),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => onTocarCidade(cidade),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
         ),
       ],
+    );
+  }
+}
+
+/// Servidor devolveu zero cidades atendidas (D-16) — distinto de uma lista
+/// vazia muda: mensagem própria + CTA para tentar de novo.
+class _CorpoListaVazia extends StatelessWidget {
+  const _CorpoListaVazia({required this.onRecarregar});
+
+  final VoidCallback? onRecarregar;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Nenhuma cidade atendida no momento.',
+              style: Theme.of(context).textTheme.bodyLarge,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            TextButton(
+              onPressed: onRecarregar,
+              child: const Text('Tentar de novo'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

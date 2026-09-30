@@ -4,7 +4,8 @@ import '../../core/result.dart';
 import '../entities/cidade.dart';
 import '../repositories/cidade_repository.dart';
 
-/// Obtém a lista de cidades atendidas (fonte local nesta fase, D-14).
+/// Obtém a lista de cidades atendidas via `GET /api/publico/cidades/`
+/// (VIT-06, D-16).
 @injectable
 class ObterCidadesAtendidasUseCase {
   ObterCidadesAtendidasUseCase(this._repositorio);

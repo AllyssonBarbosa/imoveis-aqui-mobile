@@ -7,12 +7,17 @@ import 'package:imoveis_aqui/domain/usecases/salvar_cidade_usecase.dart';
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_cubit.dart';
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_screen.dart';
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_state.dart';
+import 'package:imoveis_aqui/presentation/vitrine/vitrine_cubit.dart';
+import 'package:imoveis_aqui/presentation/vitrine/vitrine_state.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _CidadeSelecaoCubitFalso extends MockCubit<CidadeSelecaoState>
     implements CidadeSelecaoCubit {}
 
 class _SalvarCidadeUseCaseFalso extends Mock implements SalvarCidadeUseCase {}
+
+class _VitrineCubitFalso extends MockCubit<VitrineState>
+    implements VitrineCubit {}
 
 void main() {
   late _CidadeSelecaoCubitFalso cubit;
@@ -37,6 +42,21 @@ void main() {
     when(() => cubit.entrarDireto(any())).thenAnswer((_) {});
   });
 
+  // Fake de VitrineCubit num estado NÃO-animante (`vazioNaCidade`, nunca
+  // `carregando`) — os testes deste arquivo usam `pumpAndSettle()`, que
+  // nunca se estabiliza enquanto um `CircularProgressIndicator`
+  // indeterminado está de pé.
+  VitrineCubit criarVitrineCubitFalso() {
+    final vitrineCubit = _VitrineCubitFalso();
+    when(() => vitrineCubit.carregar(any())).thenReturn(null);
+    whenListen(
+      vitrineCubit,
+      const Stream<VitrineState>.empty(),
+      initialState: const VitrineState(conteudo: ConteudoVitrine.vazioNaCidade()),
+    );
+    return vitrineCubit;
+  }
+
   Future<void> pumpEstado(
     WidgetTester tester,
     CidadeSelecaoState estado,
@@ -46,7 +66,10 @@ void main() {
       MaterialApp(
         home: BlocProvider<CidadeSelecaoCubit>.value(
           value: cubit,
-          child: CidadeSelecaoScreen(salvarCidade: salvarCidade),
+          child: CidadeSelecaoScreen(
+            salvarCidade: salvarCidade,
+            criarVitrineCubit: criarVitrineCubitFalso,
+          ),
         ),
       ),
     );
@@ -178,6 +201,29 @@ void main() {
         find.widgetWithText(TextButton, 'Tentar de novo'),
         findsOneWidget,
       );
+      expect(find.byType(ErrorWidget), findsNothing);
+
+      await tester.tap(find.widgetWithText(TextButton, 'Tentar de novo'));
+      await tester.pump();
+      verify(() => cubit.carregarLista()).called(1);
+    },
+  );
+
+  testWidgets(
+    'lista de cidades atendidas vazia: mensagem própria + "Tentar de novo" '
+    'chamando carregarLista(), nunca uma lista vazia muda',
+    (tester) async {
+      await pumpEstado(tester, const CidadeSelecaoState.recusada([]));
+
+      expect(
+        find.text('Nenhuma cidade atendida no momento.'),
+        findsOneWidget,
+      );
+      expect(
+        find.widgetWithText(TextButton, 'Tentar de novo'),
+        findsOneWidget,
+      );
+      expect(find.byType(Card), findsNothing);
       expect(find.byType(ErrorWidget), findsNothing);
 
       await tester.tap(find.widgetWithText(TextButton, 'Tentar de novo'));
