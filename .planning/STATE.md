@@ -1,18 +1,18 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 3
+current_phase: 03
 current_phase_name: Vitrine — Filtros Server-Side
 status: executing
-stopped_at: Phase 03 context gathered
-last_updated: "2026-09-30T19:15:30.759Z"
-last_activity: 2026-09-25
-last_activity_desc: Phase 02 execution started
-state_head: d53ac851c4824a00f28a85447334014794684b7b
+stopped_at: Completed 03-01-PLAN.md
+last_updated: "2026-09-30T20:22:48.663Z"
+last_activity: 2026-09-30
+last_activity_desc: Phase 03 execution started
+state_head: 85309914ba1ec2e1bff4527d413478444b12c160
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 14
-  completed_plans: 9
+  completed_plans: 10
   percent: 0
 ---
 
@@ -23,14 +23,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-21)
 
 **Core value:** A vitrine do app abre na cidade do usuário e mostra imóveis reais vindos da API, com a busca e o filtro resolvidos no servidor — o mesmo dado e a mesma regra do site, nunca recalculados dentro do aparelho.
-**Current focus:** Phase 02 — Vitrine — Lista, Busca e Ordenação
+**Current focus:** Phase 03 — Vitrine — Filtros Server-Side
 
 ## Current Position
 
-Phase: 3 (Vitrine — Filtros Server-Side) — READY TO EXECUTE
-Plan: 5 of 5
+Phase: 03 (Vitrine — Filtros Server-Side) — EXECUTING
+Plan: 2 of 5
 Status: Ready to execute
-Last activity: 2026-09-25 — Phase 02 execution started
+Last activity: 2026-09-30 — Phase 03 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -64,6 +64,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02 P03 | 22 min | 3 tasks | 9 files |
 | Phase 02 P04 | 27 min | 2 tasks | 22 files |
 | Phase 02 P05 | 17min | 3 tasks | 12 files |
+| Phase 03 P01 | 50min | 2 tasks | 21 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,8 @@ Recent decisions affecting current work:
 - [Phase 02]: [Phase 02-04]: Cidades trocadas do asset fixo para GET /api/publico/cidades/ via Dio (D-16/D-17); falha do endpoint nao bloqueia mais quem ja tem cidade salva (autorizadaEAtendida direto)
 - [Phase 02]: [Phase 02-05]: D-10 interpretado como botão Ordenar na linha logo abaixo da SearchBar (nao lado a lado) - a 360dp os dois nao cabem juntos; sinalizado no human-check de fim de fase para confirmacao do usuario
 - [Phase 02]: [Phase 02-05]: keepScrollOffset:false so restaura o topo com um ScrollPosition NOVO; troca de busca/ordenacao reconstroi o mesmo ListView/controller in-place, entao D-13 precisou de jumpTo(0) explicito num BlocConsumer.listener quando ConteudoVitrine.carregando reaparece
+- [Phase 03]: [Phase 03-01]: TDD explícito na Task 2 (RED->GREEN, sem REFACTOR necessário); ImovelMockDataSource refatorado em pipeline não-async (_paginarPelosParametros) + async (_montarPagina), preservando o throw síncrono de FormatException para cidade/ordenacao/cursor inválidos
+- [Phase 03]: [Phase 03-01]: next/previous do mock passam a carregar o mesmo mapa de query params recebido (menos cursor) em vez de reconstruir via parametrosDaConsulta — todo filtro futuro sobrevive à paginação automaticamente
 
 ### Pending Todos
 
@@ -111,6 +114,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-30T18:01:03.298Z
-Stopped at: Phase 03 context gathered
-Resume file: .planning/phases/03-vitrine-filtros-server-side/03-CONTEXT.md
+Last session: 2026-09-30T20:22:48.632Z
+Stopped at: Completed 03-01-PLAN.md
+Resume file: None

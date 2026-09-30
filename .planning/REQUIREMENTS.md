@@ -27,7 +27,7 @@ Requisitos da primeira entrega (tarefas APP01, APP02, APP03 + os endpoints públ
 
 ### Filtros da vitrine (APP03)
 
-- [ ] **FIL-01**: Filtro por finalidade (venda / aluguel).
+- [x] **FIL-01**: Filtro por finalidade (venda / aluguel).
 - [ ] **FIL-02**: Filtro por natureza (casa, apartamento, terreno, lote).
 - [ ] **FIL-03**: Filtros por faixa de preço, quartos, suítes e vagas.
 - [ ] **FIL-04**: Filtros por bairro, faixa de área e características.
@@ -85,7 +85,7 @@ Excluídos de propósito. Documentados para evitar scope creep.
 | VIT-06 | Phase 2 | Complete |
 | API-02 | Phase 2 | Complete |
 | API-04 | Phase 2 | Complete |
-| FIL-01 | Phase 3 | Pending |
+| FIL-01 | Phase 3 | Complete |
 | FIL-02 | Phase 3 | Pending |
 | FIL-03 | Phase 3 | Pending |
 | FIL-04 | Phase 3 | Pending |

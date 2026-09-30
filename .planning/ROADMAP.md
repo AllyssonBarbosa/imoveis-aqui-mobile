@@ -104,11 +104,11 @@ Plans:
   4. Mudar filtro ou ordenação reseta a paginação — sem cards duplicados ou embaralhados.
   5. Toda a filtragem é resolvida pela camada de dados (mock hoje, honrando o contrato da Fase 1) — o app nunca filtra o acervo localmente no aparelho.
 
-**Plans**: 5 plans
+**Plans**: 1/5 plans executed
 Plans:
 **Wave 1**
 
-- [ ] 03-01-PLAN.md — Tracer: filtro de finalidade ponta a ponta (sheet + rascunho + query params + mock) + chips, remover/limpar e vazio com filtros sobre o reinício da F2 (FIL-01, FIL-05, FIL-06)
+- [x] 03-01-PLAN.md — Tracer: filtro de finalidade ponta a ponta (sheet + rascunho + query params + mock) + chips, remover/limpar e vazio com filtros sobre o reinício da F2 (FIL-01, FIL-05, FIL-06)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -152,5 +152,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Localização, Escolha de Cidade e Contrato da API | 4/4 | In Progress|  |
 | 2. Vitrine — Lista, Busca e Ordenação | 5/5 | In Progress|  |
-| 3. Vitrine — Filtros Server-Side | 0/5 | Not started | - |
+| 3. Vitrine — Filtros Server-Side | 1/5 | In Progress|  |
 | 4. Imóveis Real — Endpoint Público e Integração Final | 0/TBD | Not started | - |
