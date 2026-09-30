@@ -8,6 +8,7 @@ import 'package:imoveis_aqui/data/mocks/imoveis_fixture.dart';
 import 'package:imoveis_aqui/data/repositories/imovel_repository_impl.dart';
 import 'package:imoveis_aqui/domain/entities/cidade.dart';
 import 'package:imoveis_aqui/domain/entities/consulta_imoveis.dart';
+import 'package:imoveis_aqui/domain/entities/imovel.dart';
 import 'package:imoveis_aqui/domain/usecases/buscar_imoveis_usecase.dart';
 import 'package:imoveis_aqui/domain/entities/ordenacao_vitrine.dart';
 import 'package:imoveis_aqui/domain/usecases/salvar_cidade_usecase.dart';
@@ -422,6 +423,88 @@ void main() {
       );
       final conteudo = vitrineCubit.state.conteudo as VitrineCarregada;
       expect(conteudo.itens.map((i) => i.id).toSet(), hasLength(10));
+    },
+  );
+
+  testWidgets(
+    'Campinas: Filtros -> Casa + Apartamento + "2+" quartos -> Ver imóveis '
+    'filtra pela pilha real; chips "Casa, Apto" e "2+ quartos" aparecem, '
+    'botão "Filtros (2)" (FIL-02, FIL-03, D-01, D-05, D-10, D-11)',
+    (tester) async {
+      await pumpVitrineDe(tester, campinas);
+
+      await tester.tap(find.text('Filtros'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilterChip, 'Casa'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilterChip, 'Apartamento'));
+      await tester.pumpAndSettle();
+      final choiceQuartosDoisMais = find
+          .widgetWithText(ChoiceChip, '2+')
+          .at(0);
+      await tester.ensureVisible(choiceQuartosDoisMais);
+      await tester.tap(choiceQuartosDoisMais);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Ver imóveis'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Filtros (2)'), findsOneWidget);
+      expect(find.widgetWithText(InputChip, 'Casa, Apto'), findsOneWidget);
+      expect(find.widgetWithText(InputChip, '2+ quartos'), findsOneWidget);
+
+      final vitrineCubit = BlocProvider.of<VitrineCubit>(
+        tester.element(find.byType(ListView)),
+      );
+      final conteudo = vitrineCubit.state.conteudo as VitrineCarregada;
+      expect(conteudo.itens, isNotEmpty);
+      bool bateComOsFiltros(Imovel imovel) =>
+          (imovel.natureza == NaturezaImovel.casa ||
+              imovel.natureza == NaturezaImovel.apartamento) &&
+          (imovel.quartos ?? 0) >= 2;
+      expect(conteudo.itens.every(bateComOsFiltros), isTrue);
+
+      for (final card in tester.widgetList<ImovelCard>(
+        find.byType(ImovelCard),
+      )) {
+        expect(bateComOsFiltros(card.imovel), isTrue);
+      }
+    },
+  );
+
+  testWidgets(
+    'Campinas: Filtros -> Terreno + "1+" quartos mostra "Nenhum imóvel com '
+    'esses filtros"; "Limpar filtros" (do próprio estado vazio) volta à '
+    'lista completa (D-22, FIL-02, FIL-03)',
+    (tester) async {
+      await pumpVitrineDe(tester, campinas);
+
+      await tester.tap(find.text('Filtros'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilterChip, 'Terreno'));
+      await tester.pumpAndSettle();
+      final choiceQuartosUmMais = find
+          .widgetWithText(ChoiceChip, '1+')
+          .at(0);
+      await tester.ensureVisible(choiceQuartosUmMais);
+      await tester.tap(choiceQuartosUmMais);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Ver imóveis'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Nenhum imóvel com esses filtros'), findsOneWidget);
+      expect(find.byType(ImovelCard), findsNothing);
+
+      await tester.tap(find.widgetWithText(TextButton, 'Limpar filtros'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Filtros'), findsOneWidget);
+      expect(find.textContaining('Filtros ('), findsNothing);
+
+      final vitrineCubit = BlocProvider.of<VitrineCubit>(
+        tester.element(find.byType(ListView)),
+      );
+      final conteudo = vitrineCubit.state.conteudo as VitrineCarregada;
+      expect(conteudo.itens, hasLength(10));
     },
   );
 }
