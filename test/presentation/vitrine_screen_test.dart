@@ -365,11 +365,15 @@ void main() {
       'tocar o corpo do chip abre o sheet de filtros, seedado com os '
       'filtros aplicados (D-17)',
       (tester) async {
+        // `carregada` (não `carregando`) — o spinner indeterminado do
+        // estado `carregando` nunca deixa `pumpAndSettle` se estabilizar
+        // (comentário no topo do arquivo), e a animação de abertura do
+        // modal bottom sheet PRECISA de `pumpAndSettle` para terminar.
         await pumpEstado(
           tester,
           const VitrineState(
             filtros: FiltrosVitrine(finalidade: FinalidadeFiltro.venda),
-            conteudo: ConteudoVitrine.carregando(),
+            conteudo: ConteudoVitrine.carregada(itens: []),
           ),
         );
 

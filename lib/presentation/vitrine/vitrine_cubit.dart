@@ -112,14 +112,39 @@ class VitrineCubit extends Cubit<VitrineState> {
   /// igual ao já aplicado (idempotência, mesma disciplina de [ordenarPor]);
   /// caso contrário reinicia a lista do topo (D-19) via [_aplicarConsulta],
   /// preservando `ordenacao`/`termoBusca`. Nunca reimplementa o reinício
-  /// (RESEARCH Pitfall 2) — chips "x"/"Limpar filtros" (plan 03-02) também
-  /// delegam aqui.
+  /// (RESEARCH Pitfall 2) — [removerFiltro]/[limparFiltros] também delegam
+  /// aqui.
   Future<void> aplicarFiltros(FiltrosVitrine filtros) {
     if (filtros == state.filtros) return Future<void>.value();
     return _aplicarConsulta(
       ordenacao: state.ordenacao,
       termoBusca: state.termoBusca,
       filtros: filtros,
+    );
+  }
+
+  /// "x" do chip (D-17) — remove só a dimensão [filtro] e reconsulta na
+  /// hora, sem passar pelo sheet; busca e ordenação continuam intactas.
+  Future<void> removerFiltro(FiltroAtivo filtro) =>
+      aplicarFiltros(state.filtros.semFiltro(filtro));
+
+  /// `ActionChip` "Limpar filtros" (D-18) — zera TODOS os filtros na hora;
+  /// busca e ordenação continuam intactas (D-18 — nenhum dos dois "Limpar"
+  /// mexe nelas).
+  Future<void> limparFiltros() => aplicarFiltros(const FiltrosVitrine());
+
+  /// Botão "Limpar busca e filtros" do estado vazio-com-filtros-e-busca
+  /// (D-22) — cancela um debounce de busca pendente e faz EXATAMENTE uma
+  /// consulta, sem termo e sem filtros, pelo mesmo caminho de reinício
+  /// (D-19); nunca dois emits/duas chamadas separadas.
+  void limparBuscaEFiltros() {
+    _debounce?.cancel();
+    unawaited(
+      _aplicarConsulta(
+        ordenacao: state.ordenacao,
+        termoBusca: null,
+        filtros: const FiltrosVitrine(),
+      ),
     );
   }
 
@@ -259,7 +284,18 @@ class VitrineCubit extends Cubit<VitrineState> {
 
     switch (resultado) {
       case Success(:final data):
-        if (data.itens.isEmpty && termoBusca != null) {
+        // 4 combinações (D-22): filtros ativos vencem (com ou sem busca —
+        // o "termo" viaja junto para a mensagem combinada); senão só busca
+        // (F2/D-09); senão nem um nem outro (F2/D-15).
+        if (data.itens.isEmpty && filtros.quantidadeAtiva > 0) {
+          emit(
+            state.copyWith(
+              conteudo: ConteudoVitrine.semResultadoComFiltros(
+                termo: termoBusca,
+              ),
+            ),
+          );
+        } else if (data.itens.isEmpty && termoBusca != null) {
           emit(
             state.copyWith(conteudo: ConteudoVitrine.semResultado(termoBusca)),
           );

@@ -365,13 +365,14 @@ extension ConteudoVitrinePatterns on ConteudoVitrine {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( VitrineCarregando value)?  carregando,TResult Function( VitrineVaziaNaCidade value)?  vazioNaCidade,TResult Function( VitrineSemResultado value)?  semResultado,TResult Function( VitrineErro value)?  erro,TResult Function( VitrineCarregada value)?  carregada,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( VitrineCarregando value)?  carregando,TResult Function( VitrineVaziaNaCidade value)?  vazioNaCidade,TResult Function( VitrineSemResultado value)?  semResultado,TResult Function( VitrineSemResultadoComFiltros value)?  semResultadoComFiltros,TResult Function( VitrineErro value)?  erro,TResult Function( VitrineCarregada value)?  carregada,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case VitrineCarregando() when carregando != null:
 return carregando(_that);case VitrineVaziaNaCidade() when vazioNaCidade != null:
 return vazioNaCidade(_that);case VitrineSemResultado() when semResultado != null:
-return semResultado(_that);case VitrineErro() when erro != null:
+return semResultado(_that);case VitrineSemResultadoComFiltros() when semResultadoComFiltros != null:
+return semResultadoComFiltros(_that);case VitrineErro() when erro != null:
 return erro(_that);case VitrineCarregada() when carregada != null:
 return carregada(_that);case _:
   return orElse();
@@ -391,13 +392,14 @@ return carregada(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( VitrineCarregando value)  carregando,required TResult Function( VitrineVaziaNaCidade value)  vazioNaCidade,required TResult Function( VitrineSemResultado value)  semResultado,required TResult Function( VitrineErro value)  erro,required TResult Function( VitrineCarregada value)  carregada,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( VitrineCarregando value)  carregando,required TResult Function( VitrineVaziaNaCidade value)  vazioNaCidade,required TResult Function( VitrineSemResultado value)  semResultado,required TResult Function( VitrineSemResultadoComFiltros value)  semResultadoComFiltros,required TResult Function( VitrineErro value)  erro,required TResult Function( VitrineCarregada value)  carregada,}){
 final _that = this;
 switch (_that) {
 case VitrineCarregando():
 return carregando(_that);case VitrineVaziaNaCidade():
 return vazioNaCidade(_that);case VitrineSemResultado():
-return semResultado(_that);case VitrineErro():
+return semResultado(_that);case VitrineSemResultadoComFiltros():
+return semResultadoComFiltros(_that);case VitrineErro():
 return erro(_that);case VitrineCarregada():
 return carregada(_that);}
 }
@@ -413,13 +415,14 @@ return carregada(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( VitrineCarregando value)?  carregando,TResult? Function( VitrineVaziaNaCidade value)?  vazioNaCidade,TResult? Function( VitrineSemResultado value)?  semResultado,TResult? Function( VitrineErro value)?  erro,TResult? Function( VitrineCarregada value)?  carregada,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( VitrineCarregando value)?  carregando,TResult? Function( VitrineVaziaNaCidade value)?  vazioNaCidade,TResult? Function( VitrineSemResultado value)?  semResultado,TResult? Function( VitrineSemResultadoComFiltros value)?  semResultadoComFiltros,TResult? Function( VitrineErro value)?  erro,TResult? Function( VitrineCarregada value)?  carregada,}){
 final _that = this;
 switch (_that) {
 case VitrineCarregando() when carregando != null:
 return carregando(_that);case VitrineVaziaNaCidade() when vazioNaCidade != null:
 return vazioNaCidade(_that);case VitrineSemResultado() when semResultado != null:
-return semResultado(_that);case VitrineErro() when erro != null:
+return semResultado(_that);case VitrineSemResultadoComFiltros() when semResultadoComFiltros != null:
+return semResultadoComFiltros(_that);case VitrineErro() when erro != null:
 return erro(_that);case VitrineCarregada() when carregada != null:
 return carregada(_that);case _:
   return null;
@@ -438,12 +441,13 @@ return carregada(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  carregando,TResult Function()?  vazioNaCidade,TResult Function( String termo)?  semResultado,TResult Function()?  erro,TResult Function( List<Imovel> itens,  String? proximaPagina,  bool carregandoMais,  bool erroAoCarregarMais)?  carregada,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  carregando,TResult Function()?  vazioNaCidade,TResult Function( String termo)?  semResultado,TResult Function( String? termo)?  semResultadoComFiltros,TResult Function()?  erro,TResult Function( List<Imovel> itens,  String? proximaPagina,  bool carregandoMais,  bool erroAoCarregarMais)?  carregada,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case VitrineCarregando() when carregando != null:
 return carregando();case VitrineVaziaNaCidade() when vazioNaCidade != null:
 return vazioNaCidade();case VitrineSemResultado() when semResultado != null:
-return semResultado(_that.termo);case VitrineErro() when erro != null:
+return semResultado(_that.termo);case VitrineSemResultadoComFiltros() when semResultadoComFiltros != null:
+return semResultadoComFiltros(_that.termo);case VitrineErro() when erro != null:
 return erro();case VitrineCarregada() when carregada != null:
 return carregada(_that.itens,_that.proximaPagina,_that.carregandoMais,_that.erroAoCarregarMais);case _:
   return orElse();
@@ -463,12 +467,13 @@ return carregada(_that.itens,_that.proximaPagina,_that.carregandoMais,_that.erro
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  carregando,required TResult Function()  vazioNaCidade,required TResult Function( String termo)  semResultado,required TResult Function()  erro,required TResult Function( List<Imovel> itens,  String? proximaPagina,  bool carregandoMais,  bool erroAoCarregarMais)  carregada,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  carregando,required TResult Function()  vazioNaCidade,required TResult Function( String termo)  semResultado,required TResult Function( String? termo)  semResultadoComFiltros,required TResult Function()  erro,required TResult Function( List<Imovel> itens,  String? proximaPagina,  bool carregandoMais,  bool erroAoCarregarMais)  carregada,}) {final _that = this;
 switch (_that) {
 case VitrineCarregando():
 return carregando();case VitrineVaziaNaCidade():
 return vazioNaCidade();case VitrineSemResultado():
-return semResultado(_that.termo);case VitrineErro():
+return semResultado(_that.termo);case VitrineSemResultadoComFiltros():
+return semResultadoComFiltros(_that.termo);case VitrineErro():
 return erro();case VitrineCarregada():
 return carregada(_that.itens,_that.proximaPagina,_that.carregandoMais,_that.erroAoCarregarMais);}
 }
@@ -484,12 +489,13 @@ return carregada(_that.itens,_that.proximaPagina,_that.carregandoMais,_that.erro
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  carregando,TResult? Function()?  vazioNaCidade,TResult? Function( String termo)?  semResultado,TResult? Function()?  erro,TResult? Function( List<Imovel> itens,  String? proximaPagina,  bool carregandoMais,  bool erroAoCarregarMais)?  carregada,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  carregando,TResult? Function()?  vazioNaCidade,TResult? Function( String termo)?  semResultado,TResult? Function( String? termo)?  semResultadoComFiltros,TResult? Function()?  erro,TResult? Function( List<Imovel> itens,  String? proximaPagina,  bool carregandoMais,  bool erroAoCarregarMais)?  carregada,}) {final _that = this;
 switch (_that) {
 case VitrineCarregando() when carregando != null:
 return carregando();case VitrineVaziaNaCidade() when vazioNaCidade != null:
 return vazioNaCidade();case VitrineSemResultado() when semResultado != null:
-return semResultado(_that.termo);case VitrineErro() when erro != null:
+return semResultado(_that.termo);case VitrineSemResultadoComFiltros() when semResultadoComFiltros != null:
+return semResultadoComFiltros(_that.termo);case VitrineErro() when erro != null:
 return erro();case VitrineCarregada() when carregada != null:
 return carregada(_that.itens,_that.proximaPagina,_that.carregandoMais,_that.erroAoCarregarMais);case _:
   return null;
@@ -625,6 +631,74 @@ class _$VitrineSemResultadoCopyWithImpl<$Res>
   return _then(VitrineSemResultado(
 null == termo ? _self.termo : termo // ignore: cast_nullable_to_non_nullable
 as String,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class VitrineSemResultadoComFiltros implements ConteudoVitrine {
+  const VitrineSemResultadoComFiltros({this.termo});
+  
+
+ final  String? termo;
+
+/// Create a copy of ConteudoVitrine
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$VitrineSemResultadoComFiltrosCopyWith<VitrineSemResultadoComFiltros> get copyWith => _$VitrineSemResultadoComFiltrosCopyWithImpl<VitrineSemResultadoComFiltros>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is VitrineSemResultadoComFiltros&&(identical(other.termo, termo) || other.termo == termo));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,termo);
+}
+
+@override
+String toString() {
+    return 'ConteudoVitrine.semResultadoComFiltros(termo: $termo)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $VitrineSemResultadoComFiltrosCopyWith<$Res> implements $ConteudoVitrineCopyWith<$Res> {
+  factory $VitrineSemResultadoComFiltrosCopyWith(VitrineSemResultadoComFiltros value, $Res Function(VitrineSemResultadoComFiltros) _then) = _$VitrineSemResultadoComFiltrosCopyWithImpl;
+@useResult
+$Res call({
+ String? termo
+});
+
+
+
+
+}
+/// @nodoc
+class _$VitrineSemResultadoComFiltrosCopyWithImpl<$Res>
+    implements $VitrineSemResultadoComFiltrosCopyWith<$Res> {
+  _$VitrineSemResultadoComFiltrosCopyWithImpl(this._self, this._then);
+
+  final VitrineSemResultadoComFiltros _self;
+  final $Res Function(VitrineSemResultadoComFiltros) _then;
+
+/// Create a copy of ConteudoVitrine
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? termo = freezed,}) {
+  return _then(VitrineSemResultadoComFiltros(
+termo: freezed == termo ? _self.termo : termo // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

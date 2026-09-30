@@ -5,11 +5,13 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/entities/cidade.dart';
+import '../../domain/entities/filtros_vitrine.dart';
 import '../../domain/entities/ordenacao_vitrine.dart';
 import '../cidade_selecao/widgets/seletor_cidade_topo.dart';
 import 'apresentacao_filtros.dart';
 import 'vitrine_cubit.dart';
 import 'vitrine_state.dart';
+import 'widgets/chips_filtros_ativos.dart';
 import 'widgets/filtros_bottom_sheet.dart';
 import 'widgets/imovel_card.dart';
 import 'widgets/ordenacao_bottom_sheet.dart';
@@ -64,6 +66,14 @@ class _VitrineScreenState extends State<VitrineScreen> {
   void _limparBusca() {
     _controleDeBusca.clear();
     context.read<VitrineCubit>().limparBusca();
+  }
+
+  /// "Limpar busca e filtros" do estado vazio-com-filtros-e-busca (D-22) —
+  /// esvazia a `SearchBar` (mesmo precedente de [_limparBusca]) e delega ao
+  /// Cubit, que faz a ÚNICA consulta combinada.
+  void _limparBuscaEFiltros() {
+    _controleDeBusca.clear();
+    context.read<VitrineCubit>().limparBuscaEFiltros();
   }
 
   /// Abre o sheet de filtros (D-07) com o rascunho inicializado a partir dos
@@ -184,6 +194,22 @@ class _VitrineScreenState extends State<VitrineScreen> {
               ),
             ],
           ),
+          // Linha de chips resumidos — só existe quando há filtro ativo
+          // (D-15); o próprio widget decide (SizedBox.shrink() caso
+          // contrário), então a tela nunca precisa checar quantidadeAtiva
+          // aqui de novo (fonte única, D-16).
+          BlocSelector<VitrineCubit, VitrineState, FiltrosVitrine>(
+            selector: (state) => state.filtros,
+            builder: (context, filtros) {
+              final cubit = context.read<VitrineCubit>();
+              return ChipsFiltrosAtivos(
+                filtros: filtros,
+                aoRemover: cubit.removerFiltro,
+                aoTocar: _abrirFiltros,
+                aoLimpar: cubit.limparFiltros,
+              );
+            },
+          ),
           const SizedBox(height: 16),
           Expanded(
             child: BlocConsumer<VitrineCubit, VitrineState>(
@@ -232,6 +258,36 @@ class _VitrineScreenState extends State<VitrineScreen> {
                           TextButton(
                             onPressed: _limparBusca,
                             child: const Text('Limpar busca'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  VitrineSemResultadoComFiltros(:final termo) => Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            termo == null
+                                ? 'Nenhum imóvel com esses filtros'
+                                : 'Nenhum imóvel encontrado para "$termo" '
+                                      'com esses filtros',
+                            style: textTheme.bodyLarge,
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 16),
+                          TextButton(
+                            onPressed: termo == null
+                                ? () =>
+                                      context.read<VitrineCubit>().limparFiltros()
+                                : _limparBuscaEFiltros,
+                            child: Text(
+                              termo == null
+                                  ? 'Limpar filtros'
+                                  : 'Limpar busca e filtros',
+                            ),
                           ),
                         ],
                       ),

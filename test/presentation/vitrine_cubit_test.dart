@@ -859,12 +859,14 @@ void main() {
 
         await cubit.removerFiltro(FiltroAtivo.finalidade);
 
+        // Sem finalidade NEM preço — a remoção de "finalidade" também limpa
+        // a faixa de preço (D-03). A consulta final volta a bater com o
+        // carregar() inicial (mesma ConsultaImoveis default) — por isso 2
+        // chamadas totais casam com esse argumento, não 1.
         expect(cubit.state.filtros, const FiltrosVitrine());
         verify(
-          () => buscarImoveis(
-            const ConsultaImoveis(cidade: campinas),
-          ),
-        ).called(1);
+          () => buscarImoveis(const ConsultaImoveis(cidade: campinas)),
+        ).called(2);
         await cubit.close();
       },
     );

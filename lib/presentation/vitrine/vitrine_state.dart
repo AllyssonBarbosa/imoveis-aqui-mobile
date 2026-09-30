@@ -37,6 +37,14 @@ sealed class ConteudoVitrine with _$ConteudoVitrine {
   const factory ConteudoVitrine.semResultado(String termo) =
       VitrineSemResultado;
 
+  /// Filtros ativos zeraram o resultado (D-22) — distinto de
+  /// [ConteudoVitrine.vazioNaCidade] (cidade sem nenhum imóvel) e de
+  /// [ConteudoVitrine.semResultado] (só busca, sem filtro ativo). `termo`
+  /// não-nulo quando uma busca por texto TAMBÉM está ativa — a mensagem e o
+  /// botão de limpar mudam conforme (D-22).
+  const factory ConteudoVitrine.semResultadoComFiltros({String? termo}) =
+      VitrineSemResultadoComFiltros;
+
   /// Falha da DataSource na primeira página (D-13) — "Tentar de novo" chama
   /// `VitrineCubit.tentarNovamente()`.
   const factory ConteudoVitrine.erro() = VitrineErro;
