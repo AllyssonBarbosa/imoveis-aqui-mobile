@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/core/result.dart';
 import 'package:imoveis_aqui/domain/entities/cidade.dart';
 import 'package:imoveis_aqui/domain/entities/consulta_imoveis.dart';
+import 'package:imoveis_aqui/domain/entities/filtros_vitrine.dart';
 import 'package:imoveis_aqui/domain/entities/imovel.dart';
 import 'package:imoveis_aqui/domain/entities/ordenacao_vitrine.dart';
 import 'package:imoveis_aqui/domain/entities/pagina_imoveis.dart';
@@ -772,6 +773,317 @@ void main() {
           Result.success(PaginaImoveis(itens: [imovelDe(campinas, 2)])),
         );
         await futuro;
+      },
+    );
+  });
+
+  group('aplicarFiltros / removerFiltro / limparFiltros (FIL-06, D-17..D-19)', () {
+    blocTest<VitrineCubit, VitrineState>(
+      'aplicarFiltros(finalidade venda) emite UM reinício (carregando com o '
+      'novo filtros) e depois o resultado, mantendo ordenacao/termoBusca',
+      build: () => VitrineCubit(buscarImoveis),
+      setUp: () {
+        when(() => buscarImoveis(any())).thenAnswer(
+          (_) async =>
+              Result.success(PaginaImoveis(itens: [imovelDe(campinas, 1)])),
+        );
+      },
+      act: (cubit) async {
+        cubit.carregar(campinas);
+        await Future<void>.delayed(Duration.zero);
+        await cubit.aplicarFiltros(
+          const FiltrosVitrine(finalidade: FinalidadeFiltro.venda),
+        );
+      },
+      expect: () => [
+        const VitrineState(conteudo: ConteudoVitrine.carregando()),
+        VitrineState(
+          conteudo: ConteudoVitrine.carregada(itens: [imovelDe(campinas, 1)]),
+        ),
+        const VitrineState(
+          filtros: FiltrosVitrine(finalidade: FinalidadeFiltro.venda),
+          conteudo: ConteudoVitrine.carregando(),
+        ),
+        VitrineState(
+          filtros: const FiltrosVitrine(finalidade: FinalidadeFiltro.venda),
+          conteudo: ConteudoVitrine.carregada(itens: [imovelDe(campinas, 1)]),
+        ),
+      ],
+      verify: (_) {
+        verify(
+          () => buscarImoveis(
+            const ConsultaImoveis(
+              cidade: campinas,
+              filtros: FiltrosVitrine(finalidade: FinalidadeFiltro.venda),
+            ),
+          ),
+        ).called(1);
+      },
+    );
+
+    test(
+      'aplicarFiltros(mesmo filtro já aplicado) não emite nada e não chama '
+      'o use case de novo (idempotência)',
+      () async {
+        when(() => buscarImoveis(any())).thenAnswer(
+          (_) async =>
+              Result.success(PaginaImoveis(itens: [imovelDe(campinas, 1)])),
+        );
+        final cubit = VitrineCubit(buscarImoveis);
+        cubit.carregar(campinas);
+        await Future<void>.delayed(Duration.zero);
+
+        await cubit.aplicarFiltros(const FiltrosVitrine());
+
+        verify(() => buscarImoveis(any())).called(1);
+        await cubit.close();
+      },
+    );
+
+    test(
+      'removerFiltro(finalidade) a partir de {finalidade, precoMin} aplica '
+      'o filtro já sem finalidade NEM preço (D-03), mantendo termoBusca',
+      () async {
+        when(() => buscarImoveis(any())).thenAnswer(
+          (_) async => const Result.success(PaginaImoveis(itens: [])),
+        );
+        final cubit = VitrineCubit(buscarImoveis);
+        cubit.carregar(campinas);
+        await Future<void>.delayed(Duration.zero);
+        await cubit.aplicarFiltros(
+          const FiltrosVitrine(
+            finalidade: FinalidadeFiltro.venda,
+            precoMin: 1000,
+          ),
+        );
+
+        await cubit.removerFiltro(FiltroAtivo.finalidade);
+
+        expect(cubit.state.filtros, const FiltrosVitrine());
+        verify(
+          () => buscarImoveis(
+            const ConsultaImoveis(cidade: campinas),
+          ),
+        ).called(1);
+        await cubit.close();
+      },
+    );
+
+    test(
+      'limparFiltros() a partir de filtros ativos aplica FiltrosVitrine() '
+      'vazio sem mexer em ordenacao/termoBusca',
+      () async {
+        when(() => buscarImoveis(any())).thenAnswer(
+          (_) async =>
+              Result.success(PaginaImoveis(itens: [imovelDe(campinas, 1)])),
+        );
+        final cubit = VitrineCubit(buscarImoveis);
+        cubit.carregar(campinas);
+        await Future<void>.delayed(Duration.zero);
+        await cubit.ordenarPor(OrdenacaoVitrine.precoAsc);
+        await cubit.aplicarFiltros(
+          const FiltrosVitrine(finalidade: FinalidadeFiltro.aluguel),
+        );
+
+        await cubit.limparFiltros();
+
+        expect(cubit.state.filtros, const FiltrosVitrine());
+        expect(cubit.state.ordenacao, OrdenacaoVitrine.precoAsc);
+        await cubit.close();
+      },
+    );
+
+    test(
+      'limparBuscaEFiltros() faz exatamente UMA consulta, com busca null e '
+      'filtros vazios, cancelando um debounce de busca pendente',
+      () {
+        fakeAsync((async) {
+          final consultas = <ConsultaImoveis>[];
+          when(() => buscarImoveis(any())).thenAnswer((invocation) async {
+            final consulta =
+                invocation.positionalArguments.first as ConsultaImoveis;
+            consultas.add(consulta);
+            return const Result.success(PaginaImoveis(itens: []));
+          });
+
+          final cubit = VitrineCubit(buscarImoveis);
+          cubit.carregar(campinas);
+          async.flushMicrotasks();
+          cubit.buscar('casa'); // debounce pendente — deve ser cancelado
+
+          cubit.limparBuscaEFiltros();
+          async.flushMicrotasks();
+
+          expect(cubit.state.termoBusca, isNull);
+          expect(cubit.state.filtros, const FiltrosVitrine());
+
+          async.elapse(const Duration(milliseconds: 500));
+          // carregar() + limparBuscaEFiltros() — o debounce cancelado nunca
+          // dispara uma terceira chamada.
+          expect(consultas, hasLength(2));
+
+          unawaited(cubit.close());
+        });
+      },
+    );
+
+    test(
+      'filtros A em voo é descartado quando filtros B já resolveu — só o '
+      'resultado de B chega a ser emitido (D-19)',
+      () async {
+        final completerA = Completer<Result<PaginaImoveis>>();
+        when(() => buscarImoveis(any())).thenAnswer((invocation) {
+          final consulta =
+              invocation.positionalArguments.first as ConsultaImoveis;
+          if (consulta.filtros.finalidade == FinalidadeFiltro.venda) {
+            return completerA.future;
+          }
+          return Future.value(
+            Result.success(PaginaImoveis(itens: [imovelDe(campinas, 9)])),
+          );
+        });
+
+        final cubit = VitrineCubit(buscarImoveis);
+        cubit.carregar(campinas);
+        await Future<void>.delayed(Duration.zero);
+
+        unawaited(
+          cubit.aplicarFiltros(
+            const FiltrosVitrine(finalidade: FinalidadeFiltro.venda),
+          ),
+        );
+        await Future<void>.delayed(Duration.zero);
+        await cubit.aplicarFiltros(
+          const FiltrosVitrine(finalidade: FinalidadeFiltro.aluguel),
+        );
+
+        completerA.complete(
+          Result.success(PaginaImoveis(itens: [imovelDe(campinas, 1)])),
+        );
+        await Future<void>.delayed(Duration.zero);
+
+        final conteudo = cubit.state.conteudo as VitrineCarregada;
+        expect(conteudo.itens.single.id, 9);
+        expect(cubit.state.filtros.finalidade, FinalidadeFiltro.aluguel);
+        await cubit.close();
+      },
+    );
+
+    test(
+      'carregarMais() em voo é descartado quando os filtros mudam antes de '
+      'resolver — nenhuma página extra é anexada',
+      () async {
+        final completer = Completer<Result<PaginaImoveis>>();
+        when(() => buscarImoveis(any())).thenAnswer(
+          (_) async => Result.success(
+            PaginaImoveis(itens: [imovelDe(campinas, 1)], proximaPagina: 'p2'),
+          ),
+        );
+        when(
+          () => buscarImoveis.proximaPagina('p2'),
+        ).thenAnswer((_) => completer.future);
+
+        final cubit = VitrineCubit(buscarImoveis);
+        cubit.carregar(campinas);
+        await Future<void>.delayed(Duration.zero);
+
+        final futuroCarregarMais = cubit.carregarMais();
+        await cubit.aplicarFiltros(
+          const FiltrosVitrine(finalidade: FinalidadeFiltro.venda),
+        );
+
+        completer.complete(
+          Result.success(PaginaImoveis(itens: [imovelDe(campinas, 2)])),
+        );
+        await futuroCarregarMais;
+        await Future<void>.delayed(Duration.zero);
+
+        final conteudo = cubit.state.conteudo as VitrineCarregada;
+        expect(conteudo.itens.map((i) => i.id), [1]);
+        await cubit.close();
+      },
+    );
+  });
+
+  group('Decisão de vazio com 4 combinações (D-22)', () {
+    test('filtros ativos, sem busca -> semResultadoComFiltros(termo: null)', () async {
+      when(() => buscarImoveis(any())).thenAnswer(
+        (_) async => const Result.success(PaginaImoveis(itens: [])),
+      );
+      final cubit = VitrineCubit(buscarImoveis);
+      cubit.carregar(campinas);
+      await Future<void>.delayed(Duration.zero);
+
+      await cubit.aplicarFiltros(
+        const FiltrosVitrine(finalidade: FinalidadeFiltro.venda),
+      );
+
+      expect(
+        cubit.state.conteudo,
+        const ConteudoVitrine.semResultadoComFiltros(),
+      );
+      await cubit.close();
+    });
+
+    test(
+      'filtros ativos + busca -> semResultadoComFiltros(termo: busca)',
+      () {
+        fakeAsync((async) {
+          when(() => buscarImoveis(any())).thenAnswer(
+            (_) async => const Result.success(PaginaImoveis(itens: [])),
+          );
+          final cubit = VitrineCubit(buscarImoveis);
+          cubit.carregar(campinas);
+          async.flushMicrotasks();
+
+          unawaited(
+            cubit.aplicarFiltros(
+              const FiltrosVitrine(finalidade: FinalidadeFiltro.venda),
+            ),
+          );
+          async.flushMicrotasks();
+          cubit.buscar('xyz');
+          async.elapse(const Duration(milliseconds: 400));
+
+          expect(
+            cubit.state.conteudo,
+            const ConteudoVitrine.semResultadoComFiltros(termo: 'xyz'),
+          );
+          unawaited(cubit.close());
+        });
+      },
+    );
+
+    test('só busca, sem filtros -> semResultado(termo) (regressão F2/D-09)', () {
+      fakeAsync((async) {
+        when(() => buscarImoveis(any())).thenAnswer(
+          (_) async => const Result.success(PaginaImoveis(itens: [])),
+        );
+        final cubit = VitrineCubit(buscarImoveis);
+        cubit.carregar(campinas);
+        async.flushMicrotasks();
+
+        cubit.buscar('xyz');
+        async.elapse(const Duration(milliseconds: 400));
+
+        expect(cubit.state.conteudo, const ConteudoVitrine.semResultado('xyz'));
+        unawaited(cubit.close());
+      });
+    });
+
+    test(
+      'nem busca nem filtros -> vazioNaCidade (regressão F2/D-15)',
+      () async {
+        when(() => buscarImoveis(any())).thenAnswer(
+          (_) async => const Result.success(PaginaImoveis(itens: [])),
+        );
+        final cubit = VitrineCubit(buscarImoveis);
+
+        cubit.carregar(campinas);
+        await Future<void>.delayed(Duration.zero);
+
+        expect(cubit.state.conteudo, const ConteudoVitrine.vazioNaCidade());
+        await cubit.close();
       },
     );
   });

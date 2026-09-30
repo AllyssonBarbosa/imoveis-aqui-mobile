@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/domain/entities/cidade.dart';
+import 'package:imoveis_aqui/domain/entities/filtros_vitrine.dart';
 import 'package:imoveis_aqui/domain/entities/imovel.dart';
 import 'package:imoveis_aqui/presentation/cidade_selecao/widgets/seletor_cidade_topo.dart';
 import 'package:imoveis_aqui/presentation/vitrine/vitrine_cubit.dart';
@@ -30,12 +31,21 @@ void main() {
     cidade: campinas,
   );
 
+  setUpAll(() {
+    registerFallbackValue(FiltroAtivo.finalidade);
+    registerFallbackValue(const FiltrosVitrine());
+  });
+
   setUp(() {
     cubit = _VitrineCubitFalso();
     when(() => cubit.carregarMais()).thenAnswer((_) async {});
     when(() => cubit.tentarNovamente()).thenReturn(null);
     when(() => cubit.buscar(any())).thenReturn(null);
     when(() => cubit.limparBusca()).thenReturn(null);
+    when(() => cubit.removerFiltro(any())).thenAnswer((_) async {});
+    when(() => cubit.limparFiltros()).thenAnswer((_) async {});
+    when(() => cubit.limparBuscaEFiltros()).thenReturn(null);
+    when(() => cubit.aplicarFiltros(any())).thenAnswer((_) async {});
   });
 
   Future<void> pumpEstado(
@@ -283,4 +293,139 @@ void main() {
       verify(() => cubit.carregarMais()).called(greaterThanOrEqualTo(1));
     },
   );
+
+  group('Chips de filtros ativos (D-15..D-18)', () {
+    testWidgets('sem filtros ativos, a linha de chips não aparece', (
+      tester,
+    ) async {
+      await pumpEstado(
+        tester,
+        const VitrineState(conteudo: ConteudoVitrine.carregando()),
+      );
+
+      expect(find.byType(InputChip), findsNothing);
+      expect(find.text('Limpar filtros'), findsNothing);
+      expect(find.text('Filtros'), findsOneWidget);
+    });
+
+    testWidgets(
+      'com finalidade=venda ativo: 1 InputChip "Venda" + ActionChip '
+      '"Limpar filtros"; botão lê "Filtros (1)"',
+      (tester) async {
+        await pumpEstado(
+          tester,
+          const VitrineState(
+            filtros: FiltrosVitrine(finalidade: FinalidadeFiltro.venda),
+            conteudo: ConteudoVitrine.carregando(),
+          ),
+        );
+
+        expect(find.widgetWithText(InputChip, 'Venda'), findsOneWidget);
+        expect(find.widgetWithText(ActionChip, 'Limpar filtros'), findsOneWidget);
+        expect(find.textContaining('Filtros (1)'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'tocar o "x" do chip "Venda" chama removerFiltro(FiltroAtivo.finalidade)',
+      (tester) async {
+        await pumpEstado(
+          tester,
+          const VitrineState(
+            filtros: FiltrosVitrine(finalidade: FinalidadeFiltro.venda),
+            conteudo: ConteudoVitrine.carregando(),
+          ),
+        );
+
+        await tester.tap(find.byTooltip('Remover filtro Venda'));
+        await tester.pump();
+
+        verify(() => cubit.removerFiltro(FiltroAtivo.finalidade)).called(1);
+      },
+    );
+
+    testWidgets('tocar "Limpar filtros" chama limparFiltros()', (
+      tester,
+    ) async {
+      await pumpEstado(
+        tester,
+        const VitrineState(
+          filtros: FiltrosVitrine(finalidade: FinalidadeFiltro.venda),
+          conteudo: ConteudoVitrine.carregando(),
+        ),
+      );
+
+      await tester.tap(find.text('Limpar filtros'));
+      await tester.pump();
+
+      verify(() => cubit.limparFiltros()).called(1);
+    });
+
+    testWidgets(
+      'tocar o corpo do chip abre o sheet de filtros, seedado com os '
+      'filtros aplicados (D-17)',
+      (tester) async {
+        await pumpEstado(
+          tester,
+          const VitrineState(
+            filtros: FiltrosVitrine(finalidade: FinalidadeFiltro.venda),
+            conteudo: ConteudoVitrine.carregando(),
+          ),
+        );
+
+        await tester.tap(find.widgetWithText(InputChip, 'Venda'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Ver imóveis'), findsOneWidget);
+      },
+    );
+  });
+
+  group('Estado vazio com filtros (D-22)', () {
+    testWidgets(
+      'sem termo: "Nenhum imóvel com esses filtros" + "Limpar filtros" '
+      'chama limparFiltros()',
+      (tester) async {
+        await pumpEstado(
+          tester,
+          const VitrineState(
+            conteudo: ConteudoVitrine.semResultadoComFiltros(),
+          ),
+        );
+
+        expect(find.text('Nenhum imóvel com esses filtros'), findsOneWidget);
+        await tester.tap(find.text('Limpar filtros'));
+        await tester.pump();
+
+        verify(() => cubit.limparFiltros()).called(1);
+      },
+    );
+
+    testWidgets(
+      'com termo: mensagem combinada + "Limpar busca e filtros" chama '
+      'limparBuscaEFiltros() e esvazia a SearchBar',
+      (tester) async {
+        await pumpEstado(
+          tester,
+          const VitrineState(
+            conteudo: ConteudoVitrine.semResultadoComFiltros(termo: 'xyz'),
+          ),
+        );
+
+        expect(
+          find.text('Nenhum imóvel encontrado para "xyz" com esses filtros'),
+          findsOneWidget,
+        );
+
+        await tester.enterText(find.byType(SearchBar), 'xyz');
+        await tester.pump();
+        await tester.tap(find.text('Limpar busca e filtros'));
+        await tester.pump();
+
+        verify(() => cubit.limparBuscaEFiltros()).called(1);
+        final campo = tester.widget<SearchBar>(find.byType(SearchBar));
+        expect(campo.controller!.text, isEmpty);
+      },
+    );
+  });
 }

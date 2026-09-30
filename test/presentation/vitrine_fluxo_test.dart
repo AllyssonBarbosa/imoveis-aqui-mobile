@@ -362,4 +362,66 @@ void main() {
       );
     },
   );
+
+  testWidgets(
+    'Campinas: aplicar Venda mostra o chip "Venda"; remover pelo "x" do '
+    'chip volta a "Filtros" sem a linha de chips e traz de volta um imóvel '
+    'só-aluguel (FIL-06, D-15..D-19)',
+    (tester) async {
+      await pumpVitrineDe(tester, campinas);
+
+      await tester.tap(find.text('Filtros'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Venda'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Ver imóveis'));
+      await tester.pumpAndSettle();
+
+      expect(find.widgetWithText(InputChip, 'Venda'), findsOneWidget);
+      expect(find.text('Limpar filtros'), findsOneWidget);
+
+      await tester.tap(find.byTooltip('Remover filtro Venda'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Filtros'), findsOneWidget);
+      expect(find.textContaining('Filtros ('), findsNothing);
+      expect(find.byType(InputChip), findsNothing);
+      expect(find.text('Limpar filtros'), findsNothing);
+
+      final vitrineCubit = BlocProvider.of<VitrineCubit>(
+        tester.element(find.byType(ListView)),
+      );
+      final conteudo = vitrineCubit.state.conteudo as VitrineCarregada;
+      expect(conteudo.itens.any((i) => i.id == 57), isTrue);
+    },
+  );
+
+  testWidgets(
+    'Campinas: aplicar Aluguel e tocar "Limpar filtros" (ActionChip) traz o '
+    'mesmo resultado que remover pelo chip (FIL-06, D-18)',
+    (tester) async {
+      await pumpVitrineDe(tester, campinas);
+
+      await tester.tap(find.text('Filtros'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Aluguel'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Ver imóveis'));
+      await tester.pumpAndSettle();
+
+      expect(find.widgetWithText(InputChip, 'Aluguel'), findsOneWidget);
+
+      await tester.tap(find.widgetWithText(ActionChip, 'Limpar filtros'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Filtros'), findsOneWidget);
+      expect(find.byType(InputChip), findsNothing);
+
+      final vitrineCubit = BlocProvider.of<VitrineCubit>(
+        tester.element(find.byType(ListView)),
+      );
+      final conteudo = vitrineCubit.state.conteudo as VitrineCarregada;
+      expect(conteudo.itens.map((i) => i.id).toSet(), hasLength(10));
+    },
+  );
 }
