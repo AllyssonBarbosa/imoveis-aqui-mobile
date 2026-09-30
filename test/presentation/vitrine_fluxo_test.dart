@@ -289,4 +289,77 @@ void main() {
       expect(scrollableDepois.position.pixels, 0);
     },
   );
+
+  testWidgets(
+    'Campinas: tocar Filtros -> Venda -> Ver imóveis filtra pela pilha real '
+    '(sheet -> rascunho -> VitrineCubit -> query params -> servidor '
+    'simulado); reabrir, escolher Qualquer e aplicar volta à lista completa '
+    '(FIL-01, FIL-05, D-02, D-07, D-08, D-11, D-15)',
+    (tester) async {
+      await pumpVitrineDe(tester, campinas);
+
+      expect(find.text('Filtros'), findsOneWidget);
+
+      await tester.tap(find.text('Filtros'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Venda'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Ver imóveis'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Filtros (1)'), findsOneWidget);
+
+      final idsEsperadosVenda = linhasAcervoFixture()
+          .where(
+            (l) =>
+                (l['cidade']! as Map<String, Object?>)['nome'] ==
+                    'Campinas' &&
+                (l['finalidade'] == 'VENDA' ||
+                    l['finalidade'] == 'VENDA_E_ALUGUEL'),
+          )
+          .map((l) => l['id']! as int)
+          .toSet();
+
+      final vitrineCubit = BlocProvider.of<VitrineCubit>(
+        tester.element(find.byType(ListView)),
+      );
+      // Só a primeira página (10) é carregada sem rolar — a lista de
+      // finalidade=VENDA (inclusiva, D-02) tem mais de 10 itens em
+      // Campinas, então esta é uma checagem de subconjunto, não de
+      // igualdade total.
+      final conteudoFiltrado = vitrineCubit.state.conteudo as VitrineCarregada;
+      expect(conteudoFiltrado.itens, isNotEmpty);
+      expect(
+        conteudoFiltrado.itens.every(
+          (i) => idsEsperadosVenda.contains(i.id),
+        ),
+        isTrue,
+      );
+      for (final card in tester.widgetList<ImovelCard>(
+        find.byType(ImovelCard),
+      )) {
+        expect(idsEsperadosVenda.contains(card.imovel.id), isTrue);
+      }
+
+      // Reabre o sheet, escolhe "Qualquer" e aplica — volta a mostrar um
+      // imóvel exclusivamente aluguel (id 57, "Casa térrea 3 quartos no
+      // Taquaral").
+      await tester.tap(find.textContaining('Filtros ('));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Qualquer'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Ver imóveis'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Filtros'), findsOneWidget);
+      expect(find.textContaining('Filtros ('), findsNothing);
+
+      final conteudoCompleto = vitrineCubit.state.conteudo as VitrineCarregada;
+      expect(conteudoCompleto.itens.map((i) => i.id).toSet(), hasLength(10));
+      expect(
+        conteudoCompleto.itens.any((i) => i.id == 57),
+        isTrue,
+      );
+    },
+  );
 }

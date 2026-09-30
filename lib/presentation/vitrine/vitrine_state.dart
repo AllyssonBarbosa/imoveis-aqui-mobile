@@ -1,18 +1,21 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../domain/entities/filtros_vitrine.dart';
 import '../../domain/entities/imovel.dart';
 import '../../domain/entities/ordenacao_vitrine.dart';
 
 part 'vitrine_state.freezed.dart';
 
-/// Estado de tela da vitrine (VIT-01) — `ordenacao`/`termoBusca` persistem
-/// através de qualquer transição de [conteudo] (controles chegam na Fase 3);
-/// [conteudo] é a união selada dos desfechos de carregamento.
+/// Estado de tela da vitrine (VIT-01) — `ordenacao`/`termoBusca`/`filtros`
+/// persistem através de qualquer transição de [conteudo] (controles
+/// chegaram nas Fases 2 e 3); [conteudo] é a união selada dos desfechos de
+/// carregamento.
 @freezed
 abstract class VitrineState with _$VitrineState {
   const factory VitrineState({
     @Default(OrdenacaoVitrine.maisRecentes) OrdenacaoVitrine ordenacao,
     String? termoBusca,
+    @Default(FiltrosVitrine()) FiltrosVitrine filtros,
     @Default(ConteudoVitrine.carregando()) ConteudoVitrine conteudo,
   }) = _VitrineState;
 }

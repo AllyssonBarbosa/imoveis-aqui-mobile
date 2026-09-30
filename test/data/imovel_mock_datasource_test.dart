@@ -7,6 +7,7 @@ import 'package:imoveis_aqui/data/models/imovel_model.dart';
 import 'package:imoveis_aqui/data/repositories/imovel_repository_impl.dart';
 import 'package:imoveis_aqui/domain/entities/cidade.dart';
 import 'package:imoveis_aqui/domain/entities/consulta_imoveis.dart';
+import 'package:imoveis_aqui/domain/entities/filtros_vitrine.dart';
 import 'package:imoveis_aqui/domain/entities/ordenacao_vitrine.dart';
 
 void main() {
@@ -687,6 +688,147 @@ void main() {
         }
 
         expect(ids.toSet(), hasLength(ids.length));
+      },
+    );
+  });
+
+  group('ImovelMockDataSource — filtro finalidade (D-02, D-19)', () {
+    Set<int> idsEsperadosCampinas(bool Function(String finalidadeLinha) aceita) =>
+        linhasAcervoFixture()
+            .where(
+              (l) =>
+                  (l['cidade']! as Map<String, Object?>)['nome'] ==
+                      'Campinas' &&
+                  aceita(l['finalidade']! as String),
+            )
+            .map((l) => l['id']! as int)
+            .toSet();
+
+    test(
+      'finalidade=venda devolve exatamente as linhas VENDA ou '
+      'VENDA_E_ALUGUEL de Campinas (inclusivo, D-02), cada uma uma vez',
+      () async {
+        final datasource = construir(tamanhoPagina: 100);
+        final idsEsperados = idsEsperadosCampinas(
+          (f) => f == 'VENDA' || f == 'VENDA_E_ALUGUEL',
+        );
+        expect(idsEsperados, isNotEmpty);
+
+        final resultados = await andarTodasAsPaginas(
+          datasource,
+          const ConsultaImoveis(
+            cidade: campinas,
+            filtros: FiltrosVitrine(finalidade: FinalidadeFiltro.venda),
+          ),
+        );
+
+        final idsObtidos = resultados.map((m) => m.id).toList();
+        expect(idsObtidos.toSet(), idsEsperados);
+        expect(idsObtidos, hasLength(idsObtidos.toSet().length)); // sem duplicata
+      },
+    );
+
+    test(
+      'finalidade=aluguel devolve exatamente as linhas ALUGUEL ou '
+      'VENDA_E_ALUGUEL de Campinas (inclusivo, D-02)',
+      () async {
+        final datasource = construir(tamanhoPagina: 100);
+        final idsEsperados = idsEsperadosCampinas(
+          (f) => f == 'ALUGUEL' || f == 'VENDA_E_ALUGUEL',
+        );
+        expect(idsEsperados, isNotEmpty);
+
+        final resultados = await andarTodasAsPaginas(
+          datasource,
+          const ConsultaImoveis(
+            cidade: campinas,
+            filtros: FiltrosVitrine(finalidade: FinalidadeFiltro.aluguel),
+          ),
+        );
+
+        expect(resultados.map((m) => m.id).toSet(), idsEsperados);
+      },
+    );
+
+    test('sem finalidade (Qualquer) continua devolvendo as 40 linhas', () async {
+      final datasource = construir(tamanhoPagina: 100);
+
+      final resultados = await andarTodasAsPaginas(
+        datasource,
+        const ConsultaImoveis(cidade: campinas),
+      );
+
+      expect(resultados, hasLength(40));
+    });
+
+    test('o next preserva finalidade=VENDA na URL (D-19)', () async {
+      final datasource = construir(tamanhoPagina: 2);
+
+      final envelope = await datasource.buscar(
+        const ConsultaImoveis(
+          cidade: campinas,
+          filtros: FiltrosVitrine(finalidade: FinalidadeFiltro.venda),
+        ),
+      );
+
+      expect(envelope.next, isNotNull);
+      final uri = Uri.parse(envelope.next!);
+      expect(uri.queryParameters['finalidade'], 'VENDA');
+    });
+
+    test(
+      'seguir com finalidade=VENDA_E_ALUGUEL (não é valor de filtro, D-02) '
+      'lança FormatException',
+      () {
+        final datasource = construir();
+
+        expect(
+          () => datasource.seguir(
+            'https://mock.imoveisaqui.local/api/publico/imoveis/'
+            '?cidade=Campinas-SP&ordenacao=mais_recentes&finalidade=VENDA_E_ALUGUEL'
+            '&cursor=bz0w',
+          ),
+          throwsFormatException,
+        );
+      },
+    );
+
+    test(
+      'seguir com finalidade desconhecida lança FormatException',
+      () {
+        final datasource = construir();
+
+        expect(
+          () => datasource.seguir(
+            'https://mock.imoveisaqui.local/api/publico/imoveis/'
+            '?cidade=Campinas-SP&ordenacao=mais_recentes&finalidade=ALUGA'
+            '&cursor=bz0w',
+          ),
+          throwsFormatException,
+        );
+      },
+    );
+
+    test(
+      'andar todas as páginas com finalidade=ALUGUEL via seguir() preserva '
+      'o filtro em toda página e não duplica ids',
+      () async {
+        final datasource = construir(tamanhoPagina: 5);
+        final idsEsperados = idsEsperadosCampinas(
+          (f) => f == 'ALUGUEL' || f == 'VENDA_E_ALUGUEL',
+        );
+
+        final resultados = await andarTodasAsPaginas(
+          datasource,
+          const ConsultaImoveis(
+            cidade: campinas,
+            filtros: FiltrosVitrine(finalidade: FinalidadeFiltro.aluguel),
+          ),
+        );
+        final ids = resultados.map((m) => m.id).toList();
+
+        expect(ids.toSet(), hasLength(ids.length));
+        expect(ids.toSet(), idsEsperados);
       },
     );
   });

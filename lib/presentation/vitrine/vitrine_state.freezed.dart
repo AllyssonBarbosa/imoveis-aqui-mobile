@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$VitrineState {
 
- OrdenacaoVitrine get ordenacao; String? get termoBusca; ConteudoVitrine get conteudo;
+ OrdenacaoVitrine get ordenacao; String? get termoBusca; FiltrosVitrine get filtros; ConteudoVitrine get conteudo;
 /// Create a copy of VitrineState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -27,20 +27,20 @@ $VitrineStateCopyWith<VitrineState> get copyWith => _$VitrineStateCopyWithImpl<V
 @override
 bool operator ==(Object other) {
   final _this = this as VitrineState;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is VitrineState&&(identical(other.ordenacao, _this.ordenacao) || other.ordenacao == _this.ordenacao)&&(identical(other.termoBusca, _this.termoBusca) || other.termoBusca == _this.termoBusca)&&(identical(other.conteudo, _this.conteudo) || other.conteudo == _this.conteudo));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is VitrineState&&(identical(other.ordenacao, _this.ordenacao) || other.ordenacao == _this.ordenacao)&&(identical(other.termoBusca, _this.termoBusca) || other.termoBusca == _this.termoBusca)&&(identical(other.filtros, _this.filtros) || other.filtros == _this.filtros)&&(identical(other.conteudo, _this.conteudo) || other.conteudo == _this.conteudo));
 }
 
 
 @override
 int get hashCode {
   final _this = this as VitrineState;
-  return Object.hash(runtimeType,_this.ordenacao,_this.termoBusca,_this.conteudo);
+  return Object.hash(runtimeType,_this.ordenacao,_this.termoBusca,_this.filtros,_this.conteudo);
 }
 
 @override
 String toString() {
   final _this = this as VitrineState;
-  return 'VitrineState(ordenacao: ${_this.ordenacao}, termoBusca: ${_this.termoBusca}, conteudo: ${_this.conteudo})';
+  return 'VitrineState(ordenacao: ${_this.ordenacao}, termoBusca: ${_this.termoBusca}, filtros: ${_this.filtros}, conteudo: ${_this.conteudo})';
 }
 
 
@@ -51,11 +51,11 @@ abstract mixin class $VitrineStateCopyWith<$Res>  {
   factory $VitrineStateCopyWith(VitrineState value, $Res Function(VitrineState) _then) = _$VitrineStateCopyWithImpl;
 @useResult
 $Res call({
- OrdenacaoVitrine ordenacao, String? termoBusca, ConteudoVitrine conteudo
+ OrdenacaoVitrine ordenacao, String? termoBusca, FiltrosVitrine filtros, ConteudoVitrine conteudo
 });
 
 
-$ConteudoVitrineCopyWith<$Res> get conteudo;
+$FiltrosVitrineCopyWith<$Res> get filtros;$ConteudoVitrineCopyWith<$Res> get conteudo;
 
 }
 /// @nodoc
@@ -68,15 +68,25 @@ class _$VitrineStateCopyWithImpl<$Res>
 
 /// Create a copy of VitrineState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? ordenacao = null,Object? termoBusca = freezed,Object? conteudo = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? ordenacao = null,Object? termoBusca = freezed,Object? filtros = null,Object? conteudo = null,}) {
   return _then(VitrineState(
 ordenacao: null == ordenacao ? _self.ordenacao : ordenacao // ignore: cast_nullable_to_non_nullable
 as OrdenacaoVitrine,termoBusca: freezed == termoBusca ? _self.termoBusca : termoBusca // ignore: cast_nullable_to_non_nullable
-as String?,conteudo: null == conteudo ? _self.conteudo : conteudo // ignore: cast_nullable_to_non_nullable
+as String?,filtros: null == filtros ? _self.filtros : filtros // ignore: cast_nullable_to_non_nullable
+as FiltrosVitrine,conteudo: null == conteudo ? _self.conteudo : conteudo // ignore: cast_nullable_to_non_nullable
 as ConteudoVitrine,
   ));
 }
 /// Create a copy of VitrineState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$FiltrosVitrineCopyWith<$Res> get filtros {
+  
+  return $FiltrosVitrineCopyWith<$Res>(_self.filtros, (value) {
+    return _then(_self.copyWith(filtros: value));
+  });
+}/// Create a copy of VitrineState
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
@@ -167,10 +177,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( OrdenacaoVitrine ordenacao,  String? termoBusca,  ConteudoVitrine conteudo)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( OrdenacaoVitrine ordenacao,  String? termoBusca,  FiltrosVitrine filtros,  ConteudoVitrine conteudo)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _VitrineState() when $default != null:
-return $default(_that.ordenacao,_that.termoBusca,_that.conteudo);case _:
+return $default(_that.ordenacao,_that.termoBusca,_that.filtros,_that.conteudo);case _:
   return orElse();
 
 }
@@ -188,10 +198,10 @@ return $default(_that.ordenacao,_that.termoBusca,_that.conteudo);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( OrdenacaoVitrine ordenacao,  String? termoBusca,  ConteudoVitrine conteudo)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( OrdenacaoVitrine ordenacao,  String? termoBusca,  FiltrosVitrine filtros,  ConteudoVitrine conteudo)  $default,) {final _that = this;
 switch (_that) {
 case _VitrineState():
-return $default(_that.ordenacao,_that.termoBusca,_that.conteudo);case _:
+return $default(_that.ordenacao,_that.termoBusca,_that.filtros,_that.conteudo);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -208,10 +218,10 @@ return $default(_that.ordenacao,_that.termoBusca,_that.conteudo);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( OrdenacaoVitrine ordenacao,  String? termoBusca,  ConteudoVitrine conteudo)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( OrdenacaoVitrine ordenacao,  String? termoBusca,  FiltrosVitrine filtros,  ConteudoVitrine conteudo)?  $default,) {final _that = this;
 switch (_that) {
 case _VitrineState() when $default != null:
-return $default(_that.ordenacao,_that.termoBusca,_that.conteudo);case _:
+return $default(_that.ordenacao,_that.termoBusca,_that.filtros,_that.conteudo);case _:
   return null;
 
 }
@@ -223,11 +233,12 @@ return $default(_that.ordenacao,_that.termoBusca,_that.conteudo);case _:
 
 
 class _VitrineState implements VitrineState {
-  const _VitrineState({this.ordenacao = OrdenacaoVitrine.maisRecentes, this.termoBusca, this.conteudo = const ConteudoVitrine.carregando()});
+  const _VitrineState({this.ordenacao = OrdenacaoVitrine.maisRecentes, this.termoBusca, this.filtros = const FiltrosVitrine(), this.conteudo = const ConteudoVitrine.carregando()});
   
 
 @override@JsonKey() final  OrdenacaoVitrine ordenacao;
 @override final  String? termoBusca;
+@override@JsonKey() final  FiltrosVitrine filtros;
 @override@JsonKey() final  ConteudoVitrine conteudo;
 
 /// Create a copy of VitrineState
@@ -240,18 +251,18 @@ _$VitrineStateCopyWith<_VitrineState> get copyWith => __$VitrineStateCopyWithImp
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _VitrineState&&(identical(other.ordenacao, ordenacao) || other.ordenacao == ordenacao)&&(identical(other.termoBusca, termoBusca) || other.termoBusca == termoBusca)&&(identical(other.conteudo, conteudo) || other.conteudo == conteudo));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _VitrineState&&(identical(other.ordenacao, ordenacao) || other.ordenacao == ordenacao)&&(identical(other.termoBusca, termoBusca) || other.termoBusca == termoBusca)&&(identical(other.filtros, filtros) || other.filtros == filtros)&&(identical(other.conteudo, conteudo) || other.conteudo == conteudo));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,ordenacao,termoBusca,conteudo);
+    return Object.hash(runtimeType,ordenacao,termoBusca,filtros,conteudo);
 }
 
 @override
 String toString() {
-    return 'VitrineState(ordenacao: $ordenacao, termoBusca: $termoBusca, conteudo: $conteudo)';
+    return 'VitrineState(ordenacao: $ordenacao, termoBusca: $termoBusca, filtros: $filtros, conteudo: $conteudo)';
 }
 
 
@@ -262,11 +273,11 @@ abstract mixin class _$VitrineStateCopyWith<$Res> implements $VitrineStateCopyWi
   factory _$VitrineStateCopyWith(_VitrineState value, $Res Function(_VitrineState) _then) = __$VitrineStateCopyWithImpl;
 @override @useResult
 $Res call({
- OrdenacaoVitrine ordenacao, String? termoBusca, ConteudoVitrine conteudo
+ OrdenacaoVitrine ordenacao, String? termoBusca, FiltrosVitrine filtros, ConteudoVitrine conteudo
 });
 
 
-@override $ConteudoVitrineCopyWith<$Res> get conteudo;
+@override $FiltrosVitrineCopyWith<$Res> get filtros;@override $ConteudoVitrineCopyWith<$Res> get conteudo;
 
 }
 /// @nodoc
@@ -279,16 +290,26 @@ class __$VitrineStateCopyWithImpl<$Res>
 
 /// Create a copy of VitrineState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? ordenacao = null,Object? termoBusca = freezed,Object? conteudo = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? ordenacao = null,Object? termoBusca = freezed,Object? filtros = null,Object? conteudo = null,}) {
   return _then(_VitrineState(
 ordenacao: null == ordenacao ? _self.ordenacao : ordenacao // ignore: cast_nullable_to_non_nullable
 as OrdenacaoVitrine,termoBusca: freezed == termoBusca ? _self.termoBusca : termoBusca // ignore: cast_nullable_to_non_nullable
-as String?,conteudo: null == conteudo ? _self.conteudo : conteudo // ignore: cast_nullable_to_non_nullable
+as String?,filtros: null == filtros ? _self.filtros : filtros // ignore: cast_nullable_to_non_nullable
+as FiltrosVitrine,conteudo: null == conteudo ? _self.conteudo : conteudo // ignore: cast_nullable_to_non_nullable
 as ConteudoVitrine,
   ));
 }
 
 /// Create a copy of VitrineState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$FiltrosVitrineCopyWith<$Res> get filtros {
+  
+  return $FiltrosVitrineCopyWith<$Res>(_self.filtros, (value) {
+    return _then(_self.copyWith(filtros: value));
+  });
+}/// Create a copy of VitrineState
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')

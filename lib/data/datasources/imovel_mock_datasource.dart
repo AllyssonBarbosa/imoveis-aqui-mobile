@@ -6,6 +6,7 @@ import 'package:injectable/injectable.dart';
 import '../../core/texto_normalizado.dart';
 import '../../domain/entities/cidade.dart';
 import '../../domain/entities/consulta_imoveis.dart';
+import '../../domain/entities/filtros_vitrine.dart';
 import '../../domain/entities/ordenacao_vitrine.dart';
 import '../mocks/imoveis_fixture.dart';
 import '../models/imoveis_envelope_model.dart';
@@ -74,10 +75,8 @@ class ImovelMockDataSource implements ImovelDataSource {
 
   @override
   Future<ImoveisEnvelopeModel> buscar(ConsultaImoveis consulta) {
-    return _paginar(
-      cidade: consulta.cidade,
-      ordenacao: consulta.ordenacao,
-      busca: consulta.busca,
+    return _paginarPelosParametros(
+      parametrosDaConsulta(consulta),
       offset: 0,
     );
   }
@@ -91,47 +90,71 @@ class ImovelMockDataSource implements ImovelDataSource {
       rethrow;
     }
     final params = uri.queryParameters;
-    final cidadeParam = params['cidade'];
-    final ordenacaoParam = params['ordenacao'];
     final cursorParam = params['cursor'];
-    if (cidadeParam == null || ordenacaoParam == null || cursorParam == null) {
+    if (cursorParam == null) {
       throw const FormatException(
         'parâmetros ausentes no cursor de paginação',
       );
     }
 
+    final offset = _decodificarCursor(cursorParam);
+    return _paginarPelosParametros(params, offset: offset);
+  }
+
+  /// Pipeline única usada por [buscar] e [seguir]: interpreta `cidade` e
+  /// `ordenacao` do mapa de params — obrigatórios, [FormatException] se
+  /// ausentes ou desconhecidos (mesma disciplina de [cidadeDoParametro]/
+  /// [ordenacaoDoParametro]) — SINCRONAMENTE, antes de qualquer `await`
+  /// (este método NÃO é `async`), para que um param inválido lance direto na
+  /// chamada de [buscar]/[seguir], nunca escondido dentro de uma `Future`
+  /// resolvida depois. O resto do trabalho fica em [_montarPagina].
+  Future<ImoveisEnvelopeModel> _paginarPelosParametros(
+    Map<String, String> params, {
+    required int offset,
+  }) {
+    final cidadeParam = params['cidade'];
+    final ordenacaoParam = params['ordenacao'];
+    if (cidadeParam == null || ordenacaoParam == null) {
+      throw const FormatException(
+        'parâmetros obrigatórios ausentes (cidade/ordenacao)',
+      );
+    }
     final cidade = cidadeDoParametro(cidadeParam);
     final ordenacao = ordenacaoDoParametro(ordenacaoParam);
-    final offset = _decodificarCursor(cursorParam);
-
-    return _paginar(
+    return _montarPagina(
       cidade: cidade,
       ordenacao: ordenacao,
-      busca: params['busca'],
+      params: params,
       offset: offset,
     );
   }
 
-  /// Pipeline única usada por [buscar] e [seguir]: filtra por cidade ->
-  /// gatilho de falha simulada (D-15) -> busca em título+bairro (D-05/D-06)
-  /// -> ordena conforme [ordenacao] (D-11/D-12) -> corta a fatia
-  /// `[offset, offset+tamanhoPagina)`. Deriva tudo dos argumentos recebidos —
-  /// nenhum estado mutável entre chamadas (API-04, concorrência entre
-  /// cidades).
-  Future<ImoveisEnvelopeModel> _paginar({
+  /// Filtra por cidade -> gatilho de falha simulada (D-15) -> busca em
+  /// título+bairro (D-05/D-06) -> aplica os filtros de query params sobre as
+  /// linhas de wire (D-01..D-05, antes de ordenar/paginar) -> ordena
+  /// conforme [ordenacao] (D-11/D-12) -> corta a fatia
+  /// `[offset, offset+tamanhoPagina)`. `next`/`previous` carregam o MESMO
+  /// mapa de [params] recebido (menos `cursor`, substituído pelo cursor da
+  /// nova página) — todo filtro sobrevive à paginação automaticamente.
+  /// Deriva tudo dos argumentos recebidos — nenhum estado mutável entre
+  /// chamadas (API-04, concorrência entre cidades).
+  Future<ImoveisEnvelopeModel> _montarPagina({
     required Cidade cidade,
     required OrdenacaoVitrine ordenacao,
-    required String? busca,
+    required Map<String, String> params,
     required int offset,
   }) async {
     if (_latencia > Duration.zero) {
       await Future<void>.delayed(_latencia);
     }
 
+    final busca = params['busca'];
     final termoBusca = busca?.trim();
     if (termoBusca != null && normalizarTexto(termoBusca) == 'erro') {
       throw const FalhaSimuladaDoMock();
     }
+
+    final filtros = filtrosDosParametros(params);
 
     final chaveCidade = cidade.chaveNatural;
     final linhasFiltradas =
@@ -142,7 +165,8 @@ class ImovelMockDataSource implements ImovelDataSource {
             uf: cidadeLinha['uf']! as String,
           );
           if (cidadeDaLinha.chaveNatural != chaveCidade) return false;
-          return _linhaCasaComBusca(linha, termoBusca);
+          if (!_linhaCasaComBusca(linha, termoBusca)) return false;
+          return _linhaCasaComFiltros(linha, filtros);
         }).toList()
         ..sort(_comparadorDe(ordenacao));
 
@@ -151,9 +175,7 @@ class ImovelMockDataSource implements ImovelDataSource {
         ? linhasFiltradas.sublist(offset, fim)
         : <Map<String, Object?>>[];
 
-    final paramsBase = parametrosDaConsulta(
-      ConsultaImoveis(cidade: cidade, busca: busca, ordenacao: ordenacao),
-    );
+    final paramsBase = Map<String, String>.from(params)..remove('cursor');
 
     String? montarUrl(int novoOffset) {
       if (novoOffset < 0 || novoOffset >= linhasFiltradas.length) return null;
@@ -219,6 +241,33 @@ class ImovelMockDataSource implements ImovelDataSource {
           tituloNormalizado.contains(palavra) ||
           bairroNormalizado.contains(palavra),
     );
+  }
+
+  /// Aplica os filtros da Fase 3 (D-01..D-05) sobre a linha de wire, ANTES
+  /// de ordenar/paginar — nunca depois do parse (mesma doutrina de
+  /// [_linhaCasaComBusca]). Nesta fase só `finalidade` tem predicado (D-02:
+  /// inclusivo — `finalidade=VENDA` aceita linhas `VENDA` e
+  /// `VENDA_E_ALUGUEL`; `finalidade=ALUGUEL` aceita `ALUGUEL` e
+  /// `VENDA_E_ALUGUEL`); as demais dimensões de [FiltrosVitrine] ainda não
+  /// têm predicado (planos 03-02..03-05 as adicionam, cada um estendendo
+  /// este método).
+  static bool _linhaCasaComFiltros(
+    Map<String, Object?> linha,
+    FiltrosVitrine filtros,
+  ) {
+    final finalidade = filtros.finalidade;
+    if (finalidade != null) {
+      final finalidadeLinha = linha['finalidade']! as String;
+      final aceitaFinalidade = switch (finalidade) {
+        FinalidadeFiltro.venda =>
+          finalidadeLinha == 'VENDA' || finalidadeLinha == 'VENDA_E_ALUGUEL',
+        FinalidadeFiltro.aluguel =>
+          finalidadeLinha == 'ALUGUEL' ||
+              finalidadeLinha == 'VENDA_E_ALUGUEL',
+      };
+      if (!aceitaFinalidade) return false;
+    }
+    return true;
   }
 
   /// Escolhe o comparador de acordo com [ordenacao] (D-11). `precoAsc`/

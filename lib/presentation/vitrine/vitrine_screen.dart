@@ -7,8 +7,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/cidade.dart';
 import '../../domain/entities/ordenacao_vitrine.dart';
 import '../cidade_selecao/widgets/seletor_cidade_topo.dart';
+import 'apresentacao_filtros.dart';
 import 'vitrine_cubit.dart';
 import 'vitrine_state.dart';
+import 'widgets/filtros_bottom_sheet.dart';
 import 'widgets/imovel_card.dart';
 import 'widgets/ordenacao_bottom_sheet.dart';
 
@@ -62,6 +64,21 @@ class _VitrineScreenState extends State<VitrineScreen> {
   void _limparBusca() {
     _controleDeBusca.clear();
     context.read<VitrineCubit>().limparBusca();
+  }
+
+  /// Abre o sheet de filtros (D-07) com o rascunho inicializado a partir dos
+  /// filtros JÁ APLICADOS — `aoAplicar` é `cubit.aplicarFiltros` capturado
+  /// aqui, na TELA, nunca lido de dentro do sheet (mesmo precedente de
+  /// `mostrarOrdenacaoBottomSheet`, D-08).
+  void _abrirFiltros() {
+    final cubit = context.read<VitrineCubit>();
+    unawaited(
+      mostrarFiltrosBottomSheet(
+        context,
+        aplicados: cubit.state.filtros,
+        aoAplicar: cubit.aplicarFiltros,
+      ),
+    );
   }
 
   void _aoRolar() {
@@ -125,9 +142,9 @@ class _VitrineScreenState extends State<VitrineScreen> {
           // Linha de ações logo abaixo da SearchBar (D-10): a 360dp a
           // SearchBar + "Ordenar: Mais recentes" não cabem lado a lado numa
           // única linha com o cabeçalho de cidade, então o botão de ordenar
-          // fica aqui, com um `Spacer` reservando o espaço à direita para o
-          // botão de filtros da Fase 3 — interpretação sinalizada no
-          // human-check de fim de fase para confirmação do usuário.
+          // fica aqui, com o botão "Filtros (N)" à direita (D-15) —
+          // interpretação sinalizada no human-check de fim de fase para
+          // confirmação do usuário.
           Row(
             children: [
               Flexible(
@@ -154,7 +171,17 @@ class _VitrineScreenState extends State<VitrineScreen> {
                   },
                 ),
               ),
-              const Spacer(), // reservado para o botão de filtros (Fase 3)
+              const SizedBox(width: 8),
+              BlocSelector<VitrineCubit, VitrineState, int>(
+                selector: (state) => state.filtros.quantidadeAtiva,
+                builder: (context, quantidadeAtiva) {
+                  return OutlinedButton.icon(
+                    icon: const Icon(Icons.tune),
+                    label: Text(rotuloBotaoFiltros(quantidadeAtiva)),
+                    onPressed: _abrirFiltros,
+                  );
+                },
+              ),
             ],
           ),
           const SizedBox(height: 16),
