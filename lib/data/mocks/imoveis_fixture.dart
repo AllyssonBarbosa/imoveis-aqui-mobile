@@ -193,9 +193,13 @@ Map<String, Object?> _gerarLinha({
   final natureza = _naturezas[k % _naturezas.length];
   final finalidade = _finalidades[k % _finalidades.length];
   final ehTerrenoOuLote = natureza == 'TERRENO' || natureza == 'LOTE';
-  final quartos = ehTerrenoOuLote ? 0 : 1 + k % 4;
+  // Casa/apartamento ciclam 1..5 quartos (D-24: cobre 0 via terreno/lote,
+  // 1/2/3 e >=4 numa só fórmula); terreno/lote ficam sempre com 0 quartos —
+  // é essa constante que faz Terreno + "1+ quartos" zerar o resultado em
+  // toda cidade atendida (D-22, combinação determinística).
+  final quartos = ehTerrenoOuLote ? 0 : 1 + (k ~/ 4) % 5;
   final suites = quartos == 0 ? 0 : k % (quartos + 1);
-  final vagas = k % 3;
+  final vagas = k % 5;
   final area = k % 10 == 9 ? null : (50 + k * 3.25).toStringAsFixed(2);
   final fotoCapa = k % 5 == 4
       ? null
@@ -220,10 +224,21 @@ Map<String, Object?> _gerarLinha({
       ? '$rotulo no $bairro'
       : '$rotulo $quartos quartos no $bairro';
 
-  final caracteristicas = _caracteristicasDisponiveis.sublist(
-    0,
-    1 + k % _caracteristicasDisponiveis.length,
-  );
+  // Seleção NÃO-prefixo (D-24): janela CIRCULAR de tamanho variável (1..10,
+  // `k % tamanhoCatalogo`) que começa num índice rotativo (`k*7 %
+  // tamanhoCatalogo`) — nunca um `sublist(0, n)` fixo a partir do índice 0.
+  // Em `k % 10 == 9` a janela cobre o catálogo inteiro, garantindo que toda
+  // característica apareça em cada cidade atendida; janelas menores, em
+  // posições diferentes, produzem linhas com só uma de duas características
+  // vizinhas no catálogo (ex. Portão eletrônico sem Piscina e vice-versa) e
+  // outras com as duas ao mesmo tempo (ex. Piscina + Churrasqueira).
+  final tamanhoCatalogo = _caracteristicasDisponiveis.length;
+  final tamanhoSelecao = 1 + k % tamanhoCatalogo;
+  final inicioSelecao = (k * 7) % tamanhoCatalogo;
+  final caracteristicas = [
+    for (var offset = 0; offset < tamanhoSelecao; offset++)
+      _caracteristicasDisponiveis[(inicioSelecao + offset) % tamanhoCatalogo],
+  ];
 
   final cidade = cidadesDoFixture[cidadeIndice];
   final criadoEm = _baseCriadoEm

@@ -245,12 +245,14 @@ class ImovelMockDataSource implements ImovelDataSource {
 
   /// Aplica os filtros da Fase 3 (D-01..D-05) sobre a linha de wire, ANTES
   /// de ordenar/paginar — nunca depois do parse (mesma doutrina de
-  /// [_linhaCasaComBusca]). Nesta fase só `finalidade` tem predicado (D-02:
-  /// inclusivo — `finalidade=VENDA` aceita linhas `VENDA` e
-  /// `VENDA_E_ALUGUEL`; `finalidade=ALUGUEL` aceita `ALUGUEL` e
-  /// `VENDA_E_ALUGUEL`); as demais dimensões de [FiltrosVitrine] ainda não
-  /// têm predicado (planos 03-02..03-05 as adicionam, cada um estendendo
-  /// este método).
+  /// [_linhaCasaComBusca]). `finalidade` é inclusiva (D-02:
+  /// `finalidade=VENDA` aceita linhas `VENDA` e `VENDA_E_ALUGUEL`;
+  /// `finalidade=ALUGUEL` aceita `ALUGUEL` e `VENDA_E_ALUGUEL`); `natureza`
+  /// e `bairro` combinam por OU entre valores (D-05); `características`
+  /// exige TODAS as marcadas (E, D-04); quartos/suítes/vagas são limiares
+  /// "N ou mais" (D-01, `>=`, nunca `==`). Dimensões diferentes combinam
+  /// entre si por E. As dimensões de preço/área ainda não têm predicado
+  /// (planos 03-03..03-05 as adicionam, cada um estendendo este método).
   static bool _linhaCasaComFiltros(
     Map<String, Object?> linha,
     FiltrosVitrine filtros,
@@ -267,6 +269,47 @@ class ImovelMockDataSource implements ImovelDataSource {
       };
       if (!aceitaFinalidade) return false;
     }
+
+    final naturezas = filtros.naturezas;
+    if (naturezas.isNotEmpty) {
+      final naturezaLinha = linha['natureza']! as String;
+      final wireDasNaturezas = naturezas.map(valorWireDaNatureza);
+      if (!wireDasNaturezas.contains(naturezaLinha)) return false;
+    }
+
+    final quartosMin = filtros.quartosMin;
+    if (quartosMin != null && (linha['quartos']! as int) < quartosMin) {
+      return false;
+    }
+
+    final suitesMin = filtros.suitesMin;
+    if (suitesMin != null && (linha['suites']! as int) < suitesMin) {
+      return false;
+    }
+
+    final vagasMin = filtros.vagasMin;
+    if (vagasMin != null && (linha['vagas']! as int) < vagasMin) {
+      return false;
+    }
+
+    final bairros = filtros.bairros;
+    if (bairros.isNotEmpty) {
+      final bairroLinha = normalizarTexto(linha['bairro']! as String);
+      final bairrosNormalizados = bairros.map(normalizarTexto);
+      if (!bairrosNormalizados.contains(bairroLinha)) return false;
+    }
+
+    final caracteristicas = filtros.caracteristicas;
+    if (caracteristicas.isNotEmpty) {
+      final caracteristicasLinha = (linha['caracteristicas']! as List)
+          .map((c) => normalizarTexto(c as String))
+          .toSet();
+      final temTodas = caracteristicas.every(
+        (c) => caracteristicasLinha.contains(normalizarTexto(c)),
+      );
+      if (!temTodas) return false;
+    }
+
     return true;
   }
 
