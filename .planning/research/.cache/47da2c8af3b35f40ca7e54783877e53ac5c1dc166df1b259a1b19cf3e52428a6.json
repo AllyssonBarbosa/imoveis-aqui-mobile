@@ -1,0 +1,1 @@
+{"content":"SegmentedButton: selected is a required Set<T>; default single-select requires non-empty selection; emptySelectionAllowed (default false) is needed only if zero-selection must be valid. multiSelectionEnabled toggles multi-select.","source":"web","provider":"webfetch","confidence":"LOW","fetched_at":"2026-09-30T18:41:22.431Z","ttl":86400000,"kind":"docs"}

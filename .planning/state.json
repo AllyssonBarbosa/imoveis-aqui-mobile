@@ -1,0 +1,33 @@
+{
+  "contract": "1.0.0",
+  "flavor": "core",
+  "milestone": null,
+  "phases": [
+    {
+      "number": "1",
+      "name": "Localização, Escolha de Cidade e Contrato da API",
+      "status": "in_progress"
+    },
+    {
+      "number": "2",
+      "name": "Vitrine — Lista, Busca e Ordenação",
+      "status": "in_progress"
+    },
+    {
+      "number": "3",
+      "name": "Vitrine — Filtros Server-Side",
+      "status": "in_progress"
+    },
+    {
+      "number": "4",
+      "name": "Imóveis Real — Endpoint Público e Integração Final",
+      "status": "pending"
+    }
+  ],
+  "next": {
+    "command": "/gsd:progress --next",
+    "label": "Advance to the next step (verify)",
+    "reason": "Phase 03 of 4 · 0% · ready to verify"
+  },
+  "updated_at": "2026-10-01T01:38:06.004Z"
+}

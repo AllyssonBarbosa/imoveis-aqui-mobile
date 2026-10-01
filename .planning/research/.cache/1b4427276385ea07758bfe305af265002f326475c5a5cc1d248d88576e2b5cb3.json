@@ -1,0 +1,1 @@
+{"content":"showModalBottomSheet: isScrollControlled lets the sheet grow to full height; useSafeArea combined with isScrollControlled keeps fixed footer/content clear of system chrome and keyboard insets.","source":"web","provider":"websearch","confidence":"LOW","fetched_at":"2026-09-30T18:40:53.378Z","ttl":86400000,"kind":"docs"}

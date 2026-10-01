@@ -1,0 +1,1 @@
+{"content":"Badge.count(count, child) convenience constructor renders numeric badge with maxCount default 999; typically wraps an IconButton/button icon.","source":"web","provider":"webfetch","confidence":"LOW","fetched_at":"2026-09-30T18:41:22.548Z","ttl":86400000,"kind":"docs"}
