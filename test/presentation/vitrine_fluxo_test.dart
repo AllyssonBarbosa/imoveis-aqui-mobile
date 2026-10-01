@@ -513,4 +513,89 @@ void main() {
       expect(conteudo.itens, hasLength(10));
     },
   );
+
+  testWidgets(
+    'Campinas: Filtros -> Venda + preço 250.000..300.000 -> Ver imóveis '
+    'filtra pela pilha real; todo card tem precoVenda na faixa e o chip '
+    '"R\$ 250 mil–300 mil" aparece (FIL-03, D-03, D-09)',
+    (tester) async {
+      await pumpVitrineDe(tester, campinas);
+
+      await tester.tap(find.text('Filtros'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Venda'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).first, '250000');
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).at(1), '300000');
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Ver imóveis'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.widgetWithText(InputChip, 'R\$ 250 mil–300 mil'),
+        findsOneWidget,
+      );
+
+      bool dentroDaFaixa(Imovel imovel) {
+        final preco = double.tryParse(imovel.precoVenda ?? '');
+        return preco != null && preco >= 250000 && preco <= 300000;
+      }
+
+      final vitrineCubit = BlocProvider.of<VitrineCubit>(
+        tester.element(find.byType(ListView)),
+      );
+      final conteudo = vitrineCubit.state.conteudo as VitrineCarregada;
+      expect(conteudo.itens, isNotEmpty);
+      expect(conteudo.itens.every(dentroDaFaixa), isTrue);
+
+      for (final card in tester.widgetList<ImovelCard>(
+        find.byType(ImovelCard),
+      )) {
+        expect(dentroDaFaixa(card.imovel), isTrue);
+      }
+    },
+  );
+
+  testWidgets(
+    'Campinas: Filtros -> área 80..120 (sem finalidade) -> Ver imóveis '
+    'filtra pela pilha real; todo card mapeia (via fixture) para uma linha '
+    'com área na faixa e o chip "80–120 m²" aparece (FIL-04, D-09)',
+    (tester) async {
+      await pumpVitrineDe(tester, campinas);
+
+      await tester.tap(find.text('Filtros'));
+      await tester.pumpAndSettle();
+      final campos = find.byType(TextField);
+      await tester.enterText(campos.at(2), '80');
+      await tester.pumpAndSettle();
+      await tester.enterText(campos.at(3), '120');
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Ver imóveis'));
+      await tester.pumpAndSettle();
+
+      expect(find.widgetWithText(InputChip, '80–120 m²'), findsOneWidget);
+
+      bool areaNaFaixa(int id) {
+        final linha = linhasAcervoFixture().firstWhere((l) => l['id'] == id);
+        final area = linha['area'] as String?;
+        if (area == null) return false;
+        final valor = double.parse(area);
+        return valor >= 80 && valor <= 120;
+      }
+
+      final vitrineCubit = BlocProvider.of<VitrineCubit>(
+        tester.element(find.byType(ListView)),
+      );
+      final conteudo = vitrineCubit.state.conteudo as VitrineCarregada;
+      expect(conteudo.itens, isNotEmpty);
+      expect(conteudo.itens.every((i) => areaNaFaixa(i.id)), isTrue);
+
+      for (final card in tester.widgetList<ImovelCard>(
+        find.byType(ImovelCard),
+      )) {
+        expect(areaNaFaixa(card.imovel.id), isTrue);
+      }
+    },
+  );
 }
