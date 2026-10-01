@@ -46,6 +46,10 @@ void main() {
   late _CidadeSelecaoCubitFalso cidadeSelecaoCubit;
   late _SalvarCidadeUseCaseFalso salvarCidade;
 
+  setUpAll(() {
+    registerFallbackValue(campinas);
+  });
+
   /// UMA única instância por teste (Task 2, D-14, D-23) — mesmo precedente
   /// do `@lazySingleton` real do DI: sobrevive à troca de cidade mesmo que
   /// `_CorpoVitrine` recrie o `VitrineCubit` do zero (chaveado por

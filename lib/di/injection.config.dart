@@ -62,6 +62,8 @@ import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_cubit.da
     as _i765;
 import 'package:imoveis_aqui/presentation/vitrine/opcoes_filtro_cubit.dart'
     as _i1002;
+import 'package:imoveis_aqui/presentation/vitrine/sessao_filtros_vitrine.dart'
+    as _i59;
 import 'package:imoveis_aqui/presentation/vitrine/vitrine_cubit.dart' as _i486;
 import 'package:injectable/injectable.dart' as _i526;
 
@@ -77,6 +79,9 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i94.CidadePrefsDataSource(),
     );
     gh.lazySingleton<_i361.Dio>(() => moduloRede.dio);
+    gh.lazySingleton<_i59.SessaoFiltrosVitrine>(
+      () => _i59.SessaoFiltrosVitrine(),
+    );
     gh.lazySingleton<_i585.OpcoesFiltroDataSource>(
       () => _i158.OpcoesFiltroMockDataSource(),
     );
@@ -102,9 +107,6 @@ extension GetItInjectableX on _i174.GetIt {
       () =>
           _i375.OpcoesFiltroRepositoryImpl(gh<_i585.OpcoesFiltroDataSource>()),
     );
-    gh.factory<_i486.VitrineCubit>(
-      () => _i486.VitrineCubit(gh<_i213.BuscarImoveisUseCase>()),
-    );
     gh.lazySingleton<_i146.CidadeRepository>(
       () => _i912.CidadeRepositoryImpl(
         gh<_i320.CidadeRemoteDataSource>(),
@@ -116,6 +118,12 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i246.GeolocatorGateway>(),
         gh<_i881.GeocodingGateway>(),
         gh<_i146.CidadeRepository>(),
+      ),
+    );
+    gh.factory<_i486.VitrineCubit>(
+      () => _i486.VitrineCubit(
+        gh<_i213.BuscarImoveisUseCase>(),
+        gh<_i59.SessaoFiltrosVitrine>(),
       ),
     );
     gh.factory<_i20.ObterBairrosUseCase>(
