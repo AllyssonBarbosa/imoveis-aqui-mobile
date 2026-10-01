@@ -3,7 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../domain/entities/filtros_vitrine.dart';
 import '../../../domain/entities/imovel.dart';
+import '../apresentacao_filtros.dart';
 import '../apresentacao_imovel.dart';
+import '../opcoes_filtro_cubit.dart';
+import '../opcoes_filtro_state.dart';
 import '../rascunho_filtros_cubit.dart';
 import 'mascara_numerica.dart';
 
@@ -38,11 +41,14 @@ _SegmentoFinalidade _segmentoDe(FinalidadeFiltro? finalidade) =>
 /// (`context.read`) antes de abrir o sheet — mesmo precedente de
 /// [mostrarOrdenacaoBottomSheet]: a rota do modal fica fora do
 /// `BlocProvider` da vitrine, então este sheet nunca lê o Cubit da vitrine
-/// diretamente.
+/// diretamente. [opcoes] (Task 2, D-20) segue a MESMA disciplina — é o
+/// `OpcoesFiltroCubit` já lido pela tela, passado por valor (nunca criado
+/// aqui, nunca fechado por este widget).
 Future<void> mostrarFiltrosBottomSheet(
   BuildContext context, {
   required FiltrosVitrine aplicados,
   required ValueChanged<FiltrosVitrine> aoAplicar,
+  required OpcoesFiltroCubit opcoes,
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -50,8 +56,13 @@ Future<void> mostrarFiltrosBottomSheet(
     useSafeArea: true,
     showDragHandle: true,
     builder: (contextDoSheet) {
-      return BlocProvider<RascunhoFiltrosCubit>(
-        create: (_) => RascunhoFiltrosCubit(aplicados),
+      return MultiBlocProvider(
+        providers: [
+          BlocProvider<RascunhoFiltrosCubit>(
+            create: (_) => RascunhoFiltrosCubit(aplicados),
+          ),
+          BlocProvider<OpcoesFiltroCubit>.value(value: opcoes),
+        ],
         child: _ConteudoFiltrosBottomSheet(aoAplicar: aoAplicar),
       );
     },
@@ -69,16 +80,18 @@ class _ConteudoFiltrosBottomSheet extends StatefulWidget {
 }
 
 /// `StatefulWidget` (D-09) só para hospedar os quatro `TextEditingController`s
-/// das faixas de preço/área — nenhuma lógica de negócio mora aqui, a fonte da
-/// verdade continua sendo o [RascunhoFiltrosCubit] (D-08); os controllers só
-/// espelham o texto já mascarado ([textoMascaradoDe]) do que está no
-/// rascunho.
+/// das faixas de preço/área e o controller do campo "Filtrar bairros" (Task
+/// 2, D-21) — nenhuma lógica de negócio mora aqui, a fonte da verdade
+/// continua sendo o [RascunhoFiltrosCubit] (D-08)/[OpcoesFiltroCubit] (D-20);
+/// os controllers só espelham texto (já mascarado, [textoMascaradoDe], nos
+/// quatro de faixa) ou filtram a lista de opções já carregada (bairros).
 class _ConteudoFiltrosBottomSheetState
     extends State<_ConteudoFiltrosBottomSheet> {
   late final TextEditingController _precoMinController;
   late final TextEditingController _precoMaxController;
   late final TextEditingController _areaMinController;
   late final TextEditingController _areaMaxController;
+  late final TextEditingController _filtroBairroController;
 
   @override
   void initState() {
@@ -96,6 +109,7 @@ class _ConteudoFiltrosBottomSheetState
     _areaMaxController = TextEditingController(
       text: textoMascaradoDe(rascunho.areaMax),
     );
+    _filtroBairroController = TextEditingController();
   }
 
   @override
@@ -104,17 +118,20 @@ class _ConteudoFiltrosBottomSheetState
     _precoMaxController.dispose();
     _areaMinController.dispose();
     _areaMaxController.dispose();
+    _filtroBairroController.dispose();
     super.dispose();
   }
 
-  /// "Limpar" do rodapé (D-18) — zera o rascunho E os quatro controllers
-  /// (o rascunho sozinho não mexe em texto já digitado nos campos).
+  /// "Limpar" do rodapé (D-18) — zera o rascunho E os cinco controllers (o
+  /// rascunho sozinho não mexe em texto já digitado nos campos, incluindo o
+  /// filtro local de bairros).
   void _limparTudo() {
     context.read<RascunhoFiltrosCubit>().limpar();
     _precoMinController.clear();
     _precoMaxController.clear();
     _areaMinController.clear();
     _areaMaxController.clear();
+    _filtroBairroController.clear();
   }
 
   @override
@@ -280,6 +297,8 @@ class _ConteudoFiltrosBottomSheetState
                                   inteiroDoTextoMascarado(texto),
                                 ),
                           ),
+                          const SizedBox(height: 24),
+                          _SecaoBairros(controller: _filtroBairroController),
                           const SizedBox(height: 24),
                         ],
                       );
@@ -448,6 +467,115 @@ class _SeletorMinimo extends StatelessWidget {
           ],
         ),
       ],
+    );
+  }
+}
+
+/// Seção "Bairros" (FIL-04, D-05, D-20, D-21) — `ExpansionTile` cujo
+/// conteúdo troca exaustivamente sobre `OpcoesFiltroState.bairros`: as
+/// opções vêm do servidor simulado através de [OpcoesFiltroCubit] (nunca
+/// uma lista fixa aqui), e o campo "Filtrar bairros" ([controller], de
+/// propriedade do sheet) só filtra as opções JÁ carregadas via
+/// [filtrarOpcoes] — nunca dispara consulta ao acervo. Começa expandida
+/// quando o rascunho já tem bairros (D-17: reabrir o sheet a partir de um
+/// chip já aplicado).
+class _SecaoBairros extends StatelessWidget {
+  const _SecaoBairros({required this.controller});
+
+  final TextEditingController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return BlocBuilder<RascunhoFiltrosCubit, FiltrosVitrine>(
+      builder: (context, rascunho) {
+        return ExpansionTile(
+          tilePadding: EdgeInsets.zero,
+          childrenPadding: const EdgeInsets.only(bottom: 8),
+          title: const Text('Bairros'),
+          subtitle: rascunho.bairros.isEmpty
+              ? null
+              : Text(
+                  '${rascunho.bairros.length} selecionado'
+                  '${rascunho.bairros.length > 1 ? "s" : ""}',
+                ),
+          initiallyExpanded: rascunho.bairros.isNotEmpty,
+          children: [
+            BlocBuilder<OpcoesFiltroCubit, OpcoesFiltroState>(
+              builder: (context, opcoesState) {
+                return switch (opcoesState.bairros) {
+                  OpcoesCarregando() => const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    child: Center(
+                      child: SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ),
+                  ),
+                  OpcoesFalha() => Align(
+                    alignment: Alignment.centerLeft,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Não foi possível carregar os bairros',
+                          style: textTheme.bodyMedium,
+                        ),
+                        TextButton(
+                          onPressed: () => context
+                              .read<OpcoesFiltroCubit>()
+                              .tentarNovamente(),
+                          child: const Text('Tentar de novo'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  OpcoesCarregadas(:final opcoes) when opcoes.isEmpty =>
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Nenhum bairro disponível nesta cidade',
+                        style: textTheme.bodyMedium,
+                      ),
+                    ),
+                  OpcoesCarregadas(:final opcoes) => ListenableBuilder(
+                    listenable: controller,
+                    builder: (context, _) {
+                      final visiveis = filtrarOpcoes(opcoes, controller.text);
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          TextField(
+                            controller: controller,
+                            decoration: const InputDecoration(
+                              labelText: 'Filtrar bairros',
+                              prefixIcon: Icon(Icons.search),
+                            ),
+                          ),
+                          for (final bairro in visiveis)
+                            CheckboxListTile(
+                              title: Text(bairro),
+                              value: rascunho.bairros.contains(bairro),
+                              contentPadding: EdgeInsets.zero,
+                              onChanged: (marcado) => context
+                                  .read<RascunhoFiltrosCubit>()
+                                  .alternarBairro(
+                                    bairro,
+                                    marcado: marcado ?? false,
+                                  ),
+                            ),
+                        ],
+                      );
+                    },
+                  ),
+                };
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }

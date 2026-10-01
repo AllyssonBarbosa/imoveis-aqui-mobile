@@ -9,6 +9,7 @@ import '../../domain/entities/filtros_vitrine.dart';
 import '../../domain/entities/ordenacao_vitrine.dart';
 import '../cidade_selecao/widgets/seletor_cidade_topo.dart';
 import 'apresentacao_filtros.dart';
+import 'opcoes_filtro_cubit.dart';
 import 'vitrine_cubit.dart';
 import 'vitrine_state.dart';
 import 'widgets/chips_filtros_ativos.dart';
@@ -79,14 +80,19 @@ class _VitrineScreenState extends State<VitrineScreen> {
   /// Abre o sheet de filtros (D-07) com o rascunho inicializado a partir dos
   /// filtros JÁ APLICADOS — `aoAplicar` é `cubit.aplicarFiltros` capturado
   /// aqui, na TELA, nunca lido de dentro do sheet (mesmo precedente de
-  /// `mostrarOrdenacaoBottomSheet`, D-08).
+  /// `mostrarOrdenacaoBottomSheet`, D-08). `opcoes` (Task 2, D-20) é lido
+  /// aqui pela MESMA razão — é esta leitura (a primeira do
+  /// `OpcoesFiltroCubit` desta cidade) que dispara `carregar` dentro do
+  /// `BlocProvider` lazy de `CidadeSelecaoScreen`.
   void _abrirFiltros() {
     final cubit = context.read<VitrineCubit>();
+    final opcoes = context.read<OpcoesFiltroCubit>();
     unawaited(
       mostrarFiltrosBottomSheet(
         context,
         aplicados: cubit.state.filtros,
         aoAplicar: cubit.aplicarFiltros,
+        opcoes: opcoes,
       ),
     );
   }

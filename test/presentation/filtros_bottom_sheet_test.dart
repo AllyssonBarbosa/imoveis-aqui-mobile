@@ -651,6 +651,7 @@ void main() {
           aoAplicar: (_) {},
           opcoesCubit: opcoes,
         );
+        await tester.ensureVisible(find.text('Bairros'));
         await tester.tap(find.text('Bairros'));
         await tester.pump();
 
@@ -678,6 +679,7 @@ void main() {
           aoAplicar: (_) {},
           opcoesCubit: opcoes,
         );
+        await tester.ensureVisible(find.text('Bairros'));
         await tester.tap(find.text('Bairros'));
         await tester.pumpAndSettle();
 
@@ -685,6 +687,7 @@ void main() {
           find.text('Não foi possível carregar os bairros'),
           findsOneWidget,
         );
+        await tester.ensureVisible(find.text('Tentar de novo'));
         await tester.tap(find.text('Tentar de novo'));
         await tester.pump();
 
@@ -702,6 +705,7 @@ void main() {
           aoAplicar: (_) {},
           opcoesCubit: opcoesComEstado(),
         );
+        await tester.ensureVisible(find.text('Bairros'));
         await tester.tap(find.text('Bairros'));
         await tester.pumpAndSettle();
 
@@ -726,6 +730,7 @@ void main() {
             bairros: ['Cambuí', 'Castelo', 'Centro'],
           ),
         );
+        await tester.ensureVisible(find.text('Bairros'));
         await tester.tap(find.text('Bairros'));
         await tester.pumpAndSettle();
 
@@ -761,10 +766,13 @@ void main() {
           aoAplicar: (filtros) => aplicado = filtros,
           opcoesCubit: opcoesComEstado(bairros: ['Cambuí', 'Taquaral']),
         );
+        await tester.ensureVisible(find.text('Bairros'));
         await tester.tap(find.text('Bairros'));
         await tester.pumpAndSettle();
 
-        await tester.tap(find.widgetWithText(CheckboxListTile, 'Cambuí'));
+        final checkboxCambui = find.widgetWithText(CheckboxListTile, 'Cambuí');
+        await tester.ensureVisible(checkboxCambui);
+        await tester.tap(checkboxCambui);
         await tester.pumpAndSettle();
         await tester.tap(find.text('Ver imóveis'));
         await tester.pumpAndSettle();
