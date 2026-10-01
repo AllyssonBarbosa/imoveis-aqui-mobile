@@ -55,6 +55,14 @@ Map<String, String> parametrosDaConsulta(ConsultaImoveis consulta) {
   if (caracteristicas.isNotEmpty) {
     params['caracteristicas'] = _paraCsvOrdenado(caracteristicas);
   }
+  final precoMin = consulta.filtros.precoMin;
+  if (precoMin != null) params['preco_min'] = '$precoMin';
+  final precoMax = consulta.filtros.precoMax;
+  if (precoMax != null) params['preco_max'] = '$precoMax';
+  final areaMin = consulta.filtros.areaMin;
+  if (areaMin != null) params['area_min'] = '$areaMin';
+  final areaMax = consulta.filtros.areaMax;
+  if (areaMax != null) params['area_max'] = '$areaMax';
   return params;
 }
 
@@ -152,22 +160,41 @@ Set<String> listaDoParametro(String valor) {
   return itens.toSet();
 }
 
-/// Interpreta de volta um param de limiar "N ou mais" (D-01,
-/// `quartos_min`/`suites_min`/`vagas_min`) — só aceita inteiro não-negativo;
-/// lança [FormatException] para negativo, decimal ou valor não-numérico
-/// (D-12, simulando o 400 do servidor).
-int minimoDoParametro(String valor) {
+/// Núcleo compartilhado entre [minimoDoParametro] (limiar "N ou mais") e
+/// [inteiroNaoNegativoDoParametro] (faixas de preço/área) — só aceita
+/// inteiro não-negativo; lança [FormatException] para negativo, decimal ou
+/// valor não-numérico (D-12, simulando o 400 do servidor). [rotulo] só muda
+/// a mensagem da exceção.
+int _inteiroNaoNegativo(String valor, String rotulo) {
   final numero = int.tryParse(valor);
   if (numero == null || numero < 0) {
-    throw FormatException('mínimo de filtro inválido: $valor');
+    throw FormatException('$rotulo inválido: $valor');
   }
   return numero;
 }
+
+/// Interpreta de volta um param de limiar "N ou mais" (D-01,
+/// `quartos_min`/`suites_min`/`vagas_min`) — ver [_inteiroNaoNegativo].
+int minimoDoParametro(String valor) =>
+    _inteiroNaoNegativo(valor, 'mínimo de filtro');
+
+/// Interpreta de volta um param de faixa (D-09, `preco_min`/`preco_max`/
+/// `area_min`/`area_max`) — valores inteiros não-negativos (reais/m² inteiros,
+/// contrato §10 item 6); ver [_inteiroNaoNegativo].
+int inteiroNaoNegativoDoParametro(String valor) =>
+    _inteiroNaoNegativo(valor, 'valor de faixa de filtro');
 
 /// Interpreta de volta os params de filtro do mapa de query params — inverso
 /// exato da parte de filtros de [parametrosDaConsulta]. Cada filtro novo
 /// precisa estender ESTA função e [parametrosDaConsulta] simetricamente
 /// (RESEARCH Pattern 1), nunca só um dos dois.
+///
+/// Validações server-side desta fase (D-03, D-12, simulando o 400 real):
+/// qualquer bound de preço (`preco_min`/`preco_max`) sem `finalidade` lança
+/// [FormatException] — sem finalidade não há como saber se o bound compara
+/// com `preco_venda` ou `preco_aluguel` (D-03); mínimo maior que máximo,
+/// tanto em preço quanto em área, também lança (mínimo IGUAL ao máximo é
+/// aceito — faixa de um único valor).
 FiltrosVitrine filtrosDosParametros(Map<String, String> params) {
   final finalidadeParam = params['finalidade'];
   final naturezaParam = params['natureza'];
@@ -176,6 +203,41 @@ FiltrosVitrine filtrosDosParametros(Map<String, String> params) {
   final vagasMinParam = params['vagas_min'];
   final bairroParam = params['bairro'];
   final caracteristicasParam = params['caracteristicas'];
+  final precoMinParam = params['preco_min'];
+  final precoMaxParam = params['preco_max'];
+  final areaMinParam = params['area_min'];
+  final areaMaxParam = params['area_max'];
+
+  final precoMin = precoMinParam == null
+      ? null
+      : inteiroNaoNegativoDoParametro(precoMinParam);
+  final precoMax = precoMaxParam == null
+      ? null
+      : inteiroNaoNegativoDoParametro(precoMaxParam);
+  final areaMin = areaMinParam == null
+      ? null
+      : inteiroNaoNegativoDoParametro(areaMinParam);
+  final areaMax = areaMaxParam == null
+      ? null
+      : inteiroNaoNegativoDoParametro(areaMaxParam);
+
+  if ((precoMin != null || precoMax != null) && finalidadeParam == null) {
+    throw const FormatException(
+      'faixa de preço exige finalidade (D-03): preco_min/preco_max sem '
+      'finalidade',
+    );
+  }
+  if (precoMin != null && precoMax != null && precoMin > precoMax) {
+    throw FormatException(
+      'faixa de preço invertida: preco_min=$precoMin > preco_max=$precoMax',
+    );
+  }
+  if (areaMin != null && areaMax != null && areaMin > areaMax) {
+    throw FormatException(
+      'faixa de área invertida: area_min=$areaMin > area_max=$areaMax',
+    );
+  }
+
   return FiltrosVitrine(
     finalidade: finalidadeParam == null
         ? null
@@ -183,6 +245,8 @@ FiltrosVitrine filtrosDosParametros(Map<String, String> params) {
     naturezas: naturezaParam == null
         ? const {}
         : naturezasDoParametro(naturezaParam),
+    precoMin: precoMin,
+    precoMax: precoMax,
     quartosMin: quartosMinParam == null
         ? null
         : minimoDoParametro(quartosMinParam),
@@ -191,6 +255,8 @@ FiltrosVitrine filtrosDosParametros(Map<String, String> params) {
         : minimoDoParametro(suitesMinParam),
     vagasMin: vagasMinParam == null ? null : minimoDoParametro(vagasMinParam),
     bairros: bairroParam == null ? const {} : listaDoParametro(bairroParam),
+    areaMin: areaMin,
+    areaMax: areaMax,
     caracteristicas: caracteristicasParam == null
         ? const {}
         : listaDoParametro(caracteristicasParam),
