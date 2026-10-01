@@ -11,6 +11,7 @@ import 'package:imoveis_aqui/domain/entities/imovel.dart';
 import 'package:imoveis_aqui/domain/entities/ordenacao_vitrine.dart';
 import 'package:imoveis_aqui/domain/entities/pagina_imoveis.dart';
 import 'package:imoveis_aqui/domain/usecases/buscar_imoveis_usecase.dart';
+import 'package:imoveis_aqui/presentation/vitrine/sessao_filtros_vitrine.dart';
 import 'package:imoveis_aqui/presentation/vitrine/vitrine_cubit.dart';
 import 'package:imoveis_aqui/presentation/vitrine/vitrine_state.dart';
 import 'package:mocktail/mocktail.dart';
@@ -41,7 +42,7 @@ void main() {
     buscarImoveis = _BuscarImoveisUseCaseFalso();
   });
 
-  VitrineCubit construir() => VitrineCubit(buscarImoveis);
+  VitrineCubit construir() => VitrineCubit(buscarImoveis, SessaoFiltrosVitrine());
 
   blocTest<VitrineCubit, VitrineState>(
     'carregar com sucesso não-vazio emite carregando -> carregada',
@@ -235,7 +236,7 @@ void main() {
             respostaPara?.call(consulta) ?? const PaginaImoveis(itens: []);
         return Result.success(pagina);
       });
-      return VitrineCubit(buscarImoveis);
+      return VitrineCubit(buscarImoveis, SessaoFiltrosVitrine());
     }
 
     test(
@@ -393,7 +394,7 @@ void main() {
             );
           });
 
-          final cubit = VitrineCubit(buscarImoveis);
+          final cubit = VitrineCubit(buscarImoveis, SessaoFiltrosVitrine());
           cubit.carregar(campinas);
           async.flushMicrotasks();
 
@@ -436,7 +437,7 @@ void main() {
       'ordenarPor(precoAsc) a partir de mais_recentes emite UM reinício '
       '(carregando com a nova ordenacao) e depois o resultado, mantendo o '
       'termoBusca',
-      build: () => VitrineCubit(buscarImoveis),
+      build: () => VitrineCubit(buscarImoveis, SessaoFiltrosVitrine()),
       setUp: () {
         when(() => buscarImoveis(any())).thenAnswer(
           (_) async =>
@@ -482,7 +483,7 @@ void main() {
           (_) async =>
               Result.success(PaginaImoveis(itens: [imovelDe(campinas, 1)])),
         );
-        final cubit = VitrineCubit(buscarImoveis);
+        final cubit = VitrineCubit(buscarImoveis, SessaoFiltrosVitrine());
         cubit.carregar(campinas);
         await Future<void>.delayed(Duration.zero);
         final estadoAntes = cubit.state;
@@ -511,7 +512,7 @@ void main() {
           );
         });
 
-        final cubit = VitrineCubit(buscarImoveis);
+        final cubit = VitrineCubit(buscarImoveis, SessaoFiltrosVitrine());
         cubit.carregar(campinas);
         await Future<void>.delayed(Duration.zero);
 
@@ -559,7 +560,7 @@ void main() {
       'de VitrineCarregada(10, next=p2), carregarMais() emite carregandoMais '
       'true e depois anexa os novos itens (20 no total) com o cursor da nova '
       'página',
-      build: () => VitrineCubit(buscarImoveis),
+      build: () => VitrineCubit(buscarImoveis, SessaoFiltrosVitrine()),
       setUp: () {
         when(() => buscarImoveis(any())).thenAnswer(
           (_) async => Result.success(
@@ -781,7 +782,7 @@ void main() {
     blocTest<VitrineCubit, VitrineState>(
       'aplicarFiltros(finalidade venda) emite UM reinício (carregando com o '
       'novo filtros) e depois o resultado, mantendo ordenacao/termoBusca',
-      build: () => VitrineCubit(buscarImoveis),
+      build: () => VitrineCubit(buscarImoveis, SessaoFiltrosVitrine()),
       setUp: () {
         when(() => buscarImoveis(any())).thenAnswer(
           (_) async =>
@@ -829,7 +830,7 @@ void main() {
           (_) async =>
               Result.success(PaginaImoveis(itens: [imovelDe(campinas, 1)])),
         );
-        final cubit = VitrineCubit(buscarImoveis);
+        final cubit = VitrineCubit(buscarImoveis, SessaoFiltrosVitrine());
         cubit.carregar(campinas);
         await Future<void>.delayed(Duration.zero);
 
@@ -847,7 +848,7 @@ void main() {
         when(() => buscarImoveis(any())).thenAnswer(
           (_) async => const Result.success(PaginaImoveis(itens: [])),
         );
-        final cubit = VitrineCubit(buscarImoveis);
+        final cubit = VitrineCubit(buscarImoveis, SessaoFiltrosVitrine());
         cubit.carregar(campinas);
         await Future<void>.delayed(Duration.zero);
         await cubit.aplicarFiltros(
@@ -879,7 +880,7 @@ void main() {
           (_) async =>
               Result.success(PaginaImoveis(itens: [imovelDe(campinas, 1)])),
         );
-        final cubit = VitrineCubit(buscarImoveis);
+        final cubit = VitrineCubit(buscarImoveis, SessaoFiltrosVitrine());
         cubit.carregar(campinas);
         await Future<void>.delayed(Duration.zero);
         await cubit.ordenarPor(OrdenacaoVitrine.precoAsc);
@@ -908,7 +909,7 @@ void main() {
             return const Result.success(PaginaImoveis(itens: []));
           });
 
-          final cubit = VitrineCubit(buscarImoveis);
+          final cubit = VitrineCubit(buscarImoveis, SessaoFiltrosVitrine());
           cubit.carregar(campinas);
           async.flushMicrotasks();
           cubit.buscar('casa'); // debounce pendente — deve ser cancelado
@@ -945,7 +946,7 @@ void main() {
           );
         });
 
-        final cubit = VitrineCubit(buscarImoveis);
+        final cubit = VitrineCubit(buscarImoveis, SessaoFiltrosVitrine());
         cubit.carregar(campinas);
         await Future<void>.delayed(Duration.zero);
 
@@ -985,7 +986,7 @@ void main() {
           () => buscarImoveis.proximaPagina('p2'),
         ).thenAnswer((_) => completer.future);
 
-        final cubit = VitrineCubit(buscarImoveis);
+        final cubit = VitrineCubit(buscarImoveis, SessaoFiltrosVitrine());
         cubit.carregar(campinas);
         await Future<void>.delayed(Duration.zero);
 
@@ -1012,7 +1013,7 @@ void main() {
       when(() => buscarImoveis(any())).thenAnswer(
         (_) async => const Result.success(PaginaImoveis(itens: [])),
       );
-      final cubit = VitrineCubit(buscarImoveis);
+      final cubit = VitrineCubit(buscarImoveis, SessaoFiltrosVitrine());
       cubit.carregar(campinas);
       await Future<void>.delayed(Duration.zero);
 
@@ -1034,7 +1035,7 @@ void main() {
           when(() => buscarImoveis(any())).thenAnswer(
             (_) async => const Result.success(PaginaImoveis(itens: [])),
           );
-          final cubit = VitrineCubit(buscarImoveis);
+          final cubit = VitrineCubit(buscarImoveis, SessaoFiltrosVitrine());
           cubit.carregar(campinas);
           async.flushMicrotasks();
 
@@ -1061,7 +1062,7 @@ void main() {
         when(() => buscarImoveis(any())).thenAnswer(
           (_) async => const Result.success(PaginaImoveis(itens: [])),
         );
-        final cubit = VitrineCubit(buscarImoveis);
+        final cubit = VitrineCubit(buscarImoveis, SessaoFiltrosVitrine());
         cubit.carregar(campinas);
         async.flushMicrotasks();
 
@@ -1079,12 +1080,123 @@ void main() {
         when(() => buscarImoveis(any())).thenAnswer(
           (_) async => const Result.success(PaginaImoveis(itens: [])),
         );
-        final cubit = VitrineCubit(buscarImoveis);
+        final cubit = VitrineCubit(buscarImoveis, SessaoFiltrosVitrine());
 
         cubit.carregar(campinas);
         await Future<void>.delayed(Duration.zero);
 
         expect(cubit.state.conteudo, const ConteudoVitrine.vazioNaCidade());
+        await cubit.close();
+      },
+    );
+  });
+
+  group('SessaoFiltrosVitrine integrada ao VitrineCubit (D-14, D-23)', () {
+    test(
+      'carregar(cidade) usa SessaoFiltrosVitrine.filtrosPara(cidade) como '
+      'filtro inicial da consulta e expõe em state.filtros',
+      () async {
+        when(() => buscarImoveis(any())).thenAnswer(
+          (_) async => const Result.success(PaginaImoveis(itens: [])),
+        );
+        final sessaoFiltros = SessaoFiltrosVitrine();
+        sessaoFiltros.lembrar(
+          campinas,
+          const FiltrosVitrine(finalidade: FinalidadeFiltro.venda),
+        );
+        final cubit = VitrineCubit(buscarImoveis, sessaoFiltros);
+
+        cubit.carregar(campinas);
+        await Future<void>.delayed(Duration.zero);
+
+        expect(
+          cubit.state.filtros,
+          const FiltrosVitrine(finalidade: FinalidadeFiltro.venda),
+        );
+        verify(
+          () => buscarImoveis(
+            const ConsultaImoveis(
+              cidade: campinas,
+              filtros: FiltrosVitrine(finalidade: FinalidadeFiltro.venda),
+            ),
+          ),
+        ).called(1);
+        await cubit.close();
+      },
+    );
+
+    test(
+      'carregar(cidade) numa sessão vazia não muda nada versus o '
+      'comportamento da F2 (filtros vazios)',
+      () async {
+        when(() => buscarImoveis(any())).thenAnswer(
+          (_) async => const Result.success(PaginaImoveis(itens: [])),
+        );
+        final cubit = VitrineCubit(buscarImoveis, SessaoFiltrosVitrine());
+
+        cubit.carregar(campinas);
+        await Future<void>.delayed(Duration.zero);
+
+        expect(cubit.state.filtros, const FiltrosVitrine());
+        verify(
+          () => buscarImoveis(const ConsultaImoveis(cidade: campinas)),
+        ).called(1);
+        await cubit.close();
+      },
+    );
+
+    test(
+      'aplicarFiltros registra os filtros aplicados na SessaoFiltrosVitrine, '
+      'disponíveis (sem bairros) para a próxima cidade carregada (D-14)',
+      () async {
+        when(() => buscarImoveis(any())).thenAnswer(
+          (_) async => const Result.success(PaginaImoveis(itens: [])),
+        );
+        final sessaoFiltros = SessaoFiltrosVitrine();
+        final cubit = VitrineCubit(buscarImoveis, sessaoFiltros);
+
+        cubit.carregar(campinas);
+        await Future<void>.delayed(Duration.zero);
+        await cubit.aplicarFiltros(
+          const FiltrosVitrine(
+            finalidade: FinalidadeFiltro.venda,
+            bairros: {'Cambuí'},
+          ),
+        );
+
+        expect(
+          sessaoFiltros.filtrosPara(valinhos),
+          const FiltrosVitrine(finalidade: FinalidadeFiltro.venda),
+        );
+        await cubit.close();
+      },
+    );
+
+    test(
+      'removerFiltro/limparFiltros/buscar/ordenarPor/tentarNovamente também '
+      'registram os filtros vigentes na sessão a cada reinício',
+      () async {
+        when(() => buscarImoveis(any())).thenAnswer(
+          (_) async => const Result.success(PaginaImoveis(itens: [])),
+        );
+        final sessaoFiltros = SessaoFiltrosVitrine();
+        final cubit = VitrineCubit(buscarImoveis, sessaoFiltros);
+
+        cubit.carregar(campinas);
+        await Future<void>.delayed(Duration.zero);
+        await cubit.aplicarFiltros(
+          const FiltrosVitrine(finalidade: FinalidadeFiltro.venda),
+        );
+        await cubit.ordenarPor(OrdenacaoVitrine.precoAsc);
+
+        expect(
+          sessaoFiltros.filtrosPara(campinas),
+          const FiltrosVitrine(finalidade: FinalidadeFiltro.venda),
+        );
+
+        await cubit.limparFiltros();
+
+        expect(sessaoFiltros.filtrosPara(campinas), const FiltrosVitrine());
         await cubit.close();
       },
     );

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -20,6 +22,7 @@ import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_cubit.da
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_screen.dart';
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_state.dart';
 import 'package:imoveis_aqui/presentation/vitrine/opcoes_filtro_cubit.dart';
+import 'package:imoveis_aqui/presentation/vitrine/sessao_filtros_vitrine.dart';
 import 'package:imoveis_aqui/presentation/vitrine/vitrine_cubit.dart';
 import 'package:imoveis_aqui/presentation/vitrine/vitrine_state.dart';
 import 'package:imoveis_aqui/presentation/vitrine/widgets/imovel_card.dart';
@@ -37,10 +40,18 @@ class _SalvarCidadeUseCaseFalso extends Mock implements SalvarCidadeUseCase {}
 
 void main() {
   const campinas = Cidade(nome: 'Campinas', uf: 'SP');
+  const valinhos = Cidade(nome: 'Valinhos', uf: 'SP');
   const indaiatuba = Cidade(nome: 'Indaiatuba', uf: 'SP');
 
   late _CidadeSelecaoCubitFalso cidadeSelecaoCubit;
   late _SalvarCidadeUseCaseFalso salvarCidade;
+
+  /// UMA única instância por teste (Task 2, D-14, D-23) — mesmo precedente
+  /// do `@lazySingleton` real do DI: sobrevive à troca de cidade mesmo que
+  /// `_CorpoVitrine` recrie o `VitrineCubit` do zero (chaveado por
+  /// `cidade.chaveNatural`), já que [criarVitrineCubitReal] fecha sobre esta
+  /// MESMA variável a cada chamada.
+  late SessaoFiltrosVitrine sessaoFiltros;
 
   VitrineCubit criarVitrineCubitReal({Duration latencia = Duration.zero}) =>
       VitrineCubit(
@@ -53,6 +64,7 @@ void main() {
             ),
           ),
         ),
+        sessaoFiltros,
       );
 
   /// Pilha real das opções (Task 2, D-20) — mesmas linhas de
@@ -70,6 +82,7 @@ void main() {
   setUp(() {
     cidadeSelecaoCubit = _CidadeSelecaoCubitFalso();
     salvarCidade = _SalvarCidadeUseCaseFalso();
+    sessaoFiltros = SessaoFiltrosVitrine();
   });
 
   Future<void> pumpVitrineDe(WidgetTester tester, Cidade cidade) async {
@@ -740,6 +753,111 @@ void main() {
         find.byType(ImovelCard),
       )) {
         expect(temAmbasCaracteristicas(card.imovel.id), isTrue);
+      }
+    },
+  );
+
+  testWidgets(
+    'Campinas: aplicar Venda + "2+" quartos + bairro Cambuí, trocar para '
+    'Valinhos pelo cabeçalho -> filtros gerais sobrevivem sem o bairro, a '
+    'nova cidade já abre filtrada, busca/ordenação voltam ao padrão da F2 '
+    '(FIL-06, D-14, D-23)',
+    (tester) async {
+      tester.view.physicalSize = const Size(400, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final estados = StreamController<CidadeSelecaoState>.broadcast();
+      addTearDown(estados.close);
+      final estadoInicial = CidadeSelecaoState.autorizadaEAtendida(campinas);
+      whenListen(cidadeSelecaoCubit, estados.stream, initialState: estadoInicial);
+      when(() => cidadeSelecaoCubit.carregarLista()).thenAnswer((_) async {
+        estados.add(CidadeSelecaoState.recusada([campinas, valinhos]));
+      });
+      when(() => cidadeSelecaoCubit.entrarDireto(any())).thenAnswer((
+        invocation,
+      ) {
+        final cidade = invocation.positionalArguments.first as Cidade;
+        estados.add(CidadeSelecaoState.autorizadaEAtendida(cidade));
+      });
+      when(() => salvarCidade(any())).thenAnswer((_) async {});
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: BlocProvider<CidadeSelecaoCubit>.value(
+            value: cidadeSelecaoCubit,
+            child: CidadeSelecaoScreen(
+              salvarCidade: salvarCidade,
+              criarVitrineCubit: criarVitrineCubitReal,
+              criarOpcoesFiltroCubit: criarOpcoesFiltroCubitReal,
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      // Campinas: aplica Venda + "2+" quartos + bairro Cambuí.
+      await tester.tap(find.text('Filtros'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Venda'));
+      await tester.pumpAndSettle();
+      final choiceQuartosDoisMais = find
+          .widgetWithText(ChoiceChip, '2+')
+          .at(0);
+      await tester.ensureVisible(choiceQuartosDoisMais);
+      await tester.tap(choiceQuartosDoisMais);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Bairros'));
+      await tester.tap(find.text('Bairros'));
+      await tester.pumpAndSettle();
+      final checkboxCambui = find.widgetWithText(CheckboxListTile, 'Cambuí');
+      await tester.ensureVisible(checkboxCambui);
+      await tester.tap(checkboxCambui);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Ver imóveis'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Filtros (3)'), findsOneWidget);
+
+      // Troca de cidade pelo cabeçalho: toque reabre a lista, tocar
+      // "Valinhos, SP" entra direto na nova cidade (D-10).
+      await tester.tap(find.text('Campinas, SP'));
+      await tester.pump();
+      await tester.pump();
+      await tester.tap(find.text('Valinhos, SP'));
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text('Valinhos, SP'), findsOneWidget);
+      // Filtros gerais sobrevivem (Venda, 2+ quartos) — SEM o bairro, que
+      // pertencia só a Campinas (D-14).
+      expect(find.widgetWithText(InputChip, 'Venda'), findsOneWidget);
+      expect(find.widgetWithText(InputChip, '2+ quartos'), findsOneWidget);
+      expect(find.byType(InputChip), findsNWidgets(2));
+      expect(find.textContaining('Filtros (2)'), findsOneWidget);
+      // Busca e ordenação voltam ao padrão da F2 — cidade nova, Cubit novo.
+      expect(find.textContaining('Ordenar: Mais recentes'), findsOneWidget);
+      final searchBar = tester.widget<SearchBar>(find.byType(SearchBar));
+      expect(searchBar.controller?.text ?? '', isEmpty);
+
+      final vitrineCubit = BlocProvider.of<VitrineCubit>(
+        tester.element(find.byType(ListView)),
+      );
+      final conteudo = vitrineCubit.state.conteudo as VitrineCarregada;
+      expect(conteudo.itens, isNotEmpty);
+      bool bateComOsFiltros(Imovel imovel) =>
+          imovel.cidade == valinhos &&
+          (imovel.finalidade == FinalidadeImovel.venda ||
+              imovel.finalidade == FinalidadeImovel.vendaEAluguel) &&
+          (imovel.quartos ?? 0) >= 2;
+      expect(conteudo.itens.every(bateComOsFiltros), isTrue);
+
+      for (final card in tester.widgetList<ImovelCard>(
+        find.byType(ImovelCard),
+      )) {
+        expect(bateComOsFiltros(card.imovel), isTrue);
       }
     },
   );
