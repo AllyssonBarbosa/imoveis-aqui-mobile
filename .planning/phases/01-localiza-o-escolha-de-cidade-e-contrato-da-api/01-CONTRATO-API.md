@@ -198,18 +198,18 @@ Ambos os endpoints (`GET /cidades` e `GET /imoveis`) usam **DRF `CursorPaginatio
 | Param | Tipo | Semântica | Status |
 |-------|------|-----------|--------|
 | `cidade` | string ou int | Filtra por cidade — **formato exato pendente, ver §7** | pendente formato |
-| `preco_min` | decimal | Preço mínimo (venda ou aluguel, conforme `finalidade`) | congelado (nome) |
-| `preco_max` | decimal | Preço máximo | congelado (nome) |
-| `quartos_min` | inteiro | Quartos — **mínimo ou exato? ver §7** | pendente semântica |
-| `suites_min` | inteiro | Suítes — **mínimo ou exato? ver §7** | pendente semântica |
-| `vagas_min` | inteiro | Vagas — **mínimo ou exato? ver §7** | pendente semântica |
-| `natureza` | string (enum) | `CASA`\|`APARTAMENTO`\|`TERRENO`\|`LOTE` — PENDENTE E2 (campo não existe ainda) | pendente E2 |
-| `finalidade` | string (enum) | `VENDA`\|`ALUGUEL`\|`VENDA_E_ALUGUEL` | congelado |
-| `bairro` | string | Filtro textual de bairro | congelado (nome) |
+| `preco_min` | decimal | Preço mínimo (venda ou aluguel, conforme `finalidade`) — ver §10 (adendo Fase 3) | congelado (nome) |
+| `preco_max` | decimal | Preço máximo — ver §10 (adendo Fase 3) | congelado (nome) |
+| `quartos_min` | inteiro | Quartos — **mínimo ou exato? ver §7** — ver §10 (adendo Fase 3) | pendente semântica |
+| `suites_min` | inteiro | Suítes — **mínimo ou exato? ver §7** — ver §10 (adendo Fase 3) | pendente semântica |
+| `vagas_min` | inteiro | Vagas — **mínimo ou exato? ver §7** — ver §10 (adendo Fase 3) | pendente semântica |
+| `natureza` | string (enum) | `CASA`\|`APARTAMENTO`\|`TERRENO`\|`LOTE` — PENDENTE E2 (campo não existe ainda) — ver §10 (adendo Fase 3) | pendente E2 |
+| `finalidade` | string (enum) | `VENDA`\|`ALUGUEL`\|`VENDA_E_ALUGUEL` — ver §10 (adendo Fase 3) | congelado |
+| `bairro` | string | Filtro textual de bairro — ver §10 (adendo Fase 3) | congelado (nome) |
 | `busca` | string | Busca textual em `titulo` + `endereco__bairro` (`descricao` fica de fora), case/acento-insensível no que o backend permitir. Django: `SearchFilter` com `search_param = "busca"` | **adendo Fase 2 (D-05/D-06) — aguardando sign-off do E2** |
-| `area_min` | decimal | Área mínima em m² — PENDENTE E2 | pendente E2 |
-| `area_max` | decimal | Área máxima em m² — PENDENTE E2 | pendente E2 |
-| `caracteristicas` | lista (CSV ou múltiplos params) | Filtra por características marcadas | congelado (nome) |
+| `area_min` | decimal | Área mínima em m² — PENDENTE E2 — ver §10 (adendo Fase 3) | pendente E2 |
+| `area_max` | decimal | Área máxima em m² — PENDENTE E2 — ver §10 (adendo Fase 3) | pendente E2 |
+| `caracteristicas` | lista (CSV ou múltiplos params) | Filtra por características marcadas — ver §10 (adendo Fase 3) | congelado (nome) |
 | `ordenacao` | string (enum) | **Valores exatos pendentes, ver §7** | pendente valores |
 | `cursor` | string (opaco) | Cursor de paginação (§4) | congelado |
 
@@ -262,6 +262,7 @@ um precisa de uma decisão explícita do E2 (ou do time) antes deste contrato vi
    - Opção A (limiar): `quartos_min`, `suites_min`, `vagas_min` — "2 ou mais".
    - Opção B (exato): `quartos`, `suites`, `vagas` — "exatamente 2".
    Requer escolha explícita do E2 antes de o app implementar FIL-03.
+   **Fase 3 (D-01):** o app adota a Opção A como proposta de trabalho — ver §10.
 
 2. **Formato do param `cidade` em `GET /imoveis` — nome+uf ou id numérico?**
    D-15 persiste a cidade escolhida no app pela chave natural (`nome+uf`), não por `id`,
@@ -361,3 +362,62 @@ sincronização de §8 se aplica igualmente a eles:
 
 Assim como os itens de §7, nenhum destes quatro deve ser tratado como decidido pela app ou pela
 API antes do sign-off explícito do E2.
+
+---
+
+## 10. Adendos da Fase 3 (aguardando sign-off do E2)
+
+A Fase 3 (Vitrine — Filtros Server-Side) adiciona os itens abaixo a este contrato, todos como
+**propostas de trabalho do app**, ainda pendentes do sign-off do E2 — o mesmo processo de
+sincronização de §8 se aplica igualmente a eles:
+
+1. **`quartos_min`/`suites_min`/`vagas_min` são limiares "N ou mais"** (resolve §7 item 1, Opção
+   A) — `quartos_min=2` traz imóveis com 2, 3, 4… quartos, nunca só exatamente 2 (a mesma regra
+   vale para `suites_min`/`vagas_min`). A UI do app oferece só 1..4 como rótulos "N+" ("Qualquer",
+   "1+", "2+", "3+", "4+"), mas qualquer inteiro não-negativo é aceito pelo servidor/mock, mesmo
+   que a UI não ofereça valores maiores que 4.
+2. **`finalidade` é inclusiva** (D-02) — `finalidade=VENDA` traz linhas `VENDA` E
+   `VENDA_E_ALUGUEL`; `finalidade=ALUGUEL` traz linhas `ALUGUEL` E `VENDA_E_ALUGUEL`.
+   `VENDA_E_ALUGUEL` é um valor de LINHA (do model `Imovel`), nunca um valor aceito para o
+   PARÂMETRO `finalidade` — mandá-lo como filtro responde 400 (item 7 abaixo).
+3. **`preco_min`/`preco_max` dependem da `finalidade`** (D-03) — com `finalidade=VENDA` comparam
+   `preco_venda`; com `finalidade=ALUGUEL` comparam `preco_aluguel`. Uma faixa de preço na mesma
+   consulta sem `finalidade` responde 400 (o app desabilita o campo no modal até a finalidade ser
+   escolhida). Com `finalidade=ALUGUEL`, a ORDENAÇÃO por preço também passa a usar
+   `preco_aluguel` (nulls last), fechando o risco técnico já registrado em §7.5.
+4. **`caracteristicas` combina por E; `natureza` e `bairro` combinam por OU** (D-04/D-05) — um
+   imóvel só aparece com `caracteristicas=Piscina,Quintal` se tiver AMBAS as características; já
+   `natureza=CASA,APARTAMENTO` traz casa OU apartamento, e `bairro=Cambuí,Taquaral` traz qualquer
+   um dos dois bairros. Parâmetros DIFERENTES entre si sempre combinam por E (ex.
+   `natureza=CASA&quartos_min=2` é casa E 2 ou mais quartos, nunca um OU o outro).
+5. **Multivalores usam CSV numa única chave** (D-06) — exemplo:
+   `?natureza=CASA,APARTAMENTO&bairro=Cambuí,Taquaral&caracteristicas=Piscina,Quintal`. **Risco
+   explícito para o E2:** uma vírgula dentro de um nome de bairro ou de característica quebraria
+   este split — antes da Fase 4, o E2 precisa decidir entre escapar a vírgula no valor ou trocar
+   `bairro`/`caracteristicas` para um identificador (id) em vez do nome cru.
+6. **Faixas (`preco_min`/`preco_max`/`area_min`/`area_max`) são inteiros não-negativos** (reais
+   inteiros / m² inteiros), com limites INCLUSIVOS. Uma linha cujo preço-base (conforme item 3)
+   ou `area` está nulo é EXCLUÍDA enquanto aquela faixa estiver ativa — nunca incluída "por
+   padrão" só porque falta o dado.
+7. **Valor malformado responde 400** (D-12) — enum desconhecido (`natureza=CHALE`), item vazio
+   no CSV (`bairro=Cambuí,`), número negativo ou não-inteiro num `_min`/`_max`
+   (`quartos_min=-1`, `preco_min=dois`), mínimo maior que o máximo, ou faixa de preço sem
+   `finalidade` (item 3). O app valida o formulário do modal inline (D-12 do CONTEXT da Fase 3)
+   mas NUNCA depende só disso — o servidor sempre revalida e é quem decide de fato.
+8. **Dois endpoints públicos novos de opções** (D-20, implementação real só na Fase 4, esta fase
+   usa uma DataSource mock a partir da fixture):
+   - `GET /api/publico/bairros/?cidade=<nome-uf>` — array JSON não-paginado de strings com os
+     valores DISTINTOS de `Endereco.bairro` que têm pelo menos um imóvel PUBLICADO naquela
+     cidade, em ordem alfabética ignorando acento/caixa. Cidade atendida sem nenhum imóvel
+     publicado devolve `[]`; `cidade` malformado responde 400.
+   - `GET /api/publico/caracteristicas/` — array JSON não-paginado de strings a partir de
+     `Caracteristica.nome`, em ordem alfabética.
+   Racional: os parâmetros de filtro (`bairro`, `caracteristicas`) carregam NOMES, não ids
+   (D-06); `bairro` nem tem id próprio no model (`Endereco.bairro` é texto solto, não FK); as
+   duas listas são pequenas o bastante para um array simples, sem paginação.
+9. **A contagem "Ver N imóveis" continua v2** (API-05) — como o `CursorPagination` (§4) não expõe
+   `count`, o botão "Ver imóveis" do modal de filtros nunca mostra uma prévia numérica nesta
+   fase.
+
+Assim como os itens de §7 e §9, nenhum destes itens deve ser tratado como decidido pela app ou
+pela API antes do sign-off explícito do E2.

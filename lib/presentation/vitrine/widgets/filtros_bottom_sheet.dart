@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../domain/entities/filtros_vitrine.dart';
+import '../../../domain/entities/imovel.dart';
+import '../apresentacao_imovel.dart';
 import '../rascunho_filtros_cubit.dart';
 
 /// Segmento de apresentação do `SegmentedButton` de finalidade (FIL-01,
@@ -123,6 +125,51 @@ class _ConteudoFiltrosBottomSheet extends StatelessWidget {
                               .definirFinalidade(_paraFiltro(novo.first)),
                         ),
                         const SizedBox(height: 24),
+                        Text('Tipo de imóvel', style: textTheme.titleMedium),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          children: [
+                            for (final natureza in NaturezaImovel.values)
+                              FilterChip(
+                                label: Text(rotuloNatureza(natureza)!),
+                                selected: rascunho.naturezas.contains(
+                                  natureza,
+                                ),
+                                onSelected: (marcada) => context
+                                    .read<RascunhoFiltrosCubit>()
+                                    .alternarNatureza(
+                                      natureza,
+                                      marcada: marcada,
+                                    ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        _SeletorMinimo(
+                          titulo: 'Quartos',
+                          valor: rascunho.quartosMin,
+                          aoEscolher: context
+                              .read<RascunhoFiltrosCubit>()
+                              .definirQuartosMin,
+                        ),
+                        const SizedBox(height: 24),
+                        _SeletorMinimo(
+                          titulo: 'Suítes',
+                          valor: rascunho.suitesMin,
+                          aoEscolher: context
+                              .read<RascunhoFiltrosCubit>()
+                              .definirSuitesMin,
+                        ),
+                        const SizedBox(height: 24),
+                        _SeletorMinimo(
+                          titulo: 'Vagas',
+                          valor: rascunho.vagasMin,
+                          aoEscolher: context
+                              .read<RascunhoFiltrosCubit>()
+                              .definirVagasMin,
+                        ),
+                        const SizedBox(height: 24),
                       ],
                     );
                   },
@@ -158,6 +205,49 @@ class _ConteudoFiltrosBottomSheet extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Seletor de mínimo reusado por Quartos/Suítes/Vagas (D-01, D-10) — cinco
+/// `ChoiceChip`s de seleção única: `null` ("Qualquer") e 1, 2, 3, 4. Rótulos
+/// sempre "N+" — nunca "exatamente N" (D-01): o servidor simulado compara
+/// com `>=`, então a UI nunca sugere o contrário.
+class _SeletorMinimo extends StatelessWidget {
+  const _SeletorMinimo({
+    required this.titulo,
+    required this.valor,
+    required this.aoEscolher,
+  });
+
+  final String titulo;
+  final int? valor;
+  final ValueChanged<int?> aoEscolher;
+
+  static const List<int?> _opcoes = [null, 1, 2, 3, 4];
+
+  String _rotulo(int? opcao) => opcao == null ? 'Qualquer' : '$opcao+';
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(titulo, style: textTheme.titleMedium),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          children: [
+            for (final opcao in _opcoes)
+              ChoiceChip(
+                label: Text(_rotulo(opcao)),
+                selected: valor == opcao,
+                onSelected: (_) => aoEscolher(opcao),
+              ),
+          ],
+        ),
+      ],
     );
   }
 }
