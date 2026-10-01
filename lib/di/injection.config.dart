@@ -19,6 +19,10 @@ import 'package:imoveis_aqui/data/datasources/cidade_remote_datasource.dart'
 import 'package:imoveis_aqui/data/datasources/imovel_datasource.dart' as _i326;
 import 'package:imoveis_aqui/data/datasources/imovel_mock_datasource.dart'
     as _i609;
+import 'package:imoveis_aqui/data/datasources/opcoes_filtro_datasource.dart'
+    as _i585;
+import 'package:imoveis_aqui/data/datasources/opcoes_filtro_mock_datasource.dart'
+    as _i158;
 import 'package:imoveis_aqui/data/gateways/geocoding_gateway_impl.dart'
     as _i506;
 import 'package:imoveis_aqui/data/gateways/geolocator_gateway_impl.dart'
@@ -27,6 +31,8 @@ import 'package:imoveis_aqui/data/repositories/cidade_repository_impl.dart'
     as _i912;
 import 'package:imoveis_aqui/data/repositories/imovel_repository_impl.dart'
     as _i1051;
+import 'package:imoveis_aqui/data/repositories/opcoes_filtro_repository_impl.dart'
+    as _i375;
 import 'package:imoveis_aqui/di/modulo_rede.dart' as _i497;
 import 'package:imoveis_aqui/domain/gateways/geocoding_gateway.dart' as _i881;
 import 'package:imoveis_aqui/domain/gateways/geolocator_gateway.dart' as _i246;
@@ -34,10 +40,16 @@ import 'package:imoveis_aqui/domain/repositories/cidade_repository.dart'
     as _i146;
 import 'package:imoveis_aqui/domain/repositories/imovel_repository.dart'
     as _i970;
+import 'package:imoveis_aqui/domain/repositories/opcoes_filtro_repository.dart'
+    as _i987;
 import 'package:imoveis_aqui/domain/usecases/buscar_imoveis_usecase.dart'
     as _i213;
 import 'package:imoveis_aqui/domain/usecases/detectar_cidade_usecase.dart'
     as _i502;
+import 'package:imoveis_aqui/domain/usecases/obter_bairros_usecase.dart'
+    as _i20;
+import 'package:imoveis_aqui/domain/usecases/obter_caracteristicas_usecase.dart'
+    as _i441;
 import 'package:imoveis_aqui/domain/usecases/obter_cidade_salva_usecase.dart'
     as _i1060;
 import 'package:imoveis_aqui/domain/usecases/obter_cidades_atendidas_usecase.dart'
@@ -48,6 +60,8 @@ import 'package:imoveis_aqui/domain/usecases/validar_cidade_atendida_usecase.dar
     as _i14;
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_cubit.dart'
     as _i765;
+import 'package:imoveis_aqui/presentation/vitrine/opcoes_filtro_cubit.dart'
+    as _i1002;
 import 'package:imoveis_aqui/presentation/vitrine/vitrine_cubit.dart' as _i486;
 import 'package:injectable/injectable.dart' as _i526;
 
@@ -63,6 +77,9 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i94.CidadePrefsDataSource(),
     );
     gh.lazySingleton<_i361.Dio>(() => moduloRede.dio);
+    gh.lazySingleton<_i585.OpcoesFiltroDataSource>(
+      () => _i158.OpcoesFiltroMockDataSource(),
+    );
     gh.lazySingleton<_i881.GeocodingGateway>(
       () => _i506.GeocodingGatewayImpl(),
     );
@@ -81,6 +98,10 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i213.BuscarImoveisUseCase>(
       () => _i213.BuscarImoveisUseCase(gh<_i970.ImovelRepository>()),
     );
+    gh.lazySingleton<_i987.OpcoesFiltroRepository>(
+      () =>
+          _i375.OpcoesFiltroRepositoryImpl(gh<_i585.OpcoesFiltroDataSource>()),
+    );
     gh.factory<_i486.VitrineCubit>(
       () => _i486.VitrineCubit(gh<_i213.BuscarImoveisUseCase>()),
     );
@@ -97,6 +118,13 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i146.CidadeRepository>(),
       ),
     );
+    gh.factory<_i20.ObterBairrosUseCase>(
+      () => _i20.ObterBairrosUseCase(gh<_i987.OpcoesFiltroRepository>()),
+    );
+    gh.factory<_i441.ObterCaracteristicasUseCase>(
+      () =>
+          _i441.ObterCaracteristicasUseCase(gh<_i987.OpcoesFiltroRepository>()),
+    );
     gh.factory<_i1060.ObterCidadeSalvaUseCase>(
       () => _i1060.ObterCidadeSalvaUseCase(gh<_i146.CidadeRepository>()),
     );
@@ -105,6 +133,12 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i589.SalvarCidadeUseCase>(
       () => _i589.SalvarCidadeUseCase(gh<_i146.CidadeRepository>()),
+    );
+    gh.factory<_i1002.OpcoesFiltroCubit>(
+      () => _i1002.OpcoesFiltroCubit(
+        gh<_i20.ObterBairrosUseCase>(),
+        gh<_i441.ObterCaracteristicasUseCase>(),
+      ),
     );
     gh.factory<_i14.ValidarCidadeAtendidaUseCase>(
       () => _i14.ValidarCidadeAtendidaUseCase(

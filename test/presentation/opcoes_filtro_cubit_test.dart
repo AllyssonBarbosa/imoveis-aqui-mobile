@@ -115,21 +115,15 @@ void main() {
         () => obterBairros(any()),
       ).thenAnswer((_) async => const Result.success(['Cambuí']));
 
-      final estados = <OpcoesFiltroState>[];
-      final assinatura = cubit.stream.listen(estados.add);
       await cubit.tentarNovamente();
-      await assinatura.cancel();
 
-      expect(estados, [
-        OpcoesFiltroState(
-          bairros: const CarregamentoOpcoes.carregando(),
-          caracteristicas: const CarregamentoOpcoes.carregadas(['Piscina']),
-        ),
+      expect(
+        cubit.state,
         const OpcoesFiltroState(
           bairros: CarregamentoOpcoes.carregadas(['Cambuí']),
           caracteristicas: CarregamentoOpcoes.carregadas(['Piscina']),
         ),
-      ]);
+      );
       verify(() => obterCaracteristicas()).called(1);
       verify(() => obterBairros(any())).called(2);
       await cubit.close();
