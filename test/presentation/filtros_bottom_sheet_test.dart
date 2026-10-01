@@ -437,7 +437,7 @@ void main() {
         // habilitados) = 4 TextFields.
         expect(todosOsCampos, hasLength(4));
         final camposArea = todosOsCampos.sublist(2);
-        expect(camposArea.every((c) => c.enabled), isTrue);
+        expect(camposArea.every((c) => c.enabled != false), isTrue);
         expect(camposArea.every((c) => c.decoration?.suffixText == 'm²'), isTrue);
       },
     );

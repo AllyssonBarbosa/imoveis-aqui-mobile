@@ -525,9 +525,18 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Venda'));
       await tester.pumpAndSettle();
-      await tester.enterText(find.byType(TextField).first, '250000');
+      // A tela cheia da vitrine tem sua própria SearchBar (que também é um
+      // TextField) à frente do sheet — localiza os campos de preço pelo
+      // label, nunca por índice cru (D-09).
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Mínimo').at(0),
+        '250000',
+      );
       await tester.pumpAndSettle();
-      await tester.enterText(find.byType(TextField).at(1), '300000');
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Máximo').at(0),
+        '300000',
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.text('Ver imóveis'));
       await tester.pumpAndSettle();
@@ -566,10 +575,19 @@ void main() {
 
       await tester.tap(find.text('Filtros'));
       await tester.pumpAndSettle();
-      final campos = find.byType(TextField);
-      await tester.enterText(campos.at(2), '80');
+      // A tela cheia da vitrine tem sua própria SearchBar (que também é um
+      // TextField) à frente do sheet — localiza os campos de área pelo
+      // label (segunda ocorrência de "Mínimo"/"Máximo", depois de Preço),
+      // nunca por índice cru (D-09).
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Mínimo').at(1),
+        '80',
+      );
       await tester.pumpAndSettle();
-      await tester.enterText(campos.at(3), '120');
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Máximo').at(1),
+        '120',
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.text('Ver imóveis'));
       await tester.pumpAndSettle();

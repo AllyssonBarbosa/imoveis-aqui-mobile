@@ -57,4 +57,54 @@ class RascunhoFiltrosCubit extends Cubit<FiltrosVitrine> {
   /// [definirQuartosMin].
   void definirVagasMin(int? minimo) =>
       emit(state.copyWith(vagasMin: minimo));
+
+  /// Define o preço mínimo do rascunho (D-09) — IGNORADO enquanto
+  /// `finalidade` é `null` (D-03): sem finalidade não há como saber se o
+  /// valor compara com `preco_venda` ou `preco_aluguel` (o campo também
+  /// fica desabilitado no sheet, defesa em profundidade com a validação
+  /// server-side de 03-03/Task 1).
+  void definirPrecoMin(int? valor) {
+    if (state.finalidade == null) return;
+    emit(state.copyWith(precoMin: valor));
+  }
+
+  /// Define o preço máximo do rascunho — mesma semântica de
+  /// [definirPrecoMin].
+  void definirPrecoMax(int? valor) {
+    if (state.finalidade == null) return;
+    emit(state.copyWith(precoMax: valor));
+  }
+
+  /// Define a área mínima do rascunho (D-09) — SEMPRE aplica, independente
+  /// da finalidade (área não depende da escala preço_venda/preco_aluguel).
+  void definirAreaMin(int? valor) => emit(state.copyWith(areaMin: valor));
+
+  /// Define a área máxima do rascunho — mesma semântica de
+  /// [definirAreaMin].
+  void definirAreaMax(int? valor) => emit(state.copyWith(areaMax: valor));
+}
+
+/// Validação de FORMULÁRIO do rascunho de filtros (D-12) — nunca uma regra
+/// de negócio: o servidor simulado revalida sozinho, independentemente desta
+/// extensão (03-03/Task 1, `filtrosDosParametros`). Mínimo maior que máximo
+/// mostra erro inline e desabilita "Ver imóveis"; mínimo IGUAL ao máximo é
+/// válido (faixa de um único valor).
+extension ValidacaoRascunho on FiltrosVitrine {
+  /// Erro de formulário da faixa de preço, ou `null` se válida.
+  String? get erroFaixaPreco => _erroDeFaixa(precoMin, precoMax);
+
+  /// Erro de formulário da faixa de área, ou `null` se válida.
+  String? get erroFaixaArea => _erroDeFaixa(areaMin, areaMax);
+
+  /// `false` enquanto QUALQUER faixa (preço OU área) tiver erro de
+  /// formulário — é o que desabilita "Ver imóveis" no rodapé do sheet
+  /// (D-12).
+  bool get podeAplicar => erroFaixaPreco == null && erroFaixaArea == null;
+}
+
+String? _erroDeFaixa(int? minimo, int? maximo) {
+  if (minimo != null && maximo != null && minimo > maximo) {
+    return 'O mínimo não pode ser maior que o máximo';
+  }
+  return null;
 }
