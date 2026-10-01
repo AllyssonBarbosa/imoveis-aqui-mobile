@@ -168,7 +168,7 @@ class ImovelMockDataSource implements ImovelDataSource {
           if (!_linhaCasaComBusca(linha, termoBusca)) return false;
           return _linhaCasaComFiltros(linha, filtros);
         }).toList()
-        ..sort(_comparadorDe(ordenacao));
+        ..sort(_comparadorDe(ordenacao, finalidade: filtros.finalidade));
 
     final fim = (offset + _tamanhoPagina).clamp(0, linhasFiltradas.length);
     final pagina = (offset >= 0 && offset < linhasFiltradas.length)
@@ -243,16 +243,20 @@ class ImovelMockDataSource implements ImovelDataSource {
     );
   }
 
-  /// Aplica os filtros da Fase 3 (D-01..D-05) sobre a linha de wire, ANTES
-  /// de ordenar/paginar — nunca depois do parse (mesma doutrina de
-  /// [_linhaCasaComBusca]). `finalidade` é inclusiva (D-02:
+  /// Aplica os filtros da Fase 3 (D-01..D-05, D-03, D-09) sobre a linha de
+  /// wire, ANTES de ordenar/paginar — nunca depois do parse (mesma doutrina
+  /// de [_linhaCasaComBusca]). `finalidade` é inclusiva (D-02:
   /// `finalidade=VENDA` aceita linhas `VENDA` e `VENDA_E_ALUGUEL`;
   /// `finalidade=ALUGUEL` aceita `ALUGUEL` e `VENDA_E_ALUGUEL`); `natureza`
   /// e `bairro` combinam por OU entre valores (D-05); `características`
   /// exige TODAS as marcadas (E, D-04); quartos/suítes/vagas são limiares
-  /// "N ou mais" (D-01, `>=`, nunca `==`). Dimensões diferentes combinam
-  /// entre si por E. As dimensões de preço/área ainda não têm predicado
-  /// (planos 03-03..03-05 as adicionam, cada um estendendo este método).
+  /// "N ou mais" (D-01, `>=`, nunca `==`). Faixa de preço compara com
+  /// `preco_venda` (finalidade VENDA) ou `preco_aluguel` (finalidade
+  /// ALUGUEL) — nunca enviada sem finalidade (D-03, já garantido por
+  /// [filtrosDosParametros]); faixa de área compara com `area`, com ou sem
+  /// finalidade (D-09). Em ambas, uma linha cujo campo-base é `null`
+  /// enquanto a faixa está ativa fica FORA do resultado. Dimensões
+  /// diferentes combinam entre si por E.
   static bool _linhaCasaComFiltros(
     Map<String, Object?> linha,
     FiltrosVitrine filtros,
@@ -277,6 +281,21 @@ class ImovelMockDataSource implements ImovelDataSource {
       if (!wireDasNaturezas.contains(naturezaLinha)) return false;
     }
 
+    final precoMin = filtros.precoMin;
+    final precoMax = filtros.precoMax;
+    if (precoMin != null || precoMax != null) {
+      // finalidade nunca é nula aqui — já validado por filtrosDosParametros
+      // (D-03): uma faixa de preço nunca chega sem finalidade.
+      final campoPreco = finalidade == FinalidadeFiltro.aluguel
+          ? 'preco_aluguel'
+          : 'preco_venda';
+      final valorBruto = linha[campoPreco] as String?;
+      if (valorBruto == null) return false;
+      final valor = double.parse(valorBruto);
+      if (precoMin != null && valor < precoMin) return false;
+      if (precoMax != null && valor > precoMax) return false;
+    }
+
     final quartosMin = filtros.quartosMin;
     if (quartosMin != null && (linha['quartos']! as int) < quartosMin) {
       return false;
@@ -299,6 +318,16 @@ class ImovelMockDataSource implements ImovelDataSource {
       if (!bairrosNormalizados.contains(bairroLinha)) return false;
     }
 
+    final areaMin = filtros.areaMin;
+    final areaMax = filtros.areaMax;
+    if (areaMin != null || areaMax != null) {
+      final areaBruta = linha['area'] as String?;
+      if (areaBruta == null) return false;
+      final area = double.parse(areaBruta);
+      if (areaMin != null && area < areaMin) return false;
+      if (areaMax != null && area > areaMax) return false;
+    }
+
     final caracteristicas = filtros.caracteristicas;
     if (caracteristicas.isNotEmpty) {
       final caracteristicasLinha = (linha['caracteristicas']! as List)
@@ -314,24 +343,29 @@ class ImovelMockDataSource implements ImovelDataSource {
   }
 
   /// Escolhe o comparador de acordo com [ordenacao] (D-11). `precoAsc`/
-  /// `precoDesc` usam `preco_venda`, `areaAsc`/`areaDesc` usam `area` — em
-  /// ambos os casos, valores nulos vão para o FIM independente do sentido
+  /// `precoDesc` usam `preco_aluguel` quando [finalidade] aplicada é
+  /// `ALUGUEL`, senão `preco_venda` (D-03, contrato §7.5 — regra do
+  /// servidor, nunca do app); `areaAsc`/`areaDesc` usam `area` sempre. Em
+  /// todos os casos, valores nulos vão para o FIM independente do sentido
   /// (D-12), nunca uma regra do app: é o servidor simulado que decide. `id`
   /// crescente desempata dentro do grupo de nulos e em empates numéricos,
   /// garantindo uma ordem determinística e estável.
   static int Function(Map<String, Object?>, Map<String, Object?>)
-  _comparadorDe(OrdenacaoVitrine ordenacao) {
+  _comparadorDe(OrdenacaoVitrine ordenacao, {FinalidadeFiltro? finalidade}) {
+    final campoPreco = finalidade == FinalidadeFiltro.aluguel
+        ? 'preco_aluguel'
+        : 'preco_venda';
     switch (ordenacao) {
       case OrdenacaoVitrine.maisRecentes:
         return _compararPorRecenciaDesc;
       case OrdenacaoVitrine.precoAsc:
         return _compararPorCampoNumericoNullsLast(
-          'preco_venda',
+          campoPreco,
           ascendente: true,
         );
       case OrdenacaoVitrine.precoDesc:
         return _compararPorCampoNumericoNullsLast(
-          'preco_venda',
+          campoPreco,
           ascendente: false,
         );
       case OrdenacaoVitrine.areaAsc:

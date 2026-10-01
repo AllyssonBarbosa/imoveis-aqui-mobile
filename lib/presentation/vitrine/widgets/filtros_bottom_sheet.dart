@@ -5,6 +5,7 @@ import '../../../domain/entities/filtros_vitrine.dart';
 import '../../../domain/entities/imovel.dart';
 import '../apresentacao_imovel.dart';
 import '../rascunho_filtros_cubit.dart';
+import 'mascara_numerica.dart';
 
 /// Segmento de apresentação do `SegmentedButton` de finalidade (FIL-01,
 /// D-11) — "Qualquer" é um segmento REAL, nunca ausência de seleção
@@ -57,10 +58,64 @@ Future<void> mostrarFiltrosBottomSheet(
   );
 }
 
-class _ConteudoFiltrosBottomSheet extends StatelessWidget {
+class _ConteudoFiltrosBottomSheet extends StatefulWidget {
   const _ConteudoFiltrosBottomSheet({required this.aoAplicar});
 
   final ValueChanged<FiltrosVitrine> aoAplicar;
+
+  @override
+  State<_ConteudoFiltrosBottomSheet> createState() =>
+      _ConteudoFiltrosBottomSheetState();
+}
+
+/// `StatefulWidget` (D-09) só para hospedar os quatro `TextEditingController`s
+/// das faixas de preço/área — nenhuma lógica de negócio mora aqui, a fonte da
+/// verdade continua sendo o [RascunhoFiltrosCubit] (D-08); os controllers só
+/// espelham o texto já mascarado ([textoMascaradoDe]) do que está no
+/// rascunho.
+class _ConteudoFiltrosBottomSheetState
+    extends State<_ConteudoFiltrosBottomSheet> {
+  late final TextEditingController _precoMinController;
+  late final TextEditingController _precoMaxController;
+  late final TextEditingController _areaMinController;
+  late final TextEditingController _areaMaxController;
+
+  @override
+  void initState() {
+    super.initState();
+    final rascunho = context.read<RascunhoFiltrosCubit>().state;
+    _precoMinController = TextEditingController(
+      text: textoMascaradoDe(rascunho.precoMin),
+    );
+    _precoMaxController = TextEditingController(
+      text: textoMascaradoDe(rascunho.precoMax),
+    );
+    _areaMinController = TextEditingController(
+      text: textoMascaradoDe(rascunho.areaMin),
+    );
+    _areaMaxController = TextEditingController(
+      text: textoMascaradoDe(rascunho.areaMax),
+    );
+  }
+
+  @override
+  void dispose() {
+    _precoMinController.dispose();
+    _precoMaxController.dispose();
+    _areaMinController.dispose();
+    _areaMaxController.dispose();
+    super.dispose();
+  }
+
+  /// "Limpar" do rodapé (D-18) — zera o rascunho E os quatro controllers
+  /// (o rascunho sozinho não mexe em texto já digitado nos campos).
+  void _limparTudo() {
+    context.read<RascunhoFiltrosCubit>().limpar();
+    _precoMinController.clear();
+    _precoMaxController.clear();
+    _areaMinController.clear();
+    _areaMaxController.clear();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,143 +123,288 @@ class _ConteudoFiltrosBottomSheet extends StatelessWidget {
 
     // Tela cheia (D-07): 92% da altura disponível, com o restante ocupado
     // pelo `showDragHandle` acima. `Padding` com `viewInsetsOf` empurra o
-    // rodapé para cima do teclado quando um campo numérico (planos
-    // seguintes) estiver focado.
+    // rodapé para cima do teclado quando um campo numérico está focado.
     return FractionallySizedBox(
       heightFactor: 0.92,
       child: Padding(
         padding: EdgeInsets.only(
           bottom: MediaQuery.viewInsetsOf(context).bottom,
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 4, 8),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text('Filtros', style: textTheme.titleLarge),
-                  ),
-                  IconButton(
-                    tooltip: 'Fechar',
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                ],
+        child: BlocListener<RascunhoFiltrosCubit, FiltrosVitrine>(
+          // D-13: trocar de finalidade limpa o TEXTO já digitado nos campos
+          // de preço (o rascunho já limpou os VALORES, RascunhoFiltrosCubit
+          // .definirFinalidade) — os controllers precisam seguir.
+          listenWhen: (anterior, atual) =>
+              anterior.finalidade != atual.finalidade,
+          listener: (context, rascunho) {
+            _precoMinController.clear();
+            _precoMaxController.clear();
+          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 4, 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text('Filtros', style: textTheme.titleLarge),
+                    ),
+                    IconButton(
+                      tooltip: 'Fechar',
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: BlocBuilder<RascunhoFiltrosCubit, FiltrosVitrine>(
-                  builder: (context, rascunho) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Finalidade', style: textTheme.titleMedium),
-                        const SizedBox(height: 8),
-                        SegmentedButton<_SegmentoFinalidade>(
-                          segments: const [
-                            ButtonSegment(
-                              value: _SegmentoFinalidade.qualquer,
-                              label: Text('Qualquer'),
-                            ),
-                            ButtonSegment(
-                              value: _SegmentoFinalidade.venda,
-                              label: Text('Venda'),
-                            ),
-                            ButtonSegment(
-                              value: _SegmentoFinalidade.aluguel,
-                              label: Text('Aluguel'),
-                            ),
-                          ],
-                          selected: {_segmentoDe(rascunho.finalidade)},
-                          onSelectionChanged: (novo) => context
-                              .read<RascunhoFiltrosCubit>()
-                              .definirFinalidade(_paraFiltro(novo.first)),
-                        ),
-                        const SizedBox(height: 24),
-                        Text('Tipo de imóvel', style: textTheme.titleMedium),
-                        const SizedBox(height: 8),
-                        Wrap(
-                          spacing: 8,
-                          children: [
-                            for (final natureza in NaturezaImovel.values)
-                              FilterChip(
-                                label: Text(rotuloNatureza(natureza)!),
-                                selected: rascunho.naturezas.contains(
-                                  natureza,
-                                ),
-                                onSelected: (marcada) => context
-                                    .read<RascunhoFiltrosCubit>()
-                                    .alternarNatureza(
-                                      natureza,
-                                      marcada: marcada,
-                                    ),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: BlocBuilder<RascunhoFiltrosCubit, FiltrosVitrine>(
+                    builder: (context, rascunho) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Finalidade', style: textTheme.titleMedium),
+                          const SizedBox(height: 8),
+                          SegmentedButton<_SegmentoFinalidade>(
+                            segments: const [
+                              ButtonSegment(
+                                value: _SegmentoFinalidade.qualquer,
+                                label: Text('Qualquer'),
                               ),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-                        _SeletorMinimo(
-                          titulo: 'Quartos',
-                          valor: rascunho.quartosMin,
-                          aoEscolher: context
-                              .read<RascunhoFiltrosCubit>()
-                              .definirQuartosMin,
-                        ),
-                        const SizedBox(height: 24),
-                        _SeletorMinimo(
-                          titulo: 'Suítes',
-                          valor: rascunho.suitesMin,
-                          aoEscolher: context
-                              .read<RascunhoFiltrosCubit>()
-                              .definirSuitesMin,
-                        ),
-                        const SizedBox(height: 24),
-                        _SeletorMinimo(
-                          titulo: 'Vagas',
-                          valor: rascunho.vagasMin,
-                          aoEscolher: context
-                              .read<RascunhoFiltrosCubit>()
-                              .definirVagasMin,
-                        ),
-                        const SizedBox(height: 24),
-                      ],
-                    );
-                  },
+                              ButtonSegment(
+                                value: _SegmentoFinalidade.venda,
+                                label: Text('Venda'),
+                              ),
+                              ButtonSegment(
+                                value: _SegmentoFinalidade.aluguel,
+                                label: Text('Aluguel'),
+                              ),
+                            ],
+                            selected: {_segmentoDe(rascunho.finalidade)},
+                            onSelectionChanged: (novo) => context
+                                .read<RascunhoFiltrosCubit>()
+                                .definirFinalidade(_paraFiltro(novo.first)),
+                          ),
+                          const SizedBox(height: 24),
+                          Text('Tipo de imóvel', style: textTheme.titleMedium),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 8,
+                            children: [
+                              for (final natureza in NaturezaImovel.values)
+                                FilterChip(
+                                  label: Text(rotuloNatureza(natureza)!),
+                                  selected: rascunho.naturezas.contains(
+                                    natureza,
+                                  ),
+                                  onSelected: (marcada) => context
+                                      .read<RascunhoFiltrosCubit>()
+                                      .alternarNatureza(
+                                        natureza,
+                                        marcada: marcada,
+                                      ),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+                          _SecaoFaixa(
+                            titulo: 'Preço',
+                            minController: _precoMinController,
+                            maxController: _precoMaxController,
+                            habilitado: rascunho.finalidade != null,
+                            textoDesabilitado:
+                                'Escolha Venda ou Aluguel para filtrar por '
+                                'preço',
+                            prefixo: 'R\$ ',
+                            sufixo: rascunho.finalidade ==
+                                    FinalidadeFiltro.aluguel
+                                ? '/mês'
+                                : null,
+                            erro: rascunho.erroFaixaPreco,
+                            aoMudarMin: (texto) => context
+                                .read<RascunhoFiltrosCubit>()
+                                .definirPrecoMin(
+                                  inteiroDoTextoMascarado(texto),
+                                ),
+                            aoMudarMax: (texto) => context
+                                .read<RascunhoFiltrosCubit>()
+                                .definirPrecoMax(
+                                  inteiroDoTextoMascarado(texto),
+                                ),
+                          ),
+                          const SizedBox(height: 24),
+                          _SeletorMinimo(
+                            titulo: 'Quartos',
+                            valor: rascunho.quartosMin,
+                            aoEscolher: context
+                                .read<RascunhoFiltrosCubit>()
+                                .definirQuartosMin,
+                          ),
+                          const SizedBox(height: 24),
+                          _SeletorMinimo(
+                            titulo: 'Suítes',
+                            valor: rascunho.suitesMin,
+                            aoEscolher: context
+                                .read<RascunhoFiltrosCubit>()
+                                .definirSuitesMin,
+                          ),
+                          const SizedBox(height: 24),
+                          _SeletorMinimo(
+                            titulo: 'Vagas',
+                            valor: rascunho.vagasMin,
+                            aoEscolher: context
+                                .read<RascunhoFiltrosCubit>()
+                                .definirVagasMin,
+                          ),
+                          const SizedBox(height: 24),
+                          _SecaoFaixa(
+                            titulo: 'Área',
+                            minController: _areaMinController,
+                            maxController: _areaMaxController,
+                            habilitado: true,
+                            textoDesabilitado: null,
+                            prefixo: null,
+                            sufixo: 'm²',
+                            erro: rascunho.erroFaixaArea,
+                            aoMudarMin: (texto) => context
+                                .read<RascunhoFiltrosCubit>()
+                                .definirAreaMin(
+                                  inteiroDoTextoMascarado(texto),
+                                ),
+                            aoMudarMax: (texto) => context
+                                .read<RascunhoFiltrosCubit>()
+                                .definirAreaMax(
+                                  inteiroDoTextoMascarado(texto),
+                                ),
+                          ),
+                          const SizedBox(height: 24),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              ),
+              SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                  child: Row(
+                    children: [
+                      TextButton(
+                        onPressed: _limparTudo,
+                        child: const Text('Limpar'),
+                      ),
+                      const Spacer(),
+                      BlocBuilder<RascunhoFiltrosCubit, FiltrosVitrine>(
+                        builder: (context, rascunho) {
+                          return FilledButton(
+                            onPressed: rascunho.podeAplicar
+                                ? () {
+                                    Navigator.of(context).pop();
+                                    widget.aoAplicar(rascunho);
+                                  }
+                                : null,
+                            child: const Text('Ver imóveis'),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Seção de faixa mín/máx reusada por Preço e Área (D-09, D-12) — dois
+/// `TextField`s lado a lado com `MascaraMilhares`, erro inline SOMENTE no
+/// campo Máximo (onde o visitante termina de digitar a faixa invertida), e
+/// uma mensagem de ajuda quando [habilitado] é `false` (D-03, Pitfall 5).
+class _SecaoFaixa extends StatelessWidget {
+  const _SecaoFaixa({
+    required this.titulo,
+    required this.minController,
+    required this.maxController,
+    required this.habilitado,
+    required this.textoDesabilitado,
+    required this.prefixo,
+    required this.sufixo,
+    required this.erro,
+    required this.aoMudarMin,
+    required this.aoMudarMax,
+  });
+
+  final String titulo;
+  final TextEditingController minController;
+  final TextEditingController maxController;
+  final bool habilitado;
+  final String? textoDesabilitado;
+  final String? prefixo;
+  final String? sufixo;
+  final String? erro;
+  final ValueChanged<String> aoMudarMin;
+  final ValueChanged<String> aoMudarMax;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(titulo, style: textTheme.titleMedium),
+        const SizedBox(height: 8),
+        if (!habilitado && textoDesabilitado != null) ...[
+          Text(
+            textoDesabilitado!,
+            style: textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.outline,
+            ),
+          ),
+          const SizedBox(height: 8),
+        ],
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: TextField(
+                controller: minController,
+                enabled: habilitado,
+                keyboardType: TextInputType.number,
+                inputFormatters: const [MascaraMilhares()],
+                onChanged: aoMudarMin,
+                decoration: InputDecoration(
+                  labelText: 'Mínimo',
+                  prefixText: prefixo,
+                  suffixText: sufixo,
                 ),
               ),
             ),
-            SafeArea(
-              top: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                child: Row(
-                  children: [
-                    TextButton(
-                      onPressed: () =>
-                          context.read<RascunhoFiltrosCubit>().limpar(),
-                      child: const Text('Limpar'),
-                    ),
-                    const Spacer(),
-                    FilledButton(
-                      onPressed: () {
-                        final rascunho = context
-                            .read<RascunhoFiltrosCubit>()
-                            .state;
-                        Navigator.of(context).pop();
-                        aoAplicar(rascunho);
-                      },
-                      child: const Text('Ver imóveis'),
-                    ),
-                  ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: TextField(
+                controller: maxController,
+                enabled: habilitado,
+                keyboardType: TextInputType.number,
+                inputFormatters: const [MascaraMilhares()],
+                onChanged: aoMudarMax,
+                decoration: InputDecoration(
+                  labelText: 'Máximo',
+                  prefixText: prefixo,
+                  suffixText: sufixo,
+                  errorText: erro,
                 ),
               ),
             ),
           ],
         ),
-      ),
+      ],
     );
   }
 }

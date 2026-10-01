@@ -323,5 +323,246 @@ void main() {
         expect(choiceQuartosQualquer.selected, isFalse);
       },
     );
+
+    testWidgets(
+      'sem finalidade escolhida, os campos de preço ficam desabilitados com '
+      'a mensagem de ajuda (D-03, Pitfall 5)',
+      (tester) async {
+        await abrirSheet(
+          tester,
+          aplicados: const FiltrosVitrine(),
+          aoAplicar: (_) {},
+        );
+
+        expect(find.text('Preço'), findsOneWidget);
+        expect(
+          find.text('Escolha Venda ou Aluguel para filtrar por preço'),
+          findsOneWidget,
+        );
+        // Os dois primeiros TextFields (seção Preço) ficam desabilitados.
+        final precoMinField = tester.widget<TextField>(
+          find.byType(TextField).first,
+        );
+        final precoMaxField = tester.widget<TextField>(
+          find.byType(TextField).at(1),
+        );
+        expect(precoMinField.enabled, isFalse);
+        expect(precoMaxField.enabled, isFalse);
+      },
+    );
+
+    testWidgets(
+      'escolher "Venda" habilita os campos de preço com prefixo R\$, sem '
+      'sufixo "/mês"',
+      (tester) async {
+        await abrirSheet(
+          tester,
+          aplicados: const FiltrosVitrine(),
+          aoAplicar: (_) {},
+        );
+
+        await tester.tap(find.text('Venda'));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Escolha Venda ou Aluguel para filtrar por preço'),
+          findsNothing,
+        );
+        final precoMinField = tester.widget<TextField>(
+          find.byType(TextField).first,
+        );
+        expect(precoMinField.enabled, isTrue);
+        expect(precoMinField.decoration?.prefixText, 'R\$ ');
+        expect(precoMinField.decoration?.suffixText, isNull);
+      },
+    );
+
+    testWidgets(
+      'escolher "Aluguel" habilita os campos de preço com sufixo "/mês"',
+      (tester) async {
+        await abrirSheet(
+          tester,
+          aplicados: const FiltrosVitrine(),
+          aoAplicar: (_) {},
+        );
+
+        await tester.tap(find.text('Aluguel'));
+        await tester.pumpAndSettle();
+
+        final precoMinField = tester.widget<TextField>(
+          find.byType(TextField).first,
+        );
+        expect(precoMinField.enabled, isTrue);
+        expect(precoMinField.decoration?.suffixText, '/mês');
+      },
+    );
+
+    testWidgets(
+      'trocar de Venda para Aluguel limpa o texto já digitado nos campos de '
+      'preço (D-13)',
+      (tester) async {
+        await abrirSheet(
+          tester,
+          aplicados: const FiltrosVitrine(),
+          aoAplicar: (_) {},
+        );
+
+        await tester.tap(find.text('Venda'));
+        await tester.pumpAndSettle();
+        await tester.enterText(find.byType(TextField).first, '250000');
+        await tester.pumpAndSettle();
+        expect(find.text('250.000'), findsOneWidget);
+
+        await tester.tap(find.text('Aluguel'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('250.000'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'seção "Área" sempre habilitada (sem finalidade) com sufixo "m²"',
+      (tester) async {
+        await abrirSheet(
+          tester,
+          aplicados: const FiltrosVitrine(),
+          aoAplicar: (_) {},
+        );
+
+        expect(find.text('Área'), findsOneWidget);
+        final todosOsCampos = tester
+            .widgetList<TextField>(find.byType(TextField))
+            .toList();
+        // Preço (2, desabilitados sem finalidade) + Área (2, sempre
+        // habilitados) = 4 TextFields.
+        expect(todosOsCampos, hasLength(4));
+        final camposArea = todosOsCampos.sublist(2);
+        expect(camposArea.every((c) => c.enabled != false), isTrue);
+        expect(camposArea.every((c) => c.decoration?.suffixText == 'm²'), isTrue);
+      },
+    );
+
+    testWidgets(
+      'mínimo de preço maior que o máximo mostra erro inline no campo '
+      'Máximo e desabilita "Ver imóveis"; corrigir reabilita (D-12)',
+      (tester) async {
+        await abrirSheet(
+          tester,
+          aplicados: const FiltrosVitrine(),
+          aoAplicar: (_) {},
+        );
+
+        await tester.tap(find.text('Venda'));
+        await tester.pumpAndSettle();
+
+        final campoMinimo = find.byType(TextField).first;
+        final campoMaximo = find.byType(TextField).at(1);
+        await tester.enterText(campoMinimo, '300000');
+        await tester.pumpAndSettle();
+        await tester.enterText(campoMaximo, '250000');
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('O mínimo não pode ser maior que o máximo'),
+          findsOneWidget,
+        );
+        final botaoVerImoveis = tester.widget<FilledButton>(
+          find.widgetWithText(FilledButton, 'Ver imóveis'),
+        );
+        expect(botaoVerImoveis.onPressed, isNull);
+
+        await tester.enterText(campoMaximo, '350000');
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('O mínimo não pode ser maior que o máximo'),
+          findsNothing,
+        );
+        final botaoReabilitado = tester.widget<FilledButton>(
+          find.widgetWithText(FilledButton, 'Ver imóveis'),
+        );
+        expect(botaoReabilitado.onPressed, isNotNull);
+      },
+    );
+
+    testWidgets(
+      'preencher preço mín/máx após escolher Venda e tocar "Ver imóveis" '
+      'aplica precoMin/precoMax (D-09)',
+      (tester) async {
+        FiltrosVitrine? aplicado;
+        await abrirSheet(
+          tester,
+          aplicados: const FiltrosVitrine(),
+          aoAplicar: (filtros) => aplicado = filtros,
+        );
+
+        await tester.tap(find.text('Venda'));
+        await tester.pumpAndSettle();
+        await tester.enterText(find.byType(TextField).first, '250000');
+        await tester.pumpAndSettle();
+        await tester.enterText(find.byType(TextField).at(1), '300000');
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Ver imóveis'));
+        await tester.pumpAndSettle();
+
+        expect(
+          aplicado,
+          const FiltrosVitrine(
+            finalidade: FinalidadeFiltro.venda,
+            precoMin: 250000,
+            precoMax: 300000,
+          ),
+        );
+      },
+    );
+
+    testWidgets(
+      'preencher área mín/máx sem finalidade e tocar "Ver imóveis" aplica '
+      'areaMin/areaMax (D-09)',
+      (tester) async {
+        FiltrosVitrine? aplicado;
+        await abrirSheet(
+          tester,
+          aplicados: const FiltrosVitrine(),
+          aoAplicar: (filtros) => aplicado = filtros,
+        );
+
+        final campos = find.byType(TextField);
+        await tester.enterText(campos.at(2), '80');
+        await tester.pumpAndSettle();
+        await tester.enterText(campos.at(3), '120');
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Ver imóveis'));
+        await tester.pumpAndSettle();
+
+        expect(aplicado, const FiltrosVitrine(areaMin: 80, areaMax: 120));
+      },
+    );
+
+    testWidgets(
+      '"Limpar" seguido de "Ver imóveis" zera também as faixas de preço e '
+      'área já aplicadas (D-18)',
+      (tester) async {
+        FiltrosVitrine? aplicado;
+        await abrirSheet(
+          tester,
+          aplicados: const FiltrosVitrine(
+            finalidade: FinalidadeFiltro.venda,
+            precoMin: 250000,
+            precoMax: 300000,
+            areaMin: 80,
+            areaMax: 120,
+          ),
+          aoAplicar: (filtros) => aplicado = filtros,
+        );
+
+        await tester.tap(find.text('Limpar'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Ver imóveis'));
+        await tester.pumpAndSettle();
+
+        expect(aplicado, const FiltrosVitrine());
+      },
+    );
   });
 }

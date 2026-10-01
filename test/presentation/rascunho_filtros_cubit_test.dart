@@ -136,5 +136,133 @@ void main() {
         FiltrosVitrine(),
       ],
     );
+
+    blocTest<RascunhoFiltrosCubit, FiltrosVitrine>(
+      'definirPrecoMin/definirPrecoMax são ignorados enquanto a finalidade '
+      'é null (D-03) — nenhuma emissão',
+      build: () => RascunhoFiltrosCubit(const FiltrosVitrine()),
+      act: (cubit) {
+        cubit.definirPrecoMin(250000);
+        cubit.definirPrecoMax(300000);
+      },
+      expect: () => const <FiltrosVitrine>[],
+    );
+
+    blocTest<RascunhoFiltrosCubit, FiltrosVitrine>(
+      'com finalidade escolhida, definirPrecoMin/definirPrecoMax aplicam '
+      'normalmente',
+      build: () => RascunhoFiltrosCubit(
+        const FiltrosVitrine(finalidade: FinalidadeFiltro.venda),
+      ),
+      act: (cubit) {
+        cubit.definirPrecoMin(250000);
+        cubit.definirPrecoMax(300000);
+      },
+      expect: () => const [
+        FiltrosVitrine(
+          finalidade: FinalidadeFiltro.venda,
+          precoMin: 250000,
+        ),
+        FiltrosVitrine(
+          finalidade: FinalidadeFiltro.venda,
+          precoMin: 250000,
+          precoMax: 300000,
+        ),
+      ],
+    );
+
+    blocTest<RascunhoFiltrosCubit, FiltrosVitrine>(
+      'definirAreaMin/definirAreaMax sempre aplicam, mesmo sem finalidade '
+      'escolhida (D-09, área não depende de finalidade)',
+      build: () => RascunhoFiltrosCubit(const FiltrosVitrine()),
+      act: (cubit) {
+        cubit.definirAreaMin(80);
+        cubit.definirAreaMax(120);
+      },
+      expect: () => const [
+        FiltrosVitrine(areaMin: 80),
+        FiltrosVitrine(areaMin: 80, areaMax: 120),
+      ],
+    );
+  });
+
+  group('ValidacaoRascunho (D-12)', () {
+    test(
+      'erroFaixaPreco é null quando mínimo e máximo não existem, quando só '
+      'um existe, ou quando mínimo <= máximo',
+      () {
+        expect(const FiltrosVitrine().erroFaixaPreco, isNull);
+        expect(const FiltrosVitrine(precoMin: 250000).erroFaixaPreco, isNull);
+        expect(const FiltrosVitrine(precoMax: 300000).erroFaixaPreco, isNull);
+        expect(
+          const FiltrosVitrine(
+            precoMin: 250000,
+            precoMax: 300000,
+          ).erroFaixaPreco,
+          isNull,
+        );
+        expect(
+          const FiltrosVitrine(
+            precoMin: 250000,
+            precoMax: 250000,
+          ).erroFaixaPreco,
+          isNull,
+        );
+      },
+    );
+
+    test(
+      'erroFaixaPreco não é null quando mínimo é maior que máximo',
+      () {
+        expect(
+          const FiltrosVitrine(
+            precoMin: 300000,
+            precoMax: 250000,
+          ).erroFaixaPreco,
+          'O mínimo não pode ser maior que o máximo',
+        );
+      },
+    );
+
+    test(
+      'erroFaixaArea segue a mesma regra de erroFaixaPreco',
+      () {
+        expect(const FiltrosVitrine().erroFaixaArea, isNull);
+        expect(
+          const FiltrosVitrine(areaMin: 80, areaMax: 120).erroFaixaArea,
+          isNull,
+        );
+        expect(
+          const FiltrosVitrine(areaMin: 80, areaMax: 80).erroFaixaArea,
+          isNull,
+        );
+        expect(
+          const FiltrosVitrine(
+            areaMin: 120,
+            areaMax: 80,
+          ).erroFaixaArea,
+          'O mínimo não pode ser maior que o máximo',
+        );
+      },
+    );
+
+    test(
+      'podeAplicar é false enquanto erroFaixaPreco OU erroFaixaArea existir, '
+      'true quando nenhum dos dois existe',
+      () {
+        expect(const FiltrosVitrine().podeAplicar, isTrue);
+        expect(
+          const FiltrosVitrine(
+            precoMin: 300000,
+            precoMax: 250000,
+          ).podeAplicar,
+          isFalse,
+        );
+        expect(
+          const FiltrosVitrine(areaMin: 120, areaMax: 80).podeAplicar,
+          isFalse,
+        );
+      },
+    );
   });
 }
