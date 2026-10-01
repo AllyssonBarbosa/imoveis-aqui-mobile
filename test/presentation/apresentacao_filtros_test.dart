@@ -215,4 +215,25 @@ void main() {
       expect(chipsDosFiltros(const FiltrosVitrine()), isEmpty);
     });
   });
+
+  group('filtrarOpcoes (D-21)', () {
+    const opcoes = ['Cambuí', 'Castelo', 'Centro'];
+
+    test('"CAMB" (maiúsculas, acento) mantém só "Cambuí"', () {
+      expect(filtrarOpcoes(opcoes, 'CAMB'), ['Cambuí']);
+    });
+
+    test('"ca" mantém "Cambuí" e "Castelo", nessa ordem (preserva entrada)', () {
+      expect(filtrarOpcoes(opcoes, 'ca'), ['Cambuí', 'Castelo']);
+    });
+
+    test('termo vazio ou em branco devolve a lista sem alteração', () {
+      expect(filtrarOpcoes(opcoes, ''), opcoes);
+      expect(filtrarOpcoes(opcoes, '   '), opcoes);
+    });
+
+    test('termo sem nenhuma correspondência devolve lista vazia', () {
+      expect(filtrarOpcoes(opcoes, 'zzz'), isEmpty);
+    });
+  });
 }

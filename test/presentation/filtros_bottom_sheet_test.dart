@@ -1,16 +1,53 @@
+import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/domain/entities/filtros_vitrine.dart';
 import 'package:imoveis_aqui/domain/entities/imovel.dart';
+import 'package:imoveis_aqui/presentation/vitrine/opcoes_filtro_cubit.dart';
+import 'package:imoveis_aqui/presentation/vitrine/opcoes_filtro_state.dart';
 import 'package:imoveis_aqui/presentation/vitrine/widgets/filtros_bottom_sheet.dart';
+import 'package:mocktail/mocktail.dart';
+
+/// Fake de `OpcoesFiltroCubit` (Task 2) — todo teste do sheet agora passa
+/// um `opcoes:` seedado com o estado desejado, sem depender da pilha real
+/// (isso fica no e2e de `vitrine_fluxo_test.dart`).
+class _OpcoesFiltroCubitFalso extends MockCubit<OpcoesFiltroState>
+    implements OpcoesFiltroCubit {}
 
 void main() {
+  late _OpcoesFiltroCubitFalso opcoes;
+
+  setUp(() {
+    opcoes = _OpcoesFiltroCubitFalso();
+    when(() => opcoes.tentarNovamente()).thenAnswer((_) async {});
+  });
+
+  /// Seeda [opcoes] com um estado fixo — bairros vazios por padrão (os
+  /// testes que não se importam com a seção "Bairros" continuam exercitando
+  /// só o resto do sheet, igual antes do Task 2).
+  OpcoesFiltroCubit opcoesComEstado({
+    List<String> bairros = const [],
+  }) {
+    final estado = OpcoesFiltroState(
+      bairros: CarregamentoOpcoes.carregadas(bairros),
+      caracteristicas: const CarregamentoOpcoes.carregadas([]),
+    );
+    whenListen(
+      opcoes,
+      Stream<OpcoesFiltroState>.value(estado),
+      initialState: estado,
+    );
+    return opcoes;
+  }
+
   group('mostrarFiltrosBottomSheet (D-07, D-08, D-11)', () {
     Future<void> abrirSheet(
       WidgetTester tester, {
       required FiltrosVitrine aplicados,
       required ValueChanged<FiltrosVitrine> aoAplicar,
+      OpcoesFiltroCubit? opcoesCubit,
     }) async {
+      final cubitDeOpcoes = opcoesCubit ?? opcoesComEstado();
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -20,6 +57,7 @@ void main() {
                   context,
                   aplicados: aplicados,
                   aoAplicar: aoAplicar,
+                  opcoes: cubitDeOpcoes,
                 ),
                 child: const Text('abrir'),
               ),
@@ -562,6 +600,193 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(aplicado, const FiltrosVitrine());
+      },
+    );
+  });
+
+  group('Seção Bairros (FIL-04, D-05, D-20, D-21)', () {
+    Future<void> abrirSheet(
+      WidgetTester tester, {
+      required FiltrosVitrine aplicados,
+      required ValueChanged<FiltrosVitrine> aoAplicar,
+      required OpcoesFiltroCubit opcoesCubit,
+    }) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => ElevatedButton(
+                onPressed: () => mostrarFiltrosBottomSheet(
+                  context,
+                  aplicados: aplicados,
+                  aoAplicar: aoAplicar,
+                  opcoes: opcoesCubit,
+                ),
+                child: const Text('abrir'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('abrir'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets(
+      'carregando: expandir "Bairros" mostra o indicador de progresso',
+      (tester) async {
+        final estado = const OpcoesFiltroState(
+          bairros: CarregamentoOpcoes.carregando(),
+          caracteristicas: CarregamentoOpcoes.carregadas([]),
+        );
+        whenListen(
+          opcoes,
+          Stream<OpcoesFiltroState>.value(estado),
+          initialState: estado,
+        );
+
+        await abrirSheet(
+          tester,
+          aplicados: const FiltrosVitrine(),
+          aoAplicar: (_) {},
+          opcoesCubit: opcoes,
+        );
+        await tester.tap(find.text('Bairros'));
+        await tester.pump();
+
+        expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'falha: expandir "Bairros" mostra a mensagem de erro + "Tentar de '
+      'novo", que chama tentarNovamente()',
+      (tester) async {
+        final estado = const OpcoesFiltroState(
+          bairros: CarregamentoOpcoes.falha(),
+          caracteristicas: CarregamentoOpcoes.carregadas([]),
+        );
+        whenListen(
+          opcoes,
+          Stream<OpcoesFiltroState>.value(estado),
+          initialState: estado,
+        );
+
+        await abrirSheet(
+          tester,
+          aplicados: const FiltrosVitrine(),
+          aoAplicar: (_) {},
+          opcoesCubit: opcoes,
+        );
+        await tester.tap(find.text('Bairros'));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Não foi possível carregar os bairros'),
+          findsOneWidget,
+        );
+        await tester.tap(find.text('Tentar de novo'));
+        await tester.pump();
+
+        verify(() => opcoes.tentarNovamente()).called(1);
+      },
+    );
+
+    testWidgets(
+      'lista vazia: expandir "Bairros" mostra "Nenhum bairro disponível '
+      'nesta cidade"',
+      (tester) async {
+        await abrirSheet(
+          tester,
+          aplicados: const FiltrosVitrine(),
+          aoAplicar: (_) {},
+          opcoesCubit: opcoesComEstado(),
+        );
+        await tester.tap(find.text('Bairros'));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Nenhum bairro disponível nesta cidade'),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
+      'com opções: mostra "Filtrar bairros" e um CheckboxListTile por '
+      'opção; digitar esconde as que não combinam, sem chamar aoAplicar '
+      '(D-21 — filtra só a lista de opções)',
+      (tester) async {
+        var chamado = false;
+        await abrirSheet(
+          tester,
+          aplicados: const FiltrosVitrine(),
+          aoAplicar: (_) => chamado = true,
+          opcoesCubit: opcoesComEstado(
+            bairros: ['Cambuí', 'Castelo', 'Centro'],
+          ),
+        );
+        await tester.tap(find.text('Bairros'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Filtrar bairros'), findsOneWidget);
+        expect(find.widgetWithText(CheckboxListTile, 'Cambuí'), findsOneWidget);
+        expect(
+          find.widgetWithText(CheckboxListTile, 'Castelo'),
+          findsOneWidget,
+        );
+        expect(find.widgetWithText(CheckboxListTile, 'Centro'), findsOneWidget);
+
+        await tester.enterText(
+          find.widgetWithText(TextField, 'Filtrar bairros'),
+          'camb',
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.widgetWithText(CheckboxListTile, 'Cambuí'), findsOneWidget);
+        expect(find.widgetWithText(CheckboxListTile, 'Castelo'), findsNothing);
+        expect(find.widgetWithText(CheckboxListTile, 'Centro'), findsNothing);
+        expect(chamado, isFalse);
+      },
+    );
+
+    testWidgets(
+      'marcar "Cambuí" e tocar "Ver imóveis" aplica bairros: {Cambuí} '
+      '(FIL-04, D-05)',
+      (tester) async {
+        FiltrosVitrine? aplicado;
+        await abrirSheet(
+          tester,
+          aplicados: const FiltrosVitrine(),
+          aoAplicar: (filtros) => aplicado = filtros,
+          opcoesCubit: opcoesComEstado(bairros: ['Cambuí', 'Taquaral']),
+        );
+        await tester.tap(find.text('Bairros'));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.widgetWithText(CheckboxListTile, 'Cambuí'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Ver imóveis'));
+        await tester.pumpAndSettle();
+
+        expect(aplicado, const FiltrosVitrine(bairros: {'Cambuí'}));
+      },
+    );
+
+    testWidgets(
+      'seção começa expandida quando o rascunho (aplicados) já tem bairros '
+      '(D-17 — rascunho seedado reabre o sheet já expandido)',
+      (tester) async {
+        await abrirSheet(
+          tester,
+          aplicados: const FiltrosVitrine(bairros: {'Cambuí'}),
+          aoAplicar: (_) {},
+          opcoesCubit: opcoesComEstado(bairros: ['Cambuí', 'Taquaral']),
+        );
+
+        // Já expandida sem precisar tocar no título — "Filtrar bairros" já
+        // visível direto.
+        expect(find.text('Filtrar bairros'), findsOneWidget);
       },
     );
   });
