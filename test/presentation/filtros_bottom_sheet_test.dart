@@ -801,6 +801,11 @@ void main() {
   });
 
   group('Seção Características (FIL-04, D-04, D-16, D-20)', () {
+    // A seção "Características" é sempre visível (diferente de "Bairros",
+    // que fica colapsada por padrão) — um estado `carregando` já aparece ao
+    // abrir o sheet, então `pumpAndSettle()` nunca se estabiliza (spinner
+    // indeterminado). `pump(duration)` dá tempo de sobra para a transição do
+    // modal terminar sem esperar o spinner "assentar".
     Future<void> abrirSheet(
       WidgetTester tester, {
       required FiltrosVitrine aplicados,
@@ -825,7 +830,8 @@ void main() {
         ),
       );
       await tester.tap(find.text('abrir'));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
     }
 
     testWidgets(

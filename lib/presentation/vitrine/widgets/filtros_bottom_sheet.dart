@@ -300,6 +300,8 @@ class _ConteudoFiltrosBottomSheetState
                           const SizedBox(height: 24),
                           _SecaoBairros(controller: _filtroBairroController),
                           const SizedBox(height: 24),
+                          const _SecaoCaracteristicas(),
+                          const SizedBox(height: 24),
                         ],
                       );
                     },
@@ -576,6 +578,91 @@ class _SecaoBairros extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+/// Seção "Características" (FIL-04, D-04, D-16, D-20) — última seção do
+/// sheet, sempre visível (diferente de "Bairros": sem `ExpansionTile` nem
+/// campo de busca local, mesmo padrão simples da seção "Tipo de imóvel").
+/// O conteúdo troca exaustivamente sobre `OpcoesFiltroState.caracteristicas`:
+/// as opções vêm do servidor simulado através de [OpcoesFiltroCubit] (nunca
+/// uma lista fixa aqui); o servidor combina as marcadas com E (D-04).
+class _SecaoCaracteristicas extends StatelessWidget {
+  const _SecaoCaracteristicas();
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Características', style: textTheme.titleMedium),
+        const SizedBox(height: 8),
+        BlocBuilder<OpcoesFiltroCubit, OpcoesFiltroState>(
+          builder: (context, opcoesState) {
+            return switch (opcoesState.caracteristicas) {
+              OpcoesCarregando() => const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child: Center(
+                  child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+              ),
+              OpcoesFalha() => Align(
+                alignment: Alignment.centerLeft,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Não foi possível carregar as características',
+                      style: textTheme.bodyMedium,
+                    ),
+                    TextButton(
+                      onPressed: () =>
+                          context.read<OpcoesFiltroCubit>().tentarNovamente(),
+                      child: const Text('Tentar de novo'),
+                    ),
+                  ],
+                ),
+              ),
+              OpcoesCarregadas(:final opcoes) when opcoes.isEmpty => Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Nenhuma característica disponível',
+                  style: textTheme.bodyMedium,
+                ),
+              ),
+              OpcoesCarregadas(:final opcoes) =>
+                BlocBuilder<RascunhoFiltrosCubit, FiltrosVitrine>(
+                  builder: (context, rascunho) {
+                    return Wrap(
+                      spacing: 8,
+                      children: [
+                        for (final caracteristica in opcoes)
+                          FilterChip(
+                            label: Text(caracteristica),
+                            selected: rascunho.caracteristicas.contains(
+                              caracteristica,
+                            ),
+                            onSelected: (marcada) => context
+                                .read<RascunhoFiltrosCubit>()
+                                .alternarCaracteristica(
+                                  caracteristica,
+                                  marcada: marcada,
+                                ),
+                          ),
+                      ],
+                    );
+                  },
+                ),
+            };
+          },
+        ),
+      ],
     );
   }
 }
