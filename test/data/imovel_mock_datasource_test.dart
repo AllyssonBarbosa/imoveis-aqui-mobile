@@ -1238,4 +1238,385 @@ void main() {
       );
     },
   );
+
+  group(
+    'ImovelMockDataSource — faixas de preço (por finalidade) e de área '
+    '(FIL-03, FIL-04, D-03, D-09, D-12)',
+    () {
+      double parseDecimal(String valor) => double.parse(valor);
+
+      Set<int> idsCampinasQueFaixa(
+        bool Function(Map<String, Object?>) aceita,
+      ) => linhasAcervoFixture()
+          .where(
+            (l) =>
+                (l['cidade']! as Map<String, Object?>)['nome'] ==
+                    'Campinas' &&
+                aceita(l),
+          )
+          .map((l) => l['id']! as int)
+          .toSet();
+
+      test(
+        'Venda + preço 250000..300000 devolve exatamente as linhas VENDA '
+        'ou VENDA_E_ALUGUEL de Campinas com preco_venda no intervalo '
+        'inclusivo',
+        () async {
+          final datasource = construir(tamanhoPagina: 100);
+          final idsEsperados = idsCampinasQueFaixa((l) {
+            final finalidade = l['finalidade']! as String;
+            if (finalidade != 'VENDA' && finalidade != 'VENDA_E_ALUGUEL') {
+              return false;
+            }
+            final precoVenda = l['preco_venda'] as String?;
+            if (precoVenda == null) return false;
+            final valor = parseDecimal(precoVenda);
+            return valor >= 250000 && valor <= 300000;
+          });
+          expect(idsEsperados, isNotEmpty);
+
+          final resultados = await andarTodasAsPaginas(
+            datasource,
+            const ConsultaImoveis(
+              cidade: campinas,
+              filtros: FiltrosVitrine(
+                finalidade: FinalidadeFiltro.venda,
+                precoMin: 250000,
+                precoMax: 300000,
+              ),
+            ),
+          );
+
+          expect(resultados.map((m) => m.id).toSet(), idsEsperados);
+        },
+      );
+
+      test(
+        'Aluguel + preço 2000..2500 devolve exatamente as linhas ALUGUEL '
+        'ou VENDA_E_ALUGUEL de Campinas com preco_aluguel no intervalo '
+        'inclusivo (D-03)',
+        () async {
+          final datasource = construir(tamanhoPagina: 100);
+          final idsEsperados = idsCampinasQueFaixa((l) {
+            final finalidade = l['finalidade']! as String;
+            if (finalidade != 'ALUGUEL' && finalidade != 'VENDA_E_ALUGUEL') {
+              return false;
+            }
+            final precoAluguel = l['preco_aluguel'] as String?;
+            if (precoAluguel == null) return false;
+            final valor = parseDecimal(precoAluguel);
+            return valor >= 2000 && valor <= 2500;
+          });
+          expect(idsEsperados, isNotEmpty);
+
+          final resultados = await andarTodasAsPaginas(
+            datasource,
+            const ConsultaImoveis(
+              cidade: campinas,
+              filtros: FiltrosVitrine(
+                finalidade: FinalidadeFiltro.aluguel,
+                precoMin: 2000,
+                precoMax: 2500,
+              ),
+            ),
+          );
+
+          expect(resultados.map((m) => m.id).toSet(), idsEsperados);
+        },
+      );
+
+      test(
+        'só preço mínimo (sem máximo) devolve linhas com preco_venda >= '
+        'mínimo — "a partir de" (D-09)',
+        () async {
+          final datasource = construir(tamanhoPagina: 100);
+          final idsEsperados = idsCampinasQueFaixa((l) {
+            final finalidade = l['finalidade']! as String;
+            if (finalidade != 'VENDA' && finalidade != 'VENDA_E_ALUGUEL') {
+              return false;
+            }
+            final precoVenda = l['preco_venda'] as String?;
+            if (precoVenda == null) return false;
+            return parseDecimal(precoVenda) >= 300000;
+          });
+          expect(idsEsperados, isNotEmpty);
+
+          final resultados = await andarTodasAsPaginas(
+            datasource,
+            const ConsultaImoveis(
+              cidade: campinas,
+              filtros: FiltrosVitrine(
+                finalidade: FinalidadeFiltro.venda,
+                precoMin: 300000,
+              ),
+            ),
+          );
+
+          expect(resultados.map((m) => m.id).toSet(), idsEsperados);
+        },
+      );
+
+      test(
+        'só preço máximo (sem mínimo) devolve linhas com preco_venda <= '
+        'máximo — "até" (D-09)',
+        () async {
+          final datasource = construir(tamanhoPagina: 100);
+          final idsEsperados = idsCampinasQueFaixa((l) {
+            final finalidade = l['finalidade']! as String;
+            if (finalidade != 'VENDA' && finalidade != 'VENDA_E_ALUGUEL') {
+              return false;
+            }
+            final precoVenda = l['preco_venda'] as String?;
+            if (precoVenda == null) return false;
+            return parseDecimal(precoVenda) <= 220000;
+          });
+          expect(idsEsperados, isNotEmpty);
+
+          final resultados = await andarTodasAsPaginas(
+            datasource,
+            const ConsultaImoveis(
+              cidade: campinas,
+              filtros: FiltrosVitrine(
+                finalidade: FinalidadeFiltro.venda,
+                precoMax: 220000,
+              ),
+            ),
+          );
+
+          expect(resultados.map((m) => m.id).toSet(), idsEsperados);
+        },
+      );
+
+      test(
+        'área 80..120 devolve exatamente as linhas com área não-nula no '
+        'intervalo, funcionando SEM finalidade escolhida (D-09)',
+        () async {
+          final datasource = construir(tamanhoPagina: 100);
+          final idsEsperados = idsCampinasQueFaixa((l) {
+            final area = l['area'] as String?;
+            if (area == null) return false;
+            final valor = parseDecimal(area);
+            return valor >= 80 && valor <= 120;
+          });
+          expect(idsEsperados, isNotEmpty);
+
+          final resultados = await andarTodasAsPaginas(
+            datasource,
+            const ConsultaImoveis(
+              cidade: campinas,
+              filtros: FiltrosVitrine(areaMin: 80, areaMax: 120),
+            ),
+          );
+
+          expect(resultados.map((m) => m.id).toSet(), idsEsperados);
+        },
+      );
+
+      test(
+        'imóveis sem área (area nula) ficam fora enquanto a faixa de área '
+        'está ativa',
+        () async {
+          final datasource = construir(tamanhoPagina: 100);
+
+          final resultados = await andarTodasAsPaginas(
+            datasource,
+            const ConsultaImoveis(
+              cidade: campinas,
+              filtros: FiltrosVitrine(areaMin: 0, areaMax: 100000),
+            ),
+          );
+
+          expect(resultados.every((m) => m.area != null), isTrue);
+        },
+      );
+
+      test(
+        'buscar com faixa de preço invertida (preco_min > preco_max) lança '
+        'FormatException (D-12)',
+        () async {
+          final datasource = construir();
+
+          await expectLater(
+            datasource.buscar(
+              const ConsultaImoveis(
+                cidade: campinas,
+                filtros: FiltrosVitrine(
+                  finalidade: FinalidadeFiltro.venda,
+                  precoMin: 300000,
+                  precoMax: 250000,
+                ),
+              ),
+            ),
+            throwsFormatException,
+          );
+        },
+      );
+
+      test(
+        'faixa de área invertida (area_min > area_max) através de '
+        'ImovelRepositoryImpl vira Result.failure (D-12)',
+        () async {
+          final datasource = construir();
+          final repositorio = ImovelRepositoryImpl(datasource);
+
+          final resultado = await repositorio.buscarImoveis(
+            const ConsultaImoveis(
+              cidade: campinas,
+              filtros: FiltrosVitrine(areaMin: 120, areaMax: 80),
+            ),
+          );
+
+          expect(resultado, isA<Failure<Object?>>());
+        },
+      );
+    },
+  );
+
+  group(
+    'ImovelMockDataSource — ordenação por preço depende da finalidade '
+    '(D-03, contrato §7.5)',
+    () {
+      double? parseDecimalOuNulo(String? valor) =>
+          valor == null ? null : double.parse(valor);
+
+      test(
+        'com finalidade ALUGUEL, preco_asc ordena por preco_aluguel '
+        'ascendente, nulls last',
+        () async {
+          final datasource = construir(tamanhoPagina: 100);
+
+          final resultados = await andarTodasAsPaginas(
+            datasource,
+            const ConsultaImoveis(
+              cidade: campinas,
+              ordenacao: OrdenacaoVitrine.precoAsc,
+              filtros: FiltrosVitrine(finalidade: FinalidadeFiltro.aluguel),
+            ),
+          );
+
+          final comPreco = resultados
+              .where((m) => m.precoAluguel != null)
+              .toList();
+          final semPreco = resultados
+              .where((m) => m.precoAluguel == null)
+              .toList();
+          expect(comPreco, isNotEmpty);
+          for (var i = 0; i < comPreco.length - 1; i++) {
+            expect(
+              parseDecimalOuNulo(comPreco[i].precoAluguel)!,
+              lessThanOrEqualTo(
+                parseDecimalOuNulo(comPreco[i + 1].precoAluguel)!,
+              ),
+            );
+          }
+          if (comPreco.isNotEmpty && semPreco.isNotEmpty) {
+            expect(
+              resultados.indexOf(comPreco.last) <
+                  resultados.indexOf(semPreco.first),
+              isTrue,
+            );
+          }
+        },
+      );
+
+      test(
+        'com finalidade ALUGUEL, preco_desc ordena por preco_aluguel '
+        'descendente, nulos continuam no fim',
+        () async {
+          final datasource = construir(tamanhoPagina: 100);
+
+          final resultados = await andarTodasAsPaginas(
+            datasource,
+            const ConsultaImoveis(
+              cidade: campinas,
+              ordenacao: OrdenacaoVitrine.precoDesc,
+              filtros: FiltrosVitrine(finalidade: FinalidadeFiltro.aluguel),
+            ),
+          );
+
+          final comPreco = resultados
+              .where((m) => m.precoAluguel != null)
+              .toList();
+          final semPreco = resultados
+              .where((m) => m.precoAluguel == null)
+              .toList();
+          expect(comPreco, isNotEmpty);
+          for (var i = 0; i < comPreco.length - 1; i++) {
+            expect(
+              parseDecimalOuNulo(comPreco[i].precoAluguel)!,
+              greaterThanOrEqualTo(
+                parseDecimalOuNulo(comPreco[i + 1].precoAluguel)!,
+              ),
+            );
+          }
+          if (comPreco.isNotEmpty && semPreco.isNotEmpty) {
+            expect(
+              resultados.indexOf(comPreco.last) <
+                  resultados.indexOf(semPreco.first),
+              isTrue,
+            );
+          }
+        },
+      );
+
+      test(
+        'com finalidade VENDA, preco_asc continua ordenando por '
+        'preco_venda (comportamento da Fase 2 inalterado)',
+        () async {
+          final datasource = construir(tamanhoPagina: 100);
+
+          final resultados = await andarTodasAsPaginas(
+            datasource,
+            const ConsultaImoveis(
+              cidade: campinas,
+              ordenacao: OrdenacaoVitrine.precoAsc,
+              filtros: FiltrosVitrine(finalidade: FinalidadeFiltro.venda),
+            ),
+          );
+
+          final comPreco = resultados
+              .where((m) => m.precoVenda != null)
+              .toList();
+          expect(comPreco, isNotEmpty);
+          for (var i = 0; i < comPreco.length - 1; i++) {
+            expect(
+              parseDecimalOuNulo(comPreco[i].precoVenda)!,
+              lessThanOrEqualTo(
+                parseDecimalOuNulo(comPreco[i + 1].precoVenda)!,
+              ),
+            );
+          }
+        },
+      );
+
+      test(
+        'sem finalidade escolhida, preco_asc continua ordenando por '
+        'preco_venda (comportamento da Fase 2 inalterado)',
+        () async {
+          final datasource = construir(tamanhoPagina: 100);
+
+          final resultados = await andarTodasAsPaginas(
+            datasource,
+            const ConsultaImoveis(
+              cidade: campinas,
+              ordenacao: OrdenacaoVitrine.precoAsc,
+            ),
+          );
+
+          final comPreco = resultados
+              .where((m) => m.precoVenda != null)
+              .toList();
+          expect(comPreco, isNotEmpty);
+          for (var i = 0; i < comPreco.length - 1; i++) {
+            expect(
+              parseDecimalOuNulo(comPreco[i].precoVenda)!,
+              lessThanOrEqualTo(
+                parseDecimalOuNulo(comPreco[i + 1].precoVenda)!,
+              ),
+            );
+          }
+        },
+      );
+    },
+  );
 }
