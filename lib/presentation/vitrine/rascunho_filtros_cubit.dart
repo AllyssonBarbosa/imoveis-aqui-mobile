@@ -95,6 +95,19 @@ class RascunhoFiltrosCubit extends Cubit<FiltrosVitrine> {
     }
     emit(state.copyWith(bairros: bairros));
   }
+
+  /// Marca/desmarca uma característica no rascunho (FIL-04, D-04, D-20) —
+  /// multi-seleção; o servidor simulado combina as marcadas com E (D-04,
+  /// implementado em 03-02); nunca dispara consulta ao acervo.
+  void alternarCaracteristica(String caracteristica, {required bool marcada}) {
+    final caracteristicas = Set<String>.of(state.caracteristicas);
+    if (marcada) {
+      caracteristicas.add(caracteristica);
+    } else {
+      caracteristicas.remove(caracteristica);
+    }
+    emit(state.copyWith(caracteristicas: caracteristicas));
+  }
 }
 
 /// Validação de FORMULÁRIO do rascunho de filtros (D-12) — nunca uma regra

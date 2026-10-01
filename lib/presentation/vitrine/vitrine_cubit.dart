@@ -9,17 +9,26 @@ import '../../domain/entities/consulta_imoveis.dart';
 import '../../domain/entities/filtros_vitrine.dart';
 import '../../domain/entities/ordenacao_vitrine.dart';
 import '../../domain/usecases/buscar_imoveis_usecase.dart';
+import 'sessao_filtros_vitrine.dart';
 import 'vitrine_state.dart';
 
 /// Orquestra o carregamento da vitrine (VIT-01). Token de versão
 /// (`_versaoConsulta`, D-13) descarta respostas obsoletas quando a cidade
 /// muda com uma consulta em voo, e a checagem de `isClosed` garante que
 /// nenhum `emit` acontece depois de `close()` (T-02-01-04).
+///
+/// [SessaoFiltrosVitrine] (Task 2, D-14, D-23) sobrevive à troca de cidade
+/// mesmo que este Cubit seja recriado do zero — é ela quem fornece os
+/// filtros da PRIMEIRA consulta de uma cidade recém-aberta (`carregar`) e
+/// quem registra os filtros de toda consulta reiniciada
+/// (`_aplicarConsulta`), nunca o inverso.
 @injectable
 class VitrineCubit extends Cubit<VitrineState> {
-  VitrineCubit(this._buscarImoveis) : super(const VitrineState());
+  VitrineCubit(this._buscarImoveis, this._sessaoFiltros)
+    : super(const VitrineState());
 
   final BuscarImoveisUseCase _buscarImoveis;
+  final SessaoFiltrosVitrine _sessaoFiltros;
 
   Cidade? _cidade;
   int _versaoConsulta = 0;
@@ -29,9 +38,19 @@ class VitrineCubit extends Cubit<VitrineState> {
   Timer? _debounce;
 
   /// Ponto de entrada — chamado ao montar a vitrine para a cidade escolhida.
+  /// A PRIMEIRA consulta parte de [SessaoFiltrosVitrine.filtrosPara] (D-14):
+  /// cidade nunca vista nesta sessão -> filtro vazio (igual ao comportamento
+  /// da F2); mesma sessão de uma cidade já filtrada -> os filtros gerais
+  /// sobrevivem (sem bairros de outra cidade).
   void carregar(Cidade cidade) {
     _cidade = cidade;
-    unawaited(_reiniciar());
+    unawaited(
+      _aplicarConsulta(
+        ordenacao: state.ordenacao,
+        termoBusca: state.termoBusca,
+        filtros: _sessaoFiltros.filtrosPara(cidade),
+      ),
+    );
   }
 
   /// Busca por texto (VIT-03) com debounce de 400 ms a partir de 2
@@ -235,7 +254,8 @@ class VitrineCubit extends Cubit<VitrineState> {
   }
 
   /// Refaz a consulta atual (mesmos `ordenacao`/`termoBusca`/`filtros` do
-  /// estado) — usada por [carregar]. Delega a [_aplicarConsulta].
+  /// estado) — usada por [tentarNovamente] no caminho de erro da primeira
+  /// página. Delega a [_aplicarConsulta].
   Future<void> _reiniciar() => _aplicarConsulta(
     ordenacao: state.ordenacao,
     termoBusca: state.termoBusca,
@@ -247,10 +267,14 @@ class VitrineCubit extends Cubit<VitrineState> {
   /// (descarta qualquer resposta em voo — inclusive um `carregarMais()` —
   /// de uma consulta anterior), emite UM único estado de loading
   /// (descartando cursor/itens antigos) e então busca a primeira página.
-  /// Usada por [_reiniciar] (mesmos valores do estado), [buscar]/
-  /// [limparBusca] (novo `termoBusca`), `ordenarPor` (nova `ordenacao`) e
-  /// [aplicarFiltros] (novo `filtros`) — nenhum caminho reimplementa este
-  /// reinício (RESEARCH Pitfall 2).
+  /// Usada por [carregar] (filtros da sessão), [_reiniciar] (mesmos valores
+  /// do estado), [buscar]/[limparBusca] (novo `termoBusca`), `ordenarPor`
+  /// (nova `ordenacao`) e [aplicarFiltros] (novo `filtros`) — nenhum caminho
+  /// reimplementa este reinício (RESEARCH Pitfall 2).
+  ///
+  /// Registra [filtros] em [SessaoFiltrosVitrine.lembrar] JUNTO com o emit de
+  /// `carregando` (D-14) — a memória sempre reflete os filtros da ÚLTIMA
+  /// consulta disparada, mesmo que o Cubit feche antes dela responder.
   Future<void> _aplicarConsulta({
     required OrdenacaoVitrine ordenacao,
     required String? termoBusca,
@@ -258,6 +282,8 @@ class VitrineCubit extends Cubit<VitrineState> {
   }) async {
     final cidade = _cidade;
     if (cidade == null) return;
+
+    _sessaoFiltros.lembrar(cidade, filtros);
 
     final minhaVersao = ++_versaoConsulta;
     emit(
