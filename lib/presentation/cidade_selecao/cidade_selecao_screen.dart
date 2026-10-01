@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../di/injection.dart';
 import '../../domain/entities/cidade.dart';
 import '../../domain/usecases/salvar_cidade_usecase.dart';
+import '../vitrine/opcoes_filtro_cubit.dart';
 import '../vitrine/vitrine_cubit.dart';
 import '../vitrine/vitrine_screen.dart';
 import 'cidade_selecao_cubit.dart';
@@ -19,19 +20,25 @@ class CidadeSelecaoScreen extends StatelessWidget {
     super.key,
     SalvarCidadeUseCase? salvarCidade,
     VitrineCubit Function()? criarVitrineCubit,
+    OpcoesFiltroCubit Function()? criarOpcoesFiltroCubit,
     // ignore: prefer_initializing_formals
   }) : _salvarCidade = salvarCidade,
        // ignore: prefer_initializing_formals
-       _criarVitrineCubit = criarVitrineCubit;
+       _criarVitrineCubit = criarVitrineCubit,
+       // ignore: prefer_initializing_formals
+       _criarOpcoesFiltroCubit = criarOpcoesFiltroCubit;
 
   final SalvarCidadeUseCase? _salvarCidade;
   final VitrineCubit Function()? _criarVitrineCubit;
+  final OpcoesFiltroCubit Function()? _criarOpcoesFiltroCubit;
 
   @override
   Widget build(BuildContext context) {
     final salvarCidade = _salvarCidade ?? getIt<SalvarCidadeUseCase>();
     final criarVitrineCubit =
         _criarVitrineCubit ?? () => getIt<VitrineCubit>();
+    final criarOpcoesFiltroCubit =
+        _criarOpcoesFiltroCubit ?? () => getIt<OpcoesFiltroCubit>();
     return BlocBuilder<CidadeSelecaoCubit, CidadeSelecaoState>(
       builder: (context, state) {
         return Scaffold(
@@ -41,6 +48,7 @@ class CidadeSelecaoScreen extends StatelessWidget {
               AutorizadaEAtendida(:final cidade) => _CorpoVitrine(
                 cidade: cidade,
                 criarVitrineCubit: criarVitrineCubit,
+                criarOpcoesFiltroCubit: criarOpcoesFiltroCubit,
               ),
               AutorizadaNaoAtendida(
                 :final cidadeDetectada,
@@ -145,18 +153,35 @@ class _CorpoCarregando extends StatelessWidget {
 /// Desfecho `autorizadaEAtendida` (D-10): monta a vitrine da cidade
 /// escolhida, com o próprio `SeletorCidadeTopo` (LOC-05, D-08) já embutido
 /// dentro de [VitrineScreen] — substitui o antigo placeholder
-/// `_CorpoCidadeEntrada`.
+/// `_CorpoCidadeEntrada`. Provê o [VitrineCubit] (API-04) e o
+/// [OpcoesFiltroCubit] (D-20) lado a lado, chaveados pela cidade — trocar de
+/// cidade reconstrói os dois do zero. O `OpcoesFiltroCubit` fica `lazy`
+/// (padrão de `BlocProvider`): só é criado — e só então chama `carregar` —
+/// na primeira vez que algo o lê (a primeira abertura do sheet de filtros
+/// para esta cidade), nunca na entrada da vitrine.
 class _CorpoVitrine extends StatelessWidget {
-  const _CorpoVitrine({required this.cidade, required this.criarVitrineCubit});
+  const _CorpoVitrine({
+    required this.cidade,
+    required this.criarVitrineCubit,
+    required this.criarOpcoesFiltroCubit,
+  });
 
   final Cidade cidade;
   final VitrineCubit Function() criarVitrineCubit;
+  final OpcoesFiltroCubit Function() criarOpcoesFiltroCubit;
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<VitrineCubit>(
+    return MultiBlocProvider(
       key: ValueKey(cidade.chaveNatural),
-      create: (_) => criarVitrineCubit()..carregar(cidade),
+      providers: [
+        BlocProvider<VitrineCubit>(
+          create: (_) => criarVitrineCubit()..carregar(cidade),
+        ),
+        BlocProvider<OpcoesFiltroCubit>(
+          create: (_) => criarOpcoesFiltroCubit()..carregar(cidade),
+        ),
+      ],
       child: VitrineScreen(cidade: cidade),
     );
   }

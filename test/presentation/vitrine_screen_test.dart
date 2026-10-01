@@ -6,6 +6,8 @@ import 'package:imoveis_aqui/domain/entities/cidade.dart';
 import 'package:imoveis_aqui/domain/entities/filtros_vitrine.dart';
 import 'package:imoveis_aqui/domain/entities/imovel.dart';
 import 'package:imoveis_aqui/presentation/cidade_selecao/widgets/seletor_cidade_topo.dart';
+import 'package:imoveis_aqui/presentation/vitrine/opcoes_filtro_cubit.dart';
+import 'package:imoveis_aqui/presentation/vitrine/opcoes_filtro_state.dart';
 import 'package:imoveis_aqui/presentation/vitrine/vitrine_cubit.dart';
 import 'package:imoveis_aqui/presentation/vitrine/vitrine_screen.dart';
 import 'package:imoveis_aqui/presentation/vitrine/vitrine_state.dart';
@@ -18,9 +20,16 @@ import 'package:mocktail/mocktail.dart';
 class _VitrineCubitFalso extends MockCubit<VitrineState>
     implements VitrineCubit {}
 
+/// Fake de `OpcoesFiltroCubit` (Task 2) — registrado no harness para que
+/// `_abrirFiltros()` (toque em "Filtros"/corpo do chip) encontre o Cubit via
+/// `context.read`, sem depender da pilha real de opções.
+class _OpcoesFiltroCubitFalso extends MockCubit<OpcoesFiltroState>
+    implements OpcoesFiltroCubit {}
+
 void main() {
   const campinas = Cidade(nome: 'Campinas', uf: 'SP');
   late _VitrineCubitFalso cubit;
+  late _OpcoesFiltroCubitFalso opcoesCubit;
 
   Imovel imovelDe(int id) => Imovel(
     id: id,
@@ -46,6 +55,17 @@ void main() {
     when(() => cubit.limparFiltros()).thenAnswer((_) async {});
     when(() => cubit.limparBuscaEFiltros()).thenReturn(null);
     when(() => cubit.aplicarFiltros(any())).thenAnswer((_) async {});
+
+    opcoesCubit = _OpcoesFiltroCubitFalso();
+    const opcoesEstado = OpcoesFiltroState(
+      bairros: CarregamentoOpcoes.carregadas([]),
+      caracteristicas: CarregamentoOpcoes.carregadas([]),
+    );
+    whenListen(
+      opcoesCubit,
+      const Stream<OpcoesFiltroState>.empty(),
+      initialState: opcoesEstado,
+    );
   });
 
   Future<void> pumpEstado(
@@ -64,8 +84,11 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: BlocProvider<VitrineCubit>.value(
-            value: cubit,
+          body: MultiBlocProvider(
+            providers: [
+              BlocProvider<VitrineCubit>.value(value: cubit),
+              BlocProvider<OpcoesFiltroCubit>.value(value: opcoesCubit),
+            ],
             child: VitrineScreen(cidade: campinas),
           ),
         ),

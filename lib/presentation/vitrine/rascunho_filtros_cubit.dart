@@ -82,6 +82,19 @@ class RascunhoFiltrosCubit extends Cubit<FiltrosVitrine> {
   /// Define a área máxima do rascunho — mesma semântica de
   /// [definirAreaMin].
   void definirAreaMax(int? valor) => emit(state.copyWith(areaMax: valor));
+
+  /// Marca/desmarca um bairro no rascunho (FIL-04, D-05, D-21) — multi-
+  /// seleção, OU entre valores resolvido pelo servidor simulado; nunca
+  /// dispara consulta ao acervo.
+  void alternarBairro(String bairro, {required bool marcado}) {
+    final bairros = Set<String>.of(state.bairros);
+    if (marcado) {
+      bairros.add(bairro);
+    } else {
+      bairros.remove(bairro);
+    }
+    emit(state.copyWith(bairros: bairros));
+  }
 }
 
 /// Validação de FORMULÁRIO do rascunho de filtros (D-12) — nunca uma regra

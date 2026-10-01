@@ -4,6 +4,7 @@
 
 import 'package:intl/intl.dart';
 
+import '../../core/texto_normalizado.dart';
 import '../../domain/entities/filtros_vitrine.dart';
 import '../../domain/entities/imovel.dart';
 
@@ -150,3 +151,17 @@ String formatarValorCompacto(int valor) {
 
 String _umaCasaDecimal(double valor) =>
     NumberFormat('#,##0.#', 'pt_BR').format(valor);
+
+/// Filtra a lista de OPÇÕES de bairro pelo texto digitado (D-21) — nunca o
+/// acervo: usa [normalizarTexto] (mesma normalização de busca e
+/// `Cidade.chaveNatural`, sem uma segunda normalização aqui). Termo vazio ou
+/// em branco devolve [opcoes] sem alteração, preservando a ordem de
+/// entrada.
+List<String> filtrarOpcoes(List<String> opcoes, String termo) {
+  final termoNormalizado = normalizarTexto(termo);
+  if (termoNormalizado.isEmpty) return opcoes;
+  return [
+    for (final opcao in opcoes)
+      if (normalizarTexto(opcao).contains(termoNormalizado)) opcao,
+  ];
+}

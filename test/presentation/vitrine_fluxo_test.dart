@@ -4,17 +4,22 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/core/texto_normalizado.dart';
 import 'package:imoveis_aqui/data/datasources/imovel_mock_datasource.dart';
+import 'package:imoveis_aqui/data/datasources/opcoes_filtro_mock_datasource.dart';
 import 'package:imoveis_aqui/data/mocks/imoveis_fixture.dart';
 import 'package:imoveis_aqui/data/repositories/imovel_repository_impl.dart';
+import 'package:imoveis_aqui/data/repositories/opcoes_filtro_repository_impl.dart';
 import 'package:imoveis_aqui/domain/entities/cidade.dart';
 import 'package:imoveis_aqui/domain/entities/consulta_imoveis.dart';
 import 'package:imoveis_aqui/domain/entities/imovel.dart';
 import 'package:imoveis_aqui/domain/usecases/buscar_imoveis_usecase.dart';
 import 'package:imoveis_aqui/domain/entities/ordenacao_vitrine.dart';
+import 'package:imoveis_aqui/domain/usecases/obter_bairros_usecase.dart';
+import 'package:imoveis_aqui/domain/usecases/obter_caracteristicas_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/salvar_cidade_usecase.dart';
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_cubit.dart';
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_screen.dart';
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_state.dart';
+import 'package:imoveis_aqui/presentation/vitrine/opcoes_filtro_cubit.dart';
 import 'package:imoveis_aqui/presentation/vitrine/vitrine_cubit.dart';
 import 'package:imoveis_aqui/presentation/vitrine/vitrine_state.dart';
 import 'package:imoveis_aqui/presentation/vitrine/widgets/imovel_card.dart';
@@ -50,6 +55,18 @@ void main() {
         ),
       );
 
+  /// Pilha real das opções (Task 2, D-20) — mesmas linhas de
+  /// `linhasAcervoFixture()`, nunca uma lista fixa paralela.
+  OpcoesFiltroCubit criarOpcoesFiltroCubitReal() {
+    final repositorio = OpcoesFiltroRepositoryImpl(
+      OpcoesFiltroMockDataSource.paraTeste(linhas: linhasAcervoFixture()),
+    );
+    return OpcoesFiltroCubit(
+      ObterBairrosUseCase(repositorio),
+      ObterCaracteristicasUseCase(repositorio),
+    );
+  }
+
   setUp(() {
     cidadeSelecaoCubit = _CidadeSelecaoCubitFalso();
     salvarCidade = _SalvarCidadeUseCaseFalso();
@@ -81,6 +98,7 @@ void main() {
           child: CidadeSelecaoScreen(
             salvarCidade: salvarCidade,
             criarVitrineCubit: criarVitrineCubitReal,
+            criarOpcoesFiltroCubit: criarOpcoesFiltroCubitReal,
           ),
         ),
       ),
@@ -613,6 +631,62 @@ void main() {
         find.byType(ImovelCard),
       )) {
         expect(areaNaFaixa(card.imovel.id), isTrue);
+      }
+    },
+  );
+
+  testWidgets(
+    'Campinas: Filtros -> expandir Bairros -> digitar "camb" -> marcar '
+    'Cambuí -> limpar o campo -> marcar Taquaral -> Ver imóveis filtra pela '
+    'pilha real (opções do servidor simulado, D-20); chip "Cambuí +1", '
+    'botão "Filtros (1)" (FIL-04, D-05, D-21)',
+    (tester) async {
+      await pumpVitrineDe(tester, campinas);
+
+      await tester.tap(find.text('Filtros'));
+      // As opções (D-20) carregam de forma assíncrona assim que o sheet
+      // abre — pumpAndSettle aqui (nenhum spinner indeterminado visível
+      // ainda, a seção "Bairros" começa colapsada) dá tempo de sobra para a
+      // pilha real (latência zero no helper) resolver antes de expandir.
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Bairros'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Filtrar bairros'),
+        'camb',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(CheckboxListTile, 'Cambuí'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Filtrar bairros'),
+        '',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(CheckboxListTile, 'Taquaral'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Ver imóveis'));
+      await tester.pumpAndSettle();
+
+      expect(find.widgetWithText(InputChip, 'Cambuí +1'), findsOneWidget);
+      expect(find.textContaining('Filtros (1)'), findsOneWidget);
+
+      final vitrineCubit = BlocProvider.of<VitrineCubit>(
+        tester.element(find.byType(ListView)),
+      );
+      final conteudo = vitrineCubit.state.conteudo as VitrineCarregada;
+      expect(conteudo.itens, isNotEmpty);
+      bool bateComOsFiltros(Imovel imovel) =>
+          imovel.bairro == 'Cambuí' || imovel.bairro == 'Taquaral';
+      expect(conteudo.itens.every(bateComOsFiltros), isTrue);
+
+      for (final card in tester.widgetList<ImovelCard>(
+        find.byType(ImovelCard),
+      )) {
+        expect(bateComOsFiltros(card.imovel), isTrue);
       }
     },
   );

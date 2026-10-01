@@ -184,6 +184,31 @@ void main() {
         FiltrosVitrine(areaMin: 80, areaMax: 120),
       ],
     );
+
+    blocTest<RascunhoFiltrosCubit, FiltrosVitrine>(
+      'alternarBairro(Cambuí, marcado: true) adiciona Cambuí ao rascunho, '
+      'sem tocar nos demais campos (FIL-04, D-21)',
+      build: () => RascunhoFiltrosCubit(
+        const FiltrosVitrine(finalidade: FinalidadeFiltro.venda),
+      ),
+      act: (cubit) => cubit.alternarBairro('Cambuí', marcado: true),
+      expect: () => const [
+        FiltrosVitrine(
+          finalidade: FinalidadeFiltro.venda,
+          bairros: {'Cambuí'},
+        ),
+      ],
+    );
+
+    blocTest<RascunhoFiltrosCubit, FiltrosVitrine>(
+      'alternarBairro(Cambuí, marcado: false) remove só Cambuí, mantendo os '
+      'demais bairros já marcados',
+      build: () => RascunhoFiltrosCubit(
+        const FiltrosVitrine(bairros: {'Cambuí', 'Taquaral'}),
+      ),
+      act: (cubit) => cubit.alternarBairro('Cambuí', marcado: false),
+      expect: () => const [FiltrosVitrine(bairros: {'Taquaral'})],
+    );
   });
 
   group('ValidacaoRascunho (D-12)', () {
