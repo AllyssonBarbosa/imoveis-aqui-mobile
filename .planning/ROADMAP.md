@@ -104,7 +104,7 @@ Plans:
   4. Mudar filtro ou ordenação reseta a paginação — sem cards duplicados ou embaralhados.
   5. Toda a filtragem é resolvida pela camada de dados (mock hoje, honrando o contrato da Fase 1) — o app nunca filtra o acervo localmente no aparelho.
 
-**Plans**: 2/5 plans executed
+**Plans**: 3/5 plans executed
 Plans:
 **Wave 1**
 
@@ -116,7 +116,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 03-03-PLAN.md — Faixas de preço (por finalidade) e área com máscara, validação inline + 400 simulado, ordenação por aluguel (FIL-03, FIL-04, FIL-05)
+- [x] 03-03-PLAN.md — Faixas de preço (por finalidade) e área com máscara, validação inline + 400 simulado, ordenação por aluguel (FIL-03, FIL-04, FIL-05)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
@@ -152,5 +152,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Localização, Escolha de Cidade e Contrato da API | 4/4 | In Progress|  |
 | 2. Vitrine — Lista, Busca e Ordenação | 5/5 | In Progress|  |
-| 3. Vitrine — Filtros Server-Side | 2/5 | In Progress|  |
+| 3. Vitrine — Filtros Server-Side | 3/5 | In Progress|  |
 | 4. Imóveis Real — Endpoint Público e Integração Final | 0/TBD | Not started | - |
