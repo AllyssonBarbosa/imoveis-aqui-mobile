@@ -22,15 +22,16 @@ void main() {
     when(() => opcoes.tentarNovamente()).thenAnswer((_) async {});
   });
 
-  /// Seeda [opcoes] com um estado fixo — bairros vazios por padrão (os
-  /// testes que não se importam com a seção "Bairros" continuam exercitando
-  /// só o resto do sheet, igual antes do Task 2).
+  /// Seeda [opcoes] com um estado fixo — bairros e características vazios
+  /// por padrão (os testes que não se importam com essas seções continuam
+  /// exercitando só o resto do sheet, igual antes dos Tasks 2/3).
   OpcoesFiltroCubit opcoesComEstado({
     List<String> bairros = const [],
+    List<String> caracteristicas = const [],
   }) {
     final estado = OpcoesFiltroState(
       bairros: CarregamentoOpcoes.carregadas(bairros),
-      caracteristicas: const CarregamentoOpcoes.carregadas([]),
+      caracteristicas: CarregamentoOpcoes.carregadas(caracteristicas),
     );
     whenListen(
       opcoes,
@@ -795,6 +796,177 @@ void main() {
         // Já expandida sem precisar tocar no título — "Filtrar bairros" já
         // visível direto.
         expect(find.text('Filtrar bairros'), findsOneWidget);
+      },
+    );
+  });
+
+  group('Seção Características (FIL-04, D-04, D-16, D-20)', () {
+    Future<void> abrirSheet(
+      WidgetTester tester, {
+      required FiltrosVitrine aplicados,
+      required ValueChanged<FiltrosVitrine> aoAplicar,
+      required OpcoesFiltroCubit opcoesCubit,
+    }) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => ElevatedButton(
+                onPressed: () => mostrarFiltrosBottomSheet(
+                  context,
+                  aplicados: aplicados,
+                  aoAplicar: aoAplicar,
+                  opcoes: opcoesCubit,
+                ),
+                child: const Text('abrir'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('abrir'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets(
+      'carregando: mostra o indicador de progresso — sem precisar expandir '
+      '(a seção é sempre visível, diferente de Bairros)',
+      (tester) async {
+        final estado = const OpcoesFiltroState(
+          bairros: CarregamentoOpcoes.carregadas([]),
+          caracteristicas: CarregamentoOpcoes.carregando(),
+        );
+        whenListen(
+          opcoes,
+          Stream<OpcoesFiltroState>.value(estado),
+          initialState: estado,
+        );
+
+        await abrirSheet(
+          tester,
+          aplicados: const FiltrosVitrine(),
+          aoAplicar: (_) {},
+          opcoesCubit: opcoes,
+        );
+        await tester.ensureVisible(find.text('Características'));
+        await tester.pump();
+
+        expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'falha: mostra a mensagem de erro + "Tentar de novo", que chama '
+      'tentarNovamente()',
+      (tester) async {
+        final estado = const OpcoesFiltroState(
+          bairros: CarregamentoOpcoes.carregadas([]),
+          caracteristicas: CarregamentoOpcoes.falha(),
+        );
+        whenListen(
+          opcoes,
+          Stream<OpcoesFiltroState>.value(estado),
+          initialState: estado,
+        );
+
+        await abrirSheet(
+          tester,
+          aplicados: const FiltrosVitrine(),
+          aoAplicar: (_) {},
+          opcoesCubit: opcoes,
+        );
+        await tester.ensureVisible(find.text('Características'));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Não foi possível carregar as características'),
+          findsOneWidget,
+        );
+        await tester.ensureVisible(find.text('Tentar de novo'));
+        await tester.tap(find.text('Tentar de novo'));
+        await tester.pump();
+
+        verify(() => opcoes.tentarNovamente()).called(1);
+      },
+    );
+
+    testWidgets(
+      'lista vazia: mostra "Nenhuma característica disponível"',
+      (tester) async {
+        await abrirSheet(
+          tester,
+          aplicados: const FiltrosVitrine(),
+          aoAplicar: (_) {},
+          opcoesCubit: opcoesComEstado(),
+        );
+        await tester.ensureVisible(find.text('Características'));
+        await tester.pump();
+
+        expect(
+          find.text('Nenhuma característica disponível'),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
+      'com opções: mostra um FilterChip por opção, selecionado a partir do '
+      'rascunho (D-17)',
+      (tester) async {
+        await abrirSheet(
+          tester,
+          aplicados: const FiltrosVitrine(caracteristicas: {'Piscina'}),
+          aoAplicar: (_) {},
+          opcoesCubit: opcoesComEstado(
+            caracteristicas: ['Churrasqueira', 'Piscina'],
+          ),
+        );
+        await tester.ensureVisible(find.text('Características'));
+        await tester.pump();
+
+        expect(
+          find.widgetWithText(FilterChip, 'Churrasqueira'),
+          findsOneWidget,
+        );
+        final chipPiscina = tester.widget<FilterChip>(
+          find.widgetWithText(FilterChip, 'Piscina'),
+        );
+        expect(chipPiscina.selected, isTrue);
+        final chipChurrasqueira = tester.widget<FilterChip>(
+          find.widgetWithText(FilterChip, 'Churrasqueira'),
+        );
+        expect(chipChurrasqueira.selected, isFalse);
+      },
+    );
+
+    testWidgets(
+      'marcar "Piscina" sozinho nunca chama aoAplicar; "Ver imóveis" aplica '
+      'caracteristicas: {Piscina} (FIL-04, D-04)',
+      (tester) async {
+        FiltrosVitrine? aplicado;
+        var chamadas = 0;
+        await abrirSheet(
+          tester,
+          aplicados: const FiltrosVitrine(),
+          aoAplicar: (filtros) {
+            aplicado = filtros;
+            chamadas++;
+          },
+          opcoesCubit: opcoesComEstado(
+            caracteristicas: ['Piscina', 'Churrasqueira'],
+          ),
+        );
+        final chipPiscina = find.widgetWithText(FilterChip, 'Piscina');
+        await tester.ensureVisible(chipPiscina);
+        await tester.tap(chipPiscina);
+        await tester.pumpAndSettle();
+        expect(chamadas, 0);
+
+        await tester.tap(find.text('Ver imóveis'));
+        await tester.pumpAndSettle();
+
+        expect(chamadas, 1);
+        expect(aplicado, const FiltrosVitrine(caracteristicas: {'Piscina'}));
       },
     );
   });

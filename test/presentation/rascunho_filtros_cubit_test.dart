@@ -209,6 +209,32 @@ void main() {
       act: (cubit) => cubit.alternarBairro('Cambuí', marcado: false),
       expect: () => const [FiltrosVitrine(bairros: {'Taquaral'})],
     );
+
+    blocTest<RascunhoFiltrosCubit, FiltrosVitrine>(
+      'alternarCaracteristica(Piscina, marcada: true) adiciona Piscina ao '
+      'rascunho, sem tocar nos demais campos (FIL-04, D-04)',
+      build: () => RascunhoFiltrosCubit(
+        const FiltrosVitrine(finalidade: FinalidadeFiltro.venda),
+      ),
+      act: (cubit) => cubit.alternarCaracteristica('Piscina', marcada: true),
+      expect: () => const [
+        FiltrosVitrine(
+          finalidade: FinalidadeFiltro.venda,
+          caracteristicas: {'Piscina'},
+        ),
+      ],
+    );
+
+    blocTest<RascunhoFiltrosCubit, FiltrosVitrine>(
+      'alternarCaracteristica(Piscina, marcada: false) remove só Piscina, '
+      'mantendo as demais características já marcadas',
+      build: () => RascunhoFiltrosCubit(
+        const FiltrosVitrine(caracteristicas: {'Piscina', 'Churrasqueira'}),
+      ),
+      act: (cubit) =>
+          cubit.alternarCaracteristica('Piscina', marcada: false),
+      expect: () => const [FiltrosVitrine(caracteristicas: {'Churrasqueira'})],
+    );
   });
 
   group('ValidacaoRascunho (D-12)', () {

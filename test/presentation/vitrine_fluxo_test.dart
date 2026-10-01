@@ -690,4 +690,57 @@ void main() {
       }
     },
   );
+
+  testWidgets(
+    'Campinas: Filtros -> marcar Piscina e Churrasqueira -> Ver imóveis '
+    'filtra pela pilha real (E entre as duas, D-04); chip "Piscina +1", '
+    'botão "Filtros (1)" (FIL-04, D-16, D-20)',
+    (tester) async {
+      await pumpVitrineDe(tester, campinas);
+
+      await tester.tap(find.text('Filtros'));
+      await tester.pumpAndSettle();
+
+      final chipPiscina = find.widgetWithText(FilterChip, 'Piscina');
+      await tester.ensureVisible(chipPiscina);
+      await tester.tap(chipPiscina);
+      await tester.pumpAndSettle();
+      final chipChurrasqueira = find.widgetWithText(
+        FilterChip,
+        'Churrasqueira',
+      );
+      await tester.ensureVisible(chipChurrasqueira);
+      await tester.tap(chipChurrasqueira);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Ver imóveis'));
+      await tester.pumpAndSettle();
+
+      expect(find.widgetWithText(InputChip, 'Piscina +1'), findsOneWidget);
+      expect(find.textContaining('Filtros (1)'), findsOneWidget);
+
+      bool temAmbasCaracteristicas(int id) {
+        final linha = linhasAcervoFixture().firstWhere((l) => l['id'] == id);
+        final caracteristicas = (linha['caracteristicas']! as List)
+            .cast<String>();
+        return caracteristicas.contains('Piscina') &&
+            caracteristicas.contains('Churrasqueira');
+      }
+
+      final vitrineCubit = BlocProvider.of<VitrineCubit>(
+        tester.element(find.byType(ListView)),
+      );
+      final conteudo = vitrineCubit.state.conteudo as VitrineCarregada;
+      expect(conteudo.itens, isNotEmpty);
+      expect(
+        conteudo.itens.every((i) => temAmbasCaracteristicas(i.id)),
+        isTrue,
+      );
+
+      for (final card in tester.widgetList<ImovelCard>(
+        find.byType(ImovelCard),
+      )) {
+        expect(temAmbasCaracteristicas(card.imovel.id), isTrue);
+      }
+    },
+  );
 }
