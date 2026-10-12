@@ -36,7 +36,7 @@ Requisitos da primeira entrega (tarefas APP01, APP02, APP03, APP04 + os endpoint
 
 ### Página do imóvel (APP04)
 
-- [ ] **DET-01**: Tocar num card da vitrine abre a página do imóvel; a abertura mostra de imediato a prévia que a vitrine já tem (capa, título, preço) e carrega o detalhe.
+- [x] **DET-01**: Tocar num card da vitrine abre a página do imóvel; a abertura mostra de imediato a prévia que a vitrine já tem (capa, título, preço) e carrega o detalhe.
 - [ ] **DET-02**: A galeria mostra todas as fotos do imóvel começando pela capa, com contador "N/M"; o toque abre um visualizador em tela cheia com swipe e pinch-zoom; sem fotos mostra o placeholder, sem contador.
 - [ ] **DET-03**: A página mostra os preços de venda e/ou aluguel, condomínio e IPTU exatamente como vieram da API (valores formatados, nunca calculados no app).
 - [ ] **DET-04**: A página mostra os dados da natureza — casa (terreno, área construída, área livre), terreno (frente, fundo, topografia), apartamento (dados do prédio) e lote (quadra e loteamento); campo nulo omite a linha e seção vazia some.
@@ -101,7 +101,7 @@ Excluídos de propósito. Documentados para evitar scope creep.
 | FIL-04 | Phase 3 | Complete |
 | FIL-05 | Phase 3 | Complete |
 | FIL-06 | Phase 3 | Complete |
-| DET-01 | Phase 4 | Pending |
+| DET-01 | Phase 4 | Complete |
 | DET-02 | Phase 4 | Pending |
 | DET-03 | Phase 4 | Pending |
 | DET-04 | Phase 4 | Pending |
