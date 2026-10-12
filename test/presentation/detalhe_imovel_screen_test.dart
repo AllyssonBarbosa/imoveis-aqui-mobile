@@ -233,6 +233,150 @@ void main() {
     });
   });
 
+  group('prédio e loteamento (DET-04)', () {
+    const predio = DadosPredio(
+      nome: 'Edifício Jequitibá',
+      andares: 12,
+      portaria24h: true,
+    );
+
+    testWidgets('apartamento com prédio mostra o card "Prédio"', (
+      tester,
+    ) async {
+      final apto = detalhe.copyWith(
+        dados: const DadosNatureza.apartamento(andar: 8, predio: predio),
+      );
+      await pumpEstado(
+        tester,
+        DetalheImovelState.carregado(apto),
+        altura: 2400,
+      );
+
+      expect(find.text('Prédio'), findsOneWidget);
+      expect(find.text('Edifício Jequitibá'), findsOneWidget);
+      expect(find.text('Portaria 24h'), findsOneWidget);
+      expect(find.text('Sim'), findsOneWidget);
+      expect(find.byType(Card), findsOneWidget);
+    });
+
+    testWidgets('apartamento sem prédio não mostra "Prédio"', (tester) async {
+      final apto = detalhe.copyWith(
+        dados: const DadosNatureza.apartamento(andar: 8),
+      );
+      await pumpEstado(
+        tester,
+        DetalheImovelState.carregado(apto),
+        altura: 2400,
+      );
+
+      expect(find.text('Sobre o apartamento'), findsOneWidget);
+      expect(find.text('Prédio'), findsNothing);
+      expect(find.byType(Card), findsNothing);
+    });
+
+    testWidgets('prédio sem nenhum campo preenchido não mostra o card', (
+      tester,
+    ) async {
+      final apto = detalhe.copyWith(
+        dados: const DadosNatureza.apartamento(andar: 8, predio: DadosPredio()),
+      );
+      await pumpEstado(
+        tester,
+        DetalheImovelState.carregado(apto),
+        altura: 2400,
+      );
+
+      expect(find.text('Prédio'), findsNothing);
+    });
+
+    testWidgets('apartamento só com prédio ainda mostra a seção e o card', (
+      tester,
+    ) async {
+      final apto = detalhe.copyWith(
+        dados: const DadosNatureza.apartamento(predio: predio),
+      );
+      await pumpEstado(
+        tester,
+        DetalheImovelState.carregado(apto),
+        altura: 2400,
+      );
+
+      expect(find.text('Prédio'), findsOneWidget);
+      expect(find.text('Edifício Jequitibá'), findsOneWidget);
+    });
+
+    testWidgets('lote 103 mostra o card "Quadra e loteamento" com um Chip por '
+        'item das listas', (tester) async {
+      final lote = detalhe.copyWith(
+        dados: const DadosNatureza.lote(
+          numero: '9',
+          quadra: DadosQuadra(
+            identificacao: 'Quadra B',
+            loteamento: DadosLoteamento(
+              nome: 'Residencial Parque das Flores',
+              incorporadora: 'Flores Urbanismo',
+              infraestrutura: ['Asfalto', 'Água encanada', 'Rede elétrica'],
+              areasLazer: ['Praça', 'Playground'],
+            ),
+          ),
+        ),
+      );
+      await pumpEstado(
+        tester,
+        DetalheImovelState.carregado(lote),
+        altura: 2400,
+      );
+
+      expect(find.text('Quadra e loteamento'), findsOneWidget);
+      expect(find.text('Quadra B'), findsOneWidget);
+      expect(find.text('Residencial Parque das Flores'), findsOneWidget);
+      expect(find.text('Flores Urbanismo'), findsOneWidget);
+      expect(find.text('Infraestrutura'), findsOneWidget);
+      expect(find.text('Áreas de lazer'), findsOneWidget);
+      expect(find.byType(Chip), findsNWidgets(5));
+      expect(find.widgetWithText(Chip, 'Asfalto'), findsOneWidget);
+      expect(find.widgetWithText(Chip, 'Playground'), findsOneWidget);
+    });
+
+    testWidgets('loteamento com listas vazias não mostra os títulos das '
+        'listas', (tester) async {
+      final lote = detalhe.copyWith(
+        dados: const DadosNatureza.lote(
+          quadra: DadosQuadra(
+            identificacao: 'Quadra B',
+            loteamento: DadosLoteamento(nome: 'Parque das Flores'),
+          ),
+        ),
+      );
+      await pumpEstado(
+        tester,
+        DetalheImovelState.carregado(lote),
+        altura: 2400,
+      );
+
+      expect(find.text('Quadra e loteamento'), findsOneWidget);
+      expect(find.text('Infraestrutura'), findsNothing);
+      expect(find.text('Áreas de lazer'), findsNothing);
+      expect(find.byType(Chip), findsNothing);
+    });
+
+    testWidgets('quadra sem linhas e sem listas não mostra o card', (
+      tester,
+    ) async {
+      final lote = detalhe.copyWith(
+        dados: const DadosNatureza.lote(numero: '9', quadra: DadosQuadra()),
+      );
+      await pumpEstado(
+        tester,
+        DetalheImovelState.carregado(lote),
+        altura: 2400,
+      );
+
+      expect(find.text('Sobre o lote'), findsOneWidget);
+      expect(find.text('Quadra e loteamento'), findsNothing);
+    });
+  });
+
   testWidgets('erro mostra a mensagem e "Tentar de novo" chama o Cubit', (
     tester,
   ) async {

@@ -316,6 +316,72 @@ void main() {
     });
   });
 
+  group('linhasDoPredio', () {
+    test('ordem do plano, booleanos como Sim/Não', () {
+      const predio = DadosPredio(
+        nome: 'Edifício Jequitibá',
+        andares: 12,
+        unidadesPorAndar: 4,
+        ano: 2018,
+        elevadores: 2,
+        portaria24h: true,
+        piscina: false,
+        academia: true,
+        salaoDeFestas: true,
+        playground: false,
+      );
+
+      expect(linhasDoPredio(predio).map((linha) => linha.rotulo), [
+        'Nome',
+        'Andares',
+        'Unidades por andar',
+        'Ano',
+        'Elevadores',
+        'Portaria 24h',
+        'Piscina',
+        'Academia',
+        'Salão de festas',
+        'Playground',
+      ]);
+      final linhas = [
+        for (final linha in linhasDoPredio(predio)) (linha.rotulo, linha.valor),
+      ];
+      expect(linhas, contains(('Nome', 'Edifício Jequitibá')));
+      expect(linhas, contains(('Ano', '2018')));
+      expect(linhas, contains(('Portaria 24h', 'Sim')));
+      expect(linhas, contains(('Piscina', 'Não')));
+    });
+
+    test('campos nulos não geram linha; tudo nulo resulta em lista vazia', () {
+      expect(linhasDoPredio(const DadosPredio(nome: 'Torre Norte')), [
+        (rotulo: 'Nome', valor: 'Torre Norte'),
+      ]);
+      expect(linhasDoPredio(const DadosPredio()), isEmpty);
+    });
+  });
+
+  group('linhasDaQuadra', () {
+    test('quadra, loteamento e incorporadora, nulos omitidos', () {
+      const quadra = DadosQuadra(
+        identificacao: 'Quadra B',
+        loteamento: DadosLoteamento(
+          nome: 'Residencial Parque das Flores',
+          incorporadora: 'Flores Urbanismo',
+        ),
+      );
+
+      expect(linhasDaQuadra(quadra), [
+        (rotulo: 'Quadra', valor: 'Quadra B'),
+        (rotulo: 'Loteamento', valor: 'Residencial Parque das Flores'),
+        (rotulo: 'Incorporadora', valor: 'Flores Urbanismo'),
+      ]);
+      expect(linhasDaQuadra(const DadosQuadra(identificacao: 'Quadra C')), [
+        (rotulo: 'Quadra', valor: 'Quadra C'),
+      ]);
+      expect(linhasDaQuadra(const DadosQuadra()), isEmpty);
+    });
+  });
+
   test('ícones dos destaques são os combinados', () {
     final casa = destaquesDe(
       const DadosNatureza.casa(quartos: 1, suites: 1, banheiros: 1, vagas: 1),
