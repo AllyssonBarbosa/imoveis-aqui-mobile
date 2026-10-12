@@ -6,9 +6,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../di/injection.dart';
 import '../../domain/entities/imovel.dart';
 import '../vitrine/apresentacao_imovel.dart';
-import '../vitrine/widgets/foto_capa_imovel.dart';
+import '../comum/imagem_rede.dart';
 import 'detalhe_imovel_cubit.dart';
 import 'detalhe_imovel_state.dart';
+import 'widgets/galeria_imovel.dart';
 import 'widgets/secao_natureza.dart';
 import 'widgets/secoes_detalhe.dart';
 
@@ -40,8 +41,8 @@ Future<void> abrirDetalheImovel(
   );
 }
 
-/// Página do imóvel (DET-01): `SliverAppBar` fixo com a capa da prévia e o
-/// botão voltar sempre visível (D-09), cabeçalho alimentado pela prévia (não
+/// Página do imóvel (DET-01): `SliverAppBar` fixo com a galeria de fotos (a
+/// capa da prévia enquanto carrega) e o botão voltar sempre visível (D-09), cabeçalho alimentado pela prévia (não
 /// "pula" quando o detalhe chega) e, abaixo, o desfecho do carregamento —
 /// `switch` exaustivo sobre [DetalheImovelState], sem ramo abrangente. Sem
 /// barra inferior fixa (D-12).
@@ -54,7 +55,8 @@ class DetalheImovelScreen extends StatelessWidget {
 
   final Imovel previa;
 
-  /// Ponto de extensão só para teste (esqueleto da fase RED).
+  /// Ponto de extensão só para teste — troca `CachedNetworkImage` por um
+  /// builder determinístico (ver `ImagemRede`). Em produção fica `null`.
   @visibleForTesting
   final Widget Function(String url)? construirImagemDeRede;
 
@@ -86,7 +88,18 @@ class DetalheImovelScreen extends StatelessWidget {
                   ),
                 ),
                 flexibleSpace: FlexibleSpaceBar(
-                  background: FotoCapaImovel(url: previa.fotoCapa),
+                  // Carregado: galeria com todas as fotos (DET-02). Nos demais
+                  // estados, a capa da prévia, sem contador (D-16).
+                  background: switch (state) {
+                    DetalheCarregado(:final detalhe) => GaleriaImovel(
+                      urls: [for (final foto in detalhe.fotos) foto.url],
+                      construirImagemDeRede: construirImagemDeRede,
+                    ),
+                    _ => ImagemRede(
+                      url: previa.fotoCapa,
+                      construirImagemDeRede: construirImagemDeRede,
+                    ),
+                  },
                 ),
               ),
               // No 404 o imóvel saiu do ar: o preço da prévia não é mostrado.

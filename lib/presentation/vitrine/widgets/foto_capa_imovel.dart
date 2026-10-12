@@ -1,5 +1,6 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+
+import '../../comum/imagem_rede.dart';
 
 /// Foto de capa do card (D-04) — `AspectRatio` único de 16:9 envolvendo TODOS
 /// os três estados (placeholder, carregando, erro), para que a altura do
@@ -26,37 +27,7 @@ class FotoCapaImovel extends StatelessWidget {
   Widget build(BuildContext context) {
     return AspectRatio(
       aspectRatio: 16 / 9,
-      child: url == null
-          ? _PlaceholderCasa(colorScheme: Theme.of(context).colorScheme)
-          : (construirImagemDeRede?.call(url!) ??
-                CachedNetworkImage(
-                  imageUrl: url!,
-                  fit: BoxFit.cover,
-                  placeholder: (context, _) =>
-                      _PlaceholderCasa(colorScheme: Theme.of(context).colorScheme),
-                  errorWidget: (context, _, _) =>
-                      _PlaceholderCasa(colorScheme: Theme.of(context).colorScheme),
-                )),
-    );
-  }
-}
-
-class _PlaceholderCasa extends StatelessWidget {
-  const _PlaceholderCasa({required this.colorScheme});
-
-  final ColorScheme colorScheme;
-
-  @override
-  Widget build(BuildContext context) {
-    return ColoredBox(
-      color: colorScheme.primaryContainer,
-      child: Center(
-        child: Icon(
-          Icons.home_outlined,
-          size: 48,
-          color: colorScheme.onPrimaryContainer,
-        ),
-      ),
+      child: ImagemRede(url: url, construirImagemDeRede: construirImagemDeRede),
     );
   }
 }
