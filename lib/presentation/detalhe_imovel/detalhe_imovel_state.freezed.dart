@@ -56,13 +56,14 @@ extension DetalheImovelStatePatterns on DetalheImovelState {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( DetalheCarregando value)?  carregando,TResult Function( DetalheCarregado value)?  carregado,TResult Function( DetalheErro value)?  erro,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( DetalheCarregando value)?  carregando,TResult Function( DetalheCarregado value)?  carregado,TResult Function( DetalheErro value)?  erro,TResult Function( DetalheNaoEncontrado value)?  naoEncontrado,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case DetalheCarregando() when carregando != null:
 return carregando(_that);case DetalheCarregado() when carregado != null:
 return carregado(_that);case DetalheErro() when erro != null:
-return erro(_that);case _:
+return erro(_that);case DetalheNaoEncontrado() when naoEncontrado != null:
+return naoEncontrado(_that);case _:
   return orElse();
 
 }
@@ -80,13 +81,14 @@ return erro(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( DetalheCarregando value)  carregando,required TResult Function( DetalheCarregado value)  carregado,required TResult Function( DetalheErro value)  erro,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( DetalheCarregando value)  carregando,required TResult Function( DetalheCarregado value)  carregado,required TResult Function( DetalheErro value)  erro,required TResult Function( DetalheNaoEncontrado value)  naoEncontrado,}){
 final _that = this;
 switch (_that) {
 case DetalheCarregando():
 return carregando(_that);case DetalheCarregado():
 return carregado(_that);case DetalheErro():
-return erro(_that);}
+return erro(_that);case DetalheNaoEncontrado():
+return naoEncontrado(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
 ///
@@ -100,13 +102,14 @@ return erro(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( DetalheCarregando value)?  carregando,TResult? Function( DetalheCarregado value)?  carregado,TResult? Function( DetalheErro value)?  erro,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( DetalheCarregando value)?  carregando,TResult? Function( DetalheCarregado value)?  carregado,TResult? Function( DetalheErro value)?  erro,TResult? Function( DetalheNaoEncontrado value)?  naoEncontrado,}){
 final _that = this;
 switch (_that) {
 case DetalheCarregando() when carregando != null:
 return carregando(_that);case DetalheCarregado() when carregado != null:
 return carregado(_that);case DetalheErro() when erro != null:
-return erro(_that);case _:
+return erro(_that);case DetalheNaoEncontrado() when naoEncontrado != null:
+return naoEncontrado(_that);case _:
   return null;
 
 }
@@ -123,12 +126,13 @@ return erro(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  carregando,TResult Function( DetalheImovel detalhe)?  carregado,TResult Function()?  erro,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  carregando,TResult Function( DetalheImovel detalhe)?  carregado,TResult Function()?  erro,TResult Function()?  naoEncontrado,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case DetalheCarregando() when carregando != null:
 return carregando();case DetalheCarregado() when carregado != null:
 return carregado(_that.detalhe);case DetalheErro() when erro != null:
-return erro();case _:
+return erro();case DetalheNaoEncontrado() when naoEncontrado != null:
+return naoEncontrado();case _:
   return orElse();
 
 }
@@ -146,12 +150,13 @@ return erro();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  carregando,required TResult Function( DetalheImovel detalhe)  carregado,required TResult Function()  erro,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  carregando,required TResult Function( DetalheImovel detalhe)  carregado,required TResult Function()  erro,required TResult Function()  naoEncontrado,}) {final _that = this;
 switch (_that) {
 case DetalheCarregando():
 return carregando();case DetalheCarregado():
 return carregado(_that.detalhe);case DetalheErro():
-return erro();}
+return erro();case DetalheNaoEncontrado():
+return naoEncontrado();}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -165,12 +170,13 @@ return erro();}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  carregando,TResult? Function( DetalheImovel detalhe)?  carregado,TResult? Function()?  erro,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  carregando,TResult? Function( DetalheImovel detalhe)?  carregado,TResult? Function()?  erro,TResult? Function()?  naoEncontrado,}) {final _that = this;
 switch (_that) {
 case DetalheCarregando() when carregando != null:
 return carregando();case DetalheCarregado() when carregado != null:
 return carregado(_that.detalhe);case DetalheErro() when erro != null:
-return erro();case _:
+return erro();case DetalheNaoEncontrado() when naoEncontrado != null:
+return naoEncontrado();case _:
   return null;
 
 }
@@ -311,6 +317,38 @@ int get hashCode => runtimeType.hashCode;
 @override
 String toString() {
     return 'DetalheImovelState.erro()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class DetalheNaoEncontrado implements DetalheImovelState {
+  const DetalheNaoEncontrado();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is DetalheNaoEncontrado);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+    return 'DetalheImovelState.naoEncontrado()';
 }
 
 

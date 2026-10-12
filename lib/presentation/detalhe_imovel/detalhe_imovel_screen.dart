@@ -91,6 +91,9 @@ class DetalheImovelScreen extends StatelessWidget {
                   child: _SecaoDescricao(descricao: detalhe.descricao),
                 ),
                 DetalheErro() => const SliverToBoxAdapter(child: _CorpoErro()),
+                DetalheNaoEncontrado() => const SliverToBoxAdapter(
+                  child: SizedBox.shrink(),
+                ),
               },
               SliverPadding(
                 padding: EdgeInsets.only(
