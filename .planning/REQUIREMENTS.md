@@ -41,7 +41,7 @@ Requisitos da primeira entrega (tarefas APP01, APP02, APP03, APP04 + os endpoint
 - [ ] **DET-03**: A página mostra os preços de venda e/ou aluguel, condomínio e IPTU exatamente como vieram da API (valores formatados, nunca calculados no app).
 - [ ] **DET-04**: A página mostra os dados da natureza — casa (terreno, área construída, área livre), terreno (frente, fundo, topografia), apartamento (dados do prédio) e lote (quadra e loteamento); campo nulo omite a linha e seção vazia some.
 - [ ] **DET-05**: A página mostra descrição, características e o corretor responsável com foto; tocar no corretor abre a tela de perfil do corretor, cujo conteúdo completo é do APP 07.
-- [ ] **DET-06**: Imóvel não encontrado (404) mostra "Este imóvel não está mais disponível" com volta à vitrine; os demais erros mostram "Tentar de novo".
+- [x] **DET-06**: Imóvel não encontrado (404) mostra "Este imóvel não está mais disponível" com volta à vitrine; os demais erros mostram "Tentar de novo".
 
 ### API pública (endpoints que o app consome)
 
@@ -106,7 +106,7 @@ Excluídos de propósito. Documentados para evitar scope creep.
 | DET-03 | Phase 4 | Pending |
 | DET-04 | Phase 4 | Pending |
 | DET-05 | Phase 4 | Pending |
-| DET-06 | Phase 4 | Pending |
+| DET-06 | Phase 4 | Complete |
 | API-06 | Phase 4 | Pending |
 | API-03 | Phase 5 | Pending |
 | API-07 | Phase 5 | Pending |

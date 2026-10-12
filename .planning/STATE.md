@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 04
 current_phase_name: Página do Imóvel — Galeria e Dados da Natureza
 status: executing
-stopped_at: Completed 04-02-PLAN.md
-last_updated: "2026-10-12T05:24:50.277Z"
+stopped_at: Completed 04-03-PLAN.md
+last_updated: "2026-10-12T05:29:30.142Z"
 last_activity: 2026-10-12
 last_activity_desc: Phase 04 execution started
-state_head: 1f68f1e290767d1fc834ba21721a810d1290969b
+state_head: e905e331acf17717fc6f964d53b14ab7c38ba59d
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 22
-  completed_plans: 16
+  completed_plans: 17
   percent: 0
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-09-21)
 ## Current Position
 
 Phase: 04 (Página do Imóvel — Galeria e Dados da Natureza) — EXECUTING
-Plan: 3 of 8
+Plan: 4 of 8
 Status: Ready to execute
 Last activity: 2026-10-12 — Phase 04 execution started
 
@@ -67,6 +67,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 03 P01 | 50min | 2 tasks | 21 files |
 | Phase 4 P01 | 25 min | 2 tasks | 24 files |
 | Phase 04 P02 | 3 min | 2 tasks | 6 files |
+| Phase 04 P03 | 15 min | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -91,6 +92,7 @@ Recent decisions affecting current work:
 - [Phase 4]: 04-01: abrirDetalheImovel e o unico ponto que resolve o DetalheImovelCubit no DI (no toque); VitrineScreen recebe aoAbrirImovel (default abrirDetalheImovel) para manter testes da vitrine sem DI — Mantem widgets testaveis e sem dependencia oculta (T-04-01-04)
 - [Phase 4]: 04-01: mock do detalhe serve mapas de wire parseados por DetalheImovelModel.fromJson; ImovelNaoEncontradoException simula o 404 (D-01) — Troca mock->real na Fase 5 vira so mudanca de DI (API-07)
 - [Phase 04]: 04-02: §11 do contrato lista pendencias E2 a-k com tratamento defensivo do app; teste de contrato guarda allowlist por objeto e coerencia natureza x bloco em toda entrada da fixture — Congela o wire do detalhe por escrito sem decidir pelo E2; fixtures futuras (04-04/04-05) sao checadas automaticamente
+- [Phase 04]: 404 detectado só em data/ (DioException 404 -> ImovelNaoEncontradoException); presentation decide só pelo tipo de domínio e esconde a prévia (preço) no 404 — Repetir não resolve um imóvel despublicado; a Fase 5 troca a DataSource sem tocar acima do repositório
 
 ### Pending Todos
 
@@ -119,6 +121,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-12T05:24:50.244Z
-Stopped at: Completed 04-02-PLAN.md
+Last session: 2026-10-12T05:29:30.109Z
+Stopped at: Completed 04-03-PLAN.md
 Resume file: None

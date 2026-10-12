@@ -144,7 +144,7 @@ Plans:
   5. Mostra o corretor responsável com foto e o caminho para o perfil dele.
   6. Tudo vem do detalhe da API (contrato de `GET /api/publico/imoveis/{id}/`), sem dado montado dentro do app — nesta fase via DataSource mock que respeita o contrato; a troca pela real fica na Phase 5.
 
-**Plans**: 2/8 plans executed
+**Plans**: 3/8 plans executed
 Plans:
 **Wave 1**
 
@@ -153,7 +153,7 @@ Plans:
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [x] 04-02-PLAN.md — Contrato §11 + `imovel_detalhe.example.json` servido tal e qual pelo mock (teste de allowlist) + IDs DET-01..06/API-06/API-07 (API-06)
-- [ ] 04-03-PLAN.md — Erros tipados na camada de dados (404/TypeError) + estado "Este imóvel não está mais disponível" separado de "Tentar de novo" (DET-06)
+- [x] 04-03-PLAN.md — Erros tipados na camada de dados (404/TypeError) + estado "Este imóvel não está mais disponível" separado de "Tentar de novo" (DET-06)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -203,5 +203,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Localização, Escolha de Cidade e Contrato da API | 4/4 | In Progress|  |
 | 2. Vitrine — Lista, Busca e Ordenação | 5/5 | In Progress|  |
 | 3. Vitrine — Filtros Server-Side | 5/5 | In Progress|  |
-| 4. Página do Imóvel — Galeria e Dados da Natureza | 2/8 | In Progress|  |
+| 4. Página do Imóvel — Galeria e Dados da Natureza | 3/8 | In Progress|  |
 | 5. Imóveis Real — Endpoint Público e Integração Final | 0/TBD | Not started | - |
