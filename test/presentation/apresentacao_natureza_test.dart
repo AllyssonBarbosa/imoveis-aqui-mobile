@@ -285,7 +285,10 @@ void main() {
         'Condições de parcelamento',
       ]);
       expect(linhasComo(lote), contains(('Número do lote', '12')));
-      expect(linhasComo(lote), contains(('Preço do lote', 'R\$ 210.500,50')));
+      expect(
+        linhasComo(lote),
+        contains(('Preço do lote', 'R\$\u00A0210.500,50')),
+      );
       expect(
         linhasComo(lote),
         contains((

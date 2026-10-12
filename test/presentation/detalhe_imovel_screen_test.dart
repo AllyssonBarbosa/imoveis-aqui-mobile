@@ -203,7 +203,7 @@ void main() {
 
       expect(find.text('Sobre o lote'), findsOneWidget);
       expect(find.text('Preço do lote'), findsOneWidget);
-      expect(find.text('R\$ 210.500,50'), findsOneWidget);
+      expect(find.text('R\$\u00A0210.500,50'), findsOneWidget);
     });
 
     testWidgets('lote sem preço próprio não mostra "Preço do lote"', (

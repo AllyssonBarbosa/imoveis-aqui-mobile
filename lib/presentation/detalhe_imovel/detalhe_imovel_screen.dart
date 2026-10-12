@@ -9,6 +9,8 @@ import '../vitrine/apresentacao_imovel.dart';
 import '../vitrine/widgets/foto_capa_imovel.dart';
 import 'detalhe_imovel_cubit.dart';
 import 'detalhe_imovel_state.dart';
+import 'widgets/secao_natureza.dart';
+import 'widgets/secoes_detalhe.dart';
 
 /// Assinatura de quem abre a página de um imóvel a partir da vitrine —
 /// `VitrineScreen` recebe uma por parâmetro (default [abrirDetalheImovel])
@@ -89,8 +91,16 @@ class DetalheImovelScreen extends StatelessWidget {
                     child: Center(child: CircularProgressIndicator()),
                   ),
                 ),
+                // Natureza antes da descrição (D-11).
                 DetalheCarregado(:final detalhe) => SliverToBoxAdapter(
-                  child: _SecaoDescricao(descricao: detalhe.descricao),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (detalhe.dados case final dados?)
+                        SecaoNatureza(dados: dados),
+                      SecaoDescricao(descricao: detalhe.descricao),
+                    ],
+                  ),
                 ),
                 DetalheErro() => const SliverToBoxAdapter(child: _CorpoErro()),
                 DetalheNaoEncontrado() => const SliverFillRemaining(
@@ -147,31 +157,6 @@ class _Cabecalho extends StatelessWidget {
               linha,
               style: textTheme.titleLarge?.copyWith(color: colorScheme.primary),
             ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Seção "Descrição" (D-14) — texto simples, nunca HTML nem links; some por
-/// inteiro quando a descrição vem vazia.
-class _SecaoDescricao extends StatelessWidget {
-  const _SecaoDescricao({required this.descricao});
-
-  final String descricao;
-
-  @override
-  Widget build(BuildContext context) {
-    if (descricao.trim().isEmpty) return const SizedBox.shrink();
-    final textTheme = Theme.of(context).textTheme;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Descrição', style: textTheme.titleMedium),
-          const SizedBox(height: 8),
-          Text(descricao, style: textTheme.bodyMedium),
         ],
       ),
     );
