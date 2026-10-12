@@ -25,33 +25,66 @@ String formatarPrecoBrl(String valorDecimal) {
   return formatador.format(valor);
 }
 
-/// Linhas de preço do card (D-02): `VENDA_E_ALUGUEL` mostra os dois preços
-/// empilhados com prefixo; `VENDA`/`ALUGUEL` mostram só o preço
-/// correspondente (aluguel com sufixo "/mês"); nenhum preço disponível vira
-/// "Preço sob consulta".
-List<String> linhasDePreco(Imovel imovel) {
+/// Linhas de preço do card (D-02): delega a [linhasDePrecoPorFinalidade].
+List<String> linhasDePreco(Imovel imovel) => linhasDePrecoPorFinalidade(
+  finalidade: imovel.finalidade,
+  precoVenda: imovel.precoVenda,
+  precoAluguel: imovel.precoAluguel,
+);
+
+/// Linhas de preço a partir dos campos soltos — compartilhada pelo card da
+/// vitrine (via [linhasDePreco]) e pelo cabeçalho do detalhe: `VENDA_E_ALUGUEL`
+/// mostra os dois preços empilhados com prefixo; `VENDA`/`ALUGUEL` mostram só o
+/// preço correspondente (aluguel com sufixo "/mês"); nenhum preço disponível
+/// vira "Preço sob consulta". Só formata, nunca calcula.
+List<String> linhasDePrecoPorFinalidade({
+  required FinalidadeImovel finalidade,
+  String? precoVenda,
+  String? precoAluguel,
+}) {
   final linhas = <String>[];
 
-  switch (imovel.finalidade) {
+  switch (finalidade) {
     case FinalidadeImovel.venda:
-      if (imovel.precoVenda != null) {
-        linhas.add(formatarPrecoBrl(imovel.precoVenda!));
+      if (precoVenda != null) {
+        linhas.add(formatarPrecoBrl(precoVenda));
       }
     case FinalidadeImovel.aluguel:
-      if (imovel.precoAluguel != null) {
-        linhas.add('${formatarPrecoBrl(imovel.precoAluguel!)}/mês');
+      if (precoAluguel != null) {
+        linhas.add('${formatarPrecoBrl(precoAluguel)}/mês');
       }
     case FinalidadeImovel.vendaEAluguel:
-      if (imovel.precoVenda != null) {
-        linhas.add('Venda ${formatarPrecoBrl(imovel.precoVenda!)}');
+      if (precoVenda != null) {
+        linhas.add('Venda ${formatarPrecoBrl(precoVenda)}');
       }
-      if (imovel.precoAluguel != null) {
-        linhas.add('Aluguel ${formatarPrecoBrl(imovel.precoAluguel!)}/mês');
+      if (precoAluguel != null) {
+        linhas.add('Aluguel ${formatarPrecoBrl(precoAluguel)}/mês');
       }
   }
 
   if (linhas.isEmpty) return const ['Preço sob consulta'];
   return linhas;
+}
+
+/// Localização do imóvel: "bairro · cidade, UF"; o bairro é omitido quando
+/// vazio.
+String rotuloLocalizacao(String bairro, Cidade cidade) {
+  return [
+    bairro,
+    '${cidade.nome}, ${cidade.uf}',
+  ].where((texto) => texto.isNotEmpty).join(' · ');
+}
+
+/// Linhas de custo do detalhe: "Condomínio R$ X/mês" (condomínio é mensal por
+/// natureza) e "IPTU R$ Y" — o período do IPTU está PENDENTE E2 (§11 item c),
+/// então o app não afirma "/mês" nem "/ano". Cada linha só aparece quando o
+/// valor veio; apenas formata, nunca soma nem converte período.
+List<String> linhasDeCustos({String? precoCondominio, String? precoIptu}) {
+  return [
+    if (precoCondominio != null)
+      'Condomínio ${formatarPrecoBrl(precoCondominio)}/mês',
+    if (precoIptu != null) 'IPTU ${formatarPrecoBrl(precoIptu)}',
+  ];
 }
 
 /// Rótulo em PT da natureza do imóvel — `null` quando o campo ainda não veio
@@ -72,15 +105,3 @@ String? rotuloQuartos(int? quartos) {
   if (quartos == null || quartos == 0) return null;
   return quartos == 1 ? '1 quarto' : '$quartos quartos';
 }
-
-// Esqueletos (RED): só compilam; o comportamento vem no commit GREEN.
-List<String> linhasDePrecoPorFinalidade({
-  required FinalidadeImovel finalidade,
-  String? precoVenda,
-  String? precoAluguel,
-}) => const [];
-
-String rotuloLocalizacao(String bairro, Cidade cidade) => '';
-
-List<String> linhasDeCustos({String? precoCondominio, String? precoIptu}) =>
-    const [];

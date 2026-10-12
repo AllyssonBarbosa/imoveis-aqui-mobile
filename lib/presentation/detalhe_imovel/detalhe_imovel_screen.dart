@@ -111,7 +111,36 @@ class DetalheImovelScreen extends StatelessWidget {
               ),
               // No 404 o imóvel saiu do ar: o preço da prévia não é mostrado.
               if (state is! DetalheNaoEncontrado)
-                SliverToBoxAdapter(child: _Cabecalho(previa: previa)),
+                SliverToBoxAdapter(
+                  child: switch (state) {
+                    // Carregado: o mesmo cabeçalho, agora alimentado pelo
+                    // detalhe (preços completos e custos), no mesmo lugar.
+                    DetalheCarregado(:final detalhe) => _Cabecalho(
+                      titulo: detalhe.titulo,
+                      localizacao: rotuloLocalizacao(
+                        detalhe.bairro,
+                        detalhe.cidade,
+                      ),
+                      linhasPreco: linhasDePrecoPorFinalidade(
+                        finalidade: detalhe.finalidade,
+                        precoVenda: detalhe.precoVenda,
+                        precoAluguel: detalhe.precoAluguel,
+                      ),
+                      linhasCustos: linhasDeCustos(
+                        precoCondominio: detalhe.precoCondominio,
+                        precoIptu: detalhe.precoIptu,
+                      ),
+                    ),
+                    _ => _Cabecalho(
+                      titulo: previa.titulo,
+                      localizacao: rotuloLocalizacao(
+                        previa.bairro,
+                        previa.cidade,
+                      ),
+                      linhasPreco: linhasDePreco(previa),
+                    ),
+                  },
+                ),
               switch (state) {
                 DetalheCarregando() => const SliverToBoxAdapter(
                   child: Padding(
@@ -127,6 +156,9 @@ class DetalheImovelScreen extends StatelessWidget {
                       if (detalhe.dados case final dados?)
                         SecaoNatureza(dados: dados),
                       SecaoDescricao(descricao: detalhe.descricao),
+                      SecaoCaracteristicas(
+                        caracteristicas: detalhe.caracteristicas,
+                      ),
                     ],
                   ),
                 ),
@@ -149,29 +181,33 @@ class DetalheImovelScreen extends StatelessWidget {
   }
 }
 
-/// Título, localização e preço(s) da prévia — fica no mesmo lugar do início
-/// ao fim do carregamento (Pitfall 8).
+/// Título, localização, preço(s) e custos — alimentado pela prévia enquanto o
+/// detalhe carrega e pelo próprio detalhe depois; é o mesmo widget no mesmo
+/// lugar do início ao fim (Pitfall 8). Só apresenta strings já prontas.
 class _Cabecalho extends StatelessWidget {
-  const _Cabecalho({required this.previa});
+  const _Cabecalho({
+    required this.titulo,
+    required this.localizacao,
+    required this.linhasPreco,
+    this.linhasCustos = const [],
+  });
 
-  final Imovel previa;
+  final String titulo;
+  final String localizacao;
+  final List<String> linhasPreco;
+  final List<String> linhasCustos;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    final localizacao = [
-      previa.bairro,
-      '${previa.cidade.nome}, ${previa.cidade.uf}',
-    ].where((texto) => texto.isNotEmpty).join(' · ');
-
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(previa.titulo, style: textTheme.headlineSmall),
+          Text(titulo, style: textTheme.headlineSmall),
           const SizedBox(height: 4),
           Text(
             localizacao,
@@ -180,10 +216,20 @@ class _Cabecalho extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          for (final linha in linhasDePreco(previa))
+          for (final linha in linhasPreco)
             Text(
               linha,
               style: textTheme.titleLarge?.copyWith(color: colorScheme.primary),
+            ),
+          for (final linha in linhasCustos)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                linha,
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
             ),
         ],
       ),

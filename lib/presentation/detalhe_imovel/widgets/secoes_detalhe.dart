@@ -44,14 +44,25 @@ class SecaoDescricao extends StatelessWidget {
   }
 }
 
-/// Esqueleto (RED): só compila; o comportamento vem no commit GREEN.
+/// Seção "Características" (D-14): um `Chip` por característica, em linhas
+/// que quebram; some por inteiro quando a lista vem vazia.
 class SecaoCaracteristicas extends StatelessWidget {
   const SecaoCaracteristicas({super.key, required this.caracteristicas});
 
   final List<String> caracteristicas;
 
   @override
-  Widget build(BuildContext context) => const SizedBox.shrink();
+  Widget build(BuildContext context) {
+    if (caracteristicas.isEmpty) return const SizedBox.shrink();
+    return SecaoDetalhe(
+      titulo: 'Características',
+      conteudo: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [for (final nome in caracteristicas) Chip(label: Text(nome))],
+      ),
+    );
+  }
 }
 
 /// Lista de linhas rótulo/valor (rótulo à esquerda em `onSurfaceVariant`,
