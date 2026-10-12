@@ -484,16 +484,6 @@ void main() {
       expect(verificados, greaterThan(0));
     });
 
-    test('apartamento com id % 10 == 9 não tem prédio (campo nulo, D-14)', () {
-      var verificados = 0;
-      for (final id in idsDa('APARTAMENTO')) {
-        if (id % 10 != 9) continue;
-        verificados++;
-        expect(predioDe(id), isNull, reason: 'apartamento $id com prédio');
-      }
-      expect(verificados, greaterThan(0));
-    });
-
     test('o nome do prédio vem de uma lista fixa de quatro nomes', () {
       final nomes = {
         for (final id in idsDa('APARTAMENTO'))

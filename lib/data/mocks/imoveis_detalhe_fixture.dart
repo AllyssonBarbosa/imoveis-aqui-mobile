@@ -187,37 +187,67 @@ Map<String, Object?> _detalheGerado(Map<String, Object?> linha) {
 }
 
 /// Blocos curados (sobrepostos ao gerado) que provam casos que a geração
-/// por fórmula não cobre. O 57 traz `area_livre` de 100,00 com terreno de
-/// 300,00 e construída de 180,00 — deliberadamente NÃO a diferença (120,00)
-/// — para provar que o app nunca calcula a área livre (D-04).
-const Map<int, Map<String, Object?>> _blocosCurados = {
-  57: {
-    'area_terreno': '300.00',
-    'area_construida': '180.00',
-    'area_livre': '100.00',
-    'quartos': 3,
-    'suites': 0,
-    'banheiros': 2,
-    'salas': 2,
-    'vagas': 2,
-    'pavimentos': 1,
-    'ano_construcao': 1998,
-    'piscina': false,
-    'quintal': true,
-    'churrasqueira': true,
-    'mobiliada': false,
-  },
-  63: {
-    'area_total': '300.00',
-    'frente': '12.00',
-    'fundo': '25.00',
-    'laterais': '25.00',
-    'topografia': 'ACLIVE',
-    'murado': true,
-    'esquina': false,
-    'uso_permitido': 'Residencial',
-  },
-};
+/// por fórmula não cobre; cada chamada devolve mapas novos.
+///
+/// - 57: `area_livre` de 100,00 com terreno de 300,00 e construída de
+///   180,00 — deliberadamente NÃO a diferença (120,00) — prova que o app
+///   nunca calcula a área livre (D-04).
+/// - 63: terreno aclive de 12 x 25.
+/// - 103: o único lote com `preco` (a mesma string do `preco_venda` do card,
+///   copiada aqui como valor do servidor simulado: nada a deriva em runtime,
+///   D-19 d) e com condições de parcelamento, para exercitar o caminho
+///   "mostra só se vier"; traz também a quadra B do Residencial Parque das
+///   Flores.
+Map<String, Object?>? _blocoCurado(int id) {
+  return switch (id) {
+    57 => {
+      'area_terreno': '300.00',
+      'area_construida': '180.00',
+      'area_livre': '100.00',
+      'quartos': 3,
+      'suites': 0,
+      'banheiros': 2,
+      'salas': 2,
+      'vagas': 2,
+      'pavimentos': 1,
+      'ano_construcao': 1998,
+      'piscina': false,
+      'quintal': true,
+      'churrasqueira': true,
+      'mobiliada': false,
+    },
+    63 => {
+      'area_total': '300.00',
+      'frente': '12.00',
+      'fundo': '25.00',
+      'laterais': '25.00',
+      'topografia': 'ACLIVE',
+      'murado': true,
+      'esquina': false,
+      'uso_permitido': 'Residencial',
+    },
+    103 => {
+      'preco': '210500.50',
+      'condicoes_parcelamento': 'Entrada de 20% e saldo em até 120 meses',
+      'quadra': {
+        'identificacao': 'Quadra B',
+        'loteamento': {
+          'nome': 'Residencial Parque das Flores',
+          'incorporadora': 'Flores Urbanismo',
+          'infraestrutura': [
+            'Asfalto',
+            'Água encanada',
+            'Rede de esgoto',
+            'Energia elétrica',
+            'Iluminação pública',
+          ],
+          'areas_lazer': ['Praça', 'Playground', 'Quadra poliesportiva'],
+        },
+      },
+    },
+    _ => null,
+  };
+}
 
 /// Rótulos de posição solar como a API os manda: texto legível, não código de
 /// enum (D-19 b).
@@ -226,6 +256,48 @@ const List<String> _posicoesSolares = ['Nascente', 'Poente', 'Norte', 'Sul'];
 const List<String> _topografias = ['PLANO', 'ACLIVE', 'DECLIVE'];
 
 const List<String> _usosPermitidos = ['Residencial', 'Comercial', 'Misto'];
+
+const List<String> _nomesDePredio = [
+  'Edifício Aurora',
+  'Residencial Vila Verde',
+  'Edifício Solar das Palmeiras',
+  'Condomínio Mirante do Parque',
+];
+
+const List<String> _nomesDeLoteamento = [
+  'Loteamento Vale Verde',
+  'Residencial Recanto das Águas',
+  'Jardim Primavera',
+];
+
+const List<String> _incorporadoras = [
+  'Vale Urbanismo',
+  'Águas Empreendimentos',
+  'Primavera Desenvolvimento Imobiliário',
+];
+
+const List<String> _infraestruturasDeLoteamento = [
+  'Asfalto',
+  'Água encanada',
+  'Rede de esgoto',
+  'Energia elétrica',
+  'Iluminação pública',
+  'Galeria de águas pluviais',
+];
+
+const List<String> _areasDeLazerDeLoteamento = [
+  'Praça',
+  'Playground',
+  'Quadra poliesportiva',
+  'Pista de caminhada',
+  'Salão comunitário',
+];
+
+/// `quantidade` itens de [lista] a partir de [inicio], dando a volta no fim:
+/// a "janela" fixa que varia de lote para lote sem usar aleatoriedade.
+List<String> _janela(List<String> lista, int inicio, int quantidade) => [
+  for (var i = 0; i < quantidade; i++) lista[(inicio + i) % lista.length],
+];
 
 /// As quatro chaves de bloco, só a da natureza do card preenchida. Valores
 /// derivados do `id` e da linha da lista (quartos/suítes/vagas e área do card
@@ -253,7 +325,7 @@ Map<String, Object?> _blocosDeNatureza(
       : {
           for (final campo in gerado.entries)
             campo.key: camposNulos ? null : campo.value,
-          ...?_blocosCurados[id],
+          ...?_blocoCurado(id),
         };
 
   return {
@@ -310,6 +382,26 @@ Map<String, Object?> _blocoApartamento(
     'vagas': linha['vagas'],
     'varanda': variante % 2 == 0,
     'posicao_solar': _posicoesSolares[variante % _posicoesSolares.length],
+    'predio': _predioGerado(variante),
+  };
+}
+
+/// Prédio do apartamento: nome de uma lista fixa de quatro, números e flags
+/// derivados da variante. Os apartamentos gerados têm sempre id par, então
+/// nunca caem no caso `id % 10 == 9` (bloco todo nulo): o prédio ausente é
+/// provado pelo Model, não pela fixture.
+Map<String, Object?> _predioGerado(int variante) {
+  return {
+    'nome': _nomesDePredio[variante % _nomesDePredio.length],
+    'andares': 8 + variante % 12,
+    'unidades_por_andar': 2 + variante % 4,
+    'ano': 1995 + variante % 30,
+    'elevadores': 1 + variante % 3,
+    'portaria_24h': variante % 2 == 0,
+    'piscina': variante % 3 == 0,
+    'academia': variante % 4 < 2,
+    'salao_de_festas': variante % 5 != 0,
+    'playground': variante % 2 == 1,
   };
 }
 
@@ -337,6 +429,29 @@ Map<String, Object?> _blocoLote(Map<String, Object?> linha, int variante) {
     'fundo': _decimal(25.0 + (variante % 3) * 5),
     'preco': null,
     'condicoes_parcelamento': null,
+    'quadra': _quadraGerada(variante),
+  };
+}
+
+/// Quadra e loteamento embutidos: nome e incorporadora das listas fixas por
+/// `variante % 3`, infraestrutura e lazer como janelas das listas fixas.
+Map<String, Object?> _quadraGerada(int variante) {
+  return {
+    'identificacao': 'Quadra ${'ABCDEF'[variante % 6]}',
+    'loteamento': {
+      'nome': _nomesDeLoteamento[variante % 3],
+      'incorporadora': _incorporadoras[variante % 3],
+      'infraestrutura': _janela(
+        _infraestruturasDeLoteamento,
+        variante % 6,
+        3 + variante % 3,
+      ),
+      'areas_lazer': _janela(
+        _areasDeLazerDeLoteamento,
+        variante % 5,
+        2 + variante % 2,
+      ),
+    },
   };
 }
 

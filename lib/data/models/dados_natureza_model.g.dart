@@ -77,6 +77,9 @@ _ApartamentoModel _$ApartamentoModelFromJson(Map<String, dynamic> json) =>
       vagas: (json['vagas'] as num?)?.toInt(),
       varanda: json['varanda'] as bool?,
       posicaoSolar: json['posicao_solar'] as String?,
+      predio: json['predio'] == null
+          ? null
+          : PredioModel.fromJson(json['predio'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$ApartamentoModelToJson(_ApartamentoModel instance) =>
@@ -91,6 +94,7 @@ Map<String, dynamic> _$ApartamentoModelToJson(_ApartamentoModel instance) =>
       'vagas': instance.vagas,
       'varanda': instance.varanda,
       'posicao_solar': instance.posicaoSolar,
+      'predio': instance.predio,
     };
 
 _LoteModel _$LoteModelFromJson(Map<String, dynamic> json) => _LoteModel(
@@ -100,6 +104,9 @@ _LoteModel _$LoteModelFromJson(Map<String, dynamic> json) => _LoteModel(
   fundo: json['fundo'] as String?,
   preco: json['preco'] as String?,
   condicoesParcelamento: json['condicoes_parcelamento'] as String?,
+  quadra: json['quadra'] == null
+      ? null
+      : QuadraModel.fromJson(json['quadra'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$LoteModelToJson(_LoteModel instance) =>
@@ -110,4 +117,69 @@ Map<String, dynamic> _$LoteModelToJson(_LoteModel instance) =>
       'fundo': instance.fundo,
       'preco': instance.preco,
       'condicoes_parcelamento': instance.condicoesParcelamento,
+      'quadra': instance.quadra,
+    };
+
+_PredioModel _$PredioModelFromJson(Map<String, dynamic> json) => _PredioModel(
+  nome: json['nome'] as String?,
+  andares: (json['andares'] as num?)?.toInt(),
+  unidadesPorAndar: (json['unidades_por_andar'] as num?)?.toInt(),
+  ano: (json['ano'] as num?)?.toInt(),
+  elevadores: (json['elevadores'] as num?)?.toInt(),
+  portaria24h: json['portaria_24h'] as bool?,
+  piscina: json['piscina'] as bool?,
+  academia: json['academia'] as bool?,
+  salaoDeFestas: json['salao_de_festas'] as bool?,
+  playground: json['playground'] as bool?,
+);
+
+Map<String, dynamic> _$PredioModelToJson(_PredioModel instance) =>
+    <String, dynamic>{
+      'nome': instance.nome,
+      'andares': instance.andares,
+      'unidades_por_andar': instance.unidadesPorAndar,
+      'ano': instance.ano,
+      'elevadores': instance.elevadores,
+      'portaria_24h': instance.portaria24h,
+      'piscina': instance.piscina,
+      'academia': instance.academia,
+      'salao_de_festas': instance.salaoDeFestas,
+      'playground': instance.playground,
+    };
+
+_QuadraModel _$QuadraModelFromJson(Map<String, dynamic> json) => _QuadraModel(
+  identificacao: json['identificacao'] as String?,
+  loteamento: json['loteamento'] == null
+      ? null
+      : LoteamentoModel.fromJson(json['loteamento'] as Map<String, dynamic>),
+);
+
+Map<String, dynamic> _$QuadraModelToJson(_QuadraModel instance) =>
+    <String, dynamic>{
+      'identificacao': instance.identificacao,
+      'loteamento': instance.loteamento,
+    };
+
+_LoteamentoModel _$LoteamentoModelFromJson(Map<String, dynamic> json) =>
+    _LoteamentoModel(
+      nome: json['nome'] as String?,
+      incorporadora: json['incorporadora'] as String?,
+      infraestrutura:
+          (json['infraestrutura'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const <String>[],
+      areasLazer:
+          (json['areas_lazer'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const <String>[],
+    );
+
+Map<String, dynamic> _$LoteamentoModelToJson(_LoteamentoModel instance) =>
+    <String, dynamic>{
+      'nome': instance.nome,
+      'incorporadora': instance.incorporadora,
+      'infraestrutura': instance.infraestrutura,
+      'areas_lazer': instance.areasLazer,
     };

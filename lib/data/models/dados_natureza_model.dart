@@ -60,7 +60,7 @@ abstract class TerrenoModel with _$TerrenoModel {
     String? frente,
     String? fundo,
     String? laterais,
-    String? topografia,
+    @JsonKey(name: 'topografia') String? topografia,
     bool? murado,
     bool? esquina,
     @JsonKey(name: 'uso_permitido') String? usoPermitido,
@@ -112,6 +112,7 @@ abstract class ApartamentoModel with _$ApartamentoModel {
     int? vagas,
     bool? varanda,
     @JsonKey(name: 'posicao_solar') String? posicaoSolar,
+    PredioModel? predio,
   }) = _ApartamentoModel;
 
   factory ApartamentoModel.fromJson(Map<String, Object?> json) =>
@@ -128,6 +129,7 @@ abstract class ApartamentoModel with _$ApartamentoModel {
     vagas: vagas,
     varanda: varanda,
     posicaoSolar: posicaoSolar,
+    predio: predio?.paraEntidade(),
   );
 }
 
@@ -144,6 +146,7 @@ abstract class LoteModel with _$LoteModel {
     String? fundo,
     String? preco,
     @JsonKey(name: 'condicoes_parcelamento') String? condicoesParcelamento,
+    QuadraModel? quadra,
   }) = _LoteModel;
 
   factory LoteModel.fromJson(Map<String, Object?> json) =>
@@ -156,5 +159,84 @@ abstract class LoteModel with _$LoteModel {
     fundo: fundo,
     preco: preco,
     condicoesParcelamento: condicoesParcelamento,
+    quadra: quadra?.paraEntidade(),
+  );
+}
+
+/// Prédio embutido em `apartamento.predio` no formato de transporte.
+@freezed
+abstract class PredioModel with _$PredioModel {
+  const PredioModel._();
+
+  const factory PredioModel({
+    String? nome,
+    int? andares,
+    @JsonKey(name: 'unidades_por_andar') int? unidadesPorAndar,
+    int? ano,
+    int? elevadores,
+    @JsonKey(name: 'portaria_24h') bool? portaria24h,
+    bool? piscina,
+    bool? academia,
+    @JsonKey(name: 'salao_de_festas') bool? salaoDeFestas,
+    bool? playground,
+  }) = _PredioModel;
+
+  factory PredioModel.fromJson(Map<String, Object?> json) =>
+      _$PredioModelFromJson(json);
+
+  DadosPredio paraEntidade() => DadosPredio(
+    nome: nome,
+    andares: andares,
+    unidadesPorAndar: unidadesPorAndar,
+    ano: ano,
+    elevadores: elevadores,
+    portaria24h: portaria24h,
+    piscina: piscina,
+    academia: academia,
+    salaoDeFestas: salaoDeFestas,
+    playground: playground,
+  );
+}
+
+/// Quadra embutida em `lote.quadra` no formato de transporte.
+@freezed
+abstract class QuadraModel with _$QuadraModel {
+  const QuadraModel._();
+
+  const factory QuadraModel({
+    String? identificacao,
+    LoteamentoModel? loteamento,
+  }) = _QuadraModel;
+
+  factory QuadraModel.fromJson(Map<String, Object?> json) =>
+      _$QuadraModelFromJson(json);
+
+  DadosQuadra paraEntidade() => DadosQuadra(
+    identificacao: identificacao,
+    loteamento: loteamento?.paraEntidade(),
+  );
+}
+
+/// Loteamento embutido em `quadra.loteamento` no formato de transporte;
+/// listas ausentes viram vazias.
+@freezed
+abstract class LoteamentoModel with _$LoteamentoModel {
+  const LoteamentoModel._();
+
+  const factory LoteamentoModel({
+    String? nome,
+    String? incorporadora,
+    @Default(<String>[]) List<String> infraestrutura,
+    @JsonKey(name: 'areas_lazer') @Default(<String>[]) List<String> areasLazer,
+  }) = _LoteamentoModel;
+
+  factory LoteamentoModel.fromJson(Map<String, Object?> json) =>
+      _$LoteamentoModelFromJson(json);
+
+  DadosLoteamento paraEntidade() => DadosLoteamento(
+    nome: nome,
+    incorporadora: incorporadora,
+    infraestrutura: infraestrutura,
+    areasLazer: areasLazer,
   );
 }

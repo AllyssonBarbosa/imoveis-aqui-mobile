@@ -1,0 +1,83 @@
+{
+  "id": 103,
+  "titulo": "Lote no Centro",
+  "finalidade": "VENDA",
+  "preco_venda": "210500.50",
+  "preco_aluguel": null,
+  "preco_condominio": null,
+  "preco_iptu": "1040.00",
+  "descricao": "Imóvel bem cuidado, pronto para morar, com ótima localização na região.",
+  "bairro": "Centro",
+  "cidade": {
+    "id": 1,
+    "nome": "Campinas",
+    "uf": "SP"
+  },
+  "latitude": "-22.904400",
+  "longitude": "-47.059600",
+  "fotos": [
+    {
+      "url": "https://picsum.photos/seed/imovel-103/800/450",
+      "capa": true,
+      "ordem": 0
+    },
+    {
+      "url": "https://picsum.photos/seed/imovel-103-1/1200/800",
+      "capa": false,
+      "ordem": 1
+    },
+    {
+      "url": "https://picsum.photos/seed/imovel-103-2/1200/800",
+      "capa": false,
+      "ordem": 2
+    },
+    {
+      "url": "https://picsum.photos/seed/imovel-103-3/1200/800",
+      "capa": false,
+      "ordem": 3
+    }
+  ],
+  "caracteristicas": [
+    "Ar-condicionado",
+    "Varanda gourmet",
+    "Quintal",
+    "Churrasqueira"
+  ],
+  "corretor": {
+    "id": 8,
+    "nome": "Rafael Prado",
+    "foto": "https://picsum.photos/seed/corretor-8/200/200",
+    "slug": "rafael-prado"
+  },
+  "natureza": "LOTE",
+  "casa": null,
+  "apartamento": null,
+  "terreno": null,
+  "lote": {
+    "numero": "26",
+    "area": "59.75",
+    "frente": "12.50",
+    "fundo": "30.00",
+    "preco": "210500.50",
+    "condicoes_parcelamento": "Entrada de 20% e saldo em até 120 meses",
+    "quadra": {
+      "identificacao": "Quadra B",
+      "loteamento": {
+        "nome": "Residencial Parque das Flores",
+        "incorporadora": "Flores Urbanismo",
+        "infraestrutura": [
+          "Asfalto",
+          "Água encanada",
+          "Rede de esgoto",
+          "Energia elétrica",
+          "Iluminação pública"
+        ],
+        "areas_lazer": [
+          "Praça",
+          "Playground",
+          "Quadra poliesportiva"
+        ]
+      }
+    }
+  }
+}

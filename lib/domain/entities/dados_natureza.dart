@@ -54,6 +54,9 @@ sealed class DadosNatureza with _$DadosNatureza {
     int? vagas,
     bool? varanda,
     String? posicaoSolar,
+
+    /// Prédio embutido no detalhe (D-03), sem chamada extra.
+    DadosPredio? predio,
   }) = DadosApartamento;
 
   /// [preco] só existe quando o servidor manda; nunca é derivado do preço da
@@ -65,5 +68,46 @@ sealed class DadosNatureza with _$DadosNatureza {
     String? fundo,
     String? preco,
     String? condicoesParcelamento,
+
+    /// Quadra com o loteamento embutidos no detalhe (D-03).
+    DadosQuadra? quadra,
   }) = DadosLote;
+}
+
+/// Prédio do apartamento (WEB 06), embutido em [DadosApartamento].
+@freezed
+abstract class DadosPredio with _$DadosPredio {
+  const factory DadosPredio({
+    String? nome,
+    int? andares,
+    int? unidadesPorAndar,
+    int? ano,
+    int? elevadores,
+    bool? portaria24h,
+    bool? piscina,
+    bool? academia,
+    bool? salaoDeFestas,
+    bool? playground,
+  }) = _DadosPredio;
+}
+
+/// Quadra do lote (WEB 07), embutida em [DadosLote].
+@freezed
+abstract class DadosQuadra with _$DadosQuadra {
+  const factory DadosQuadra({
+    String? identificacao,
+    DadosLoteamento? loteamento,
+  }) = _DadosQuadra;
+}
+
+/// Loteamento da quadra; as listas ficam na ordem recebida e vazias quando o
+/// servidor não as manda.
+@freezed
+abstract class DadosLoteamento with _$DadosLoteamento {
+  const factory DadosLoteamento({
+    String? nome,
+    String? incorporadora,
+    @Default(<String>[]) List<String> infraestrutura,
+    @Default(<String>[]) List<String> areasLazer,
+  }) = _DadosLoteamento;
 }
