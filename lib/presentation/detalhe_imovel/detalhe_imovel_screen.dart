@@ -12,6 +12,7 @@ import 'detalhe_imovel_state.dart';
 import 'widgets/galeria_imovel.dart';
 import 'widgets/secao_natureza.dart';
 import 'widgets/secoes_detalhe.dart';
+import 'widgets/visualizador_fotos.dart';
 
 /// Assinatura de quem abre a página de um imóvel a partir da vitrine —
 /// `VitrineScreen` recebe uma por parâmetro (default [abrirDetalheImovel])
@@ -93,6 +94,12 @@ class DetalheImovelScreen extends StatelessWidget {
                   background: switch (state) {
                     DetalheCarregado(:final detalhe) => GaleriaImovel(
                       urls: [for (final foto in detalhe.fotos) foto.url],
+                      aoTocarFoto: (indice) => abrirVisualizadorFotos(
+                        context,
+                        urls: [for (final foto in detalhe.fotos) foto.url],
+                        indiceInicial: indice,
+                        construirImagemDeRede: construirImagemDeRede,
+                      ),
                       construirImagemDeRede: construirImagemDeRede,
                     ),
                     _ => ImagemRede(

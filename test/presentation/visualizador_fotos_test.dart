@@ -47,6 +47,21 @@ void main() {
     );
   }
 
+  /// Arrasto de dedo real: vários movimentos curtos (como no aparelho, onde o
+  /// `InteractiveViewer` e o `PageView` disputam o gesto) passando de meia
+  /// página para o `PageView` assentar na página seguinte.
+  Future<void> deslizarParaEsquerda(WidgetTester tester) async {
+    final gesto = await tester.startGesture(
+      tester.getCenter(find.byType(PageView)),
+    );
+    for (var i = 0; i < 30; i++) {
+      await gesto.moveBy(const Offset(-20, 0));
+      await tester.pump(const Duration(milliseconds: 8));
+    }
+    await gesto.up();
+    await tester.pumpAndSettle();
+  }
+
   PageView paginas(WidgetTester tester) =>
       tester.widget<PageView>(find.byType(PageView));
 
@@ -58,8 +73,7 @@ void main() {
     expect(find.byKey(const ValueKey(b)), findsOneWidget);
     expect(find.text('2/3'), findsOneWidget);
 
-    await tester.drag(find.byType(PageView), const Offset(-400, 0));
-    await tester.pumpAndSettle();
+    await deslizarParaEsquerda(tester);
 
     expect(find.byKey(const ValueKey(c)), findsOneWidget);
     expect(find.text('3/3'), findsOneWidget);
