@@ -34,6 +34,20 @@ _DetalheImovelModel _$DetalheImovelModelFromJson(Map<String, dynamic> json) =>
           ? null
           : CorretorModel.fromJson(json['corretor'] as Map<String, dynamic>),
       natureza: json['natureza'] as String?,
+      casa: json['casa'] == null
+          ? null
+          : CasaModel.fromJson(json['casa'] as Map<String, dynamic>),
+      apartamento: json['apartamento'] == null
+          ? null
+          : ApartamentoModel.fromJson(
+              json['apartamento'] as Map<String, dynamic>,
+            ),
+      terreno: json['terreno'] == null
+          ? null
+          : TerrenoModel.fromJson(json['terreno'] as Map<String, dynamic>),
+      lote: json['lote'] == null
+          ? null
+          : LoteModel.fromJson(json['lote'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$DetalheImovelModelToJson(_DetalheImovelModel instance) =>
@@ -54,6 +68,10 @@ Map<String, dynamic> _$DetalheImovelModelToJson(_DetalheImovelModel instance) =>
       'caracteristicas': instance.caracteristicas,
       'corretor': instance.corretor,
       'natureza': instance.natureza,
+      'casa': instance.casa,
+      'apartamento': instance.apartamento,
+      'terreno': instance.terreno,
+      'lote': instance.lote,
     };
 
 _FotoImovelModel _$FotoImovelModelFromJson(Map<String, dynamic> json) =>

@@ -125,7 +125,8 @@ const Map<int, (double, double)> _centroDaCidade = {
 /// Monta, a partir de uma linha da lista, o detalhe em forma de wire. Os
 /// campos comuns são copiados da linha (nunca de uma lista paralela, A8) e só
 /// o que a lista não tem é acrescentado — tudo derivado do `id`, nada
-/// aleatório e nada lido do relógio (D-15 da Fase 2). Sem blocos de natureza.
+/// aleatório e nada lido do relógio (D-15 da Fase 2). Sempre traz as quatro
+/// chaves de bloco de natureza, só a da natureza do card preenchida.
 Map<String, Object?> _detalheGerado(Map<String, Object?> linha) {
   final id = linha['id']! as int;
   final natureza = linha['natureza'] as String?;
@@ -160,6 +161,8 @@ Map<String, Object?> _detalheGerado(Map<String, Object?> linha) {
       ? null
       : Map<String, Object?>.of(_corretoresMock[id % _corretoresMock.length]);
 
+  final blocos = _blocosDeNatureza(linha, camposNulos: camposNulos);
+
   return {
     'id': id,
     'titulo': linha['titulo'],
@@ -179,7 +182,169 @@ Map<String, Object?> _detalheGerado(Map<String, Object?> linha) {
     ),
     'corretor': corretor,
     'natureza': natureza,
+    ...blocos,
   };
+}
+
+/// Blocos curados (sobrepostos ao gerado) que provam casos que a geração
+/// por fórmula não cobre. O 57 traz `area_livre` de 100,00 com terreno de
+/// 300,00 e construída de 180,00 — deliberadamente NÃO a diferença (120,00)
+/// — para provar que o app nunca calcula a área livre (D-04).
+const Map<int, Map<String, Object?>> _blocosCurados = {
+  57: {
+    'area_terreno': '300.00',
+    'area_construida': '180.00',
+    'area_livre': '100.00',
+    'quartos': 3,
+    'suites': 0,
+    'banheiros': 2,
+    'salas': 2,
+    'vagas': 2,
+    'pavimentos': 1,
+    'ano_construcao': 1998,
+    'piscina': false,
+    'quintal': true,
+    'churrasqueira': true,
+    'mobiliada': false,
+  },
+  63: {
+    'area_total': '300.00',
+    'frente': '12.00',
+    'fundo': '25.00',
+    'laterais': '25.00',
+    'topografia': 'ACLIVE',
+    'murado': true,
+    'esquina': false,
+    'uso_permitido': 'Residencial',
+  },
+};
+
+/// Rótulos de posição solar como a API os manda: texto legível, não código de
+/// enum (D-19 b).
+const List<String> _posicoesSolares = ['Nascente', 'Poente', 'Norte', 'Sul'];
+
+const List<String> _topografias = ['PLANO', 'ACLIVE', 'DECLIVE'];
+
+const List<String> _usosPermitidos = ['Residencial', 'Comercial', 'Misto'];
+
+/// As quatro chaves de bloco, só a da natureza do card preenchida. Valores
+/// derivados do `id` e da linha da lista (quartos/suítes/vagas e área do card
+/// são os mesmos — A8); `camposNulos` mantém o bloco com todo campo nulo
+/// (D-14). Aqui, e só aqui, o servidor simulado calcula áreas.
+Map<String, Object?> _blocosDeNatureza(
+  Map<String, Object?> linha, {
+  required bool camposNulos,
+}) {
+  final id = linha['id']! as int;
+  final natureza = linha['natureza'] as String?;
+  // Os ids gerados andam de 4 em 4 por natureza, então `id % 4` seria
+  // constante; `id ~/ 4` varia entre linhas vizinhas da mesma natureza.
+  final variante = id ~/ 4;
+
+  final gerado = switch (natureza) {
+    'CASA' => _blocoCasa(linha, variante),
+    'APARTAMENTO' => _blocoApartamento(linha, variante),
+    'TERRENO' => _blocoTerreno(linha, variante),
+    'LOTE' => _blocoLote(linha, variante),
+    _ => null,
+  };
+  final bloco = gerado == null
+      ? null
+      : {
+          for (final campo in gerado.entries)
+            campo.key: camposNulos ? null : campo.value,
+          ...?_blocosCurados[id],
+        };
+
+  return {
+    'casa': natureza == 'CASA' ? bloco : null,
+    'apartamento': natureza == 'APARTAMENTO' ? bloco : null,
+    'terreno': natureza == 'TERRENO' ? bloco : null,
+    'lote': natureza == 'LOTE' ? bloco : null,
+  };
+}
+
+String? _decimal(double? valor) => valor?.toStringAsFixed(2);
+
+Map<String, Object?> _blocoCasa(Map<String, Object?> linha, int variante) {
+  final areaConstruida = _areaDoCard(linha);
+  final pavimentos = 1 + variante % 3;
+  final areaTerreno = areaConstruida == null ? null : areaConstruida * 1.8;
+  // Área livre = terreno menos a projeção da construção (que ocupa só um
+  // pavimento), calculada AQUI no servidor simulado.
+  final areaLivre = areaTerreno == null
+      ? null
+      : areaTerreno - areaConstruida! / pavimentos;
+  return {
+    'area_terreno': _decimal(areaTerreno),
+    'area_construida': linha['area'],
+    'area_livre': _decimal(areaLivre),
+    'quartos': linha['quartos'],
+    'suites': linha['suites'],
+    'banheiros': 1 + variante % 4,
+    'salas': 1 + variante % 3,
+    'vagas': linha['vagas'],
+    'pavimentos': pavimentos,
+    'ano_construcao': 1985 + variante % 40,
+    'piscina': variante % 3 == 0,
+    'quintal': variante % 2 == 0,
+    'churrasqueira': variante % 5 < 2,
+    'mobiliada': variante % 4 == 0,
+  };
+}
+
+Map<String, Object?> _blocoApartamento(
+  Map<String, Object?> linha,
+  int variante,
+) {
+  final andar = 1 + variante % 20;
+  final areaPrivativa = _areaDoCard(linha);
+  return {
+    'andar': andar,
+    'numero': '${andar}0${1 + variante % 4}',
+    'area_privativa': linha['area'],
+    'area_total': _decimal(areaPrivativa == null ? null : areaPrivativa * 1.35),
+    'quartos': linha['quartos'],
+    'suites': linha['suites'],
+    'banheiros': 1 + variante % 3,
+    'vagas': linha['vagas'],
+    'varanda': variante % 2 == 0,
+    'posicao_solar': _posicoesSolares[variante % _posicoesSolares.length],
+  };
+}
+
+Map<String, Object?> _blocoTerreno(Map<String, Object?> linha, int variante) {
+  final fundo = 20 + (variante % 6) * 2.5;
+  return {
+    'area_total': linha['area'],
+    'frente': _decimal(8.0 + (variante % 5) * 2),
+    'fundo': _decimal(fundo),
+    'laterais': _decimal(fundo),
+    'topografia': _topografias[variante % _topografias.length],
+    'murado': variante % 2 == 0,
+    'esquina': variante % 5 == 0,
+    'uso_permitido': _usosPermitidos[variante % _usosPermitidos.length],
+  };
+}
+
+/// O preço do lote vive na parte comum do detalhe (`preco_venda` /
+/// `preco_aluguel`): `preco` e `condicoes_parcelamento` ficam nulos (D-19 d).
+Map<String, Object?> _blocoLote(Map<String, Object?> linha, int variante) {
+  return {
+    'numero': '${1 + variante % 30}',
+    'area': linha['area'],
+    'frente': _decimal(10.0 + (variante % 4) * 2.5),
+    'fundo': _decimal(25.0 + (variante % 3) * 5),
+    'preco': null,
+    'condicoes_parcelamento': null,
+  };
+}
+
+/// Área do card como número, só para o servidor simulado derivar outras
+/// áreas; `null` quando o card não tem área.
+double? _areaDoCard(Map<String, Object?> linha) {
+  final area = linha['area'] as String?;
+  return area == null ? null : double.parse(area);
 }
 
 /// Fotos da galeria: vazia quando o card não tem capa; senão a capa do card

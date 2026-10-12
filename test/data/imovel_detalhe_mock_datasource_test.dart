@@ -414,8 +414,9 @@ void main() {
       () {
         var lotes = 0;
         for (final entrada in detalhes.entries) {
-          if (entrada.value['natureza'] != 'LOTE' || entrada.key == 103)
+          if (entrada.value['natureza'] != 'LOTE' || entrada.key == 103) {
             continue;
+          }
           lotes++;
           final lote = blocoDe(entrada.key);
           expect(

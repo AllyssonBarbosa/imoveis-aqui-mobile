@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'cidade.dart';
+import 'dados_natureza.dart';
 import 'imovel.dart';
 
 part 'detalhe_imovel.freezed.dart';
@@ -32,6 +33,10 @@ abstract class DetalheImovel with _$DetalheImovel {
     @Default(<String>[]) List<String> caracteristicas,
     CorretorResponsavel? corretor,
     NaturezaImovel? natureza,
+
+    /// Dados próprios da natureza; `null` quando o servidor não manda o bloco
+    /// ou a natureza é desconhecida (D-14).
+    DadosNatureza? dados,
   }) = _DetalheImovel;
 }
 

@@ -1,8 +1,10 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../domain/entities/dados_natureza.dart';
 import '../../domain/entities/detalhe_imovel.dart';
 import '../../domain/entities/imovel.dart';
 import 'cidade_model.dart';
+import 'dados_natureza_model.dart';
 import 'url_segura.dart';
 
 part 'detalhe_imovel_model.freezed.dart';
@@ -35,6 +37,13 @@ abstract class DetalheImovelModel with _$DetalheImovelModel {
     @Default(<String>[]) List<String> caracteristicas,
     CorretorModel? corretor,
     String? natureza,
+
+    /// Um bloco por natureza; só o que bate com `natureza` é usado
+    /// (RESEARCH Pattern 2: o discriminador é irmão do bloco).
+    CasaModel? casa,
+    ApartamentoModel? apartamento,
+    TerrenoModel? terreno,
+    LoteModel? lote,
   }) = _DetalheImovelModel;
 
   factory DetalheImovelModel.fromJson(Map<String, Object?> json) =>
@@ -67,7 +76,22 @@ abstract class DetalheImovelModel with _$DetalheImovelModel {
       caracteristicas: caracteristicas,
       corretor: corretor?.paraEntidade(),
       natureza: _mapearNatureza(natureza),
+      dados: _mapearDados(),
     );
+  }
+
+  /// Escolhe o bloco pela `natureza`. Natureza desconhecida, bloco ausente ou
+  /// nulo, ou bloco que não bate com a natureza resultam em `null` — nunca
+  /// derrubam o parse (D-14, T-04-05-01), então uma natureza nova do servidor
+  /// só omite a seção.
+  DadosNatureza? _mapearDados() {
+    return switch (natureza) {
+      'CASA' => casa?.paraEntidade(),
+      'APARTAMENTO' => apartamento?.paraEntidade(),
+      'TERRENO' => terreno?.paraEntidade(),
+      'LOTE' => lote?.paraEntidade(),
+      _ => null,
+    };
   }
 
   static FinalidadeImovel _mapearFinalidade(String valor) {
