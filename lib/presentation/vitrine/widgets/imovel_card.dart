@@ -10,9 +10,12 @@ import 'foto_capa_imovel.dart';
 /// Nenhuma lógica de negócio ou chamada de rede aqui: tudo já vem pronto do
 /// servidor, formatado por `apresentacao_imovel.dart`.
 class ImovelCard extends StatelessWidget {
-  const ImovelCard({super.key, required this.imovel});
+  const ImovelCard({super.key, required this.imovel, this.onTap});
 
   final Imovel imovel;
+
+  /// Toque no card (abre a página do imóvel); `null` deixa o card inerte.
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -27,42 +30,45 @@ class ImovelCard extends StatelessWidget {
 
     return Card(
       clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          FotoCapaImovel(url: imovel.fotoCapa),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  imovel.titulo,
-                  style: textTheme.titleMedium,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                for (final linha in linhasDePreco(imovel))
+      child: InkWell(
+        onTap: onTap,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            FotoCapaImovel(url: imovel.fotoCapa),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    linha,
-                    style: textTheme.titleMedium?.copyWith(
-                      color: colorScheme.primary,
-                    ),
-                  ),
-                if (metadados.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    metadados,
-                    style: textTheme.bodyMedium,
-                    maxLines: 1,
+                    imovel.titulo,
+                    style: textTheme.titleMedium,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  const SizedBox(height: 4),
+                  for (final linha in linhasDePreco(imovel))
+                    Text(
+                      linha,
+                      style: textTheme.titleMedium?.copyWith(
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                  if (metadados.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      metadados,
+                      style: textTheme.bodyMedium,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

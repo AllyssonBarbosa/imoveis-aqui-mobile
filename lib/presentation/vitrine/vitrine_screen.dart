@@ -8,6 +8,7 @@ import '../../domain/entities/cidade.dart';
 import '../../domain/entities/filtros_vitrine.dart';
 import '../../domain/entities/ordenacao_vitrine.dart';
 import '../cidade_selecao/widgets/seletor_cidade_topo.dart';
+import '../detalhe_imovel/detalhe_imovel_screen.dart';
 import 'apresentacao_filtros.dart';
 import 'opcoes_filtro_cubit.dart';
 import 'vitrine_cubit.dart';
@@ -27,9 +28,17 @@ import 'widgets/ordenacao_bottom_sheet.dart';
 /// (RESEARCH Pattern 4); a guarda contra disparos duplicados vive inteira no
 /// Cubit.
 class VitrineScreen extends StatefulWidget {
-  const VitrineScreen({super.key, required this.cidade});
+  const VitrineScreen({
+    super.key,
+    required this.cidade,
+    this.aoAbrirImovel = abrirDetalheImovel,
+  });
 
   final Cidade cidade;
+
+  /// Abre a página do imóvel tocado (DET-01, D-18) — o default navega por
+  /// `Navigator.push`; testes de widget da vitrine podem injetar um falso.
+  final AoAbrirImovel aoAbrirImovel;
 
   @override
   State<VitrineScreen> createState() => _VitrineScreenState();
@@ -342,6 +351,7 @@ class _VitrineScreenState extends State<VitrineScreen> {
                         return ImovelCard(
                           key: ValueKey('imovel-${imovel.id}'),
                           imovel: imovel,
+                          onTap: () => widget.aoAbrirImovel(context, imovel),
                         );
                       },
                     ),

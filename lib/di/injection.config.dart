@@ -17,6 +17,10 @@ import 'package:imoveis_aqui/data/datasources/cidade_prefs_datasource.dart'
 import 'package:imoveis_aqui/data/datasources/cidade_remote_datasource.dart'
     as _i320;
 import 'package:imoveis_aqui/data/datasources/imovel_datasource.dart' as _i326;
+import 'package:imoveis_aqui/data/datasources/imovel_detalhe_datasource.dart'
+    as _i631;
+import 'package:imoveis_aqui/data/datasources/imovel_detalhe_mock_datasource.dart'
+    as _i569;
 import 'package:imoveis_aqui/data/datasources/imovel_mock_datasource.dart'
     as _i609;
 import 'package:imoveis_aqui/data/datasources/opcoes_filtro_datasource.dart'
@@ -29,6 +33,8 @@ import 'package:imoveis_aqui/data/gateways/geolocator_gateway_impl.dart'
     as _i777;
 import 'package:imoveis_aqui/data/repositories/cidade_repository_impl.dart'
     as _i912;
+import 'package:imoveis_aqui/data/repositories/imovel_detalhe_repository_impl.dart'
+    as _i109;
 import 'package:imoveis_aqui/data/repositories/imovel_repository_impl.dart'
     as _i1051;
 import 'package:imoveis_aqui/data/repositories/opcoes_filtro_repository_impl.dart'
@@ -38,6 +44,8 @@ import 'package:imoveis_aqui/domain/gateways/geocoding_gateway.dart' as _i881;
 import 'package:imoveis_aqui/domain/gateways/geolocator_gateway.dart' as _i246;
 import 'package:imoveis_aqui/domain/repositories/cidade_repository.dart'
     as _i146;
+import 'package:imoveis_aqui/domain/repositories/imovel_detalhe_repository.dart'
+    as _i977;
 import 'package:imoveis_aqui/domain/repositories/imovel_repository.dart'
     as _i970;
 import 'package:imoveis_aqui/domain/repositories/opcoes_filtro_repository.dart'
@@ -54,12 +62,16 @@ import 'package:imoveis_aqui/domain/usecases/obter_cidade_salva_usecase.dart'
     as _i1060;
 import 'package:imoveis_aqui/domain/usecases/obter_cidades_atendidas_usecase.dart'
     as _i54;
+import 'package:imoveis_aqui/domain/usecases/obter_detalhe_imovel_usecase.dart'
+    as _i990;
 import 'package:imoveis_aqui/domain/usecases/salvar_cidade_usecase.dart'
     as _i589;
 import 'package:imoveis_aqui/domain/usecases/validar_cidade_atendida_usecase.dart'
     as _i14;
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_cubit.dart'
     as _i765;
+import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_cubit.dart'
+    as _i331;
 import 'package:imoveis_aqui/presentation/vitrine/opcoes_filtro_cubit.dart'
     as _i1002;
 import 'package:imoveis_aqui/presentation/vitrine/sessao_filtros_vitrine.dart'
@@ -85,6 +97,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i585.OpcoesFiltroDataSource>(
       () => _i158.OpcoesFiltroMockDataSource(),
     );
+    gh.lazySingleton<_i631.ImovelDetalheDataSource>(
+      () => _i569.ImovelDetalheMockDataSource(),
+    );
     gh.lazySingleton<_i881.GeocodingGateway>(
       () => _i506.GeocodingGatewayImpl(),
     );
@@ -106,6 +121,15 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i987.OpcoesFiltroRepository>(
       () =>
           _i375.OpcoesFiltroRepositoryImpl(gh<_i585.OpcoesFiltroDataSource>()),
+    );
+    gh.lazySingleton<_i977.ImovelDetalheRepository>(
+      () => _i109.ImovelDetalheRepositoryImpl(
+        gh<_i631.ImovelDetalheDataSource>(),
+      ),
+    );
+    gh.factory<_i990.ObterDetalheImovelUseCase>(
+      () =>
+          _i990.ObterDetalheImovelUseCase(gh<_i977.ImovelDetalheRepository>()),
     );
     gh.lazySingleton<_i146.CidadeRepository>(
       () => _i912.CidadeRepositoryImpl(
@@ -147,6 +171,9 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i20.ObterBairrosUseCase>(),
         gh<_i441.ObterCaracteristicasUseCase>(),
       ),
+    );
+    gh.factory<_i331.DetalheImovelCubit>(
+      () => _i331.DetalheImovelCubit(gh<_i990.ObterDetalheImovelUseCase>()),
     );
     gh.factory<_i14.ValidarCidadeAtendidaUseCase>(
       () => _i14.ValidarCidadeAtendidaUseCase(
