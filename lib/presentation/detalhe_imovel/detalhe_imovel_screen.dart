@@ -13,8 +13,10 @@ import 'detalhe_imovel_state.dart';
 /// Assinatura de quem abre a página de um imóvel a partir da vitrine —
 /// `VitrineScreen` recebe uma por parâmetro (default [abrirDetalheImovel])
 /// para que os testes de widget da vitrine não dependam do DI.
-typedef AoAbrirImovel =
-    Future<void> Function(BuildContext context, Imovel imovel);
+typedef AoAbrirImovel = Future<void> Function(
+  BuildContext context,
+  Imovel imovel,
+);
 
 /// Abre a página do imóvel por `Navigator.push` (D-18, sem pacote de rotas).
 /// [previa] é o `Imovel` que a vitrine já tinha: a página o mostra na hora,
@@ -88,9 +90,7 @@ class DetalheImovelScreen extends StatelessWidget {
                 DetalheCarregado(:final detalhe) => SliverToBoxAdapter(
                   child: _SecaoDescricao(descricao: detalhe.descricao),
                 ),
-                DetalheErro() => const SliverToBoxAdapter(
-                  child: _CorpoErro(),
-                ),
+                DetalheErro() => const SliverToBoxAdapter(child: _CorpoErro()),
               },
               SliverPadding(
                 padding: EdgeInsets.only(
@@ -172,7 +172,7 @@ class _SecaoDescricao extends StatelessWidget {
   }
 }
 
-/// Falha ao buscar o detalhe (D-17).
+/// Falha ao buscar o detalhe (D-17): mensagem + "Tentar de novo".
 class _CorpoErro extends StatelessWidget {
   const _CorpoErro();
 
@@ -181,10 +181,21 @@ class _CorpoErro extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(32),
       child: Center(
-        child: Text(
-          'Não foi possível carregar este imóvel.',
-          style: Theme.of(context).textTheme.titleMedium,
-          textAlign: TextAlign.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Não foi possível carregar este imóvel.',
+              style: Theme.of(context).textTheme.titleMedium,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            FilledButton.tonal(
+              onPressed: () =>
+                  context.read<DetalheImovelCubit>().tentarNovamente(),
+              child: const Text('Tentar de novo'),
+            ),
+          ],
         ),
       ),
     );
