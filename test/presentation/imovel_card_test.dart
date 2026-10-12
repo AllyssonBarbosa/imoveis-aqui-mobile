@@ -120,4 +120,47 @@ void main() {
       expect(alturaSemFoto, alturaComFoto);
     },
   );
+
+  group('toque no card (DET-01, D-18)', () {
+    final imovel = Imovel(
+      id: 42,
+      titulo: 'Apartamento 2 quartos no Cambuí',
+      finalidade: FinalidadeImovel.venda,
+      precoVenda: '450000.00',
+      bairro: 'Cambuí',
+      cidade: campinas,
+    );
+
+    testWidgets('com onTap, cada toque chama a ação uma vez', (tester) async {
+      var toques = 0;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ImovelCard(imovel: imovel, onTap: () => toques++),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byType(ImovelCard));
+      await tester.pump();
+      expect(toques, 1);
+
+      await tester.tap(find.byType(ImovelCard));
+      await tester.pump();
+      expect(toques, 2);
+    });
+
+    testWidgets('sem onTap, o card renderiza e o toque não lança', (
+      tester,
+    ) async {
+      await pumpCard(tester, imovel);
+
+      expect(find.text('Apartamento 2 quartos no Cambuí'), findsOneWidget);
+      await tester.tap(find.byType(ImovelCard));
+      await tester.pump();
+
+      expect(tester.takeException(), isNull);
+    });
+  });
 }

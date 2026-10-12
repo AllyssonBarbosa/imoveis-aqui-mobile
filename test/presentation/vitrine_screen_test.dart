@@ -6,6 +6,7 @@ import 'package:imoveis_aqui/domain/entities/cidade.dart';
 import 'package:imoveis_aqui/domain/entities/filtros_vitrine.dart';
 import 'package:imoveis_aqui/domain/entities/imovel.dart';
 import 'package:imoveis_aqui/presentation/cidade_selecao/widgets/seletor_cidade_topo.dart';
+import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_screen.dart';
 import 'package:imoveis_aqui/presentation/vitrine/opcoes_filtro_cubit.dart';
 import 'package:imoveis_aqui/presentation/vitrine/opcoes_filtro_state.dart';
 import 'package:imoveis_aqui/presentation/vitrine/vitrine_cubit.dart';
@@ -72,6 +73,7 @@ void main() {
     WidgetTester tester,
     VitrineState estado, {
     Size? viewport,
+    AoAbrirImovel? aoAbrirImovel,
   }) async {
     if (viewport != null) {
       tester.view.physicalSize = viewport;
@@ -89,7 +91,9 @@ void main() {
               BlocProvider<VitrineCubit>.value(value: cubit),
               BlocProvider<OpcoesFiltroCubit>.value(value: opcoesCubit),
             ],
-            child: VitrineScreen(cidade: campinas),
+            child: aoAbrirImovel == null
+                ? VitrineScreen(cidade: campinas)
+                : VitrineScreen(cidade: campinas, aoAbrirImovel: aoAbrirImovel),
           ),
         ),
       ),
@@ -452,6 +456,31 @@ void main() {
         verify(() => cubit.limparBuscaEFiltros()).called(1);
         final campo = tester.widget<SearchBar>(find.byType(SearchBar));
         expect(campo.controller!.text, isEmpty);
+      },
+    );
+  });
+
+  group('abrir o imóvel (DET-01, D-18)', () {
+    testWidgets(
+      'carregada: tocar num card chama aoAbrirImovel com aquele Imovel',
+      (tester) async {
+        final abertos = <Imovel>[];
+        final primeiro = imovelDe(1);
+        final segundo = imovelDe(2);
+
+        await pumpEstado(
+          tester,
+          VitrineState(
+            conteudo: ConteudoVitrine.carregada(itens: [primeiro, segundo]),
+          ),
+          viewport: viewportComRodapeVisivel,
+          aoAbrirImovel: (context, imovel) async => abertos.add(imovel),
+        );
+
+        await tester.tap(find.byKey(const ValueKey('imovel-2')));
+        await tester.pump();
+
+        expect(abertos, [segundo]);
       },
     );
   });

@@ -199,6 +199,99 @@ void main() {
     );
   });
 
+  group('outros cards da vitrine (DET-01, API-06)', () {
+    testWidgets(
+      'tocar no card 57 abre o detalhe dele e, depois da latência, mostra a '
+      'própria descrição (não a do 42)',
+      (tester) async {
+        getIt.registerFactory<DetalheImovelCubit>(
+          () => DetalheImovelCubit(
+            ObterDetalheImovelUseCase(
+              ImovelDetalheRepositoryImpl(
+                ImovelDetalheMockDataSource.paraTeste(
+                  detalhes: detalhesAcervoFixture(),
+                  latencia: const Duration(milliseconds: 300),
+                ),
+              ),
+            ),
+          ),
+        );
+        await pumpVitrine(tester);
+
+        await tester.tap(find.byKey(const ValueKey('imovel-57')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+
+        expect(
+          naPagina(find.text('Casa térrea 3 quartos no Taquaral')),
+          findsOneWidget,
+        );
+
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pump();
+
+        expect(naPagina(find.text('Descrição')), findsOneWidget);
+        expect(
+          naPagina(
+            find.text(
+              'Casa térrea com quintal amplo, próxima à Lagoa do Taquaral.',
+            ),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          naPagina(
+            find.text(
+              'Apartamento reformado, próximo ao centro, com '
+              'varanda gourmet.',
+            ),
+          ),
+          findsNothing,
+        );
+      },
+    );
+
+    testWidgets(
+      'servidor sem o imóvel: o card 42 termina em "Este imóvel não está '
+      'mais disponível" e "Voltar à vitrine" devolve a vitrine (D-17)',
+      (tester) async {
+        final semOCard42 = detalhesAcervoFixture()..remove(42);
+        getIt.registerFactory<DetalheImovelCubit>(
+          () => DetalheImovelCubit(
+            ObterDetalheImovelUseCase(
+              ImovelDetalheRepositoryImpl(
+                ImovelDetalheMockDataSource.paraTeste(
+                  detalhes: semOCard42,
+                  latencia: const Duration(milliseconds: 300),
+                ),
+              ),
+            ),
+          ),
+        );
+        await pumpVitrine(tester);
+
+        await tester.tap(find.byKey(const ValueKey('imovel-42')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pump();
+
+        expect(
+          naPagina(find.text('Este imóvel não está mais disponível')),
+          findsOneWidget,
+        );
+
+        await tester.tap(naPagina(find.text('Voltar à vitrine')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.pump(const Duration(milliseconds: 400));
+
+        expect(find.byType(DetalheImovelScreen), findsNothing);
+        expect(find.byKey(const ValueKey('imovel-42')), findsOneWidget);
+      },
+    );
+  });
+
   group('retry', () {
     late _DataSourceFalhaNaPrimeira dataSource;
 

@@ -1,3 +1,13 @@
+/// Id do último card de Vinhedo sob 'Mais recentes': o servidor simulado
+/// sempre responde 404 para ele (imóvel despublicado, D-17). Determinístico
+/// (D-15 da Fase 2) — dá para provar o fluxo "não está mais disponível" à mão.
+const int idDetalheDespublicadoMock = 339;
+
+/// Id do penúltimo card de Vinhedo sob 'Mais recentes': o detalhe existe no
+/// servidor simulado, mas o mock sempre falha ao buscá-lo (D-17) — dá para
+/// provar o fluxo de erro com "Tentar de novo" à mão.
+const int idDetalheFalhaMock = 338;
+
 /// Fixture do mock do detalhe do imóvel — servidor simulado em memória. Os
 /// mapas ficam em forma de wire (snake_case), exatamente como chegariam de
 /// `GET /api/publico/imoveis/{id}/`, para que `ImovelDetalheMockDataSource`
