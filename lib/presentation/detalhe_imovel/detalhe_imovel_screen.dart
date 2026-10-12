@@ -46,9 +46,17 @@ Future<void> abrirDetalheImovel(
 /// `switch` exaustivo sobre [DetalheImovelState], sem ramo abrangente. Sem
 /// barra inferior fixa (D-12).
 class DetalheImovelScreen extends StatelessWidget {
-  const DetalheImovelScreen({super.key, required this.previa});
+  const DetalheImovelScreen({
+    super.key,
+    required this.previa,
+    @visibleForTesting this.construirImagemDeRede,
+  });
 
   final Imovel previa;
+
+  /// Ponto de extensão só para teste (esqueleto da fase RED).
+  @visibleForTesting
+  final Widget Function(String url)? construirImagemDeRede;
 
   @override
   Widget build(BuildContext context) {

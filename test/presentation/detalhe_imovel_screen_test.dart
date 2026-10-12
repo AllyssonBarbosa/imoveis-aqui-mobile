@@ -6,13 +6,19 @@ import 'package:imoveis_aqui/domain/entities/cidade.dart';
 import 'package:imoveis_aqui/domain/entities/dados_natureza.dart';
 import 'package:imoveis_aqui/domain/entities/detalhe_imovel.dart';
 import 'package:imoveis_aqui/domain/entities/imovel.dart';
+import 'package:imoveis_aqui/presentation/comum/imagem_rede.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_cubit.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_screen.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_state.dart';
+import 'package:imoveis_aqui/presentation/detalhe_imovel/widgets/galeria_imovel.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _DetalheImovelCubitFalso extends MockCubit<DetalheImovelState>
     implements DetalheImovelCubit {}
+
+/// Imagem determinística: uma caixa com a chave da própria url.
+Widget _caixaDaUrl(String url) =>
+    ColoredBox(key: ValueKey(url), color: Colors.blue);
 
 void main() {
   const campinas = Cidade(nome: 'Campinas', uf: 'SP');
@@ -47,6 +53,7 @@ void main() {
     WidgetTester tester,
     DetalheImovelState estado, {
     double altura = 1200,
+    Imovel previaUsada = previa,
   }) async {
     tester.view.physicalSize = Size(400, altura);
     tester.view.devicePixelRatio = 1.0;
@@ -67,7 +74,10 @@ void main() {
                   MaterialPageRoute<void>(
                     builder: (_) => BlocProvider<DetalheImovelCubit>.value(
                       value: cubit,
-                      child: const DetalheImovelScreen(previa: previa),
+                      child: DetalheImovelScreen(
+                        previa: previaUsada,
+                        construirImagemDeRede: _caixaDaUrl,
+                      ),
                     ),
                   ),
                 ),
@@ -99,6 +109,66 @@ void main() {
     expect(find.text('Descrição'), findsOneWidget);
     expect(find.text('Apartamento reformado.'), findsOneWidget);
     expect(find.byTooltip('Voltar'), findsOneWidget);
+  });
+
+  group('galeria (DET-02)', () {
+    const capa = 'https://exemplo.com/capa.jpg';
+    const foto2 = 'https://exemplo.com/foto2.jpg';
+    const foto3 = 'https://exemplo.com/foto3.jpg';
+    final comFotos = detalhe.copyWith(
+      fotos: const [
+        FotoImovel(url: capa, capa: true),
+        FotoImovel(url: foto2, capa: false),
+        FotoImovel(url: foto3, capa: false),
+      ],
+    );
+    const previaComCapa = Imovel(
+      id: 42,
+      titulo: 'Apartamento 2 quartos no Cambuí',
+      finalidade: FinalidadeImovel.venda,
+      precoVenda: '450000.00',
+      bairro: 'Cambuí',
+      cidade: campinas,
+      fotoCapa: capa,
+    );
+
+    testWidgets('carregado com 3 fotos mostra a galeria e o contador 1/3', (
+      tester,
+    ) async {
+      await pumpEstado(
+        tester,
+        DetalheImovelState.carregado(comFotos),
+        previaUsada: previaComCapa,
+      );
+
+      expect(find.byType(GaleriaImovel), findsOneWidget);
+      expect(find.text('1/3'), findsOneWidget);
+      expect(find.byKey(const ValueKey(capa)), findsOneWidget);
+      expect(find.byTooltip('Voltar'), findsOneWidget);
+    });
+
+    testWidgets('carregando mostra a capa da prévia, sem galeria nem '
+        'contador (D-16)', (tester) async {
+      await pumpEstado(
+        tester,
+        const DetalheImovelState.carregando(),
+        previaUsada: previaComCapa,
+      );
+
+      expect(find.byKey(const ValueKey(capa)), findsOneWidget);
+      expect(find.byType(GaleriaImovel), findsNothing);
+      expect(find.byKey(const ValueKey('contador-fotos')), findsNothing);
+      expect(find.byTooltip('Voltar'), findsOneWidget);
+    });
+
+    testWidgets('carregado sem fotos mostra a imagem padrão, sem contador '
+        '(D-10)', (tester) async {
+      await pumpEstado(tester, const DetalheImovelState.carregado(detalhe));
+
+      expect(find.byType(ImagemPadraoImovel), findsOneWidget);
+      expect(find.byKey(const ValueKey('contador-fotos')), findsNothing);
+      expect(find.byTooltip('Voltar'), findsOneWidget);
+    });
   });
 
   group('natureza (DET-04)', () {
