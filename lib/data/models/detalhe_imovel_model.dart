@@ -3,6 +3,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../domain/entities/detalhe_imovel.dart';
 import '../../domain/entities/imovel.dart';
 import 'cidade_model.dart';
+import 'url_segura.dart';
 
 part 'detalhe_imovel_model.freezed.dart';
 part 'detalhe_imovel_model.g.dart';
@@ -42,7 +43,8 @@ abstract class DetalheImovelModel with _$DetalheImovelModel {
   /// Mapeia para a entidade de domínio. `finalidade` desconhecida lança
   /// [FormatException] (o repositório converte em `Result.failure`);
   /// `natureza` desconhecida ou ausente vira `null`. As fotos mantêm a ordem
-  /// recebida — o app nunca reordena.
+  /// recebida — o app nunca reordena — e só as de URL http(s) sobrevivem
+  /// (V12/V13); a foto do corretor fora de http(s) vira `null`.
   DetalheImovel paraEntidade() {
     return DetalheImovel(
       id: id,
@@ -57,7 +59,11 @@ abstract class DetalheImovelModel with _$DetalheImovelModel {
       cidade: cidade.paraEntidade(),
       latitude: latitude,
       longitude: longitude,
-      fotos: [for (final foto in fotos) foto.paraEntidade()],
+      fotos: [
+        for (final foto in fotos)
+          if (urlHttpOuNula(foto.url) case final url?)
+            FotoImovel(url: url, capa: foto.capa),
+      ],
       caracteristicas: caracteristicas,
       corretor: corretor?.paraEntidade(),
       natureza: _mapearNatureza(natureza),
@@ -125,6 +131,10 @@ abstract class CorretorModel with _$CorretorModel {
   factory CorretorModel.fromJson(Map<String, Object?> json) =>
       _$CorretorModelFromJson(json);
 
-  CorretorResponsavel paraEntidade() =>
-      CorretorResponsavel(id: id, nome: nome, foto: foto, slug: slug);
+  CorretorResponsavel paraEntidade() => CorretorResponsavel(
+    id: id,
+    nome: nome,
+    foto: urlHttpOuNula(foto),
+    slug: slug,
+  );
 }

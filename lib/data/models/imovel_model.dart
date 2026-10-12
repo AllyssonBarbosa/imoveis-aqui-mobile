@@ -2,6 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../domain/entities/imovel.dart';
 import 'cidade_model.dart';
+import 'url_segura.dart';
 
 part 'imovel_model.freezed.dart';
 part 'imovel_model.g.dart';
@@ -39,7 +40,8 @@ abstract class ImovelModel with _$ImovelModel {
 
   /// Mapeia para a entidade de domínio. `finalidade` desconhecida lança
   /// [FormatException] — o repositório converte em `Result.failure`
-  /// (T-02-01-01); `natureza` desconhecida ou ausente vira `null`.
+  /// (T-02-01-01); `natureza` desconhecida ou ausente vira `null`;
+  /// `fotoCapa` fora de http(s) vira `null` (V12/V13).
   Imovel paraEntidade() {
     return Imovel(
       id: id,
@@ -49,7 +51,7 @@ abstract class ImovelModel with _$ImovelModel {
       precoAluguel: precoAluguel,
       bairro: bairro,
       cidade: cidade.paraEntidade(),
-      fotoCapa: fotoCapa,
+      fotoCapa: urlHttpOuNula(fotoCapa),
       natureza: _mapearNatureza(natureza),
       quartos: quartos,
     );

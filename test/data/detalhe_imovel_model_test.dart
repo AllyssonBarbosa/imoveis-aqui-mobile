@@ -79,22 +79,24 @@ void main() {
       });
     });
 
-    test('DetalheImovelModel descarta fotos inseguras sem reordenar as demais',
-        () {
-      final mapa = mapaCompleto()
-        ..['fotos'] = [
-          {'url': 'https://a.b/A.jpg', 'capa': true, 'ordem': 0},
-          {'url': 'javascript:alert(1)', 'capa': false, 'ordem': 1},
-          {'url': 'https://a.b/C.jpg', 'capa': false, 'ordem': 2},
-        ];
+    test(
+      'DetalheImovelModel descarta fotos inseguras sem reordenar as demais',
+      () {
+        final mapa = mapaCompleto()
+          ..['fotos'] = [
+            {'url': 'https://a.b/A.jpg', 'capa': true, 'ordem': 0},
+            {'url': 'javascript:alert(1)', 'capa': false, 'ordem': 1},
+            {'url': 'https://a.b/C.jpg', 'capa': false, 'ordem': 2},
+          ];
 
-      final detalhe = DetalheImovelModel.fromJson(mapa).paraEntidade();
+        final detalhe = DetalheImovelModel.fromJson(mapa).paraEntidade();
 
-      expect(detalhe.fotos.map((f) => f.url), [
-        'https://a.b/A.jpg',
-        'https://a.b/C.jpg',
-      ]);
-    });
+        expect(detalhe.fotos.map((f) => f.url), [
+          'https://a.b/A.jpg',
+          'https://a.b/C.jpg',
+        ]);
+      },
+    );
 
     test('DetalheImovelModel zera a foto do corretor fora de http(s)', () {
       final mapa = mapaCompleto()
