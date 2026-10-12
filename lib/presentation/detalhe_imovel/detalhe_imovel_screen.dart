@@ -9,6 +9,8 @@ import '../vitrine/apresentacao_imovel.dart';
 import '../comum/imagem_rede.dart';
 import 'detalhe_imovel_cubit.dart';
 import 'detalhe_imovel_state.dart';
+import 'perfil_corretor_screen.dart';
+import 'widgets/cartao_corretor.dart';
 import 'widgets/galeria_imovel.dart';
 import 'widgets/secao_natureza.dart';
 import 'widgets/secoes_detalhe.dart';
@@ -159,6 +161,19 @@ class DetalheImovelScreen extends StatelessWidget {
                       SecaoCaracteristicas(
                         caracteristicas: detalhe.caracteristicas,
                       ),
+                      if (detalhe.corretor case final corretor?)
+                        SecaoDetalhe(
+                          titulo: 'Corretor responsável',
+                          conteudo: CartaoCorretor(
+                            corretor: corretor,
+                            aoTocar: () => abrirPerfilCorretor(
+                              context,
+                              corretor,
+                              construirImagemDeRede: construirImagemDeRede,
+                            ),
+                            construirImagemDeRede: construirImagemDeRede,
+                          ),
+                        ),
                     ],
                   ),
                 ),
