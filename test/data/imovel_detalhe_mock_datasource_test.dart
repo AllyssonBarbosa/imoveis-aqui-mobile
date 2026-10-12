@@ -234,4 +234,211 @@ void main() {
       }
     });
   });
+
+  group('blocos de natureza (DET-04, API-06, D-14, D-19)', () {
+    const blocoPorNatureza = {
+      'CASA': 'casa',
+      'APARTAMENTO': 'apartamento',
+      'TERRENO': 'terreno',
+      'LOTE': 'lote',
+    };
+
+    late Map<int, Map<String, Object?>> detalhes;
+    late Map<int, Map<String, Object?>> linhasPorId;
+
+    setUp(() {
+      detalhes = detalhesAcervoFixture();
+      linhasPorId = {
+        for (final linha in linhasPublicadas()) linha['id']! as int: linha,
+      };
+    });
+
+    Map<String, Object?> blocoDe(int id) {
+      final natureza = detalhes[id]!['natureza']! as String;
+      return detalhes[id]![blocoPorNatureza[natureza]!]!
+          as Map<String, Object?>;
+    }
+
+    test(
+      'as quatro chaves de bloco existem e só a da natureza é preenchida',
+      () {
+        for (final entrada in detalhes.entries) {
+          final detalhe = entrada.value;
+          final natureza = detalhe['natureza']! as String;
+          for (final bloco in blocoPorNatureza.values) {
+            expect(
+              detalhe.containsKey(bloco),
+              isTrue,
+              reason: 'detalhe ${entrada.key} sem a chave "$bloco"',
+            );
+            if (bloco == blocoPorNatureza[natureza]) {
+              expect(
+                detalhe[bloco],
+                isNotNull,
+                reason: 'detalhe ${entrada.key} sem o bloco "$bloco"',
+              );
+            } else {
+              expect(
+                detalhe[bloco],
+                isNull,
+                reason: 'detalhe ${entrada.key} com bloco "$bloco" incoerente',
+              );
+            }
+          }
+        }
+      },
+    );
+
+    test('quartos, suítes e vagas do bloco são os do card', () {
+      for (final entrada in detalhes.entries) {
+        final id = entrada.key;
+        final natureza = entrada.value['natureza']! as String;
+        if (natureza != 'CASA' && natureza != 'APARTAMENTO') continue;
+        if (id % 10 == 9) continue;
+        final linha = linhasPorId[id]!;
+        final bloco = blocoDe(id);
+        for (final campo in const ['quartos', 'suites', 'vagas']) {
+          expect(
+            bloco[campo],
+            linha[campo],
+            reason: 'detalhe $id diverge do card em "$campo"',
+          );
+        }
+      }
+    });
+
+    test('a área do bloco é a área do card', () {
+      const campoDeArea = {
+        'CASA': 'area_construida',
+        'APARTAMENTO': 'area_privativa',
+        'TERRENO': 'area_total',
+        'LOTE': 'area',
+      };
+      for (final entrada in detalhes.entries) {
+        final id = entrada.key;
+        final natureza = entrada.value['natureza']! as String;
+        expect(
+          blocoDe(id)[campoDeArea[natureza]],
+          linhasPorId[id]!['area'],
+          reason: 'detalhe $id diverge do card na área',
+        );
+      }
+    });
+
+    test(
+      'casa com área no card tem área do terreno e livre vindas do servidor',
+      () {
+        for (final entrada in detalhes.entries) {
+          if (entrada.value['natureza'] != 'CASA') continue;
+          final bloco = blocoDe(entrada.key);
+          final temArea = bloco['area_construida'] != null;
+          expect(bloco['area_terreno'] != null, temArea);
+          expect(bloco['area_livre'] != null, temArea);
+        }
+      },
+    );
+
+    test('id % 10 == 9 mantém o bloco, mas com todo campo opcional nulo', () {
+      var verificados = 0;
+      for (final entrada in detalhes.entries) {
+        if (entrada.key % 10 != 9) continue;
+        verificados++;
+        final bloco = blocoDe(entrada.key);
+        expect(
+          bloco.values.where((valor) => valor != null),
+          isEmpty,
+          reason: 'detalhe ${entrada.key} deveria ter o bloco todo nulo',
+        );
+      }
+      expect(verificados, greaterThan(0));
+    });
+
+    test('o 57 tem 300/180/100 de área, sem 100 ser a diferença (D-04)', () {
+      final casa = blocoDe(57);
+      expect(casa['area_terreno'], '300.00');
+      expect(casa['area_construida'], '180.00');
+      expect(casa['area_livre'], '100.00');
+      expect(casa['quartos'], 3);
+      expect(casa['suites'], 0);
+      expect(casa['banheiros'], 2);
+      expect(casa['salas'], 2);
+      expect(casa['vagas'], 2);
+      expect(casa['pavimentos'], 1);
+      expect(casa['ano_construcao'], 1998);
+      expect(casa['piscina'], isFalse);
+      expect(casa['quintal'], isTrue);
+      expect(casa['churrasqueira'], isTrue);
+      expect(casa['mobiliada'], isFalse);
+    });
+
+    test('o 63 é o terreno aclive de 12 x 25', () {
+      final terreno = blocoDe(63);
+      expect(terreno['area_total'], '300.00');
+      expect(terreno['frente'], '12.00');
+      expect(terreno['fundo'], '25.00');
+      expect(terreno['laterais'], '25.00');
+      expect(terreno['topografia'], 'ACLIVE');
+      expect(terreno['murado'], isTrue);
+      expect(terreno['esquina'], isFalse);
+      expect(terreno['uso_permitido'], 'Residencial');
+    });
+
+    test(
+      'o 42 continua com posição solar Nascente, texto verbatim (D-19 b)',
+      () {
+        expect(blocoDe(42)['posicao_solar'], 'Nascente');
+      },
+    );
+
+    test('posicao_solar gerada é texto legível da API, não código de enum', () {
+      final posicoes = {
+        for (final entrada in detalhes.entries)
+          if (entrada.value['natureza'] == 'APARTAMENTO' &&
+              entrada.key % 10 != 9)
+            blocoDe(entrada.key)['posicao_solar'],
+      };
+      expect(posicoes, containsAll(['Nascente', 'Poente', 'Norte', 'Sul']));
+    });
+
+    test('topografia gerada cicla PLANO, ACLIVE e DECLIVE', () {
+      final topografias = {
+        for (final entrada in detalhes.entries)
+          if (entrada.value['natureza'] == 'TERRENO' && entrada.key % 10 != 9)
+            blocoDe(entrada.key)['topografia'],
+      };
+      expect(topografias, {'PLANO', 'ACLIVE', 'DECLIVE'});
+    });
+
+    test(
+      'todo lote gerado tem preco e condicoes_parcelamento nulos (D-19 d)',
+      () {
+        var lotes = 0;
+        for (final entrada in detalhes.entries) {
+          if (entrada.value['natureza'] != 'LOTE' || entrada.key == 103)
+            continue;
+          lotes++;
+          final lote = blocoDe(entrada.key);
+          expect(
+            lote['preco'],
+            isNull,
+            reason: 'lote ${entrada.key} com preço',
+          );
+          expect(lote['condicoes_parcelamento'], isNull);
+        }
+        expect(lotes, greaterThan(0));
+      },
+    );
+
+    test('todo detalhe com bloco continua parseável e com dados tipados', () {
+      for (final entrada in detalhes.entries) {
+        final detalhe = DetalheImovelModel.fromJson(entrada.value)
+            .paraEntidade();
+        expect(
+          detalhe.dados,
+          isNotNull,
+          reason: 'detalhe ${entrada.key} sem dados tipados',
+        );
+      }
+    });
+  });
 }

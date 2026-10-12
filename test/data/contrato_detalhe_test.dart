@@ -253,58 +253,70 @@ void main() {
       }
     });
 
-    test('exatamente um bloco de natureza preenchido, coerente com natureza',
-        () {
-      const blocoPorNatureza = {
-        'CASA': 'casa',
-        'APARTAMENTO': 'apartamento',
-        'TERRENO': 'terreno',
-        'LOTE': 'lote',
-      };
-      for (final entrada in detalhesAcervoFixture().entries) {
-        final detalhe = entrada.value;
-        final natureza = detalhe['natureza'] as String?;
-        final preenchidos = blocoPorNatureza.values
-            .where((bloco) => detalhe[bloco] != null)
-            .toList();
-        if (natureza == null) {
-          expect(
-            preenchidos,
-            isEmpty,
-            reason: 'fixture[${entrada.key}] sem natureza não tem bloco',
-          );
-        } else {
-          expect(
-            preenchidos.length <= 1,
-            isTrue,
-            reason: 'fixture[${entrada.key}] tem mais de um bloco preenchido',
-          );
-          for (final bloco in preenchidos) {
+    test(
+      'exatamente um bloco de natureza preenchido, coerente com natureza',
+      () {
+        const blocoPorNatureza = {
+          'CASA': 'casa',
+          'APARTAMENTO': 'apartamento',
+          'TERRENO': 'terreno',
+          'LOTE': 'lote',
+        };
+        for (final entrada in detalhesAcervoFixture().entries) {
+          final detalhe = entrada.value;
+          final natureza = detalhe['natureza'] as String?;
+          final preenchidos = blocoPorNatureza.values
+              .where((bloco) => detalhe[bloco] != null)
+              .toList();
+          if (natureza == null) {
             expect(
-              bloco,
-              blocoPorNatureza[natureza],
-              reason: 'fixture[${entrada.key}] bloco incoerente com natureza',
+              preenchidos,
+              isEmpty,
+              reason: 'fixture[${entrada.key}] sem natureza não tem bloco',
             );
+          } else {
+            expect(
+              preenchidos.length,
+              1,
+              reason: 'fixture[${entrada.key}] deve ter exatamente um bloco',
+            );
+            for (final bloco in blocoPorNatureza.values) {
+              expect(
+                detalhe.containsKey(bloco),
+                isTrue,
+                reason: 'fixture[${entrada.key}] sem a chave "$bloco"',
+              );
+            }
+            for (final bloco in preenchidos) {
+              expect(
+                bloco,
+                blocoPorNatureza[natureza],
+                reason: 'fixture[${entrada.key}] bloco incoerente com natureza',
+              );
+            }
           }
         }
-      }
-    });
+      },
+    );
   });
 
   group('guarda da allowlist (prova de que o teste falha ao vazar)', () {
-    test('chave fora da allowlist é detectada na raiz e em objeto aninhado', () {
-      final raizSuja = {...exemplo, 'proprietario': 'Fulano'};
-      expect(() => _exigirAllowlist(raizSuja, 'sujo'), throwsA(anything));
+    test(
+      'chave fora da allowlist é detectada na raiz e em objeto aninhado',
+      () {
+        final raizSuja = {...exemplo, 'proprietario': 'Fulano'};
+        expect(() => _exigirAllowlist(raizSuja, 'sujo'), throwsA(anything));
 
-      final corretorSujo = {
-        ...exemplo,
-        'corretor': {
-          ...(exemplo['corretor']! as Map<String, Object?>),
-          'telefone': '19999999999',
-        },
-      };
-      expect(() => _exigirAllowlist(corretorSujo, 'sujo'), throwsA(anything));
-    });
+        final corretorSujo = {
+          ...exemplo,
+          'corretor': {
+            ...(exemplo['corretor']! as Map<String, Object?>),
+            'telefone': '19999999999',
+          },
+        };
+        expect(() => _exigirAllowlist(corretorSujo, 'sujo'), throwsA(anything));
+      },
+    );
 
     test('a varredura recursiva acha chave proibida dentro de lista', () {
       final chaves = _todasAsChaves({

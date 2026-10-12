@@ -4,6 +4,7 @@ import 'package:imoveis_aqui/data/mocks/imoveis_fixture.dart';
 import 'package:imoveis_aqui/data/models/detalhe_imovel_model.dart';
 import 'package:imoveis_aqui/data/models/imovel_model.dart';
 import 'package:imoveis_aqui/data/models/url_segura.dart';
+import 'package:imoveis_aqui/domain/entities/dados_natureza.dart';
 import 'package:imoveis_aqui/domain/entities/imovel.dart';
 
 /// Contrato de parse de `DetalheImovelModel` (DET-06, T-04-03-01): um campo
@@ -136,6 +137,187 @@ void main() {
       final imovel = ImovelModel.fromJson(linha).paraEntidade();
 
       expect(imovel.fotoCapa, 'https://a.b/capa.jpg');
+    });
+  });
+
+  group('dados da natureza (DET-04, D-02, D-05, D-14)', () {
+    Map<String, Object?> detalheDe(int id) =>
+        Map<String, Object?>.of(detalhesAcervoFixture()[id]!);
+
+    DadosNatureza? dadosDe(Map<String, Object?> mapa) =>
+        DetalheImovelModel.fromJson(mapa).paraEntidade().dados;
+
+    test('CASA com bloco casa vira DadosCasa com todos os campos', () {
+      final mapa = detalheDe(57);
+
+      final dados = dadosDe(mapa);
+
+      expect(
+        dados,
+        const DadosNatureza.casa(
+          areaTerreno: '300.00',
+          areaConstruida: '180.00',
+          areaLivre: '100.00',
+          quartos: 3,
+          suites: 0,
+          banheiros: 2,
+          salas: 2,
+          vagas: 2,
+          pavimentos: 1,
+          anoConstrucao: 1998,
+          piscina: false,
+          quintal: true,
+          churrasqueira: true,
+          mobiliada: false,
+        ),
+      );
+    });
+
+    test('area_livre chega exatamente como o servidor mandou, sem cálculo', () {
+      final dados = dadosDe(detalheDe(57));
+
+      expect(dados, isA<DadosCasa>());
+      final casa = dados! as DadosCasa;
+      // 300,00 - 180,00 seria 120,00: o app nunca recalcula (D-04).
+      expect(casa.areaLivre, '100.00');
+      expect(casa.areaTerreno, '300.00');
+      expect(casa.areaConstruida, '180.00');
+    });
+
+    test('TERRENO com topografia ACLIVE vira DadosTerreno aclive', () {
+      final dados = dadosDe(detalheDe(63));
+
+      expect(
+        dados,
+        const DadosNatureza.terreno(
+          areaTotal: '300.00',
+          frente: '12.00',
+          fundo: '25.00',
+          laterais: '25.00',
+          topografia: Topografia.aclive,
+          murado: true,
+          esquina: false,
+          usoPermitido: 'Residencial',
+        ),
+      );
+    });
+
+    test(
+      'topografia PLANO, ACLIVE e DECLIVE são mapeadas; outra vira null',
+      () {
+        Topografia? topografiaCom(String? valor) {
+          final mapa = detalheDe(63);
+          mapa['terreno'] = {
+            ...(mapa['terreno']! as Map<String, Object?>),
+            'topografia': valor,
+          };
+          return (dadosDe(mapa)! as DadosTerreno).topografia;
+        }
+
+        expect(topografiaCom('PLANO'), Topografia.plano);
+        expect(topografiaCom('ACLIVE'), Topografia.aclive);
+        expect(topografiaCom('DECLIVE'), Topografia.declive);
+        expect(topografiaCom('INCLINADO'), isNull);
+        expect(topografiaCom(null), isNull);
+      },
+    );
+
+    test('APARTAMENTO mapeia os campos próprios do apartamento', () {
+      final dados = dadosDe(detalheDe(42));
+
+      expect(dados, isA<DadosApartamento>());
+      final apto = dados! as DadosApartamento;
+      expect(apto.andar, 8);
+      expect(apto.numero, '82');
+      expect(apto.areaPrivativa, '68.50');
+      expect(apto.areaTotal, '92.00');
+      expect(apto.quartos, 2);
+      expect(apto.suites, 1);
+      expect(apto.banheiros, 2);
+      expect(apto.vagas, 1);
+      expect(apto.varanda, isTrue);
+    });
+
+    test('posicao_solar chega como o texto da API, sem enum (D-19 b)', () {
+      expect(
+        (dadosDe(detalheDe(42))! as DadosApartamento).posicaoSolar,
+        'Nascente',
+      );
+
+      final mapa = detalheDe(42);
+      mapa['apartamento'] = {
+        ...(mapa['apartamento']! as Map<String, Object?>),
+        'posicao_solar': 'Sol da manhã',
+      };
+      expect((dadosDe(mapa)! as DadosApartamento).posicaoSolar, 'Sol da manhã');
+    });
+
+    test('LOTE mapeia os campos próprios do lote', () {
+      final mapa = detalheDe(103);
+      mapa['lote'] = {
+        'numero': '12',
+        'area': '450.00',
+        'frente': '15.00',
+        'fundo': '30.00',
+        'preco': '180000.00',
+        'condicoes_parcelamento': 'Entrada de 20%',
+      };
+
+      final dados = dadosDe(mapa);
+
+      expect(
+        dados,
+        const DadosNatureza.lote(
+          numero: '12',
+          area: '450.00',
+          frente: '15.00',
+          fundo: '30.00',
+          preco: '180000.00',
+          condicoesParcelamento: 'Entrada de 20%',
+        ),
+      );
+    });
+
+    test(
+      'todos os campos do bloco são opcionais (bloco vazio não derruba)',
+      () {
+        final mapa = detalheDe(57);
+        mapa['casa'] = <String, Object?>{};
+
+        final dados = dadosDe(mapa);
+
+        expect(dados, const DadosNatureza.casa());
+      },
+    );
+
+    test('natureza desconhecida resulta em dados == null', () {
+      final mapa = detalheDe(57)..['natureza'] = 'CHALE';
+
+      expect(() => dadosDe(mapa), returnsNormally);
+      expect(dadosDe(mapa), isNull);
+    });
+
+    test('bloco nulo ou ausente resulta em dados == null', () {
+      final nulo = detalheDe(57)..['casa'] = null;
+      final ausente = detalheDe(57)..remove('casa');
+
+      expect(dadosDe(nulo), isNull);
+      expect(dadosDe(ausente), isNull);
+    });
+
+    test('natureza sem bloco próprio (só outro bloco preenchido) -> null', () {
+      final mapa = detalheDe(57)
+        ..['casa'] = null
+        ..['apartamento'] = (detalheDe(42)['apartamento']);
+
+      expect(() => dadosDe(mapa), returnsNormally);
+      expect(dadosDe(mapa), isNull);
+    });
+
+    test('natureza ausente resulta em dados == null mesmo com bloco', () {
+      final mapa = detalheDe(57)..remove('natureza');
+
+      expect(dadosDe(mapa), isNull);
     });
   });
 }
