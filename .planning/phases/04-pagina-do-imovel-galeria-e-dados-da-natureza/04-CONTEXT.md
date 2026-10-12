@@ -87,8 +87,20 @@ perfil do corretor/empresa (APP 07), qualquer endpoint no Django.
 - **D-18:** Navegação por `Navigator.push` + `MaterialPageRoute`, como no resto do app.
   Sem go_router. O `ImovelCard` ganha `onTap`.
 
+### Pendências do E2 e contrato de UI (decididas no planejamento, 2026-10-12)
+- **D-19:** Quatro pontos do contrato ficam **DEFERRED ao E2** (frente web, WEB 05/06/07/09) e
+  o app os trata de forma defensiva, sem decidir por eles: (a) `corretor.slug` é nullable e a
+  tela de perfil do corretor abre com o `CorretorResponsavel` já carregado pelo detalhe; (b)
+  `posicao_solar` é mostrada exatamente como o texto que a API manda, sem enum nem tabela de
+  rótulos no app; (c) IPTU aparece sem sufixo de período ('IPTU R$ X') até o E2 definir; (d) o
+  lote mostra os preços da parte comum (`preco_venda`/`preco_aluguel`) e `lote.preco` só aparece
+  quando vier preenchido, nunca derivado. Todos listados como PENDENTE E2 no §11 do contrato.
+- **D-20:** Sem `/gsd-ui-phase` para esta fase: D-07..D-14 são o contrato de UI. Ícones e
+  rótulos (Claude's Discretion) são confirmados pelo usuário no human-check de fim de fase.
+
 ### Claude's Discretion
-- Ícones exatos, rótulos de topografia/posição solar, formato das áreas ("120 m²").
+- Ícones exatos, rótulos de topografia, formato das áreas ("120 m²"). (Posição solar: ver D-19 —
+  texto da API, sem rótulo próprio do app.)
 - Fixtures do mock: pelo menos um imóvel por natureza, mais um sem fotos e um com campos
   nulos. Ids batendo com os imóveis do fixture da vitrine.
 - Estrutura de pastas em `presentation/detalhe_imovel/`.

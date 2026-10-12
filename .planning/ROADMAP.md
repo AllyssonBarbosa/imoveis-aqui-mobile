@@ -144,7 +144,38 @@ Plans:
   5. Mostra o corretor responsável com foto e o caminho para o perfil dele.
   6. Tudo vem do detalhe da API (contrato de `GET /api/publico/imoveis/{id}/`), sem dado montado dentro do app — nesta fase via DataSource mock que respeita o contrato; a troca pela real fica na Phase 5.
 
-**Plans**: TBD
+**Plans**: 8 plans
+Plans:
+**Wave 1**
+
+- [ ] 04-01-PLAN.md — Tracer: card da vitrine abre a página (prévia na hora -> descrição do detalhe do mock por toda a pilha) + 'Tentar de novo' (DET-01, DET-05)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 04-02-PLAN.md — Contrato §11 + `imovel_detalhe.example.json` servido tal e qual pelo mock (teste de allowlist) + IDs DET-01..06/API-06/API-07 (API-06)
+- [ ] 04-03-PLAN.md — Erros tipados na camada de dados (404/TypeError) + estado "Este imóvel não está mais disponível" separado de "Tentar de novo" (DET-06)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 04-04-PLAN.md — Detalhe determinístico para todo card + ids reservados 338/339, testes de entrada da vitrine, só URLs de imagem http(s) (DET-01, DET-02, API-06)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 04-05-PLAN.md — Dados da natureza: sealed DadosNatureza, blocos casa/terreno/apartamento/lote com prédio e quadra/loteamento, fixture + exemplo de lote no contrato (DET-04, API-06)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 04-06-PLAN.md — Apresentação da natureza: destaques + ficha, cards do prédio e da quadra/loteamento, anti-cálculo (DET-04)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [ ] 04-07-PLAN.md — Galeria no SliverAppBar com contador N/M e visualizador tela cheia com pinch-zoom (InteractiveViewer) (DET-02)
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [ ] 04-08-PLAN.md — Cabeçalho do detalhe com condomínio/IPTU, características, corretor com foto + tela de perfil, fluxo completo e gates da fase (DET-03, DET-05)
+
+**UI hint**: yes
 
 ### Phase 5: Imóveis Real — Endpoint Público e Integração Final
 
@@ -172,5 +203,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Localização, Escolha de Cidade e Contrato da API | 4/4 | In Progress|  |
 | 2. Vitrine — Lista, Busca e Ordenação | 5/5 | In Progress|  |
 | 3. Vitrine — Filtros Server-Side | 5/5 | In Progress|  |
-| 4. Página do Imóvel — Galeria e Dados da Natureza | 0/TBD | Not started | - |
+| 4. Página do Imóvel — Galeria e Dados da Natureza | 0/8 | Planned | - |
 | 5. Imóveis Real — Endpoint Público e Integração Final | 0/TBD | Not started | - |
