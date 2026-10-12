@@ -79,7 +79,9 @@ class DetalheImovelScreen extends StatelessWidget {
                   background: FotoCapaImovel(url: previa.fotoCapa),
                 ),
               ),
-              SliverToBoxAdapter(child: _Cabecalho(previa: previa)),
+              // No 404 o imóvel saiu do ar: o preço da prévia não é mostrado.
+              if (state is! DetalheNaoEncontrado)
+                SliverToBoxAdapter(child: _Cabecalho(previa: previa)),
               switch (state) {
                 DetalheCarregando() => const SliverToBoxAdapter(
                   child: Padding(
@@ -91,8 +93,9 @@ class DetalheImovelScreen extends StatelessWidget {
                   child: _SecaoDescricao(descricao: detalhe.descricao),
                 ),
                 DetalheErro() => const SliverToBoxAdapter(child: _CorpoErro()),
-                DetalheNaoEncontrado() => const SliverToBoxAdapter(
-                  child: SizedBox.shrink(),
+                DetalheNaoEncontrado() => const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: _CorpoNaoEncontrado(),
                 ),
               },
               SliverPadding(
@@ -197,6 +200,38 @@ class _CorpoErro extends StatelessWidget {
               onPressed: () =>
                   context.read<DetalheImovelCubit>().tentarNovamente(),
               child: const Text('Tentar de novo'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 404 (D-17): imóvel inexistente ou despublicado — repetir não resolve, então
+/// só oferece o caminho de volta à vitrine.
+class _CorpoNaoEncontrado extends StatelessWidget {
+  const _CorpoNaoEncontrado();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(32),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.home_work_outlined, size: 48),
+            const SizedBox(height: 16),
+            Text(
+              'Este imóvel não está mais disponível',
+              style: Theme.of(context).textTheme.titleMedium,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            FilledButton(
+              onPressed: () => Navigator.of(context).maybePop(),
+              child: const Text('Voltar à vitrine'),
             ),
           ],
         ),

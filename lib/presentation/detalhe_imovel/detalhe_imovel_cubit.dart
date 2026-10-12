@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 
 import '../../core/result.dart';
+import '../../domain/repositories/imovel_detalhe_repository.dart';
 import '../../domain/usecases/obter_detalhe_imovel_usecase.dart';
 import 'detalhe_imovel_state.dart';
 
@@ -40,8 +41,13 @@ class DetalheImovelCubit extends Cubit<DetalheImovelState> {
     switch (resultado) {
       case Success(:final data):
         emit(DetalheImovelState.carregado(data));
-      case Failure():
-        emit(const DetalheImovelState.erro());
+      case Failure(:final erro):
+        // Decide só pelo tipo de domínio — nunca por mensagem nem status.
+        emit(
+          erro is ImovelNaoEncontradoException
+              ? const DetalheImovelState.naoEncontrado()
+              : const DetalheImovelState.erro(),
+        );
       case Loading():
         break;
     }
