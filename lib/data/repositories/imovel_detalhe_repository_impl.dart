@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
 
 import '../../core/result.dart';
@@ -8,6 +9,12 @@ import '../datasources/imovel_detalhe_datasource.dart';
 /// Impl de [ImovelDetalheRepository] — injeta a interface trocável
 /// [ImovelDetalheDataSource], nunca a classe mock diretamente (mesma
 /// disciplina de `ImovelRepositoryImpl`).
+///
+/// Traduz toda falha da DataSource em `Result.failure` tipado (DET-06, D-01):
+/// 404 vira [ImovelNaoEncontradoException] e JSON malformado ([TypeError] do
+/// `fromJson`) vira [FormatException], então o Cubit decide só pelo tipo. A
+/// DataSource remota da API-07 apenas deixa a `DioException` subir — nada
+/// acima do repositório muda na Fase 5.
 @LazySingleton(as: ImovelDetalheRepository)
 class ImovelDetalheRepositoryImpl implements ImovelDetalheRepository {
   ImovelDetalheRepositoryImpl(this._dataSource);
@@ -19,6 +26,18 @@ class ImovelDetalheRepositoryImpl implements ImovelDetalheRepository {
     try {
       final modelo = await _dataSource.buscarDetalhe(id);
       return Result.success(modelo.paraEntidade());
+    } on ImovelNaoEncontradoException catch (erro) {
+      return Result.failure(erro);
+    } on DioException catch (erro) {
+      // 404 = inexistente ou despublicado: repetir não resolve (D-17).
+      if (erro.response?.statusCode == 404) {
+        return Result.failure(const ImovelNaoEncontradoException());
+      }
+      return Result.failure(erro);
+    } on TypeError catch (erro) {
+      // Campo obrigatório ausente no JSON: o `fromJson` gerado faz `as` e
+      // lança TypeError, que é um Error (não Exception) — Pitfall 1.
+      return Result.failure(FormatException('detalhe malformado: $erro'));
     } on Exception catch (erro) {
       return Result.failure(erro);
     }
