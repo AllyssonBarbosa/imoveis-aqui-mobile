@@ -11,6 +11,7 @@ import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_cubit.da
 import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_screen.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_state.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/widgets/galeria_imovel.dart';
+import 'package:imoveis_aqui/presentation/detalhe_imovel/widgets/visualizador_fotos.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _DetalheImovelCubitFalso extends MockCubit<DetalheImovelState>
@@ -168,6 +169,43 @@ void main() {
       expect(find.byType(ImagemPadraoImovel), findsOneWidget);
       expect(find.byKey(const ValueKey('contador-fotos')), findsNothing);
       expect(find.byTooltip('Voltar'), findsOneWidget);
+    });
+  });
+
+  group('visualizador em tela cheia (DET-02, D-08)', () {
+    const capa = 'https://exemplo.com/capa.jpg';
+    const foto2 = 'https://exemplo.com/foto2.jpg';
+    const foto3 = 'https://exemplo.com/foto3.jpg';
+    final comFotos = detalhe.copyWith(
+      fotos: const [
+        FotoImovel(url: capa, capa: true),
+        FotoImovel(url: foto2, capa: false),
+        FotoImovel(url: foto3, capa: false),
+      ],
+    );
+
+    testWidgets('tocar na segunda foto da galeria abre o visualizador em '
+        '2/3', (tester) async {
+      await pumpEstado(tester, DetalheImovelState.carregado(comFotos));
+
+      await tester.drag(find.byType(PageView), const Offset(-400, 0));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey(foto2)));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(VisualizadorFotos), findsOneWidget);
+      expect(find.text('2/3'), findsOneWidget);
+    });
+
+    testWidgets('sem fotos não há o que tocar: o visualizador não abre', (
+      tester,
+    ) async {
+      await pumpEstado(tester, const DetalheImovelState.carregado(detalhe));
+
+      await tester.tap(find.byType(ImagemPadraoImovel));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(VisualizadorFotos), findsNothing);
     });
   });
 
