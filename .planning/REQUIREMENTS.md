@@ -5,7 +5,7 @@
 
 ## v1 Requirements
 
-Requisitos da primeira entrega (tarefas APP01, APP02, APP03 + os endpoints públicos que as habilitam). Cada um mapeia para uma fase do roadmap.
+Requisitos da primeira entrega (tarefas APP01, APP02, APP03, APP04 + os endpoints públicos que as habilitam). Cada um mapeia para uma fase do roadmap.
 
 ### Localização e escolha da cidade (APP01)
 
@@ -34,12 +34,23 @@ Requisitos da primeira entrega (tarefas APP01, APP02, APP03 + os endpoints públ
 - [x] **FIL-05**: Os filtros são aplicados no servidor — a lista vem pronta da API; o app nunca filtra o acervo localmente.
 - [x] **FIL-06**: Filtros ativos aparecem como chips acima da lista, com aplicar e limpar; mudar filtro ou ordenação reseta a paginação (sem cards duplicados ou embaralhados).
 
+### Página do imóvel (APP04)
+
+- [ ] **DET-01**: Tocar num card da vitrine abre a página do imóvel; a abertura mostra de imediato a prévia que a vitrine já tem (capa, título, preço) e carrega o detalhe.
+- [ ] **DET-02**: A galeria mostra todas as fotos do imóvel começando pela capa, com contador "N/M"; o toque abre um visualizador em tela cheia com swipe e pinch-zoom; sem fotos mostra o placeholder, sem contador.
+- [ ] **DET-03**: A página mostra os preços de venda e/ou aluguel, condomínio e IPTU exatamente como vieram da API (valores formatados, nunca calculados no app).
+- [ ] **DET-04**: A página mostra os dados da natureza — casa (terreno, área construída, área livre), terreno (frente, fundo, topografia), apartamento (dados do prédio) e lote (quadra e loteamento); campo nulo omite a linha e seção vazia some.
+- [ ] **DET-05**: A página mostra descrição, características e o corretor responsável com foto; tocar no corretor abre a tela de perfil do corretor, cujo conteúdo completo é do APP 07.
+- [ ] **DET-06**: Imóvel não encontrado (404) mostra "Este imóvel não está mais disponível" com volta à vitrine; os demais erros mostram "Tentar de novo".
+
 ### API pública (endpoints que o app consome)
 
 - [x] **API-01**: Auditar a API atual e congelar por escrito o contrato de `/cidades` e `/imoveis` (nomes de campos, enums, nomes dos params de filtro, envelope de paginação) antes de codar APP02/APP03 ou o endpoint real.
 - [x] **API-02**: `GET /api/publico/cidades/` — endpoint público sem token, expõe as cidades atendidas para a vitrine (app e site).
 - [ ] **API-03**: `GET /api/publico/imoveis/?cidade=...&filtros` — endpoint público sem token com busca, ordenação, filtros e paginação server-side; retorna só imóveis publicados; usa serializer público com allowlist (sem proprietário/documento/dado interno) e não quebra o isolamento multitenant.
 - [x] **API-04**: A camada de dados do app é trocável (DataSource mock/fixture honrando o contrato → DataSource real por DI), permitindo desenvolver APP02/APP03 antes de o endpoint real de imóveis existir.
+- [ ] **API-06**: O contrato de `GET /api/publico/imoveis/{id}/` fica congelado por escrito no §11 do contrato da API + `imovel_detalhe.example.json`, e o app o consome por DataSource trocável (mock honrando o contrato).
+- [ ] **API-07**: Endpoint real `GET /api/publico/imoveis/{id}/` público, só imóveis publicados, 404 igual para inexistente e não publicado, serializer com a allowlist do §11, e troca da DataSource do detalhe por DI.
 
 ## v2 Requirements
 
@@ -47,7 +58,6 @@ Reconhecidos, mas fora desta entrega (outras tarefas do app, feitas depois / por
 
 ### App — próximas tarefas
 
-- **DET-01**: Página de detalhe do imóvel (card 8).
 - **CON-01**: Contato com o corretor por WhatsApp com mensagem montada pelo servidor e gravação do contato (card 9).
 - **FAV-01**: Favoritos guardados no aparelho.
 - **LOG-01**: Áreas logadas do app — área do corretor e área do gestor (cards 10–11).
@@ -91,14 +101,22 @@ Excluídos de propósito. Documentados para evitar scope creep.
 | FIL-04 | Phase 3 | Complete |
 | FIL-05 | Phase 3 | Complete |
 | FIL-06 | Phase 3 | Complete |
+| DET-01 | Phase 4 | Pending |
+| DET-02 | Phase 4 | Pending |
+| DET-03 | Phase 4 | Pending |
+| DET-04 | Phase 4 | Pending |
+| DET-05 | Phase 4 | Pending |
+| DET-06 | Phase 4 | Pending |
+| API-06 | Phase 4 | Pending |
 | API-03 | Phase 5 | Pending |
+| API-07 | Phase 5 | Pending |
 
 **Coverage:**
 
-- v1 requirements: 22 total
-- Mapped to phases: 22 (roadmap complete)
+- v1 requirements: 30 total
+- Mapped to phases: 30 (roadmap complete)
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-09-21*
-*Last updated: 2026-09-21 after roadmap creation (4 phases, full coverage)*
+*Last updated: 2026-10-12 after adding Phase 4 requirement IDs (DET-01..06, API-06, API-07)*

@@ -134,7 +134,7 @@ Plans:
 **Goal**: O visitante abre um imóvel a partir da vitrine e vê tudo sobre ele para decidir se vale falar com o corretor; o que aparece abaixo da galeria depende da natureza do imóvel. Card APP 04 (tarefa A04).
 **Mode:** mvp
 **Depends on**: Phase 3 (externally: WEB 05/06/07 for the nature data and WEB 09 for the public detail endpoint, in `../imoveis-aqui/Web` — this phase builds over a mock that follows the detail contract)
-**Requirements**: APP-04 (to be detailed in discuss)
+**Requirements**: DET-01, DET-02, DET-03, DET-04, DET-05, DET-06, API-06
 **Success Criteria** (what must be TRUE):
 
   1. A galeria mostra todas as fotos do imóvel, começando pela capa.
@@ -182,7 +182,7 @@ Plans:
 **Goal**: A API expõe o acervo real de imóveis com busca, ordenação, filtros e paginação resolvidos no servidor, sem dado interno; o app troca a DataSource mock pela real, e a vitrine com filtros passa a funcionar ponta a ponta com dados reais.
 **Mode:** mvp
 **Depends on**: Phase 4 (also blocked externally on the `Imóvel` model landing in the sibling API repo `../imoveis-aqui/Web`, owned by teammate E2 and outside this project's phases)
-**Requirements**: API-03
+**Requirements**: API-03, API-07
 **Success Criteria** (what must be TRUE):
 
   1. `GET /api/publico/imoveis/?cidade=...&filtros` responde sem token, só com imóveis publicados, com busca/ordenação/filtros/paginação resolvidos no servidor.
