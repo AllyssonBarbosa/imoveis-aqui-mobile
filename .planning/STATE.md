@@ -1,17 +1,17 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 03
-current_phase_name: Vitrine — Filtros Server-Side
-status: verifying
-stopped_at: Phase 4 context gathered
-last_updated: "2026-10-12T03:51:47.871Z"
-last_activity: 2026-09-30
-last_activity_desc: Phase 03 execution started
-state_head: 6e39683dc79e97f5ccd96017e41decd5644d5d6a
+current_phase: 04
+current_phase_name: Página do Imóvel — Galeria e Dados da Natureza
+status: executing
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-10-12T05:19:56.211Z"
+last_activity: 2026-10-12
+last_activity_desc: Phase 04 execution started
+state_head: 1380b3d90d831268449ce515bd000f89823f2993
 progress:
   total_phases: 5
   completed_phases: 0
-  total_plans: 14
+  total_plans: 22
   completed_plans: 14
   percent: 0
 ---
@@ -23,14 +23,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-21)
 
 **Core value:** A vitrine do app abre na cidade do usuário e mostra imóveis reais vindos da API, com a busca e o filtro resolvidos no servidor — o mesmo dado e a mesma regra do site, nunca recalculados dentro do aparelho.
-**Current focus:** Phase 03 — Vitrine — Filtros Server-Side
+**Current focus:** Phase 04 — Página do Imóvel — Galeria e Dados da Natureza
 
 ## Current Position
 
-Phase: 03 (Vitrine — Filtros Server-Side) — EXECUTING
-Plan: 5 of 5
-Status: Phase complete — ready for verification
-Last activity: 2026-09-30 — Phase 03 execution started
+Phase: 04 (Página do Imóvel — Galeria e Dados da Natureza) — EXECUTING
+Plan: 2 of 8
+Status: Ready to execute
+Last activity: 2026-10-12 — Phase 04 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -65,6 +65,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02 P04 | 27 min | 2 tasks | 22 files |
 | Phase 02 P05 | 17min | 3 tasks | 12 files |
 | Phase 03 P01 | 50min | 2 tasks | 21 files |
+| Phase 4 P01 | 25 min | 2 tasks | 24 files |
 
 ## Accumulated Context
 
@@ -86,6 +87,8 @@ Recent decisions affecting current work:
 - [Phase 02]: [Phase 02-05]: keepScrollOffset:false so restaura o topo com um ScrollPosition NOVO; troca de busca/ordenacao reconstroi o mesmo ListView/controller in-place, entao D-13 precisou de jumpTo(0) explicito num BlocConsumer.listener quando ConteudoVitrine.carregando reaparece
 - [Phase 03]: [Phase 03-01]: TDD explícito na Task 2 (RED->GREEN, sem REFACTOR necessário); ImovelMockDataSource refatorado em pipeline não-async (_paginarPelosParametros) + async (_montarPagina), preservando o throw síncrono de FormatException para cidade/ordenacao/cursor inválidos
 - [Phase 03]: [Phase 03-01]: next/previous do mock passam a carregar o mesmo mapa de query params recebido (menos cursor) em vez de reconstruir via parametrosDaConsulta — todo filtro futuro sobrevive à paginação automaticamente
+- [Phase 4]: 04-01: abrirDetalheImovel e o unico ponto que resolve o DetalheImovelCubit no DI (no toque); VitrineScreen recebe aoAbrirImovel (default abrirDetalheImovel) para manter testes da vitrine sem DI — Mantem widgets testaveis e sem dependencia oculta (T-04-01-04)
+- [Phase 4]: 04-01: mock do detalhe serve mapas de wire parseados por DetalheImovelModel.fromJson; ImovelNaoEncontradoException simula o 404 (D-01) — Troca mock->real na Fase 5 vira so mudanca de DI (API-07)
 
 ### Pending Todos
 
@@ -114,6 +117,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-12T03:51:47.807Z
-Stopped at: Phase 4 context gathered
-Resume file: .planning/phases/04-pagina-do-imovel-galeria-e-dados-da-natureza/04-CONTEXT.md
+Last session: 2026-10-12T05:19:56.177Z
+Stopped at: Completed 04-01-PLAN.md
+Resume file: None

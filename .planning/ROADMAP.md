@@ -144,11 +144,11 @@ Plans:
   5. Mostra o corretor responsável com foto e o caminho para o perfil dele.
   6. Tudo vem do detalhe da API (contrato de `GET /api/publico/imoveis/{id}/`), sem dado montado dentro do app — nesta fase via DataSource mock que respeita o contrato; a troca pela real fica na Phase 5.
 
-**Plans**: 8 plans
+**Plans**: 1/8 plans executed
 Plans:
 **Wave 1**
 
-- [ ] 04-01-PLAN.md — Tracer: card da vitrine abre a página (prévia na hora -> descrição do detalhe do mock por toda a pilha) + 'Tentar de novo' (DET-01, DET-05)
+- [x] 04-01-PLAN.md — Tracer: card da vitrine abre a página (prévia na hora -> descrição do detalhe do mock por toda a pilha) + 'Tentar de novo' (DET-01, DET-05)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -203,5 +203,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Localização, Escolha de Cidade e Contrato da API | 4/4 | In Progress|  |
 | 2. Vitrine — Lista, Busca e Ordenação | 5/5 | In Progress|  |
 | 3. Vitrine — Filtros Server-Side | 5/5 | In Progress|  |
-| 4. Página do Imóvel — Galeria e Dados da Natureza | 0/8 | Planned | - |
+| 4. Página do Imóvel — Galeria e Dados da Natureza | 1/8 | In Progress|  |
 | 5. Imóveis Real — Endpoint Público e Integração Final | 0/TBD | Not started | - |
