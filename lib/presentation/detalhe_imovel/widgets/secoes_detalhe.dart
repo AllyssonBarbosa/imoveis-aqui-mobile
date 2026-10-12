@@ -44,6 +44,16 @@ class SecaoDescricao extends StatelessWidget {
   }
 }
 
+/// Esqueleto (RED): só compila; o comportamento vem no commit GREEN.
+class SecaoCaracteristicas extends StatelessWidget {
+  const SecaoCaracteristicas({super.key, required this.caracteristicas});
+
+  final List<String> caracteristicas;
+
+  @override
+  Widget build(BuildContext context) => const SizedBox.shrink();
+}
+
 /// Lista de linhas rótulo/valor (rótulo à esquerda em `onSurfaceVariant`,
 /// valor alinhado à direita) — compartilhada pela seção da natureza e pelos
 /// cards. Quem chama decide se a lista vazia some.

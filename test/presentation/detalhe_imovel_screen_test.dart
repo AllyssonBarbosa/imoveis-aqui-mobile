@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -55,16 +57,13 @@ void main() {
     DetalheImovelState estado, {
     double altura = 1200,
     Imovel previaUsada = previa,
+    Stream<DetalheImovelState> fluxo = const Stream<DetalheImovelState>.empty(),
   }) async {
     tester.view.physicalSize = Size(400, altura);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    whenListen(
-      cubit,
-      const Stream<DetalheImovelState>.empty(),
-      initialState: estado,
-    );
+    whenListen(cubit, fluxo, initialState: estado);
     await tester.pumpWidget(
       MaterialApp(
         home: Builder(
@@ -482,6 +481,151 @@ void main() {
 
       expect(find.text('Sobre o lote'), findsOneWidget);
       expect(find.text('Quadra e loteamento'), findsNothing);
+    });
+  });
+
+  group('cabeçalho do detalhe, preços e características (DET-03, D-11)', () {
+    final completo = detalhe.copyWith(
+      precoCondominio: '850.00',
+      precoIptu: '1200.00',
+      caracteristicas: const [
+        'Portão eletrônico',
+        'Ar-condicionado',
+        'Varanda gourmet',
+      ],
+      dados: const DadosNatureza.apartamento(andar: 8),
+    );
+
+    testWidgets('carregado mostra preço, condomínio, IPTU e um Chip por '
+        'característica', (tester) async {
+      await pumpEstado(
+        tester,
+        DetalheImovelState.carregado(completo),
+        altura: 2400,
+      );
+
+      expect(find.text('R\$\u00A0450.000'), findsOneWidget);
+      expect(find.text('Condomínio R\$\u00A0850/mês'), findsOneWidget);
+      expect(find.text('IPTU R\$\u00A01.200'), findsOneWidget);
+      expect(find.text('Características'), findsOneWidget);
+      expect(find.widgetWithText(Chip, 'Portão eletrônico'), findsOneWidget);
+      expect(find.widgetWithText(Chip, 'Ar-condicionado'), findsOneWidget);
+      expect(find.widgetWithText(Chip, 'Varanda gourmet'), findsOneWidget);
+      expect(find.byType(Chip), findsNWidgets(3));
+    });
+
+    testWidgets('IPTU nunca carrega "/mês" nem "/ano" (D-19 c)', (
+      tester,
+    ) async {
+      await pumpEstado(
+        tester,
+        DetalheImovelState.carregado(completo),
+        altura: 2400,
+      );
+
+      expect(find.textContaining('IPTU'), findsOneWidget);
+      expect(find.textContaining('IPTU R\$\u00A01.200/'), findsNothing);
+    });
+
+    testWidgets('o título e o preço ficam no mesmo lugar de carregando para '
+        'carregado (sem pulo, Pitfall 8)', (tester) async {
+      final fluxo = StreamController<DetalheImovelState>();
+      addTearDown(fluxo.close);
+      await pumpEstado(
+        tester,
+        const DetalheImovelState.carregando(),
+        altura: 2400,
+        fluxo: fluxo.stream,
+      );
+      final tituloAntes = tester.getTopLeft(
+        find.text('Apartamento 2 quartos no Cambuí'),
+      );
+      final precoAntes = tester.getTopLeft(find.text('R\$\u00A0450.000'));
+      expect(find.textContaining('Condomínio'), findsNothing);
+      expect(find.textContaining('IPTU'), findsNothing);
+
+      fluxo.add(DetalheImovelState.carregado(completo));
+      await tester.pump();
+
+      expect(
+        tester.getTopLeft(find.text('Apartamento 2 quartos no Cambuí')),
+        tituloAntes,
+      );
+      expect(tester.getTopLeft(find.text('R\$\u00A0450.000')), precoAntes);
+      expect(find.text('Condomínio R\$\u00A0850/mês'), findsOneWidget);
+      expect(find.text('IPTU R\$\u00A01.200'), findsOneWidget);
+    });
+
+    testWidgets('VENDA_E_ALUGUEL mostra "Venda ..." e "Aluguel .../mês"', (
+      tester,
+    ) async {
+      final ambos = detalhe.copyWith(
+        finalidade: FinalidadeImovel.vendaEAluguel,
+        precoVenda: '220000.00',
+        precoAluguel: '1500.00',
+      );
+      await pumpEstado(
+        tester,
+        DetalheImovelState.carregado(ambos),
+        altura: 2400,
+      );
+
+      expect(find.text('Venda R\$\u00A0220.000'), findsOneWidget);
+      expect(find.text('Aluguel R\$\u00A01.500/mês'), findsOneWidget);
+    });
+
+    testWidgets('condomínio e IPTU nulos não mostram linhas de custo', (
+      tester,
+    ) async {
+      await pumpEstado(tester, const DetalheImovelState.carregado(detalhe));
+
+      expect(find.textContaining('Condomínio'), findsNothing);
+      expect(find.textContaining('IPTU'), findsNothing);
+    });
+
+    testWidgets('características vazias fazem a seção sumir', (tester) async {
+      await pumpEstado(tester, const DetalheImovelState.carregado(detalhe));
+
+      expect(find.text('Características'), findsNothing);
+      expect(find.byType(Chip), findsNothing);
+    });
+
+    testWidgets('lote: o cabeçalho usa o preço da parte comum e o preço do '
+        'lote só aparece na seção da natureza (D-19 d)', (tester) async {
+      final lote = detalhe.copyWith(
+        titulo: 'Lote em condomínio fechado',
+        precoVenda: '210000.00',
+        dados: const DadosNatureza.lote(numero: '9', preco: '210500.50'),
+      );
+      await pumpEstado(
+        tester,
+        DetalheImovelState.carregado(lote),
+        altura: 2400,
+      );
+
+      expect(find.text('R\$\u00A0210.000'), findsOneWidget);
+      expect(find.text('Preço do lote'), findsOneWidget);
+      expect(find.text('R\$\u00A0210.500,50'), findsOneWidget);
+      // A prévia (R$ 450.000) não vaza para o cabeçalho do detalhe.
+      expect(find.text('R\$\u00A0450.000'), findsNothing);
+    });
+
+    testWidgets('ordem vertical: natureza < Descrição < Características', (
+      tester,
+    ) async {
+      await pumpEstado(
+        tester,
+        DetalheImovelState.carregado(completo),
+        altura: 2400,
+      );
+
+      final natureza = tester.getTopLeft(find.text('Sobre o apartamento')).dy;
+      final descricao = tester.getTopLeft(find.text('Descrição')).dy;
+      final caracteristicas = tester
+          .getTopLeft(find.text('Características'))
+          .dy;
+      expect(natureza, lessThan(descricao));
+      expect(descricao, lessThan(caracteristicas));
     });
   });
 

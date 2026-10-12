@@ -1,5 +1,6 @@
 import 'package:intl/intl.dart';
 
+import '../../domain/entities/cidade.dart';
 import '../../domain/entities/imovel.dart';
 
 /// Funções puras de apresentação do imóvel (D-03) — a conversão
@@ -71,3 +72,15 @@ String? rotuloQuartos(int? quartos) {
   if (quartos == null || quartos == 0) return null;
   return quartos == 1 ? '1 quarto' : '$quartos quartos';
 }
+
+// Esqueletos (RED): só compilam; o comportamento vem no commit GREEN.
+List<String> linhasDePrecoPorFinalidade({
+  required FinalidadeImovel finalidade,
+  String? precoVenda,
+  String? precoAluguel,
+}) => const [];
+
+String rotuloLocalizacao(String bairro, Cidade cidade) => '';
+
+List<String> linhasDeCustos({String? precoCondominio, String? precoIptu}) =>
+    const [];
