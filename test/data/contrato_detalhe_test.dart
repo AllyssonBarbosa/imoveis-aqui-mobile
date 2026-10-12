@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/data/mocks/imoveis_detalhe_fixture.dart';
 import 'package:imoveis_aqui/data/models/detalhe_imovel_model.dart';
+import 'package:imoveis_aqui/domain/entities/dados_natureza.dart';
 import 'package:imoveis_aqui/domain/entities/imovel.dart';
 
 /// Teste de contrato do detalhe do imóvel (API-06): garante que o exemplo do
@@ -15,6 +16,12 @@ import 'package:imoveis_aqui/domain/entities/imovel.dart';
 const _caminhoExemplo =
     '.planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/'
     'contrato/imovel_detalhe.example.json';
+
+/// Exemplo do lote 103 (quadra e loteamento embutidos), ao lado do exemplo do
+/// apartamento.
+const _caminhoExemploLote =
+    '.planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/'
+    'contrato/imovel_detalhe_lote.example.json';
 
 // --- Allowlists do §11, uma constante por objeto -------------------------
 // Os planos seguintes ampliam a fixture; as entradas novas são checadas
@@ -216,10 +223,14 @@ void _exigirAllowlist(Map<String, Object?> detalhe, String rotulo) {
 
 void main() {
   late Map<String, Object?> exemplo;
+  late Map<String, Object?> exemploLote;
 
   setUpAll(() {
     exemplo =
         jsonDecode(File(_caminhoExemplo).readAsStringSync())
+            as Map<String, Object?>;
+    exemploLote =
+        jsonDecode(File(_caminhoExemploLote).readAsStringSync())
             as Map<String, Object?>;
   });
 
@@ -241,6 +252,29 @@ void main() {
 
     test('respeita a allowlist de cada objeto e não vaza chave proibida', () {
       _exigirAllowlist(exemplo, 'exemplo');
+    });
+  });
+
+  group('imovel_detalhe_lote.example.json (§11, lote com quadra)', () {
+    test('parseia pelo Model do app e vira o lote com quadra e loteamento', () {
+      final detalhe = DetalheImovelModel.fromJson(exemploLote).paraEntidade();
+
+      expect(detalhe.id, 103);
+      expect(detalhe.natureza, NaturezaImovel.lote);
+      final lote = detalhe.dados! as DadosLote;
+      expect(lote.quadra?.identificacao, 'Quadra B');
+      expect(
+        lote.quadra?.loteamento?.nome,
+        'Residencial Parque das Flores',
+      );
+    });
+
+    test('é idêntico ao detalhe 103 que o mock serve', () {
+      expect(exemploLote, equals(detalhesAcervoFixture()[103]));
+    });
+
+    test('respeita a allowlist de cada objeto e não vaza chave proibida', () {
+      _exigirAllowlist(exemploLote, 'exemploLote');
     });
   });
 

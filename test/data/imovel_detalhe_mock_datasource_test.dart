@@ -442,4 +442,143 @@ void main() {
       }
     });
   });
+
+  group('prédio e quadra/loteamento embutidos (DET-04 critério 3, D-03)', () {
+    late Map<int, Map<String, Object?>> detalhes;
+
+    setUp(() => detalhes = detalhesAcervoFixture());
+
+    Map<String, Object?>? predioDe(int id) =>
+        (detalhes[id]!['apartamento']! as Map<String, Object?>)['predio']
+            as Map<String, Object?>?;
+
+    Map<String, Object?>? quadraDe(int id) =>
+        (detalhes[id]!['lote']! as Map<String, Object?>)['quadra']
+            as Map<String, Object?>?;
+
+    Iterable<int> idsDa(String natureza) => [
+      for (final entrada in detalhes.entries)
+        if (entrada.value['natureza'] == natureza) entrada.key,
+    ];
+
+    test('todo apartamento com id % 10 != 9 tem prédio completo', () {
+      var verificados = 0;
+      for (final id in idsDa('APARTAMENTO')) {
+        if (id % 10 == 9) continue;
+        verificados++;
+        final predio = predioDe(id);
+        expect(predio, isNotNull, reason: 'apartamento $id sem prédio');
+        expect(predio!.keys.toSet(), {
+          'nome',
+          'andares',
+          'unidades_por_andar',
+          'ano',
+          'elevadores',
+          'portaria_24h',
+          'piscina',
+          'academia',
+          'salao_de_festas',
+          'playground',
+        }, reason: 'prédio do apartamento $id incompleto');
+      }
+      expect(verificados, greaterThan(0));
+    });
+
+    test('apartamento com id % 10 == 9 não tem prédio (campo nulo, D-14)', () {
+      var verificados = 0;
+      for (final id in idsDa('APARTAMENTO')) {
+        if (id % 10 != 9) continue;
+        verificados++;
+        expect(predioDe(id), isNull, reason: 'apartamento $id com prédio');
+      }
+      expect(verificados, greaterThan(0));
+    });
+
+    test('o nome do prédio vem de uma lista fixa de quatro nomes', () {
+      final nomes = {
+        for (final id in idsDa('APARTAMENTO'))
+          if (id != 42 && predioDe(id) != null) predioDe(id)!['nome'],
+      };
+      expect(nomes, hasLength(4));
+    });
+
+    test('o prédio do 42 segue o exemplo do §11', () {
+      final predio = predioDe(42)!;
+      expect(predio['nome'], 'Edifício Jequitibá');
+      expect(predio['portaria_24h'], isTrue);
+      expect(predio['playground'], isFalse);
+    });
+
+    test('todo lote com id % 10 != 9 tem quadra e loteamento com listas', () {
+      var verificados = 0;
+      for (final id in idsDa('LOTE')) {
+        if (id % 10 == 9) continue;
+        verificados++;
+        final quadra = quadraDe(id);
+        expect(quadra, isNotNull, reason: 'lote $id sem quadra');
+        expect((quadra!['identificacao']! as String), startsWith('Quadra '));
+        final loteamento = quadra['loteamento']! as Map<String, Object?>;
+        expect(loteamento['nome'], isNotNull);
+        expect(loteamento['incorporadora'], isNotNull);
+        expect(
+          loteamento['infraestrutura']! as List<Object?>,
+          isNotEmpty,
+          reason: 'lote $id sem infraestrutura',
+        );
+        expect(
+          loteamento['areas_lazer']! as List<Object?>,
+          isNotEmpty,
+          reason: 'lote $id sem áreas de lazer',
+        );
+      }
+      expect(verificados, greaterThan(0));
+    });
+
+    test('lote com id % 10 == 9 não tem quadra', () {
+      var verificados = 0;
+      for (final id in idsDa('LOTE')) {
+        if (id % 10 != 9) continue;
+        verificados++;
+        expect(quadraDe(id), isNull, reason: 'lote $id com quadra');
+      }
+      expect(verificados, greaterThan(0));
+    });
+
+    test('o lote 103 é da Quadra B do Residencial Parque das Flores', () {
+      final quadra = quadraDe(103)!;
+      expect(quadra['identificacao'], 'Quadra B');
+      final loteamento = quadra['loteamento']! as Map<String, Object?>;
+      expect(loteamento['nome'], 'Residencial Parque das Flores');
+      expect(loteamento['incorporadora'], 'Flores Urbanismo');
+      expect(loteamento['infraestrutura'], [
+        'Asfalto',
+        'Água encanada',
+        'Rede de esgoto',
+        'Energia elétrica',
+        'Iluminação pública',
+      ]);
+      expect(loteamento['areas_lazer'], [
+        'Praça',
+        'Playground',
+        'Quadra poliesportiva',
+      ]);
+    });
+
+    test('o 103 é o único lote com preco, igual ao preco_venda do card', () {
+      final comPreco = [
+        for (final id in idsDa('LOTE'))
+          if ((detalhes[id]!['lote']! as Map<String, Object?>)['preco'] != null)
+            id,
+      ];
+      expect(comPreco, [103]);
+      final lote = detalhes[103]!['lote']! as Map<String, Object?>;
+      final linha103 = linhasAcervoFixture().firstWhere((l) => l['id'] == 103);
+      expect(lote['preco'], linha103['preco_venda']);
+      expect(lote['preco'], isNotNull);
+      expect(
+        lote['condicoes_parcelamento'],
+        'Entrada de 20% e saldo em até 120 meses',
+      );
+    });
+  });
 }

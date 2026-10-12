@@ -320,4 +320,115 @@ void main() {
       expect(dadosDe(mapa), isNull);
     });
   });
+
+  group('prédio, quadra e loteamento embutidos (DET-04, D-03)', () {
+    Map<String, Object?> detalheDe(int id) =>
+        Map<String, Object?>.of(detalhesAcervoFixture()[id]!);
+
+    DadosNatureza? dadosDe(Map<String, Object?> mapa) =>
+        DetalheImovelModel.fromJson(mapa).paraEntidade().dados;
+
+    test('apartamento.predio vira DadosPredio com todos os campos', () {
+      final apto = dadosDe(detalheDe(42))! as DadosApartamento;
+
+      expect(
+        apto.predio,
+        const DadosPredio(
+          nome: 'Edifício Jequitibá',
+          andares: 15,
+          unidadesPorAndar: 4,
+          ano: 2012,
+          elevadores: 2,
+          portaria24h: true,
+          piscina: true,
+          academia: true,
+          salaoDeFestas: true,
+          playground: false,
+        ),
+      );
+    });
+
+    test('predio nulo ou ausente vira null', () {
+      Map<String, Object?> comPredio(Object? valor) {
+        final mapa = detalheDe(42);
+        mapa['apartamento'] = {
+          ...(mapa['apartamento']! as Map<String, Object?>),
+          'predio': valor,
+        };
+        return mapa;
+      }
+
+      expect((dadosDe(comPredio(null))! as DadosApartamento).predio, isNull);
+
+      final ausente = detalheDe(42);
+      (ausente['apartamento']! as Map<String, Object?>).remove('predio');
+      expect((dadosDe(ausente)! as DadosApartamento).predio, isNull);
+    });
+
+    test('lote.quadra vira DadosQuadra com o loteamento mapeado', () {
+      final lote = dadosDe(detalheDe(103))! as DadosLote;
+
+      expect(lote.quadra?.identificacao, 'Quadra B');
+      expect(lote.quadra?.loteamento?.nome, 'Residencial Parque das Flores');
+      expect(lote.quadra?.loteamento?.incorporadora, 'Flores Urbanismo');
+      expect(lote.quadra?.loteamento?.infraestrutura, [
+        'Asfalto',
+        'Água encanada',
+        'Rede de esgoto',
+        'Energia elétrica',
+        'Iluminação pública',
+      ]);
+      expect(lote.quadra?.loteamento?.areasLazer, [
+        'Praça',
+        'Playground',
+        'Quadra poliesportiva',
+      ]);
+    });
+
+    test('infraestrutura e areas_lazer ausentes viram listas vazias', () {
+      final mapa = detalheDe(103);
+      mapa['lote'] = {
+        ...(mapa['lote']! as Map<String, Object?>),
+        'quadra': {
+          'identificacao': 'Quadra A',
+          'loteamento': {'nome': 'Residencial X'},
+        },
+      };
+
+      final lote = dadosDe(mapa)! as DadosLote;
+
+      expect(lote.quadra?.loteamento?.infraestrutura, isEmpty);
+      expect(lote.quadra?.loteamento?.areasLazer, isEmpty);
+    });
+
+    test('quadra nula e loteamento nulo viram null', () {
+      final semQuadra = detalheDe(103);
+      semQuadra['lote'] = {
+        ...(semQuadra['lote']! as Map<String, Object?>),
+        'quadra': null,
+      };
+      expect((dadosDe(semQuadra)! as DadosLote).quadra, isNull);
+
+      final semLoteamento = detalheDe(103);
+      semLoteamento['lote'] = {
+        ...(semLoteamento['lote']! as Map<String, Object?>),
+        'quadra': {'identificacao': 'Quadra A', 'loteamento': null},
+      };
+      final quadra = (dadosDe(semLoteamento)! as DadosLote).quadra;
+      expect(quadra?.identificacao, 'Quadra A');
+      expect(quadra?.loteamento, isNull);
+    });
+
+    test('lote 103 mantém o preço do servidor, sem derivar de preco_venda', () {
+      final lote = dadosDe(detalheDe(103))! as DadosLote;
+      final semPreco = detalheDe(103);
+      semPreco['lote'] = {
+        ...(semPreco['lote']! as Map<String, Object?>),
+        'preco': null,
+      };
+
+      expect(lote.preco, '210500.50');
+      expect((dadosDe(semPreco)! as DadosLote).preco, isNull);
+    });
+  });
 }
