@@ -8,6 +8,7 @@ import 'package:imoveis_aqui/data/datasources/imovel_mock_datasource.dart';
 import 'package:imoveis_aqui/data/datasources/opcoes_filtro_mock_datasource.dart';
 import 'package:imoveis_aqui/data/mocks/imoveis_detalhe_fixture.dart';
 import 'package:imoveis_aqui/data/mocks/imoveis_fixture.dart';
+import 'package:imoveis_aqui/data/models/detalhe_imovel_model.dart';
 import 'package:imoveis_aqui/data/repositories/imovel_detalhe_repository_impl.dart';
 import 'package:imoveis_aqui/data/repositories/imovel_repository_impl.dart';
 import 'package:imoveis_aqui/data/repositories/opcoes_filtro_repository_impl.dart';
@@ -40,38 +41,95 @@ class _CidadeSelecaoCubitFalso extends MockCubit<CidadeSelecaoState>
 
 class _SalvarCidadeUseCaseFalso extends Mock implements SalvarCidadeUseCase {}
 
+/// DataSource de teste que falha na primeira chamada e depois delega ao mock
+/// real — simula uma falha de rede transitória (D-17).
+class _DataSourceFalhaNaPrimeira implements ImovelDetalheDataSource {
+  _DataSourceFalhaNaPrimeira(this._real);
+
+  final ImovelDetalheDataSource _real;
+  int chamadas = 0;
+
+  @override
+  Future<DetalheImovelModel> buscarDetalhe(int id) async {
+    chamadas++;
+    if (chamadas == 1) throw Exception('falha simulada');
+    return _real.buscarDetalhe(id);
+  }
+}
+
 void main() {
   const campinas = Cidade(nome: 'Campinas', uf: 'SP');
 
-  group('tracer', () {
-    late _CidadeSelecaoCubitFalso cidadeSelecaoCubit;
-    late _SalvarCidadeUseCaseFalso salvarCidade;
+  late _CidadeSelecaoCubitFalso cidadeSelecaoCubit;
+  late _SalvarCidadeUseCaseFalso salvarCidade;
 
-    VitrineCubit criarVitrineCubitReal() => VitrineCubit(
-      BuscarImoveisUseCase(
-        ImovelRepositoryImpl(
-          ImovelMockDataSource.paraTeste(
-            linhas: linhasAcervoFixture(),
-            tamanhoPagina: 10,
+  VitrineCubit criarVitrineCubitReal() => VitrineCubit(
+    BuscarImoveisUseCase(
+      ImovelRepositoryImpl(
+        ImovelMockDataSource.paraTeste(
+          linhas: linhasAcervoFixture(),
+          tamanhoPagina: 10,
+        ),
+      ),
+    ),
+    SessaoFiltrosVitrine(),
+  );
+
+  OpcoesFiltroCubit criarOpcoesFiltroCubitReal() {
+    final repositorio = OpcoesFiltroRepositoryImpl(
+      OpcoesFiltroMockDataSource.paraTeste(linhas: linhasAcervoFixture()),
+    );
+    return OpcoesFiltroCubit(
+      ObterBairrosUseCase(repositorio),
+      ObterCaracteristicasUseCase(repositorio),
+    );
+  }
+
+  setUp(() {
+    cidadeSelecaoCubit = _CidadeSelecaoCubitFalso();
+    salvarCidade = _SalvarCidadeUseCaseFalso();
+  });
+
+  tearDown(() async {
+    await getIt.reset();
+  });
+
+  Future<void> pumpVitrine(WidgetTester tester) async {
+    tester.view.physicalSize = const Size(400, 2400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    whenListen(
+      cidadeSelecaoCubit,
+      Stream<CidadeSelecaoState>.value(
+        const CidadeSelecaoState.autorizadaEAtendida(campinas),
+      ),
+      initialState: const CidadeSelecaoState.autorizadaEAtendida(campinas),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: BlocProvider<CidadeSelecaoCubit>.value(
+          value: cidadeSelecaoCubit,
+          child: CidadeSelecaoScreen(
+            salvarCidade: salvarCidade,
+            criarVitrineCubit: criarVitrineCubitReal,
+            criarOpcoesFiltroCubit: criarOpcoesFiltroCubitReal,
           ),
         ),
       ),
-      SessaoFiltrosVitrine(),
     );
+    // Nunca pumpAndSettle com spinner de pé: a animação indeterminada
+    // nunca se estabiliza.
+    await tester.pump();
+    await tester.pump();
+  }
 
-    OpcoesFiltroCubit criarOpcoesFiltroCubitReal() {
-      final repositorio = OpcoesFiltroRepositoryImpl(
-        OpcoesFiltroMockDataSource.paraTeste(linhas: linhasAcervoFixture()),
-      );
-      return OpcoesFiltroCubit(
-        ObterBairrosUseCase(repositorio),
-        ObterCaracteristicasUseCase(repositorio),
-      );
-    }
+  Finder naPagina(Finder alvo) =>
+      find.descendant(of: find.byType(DetalheImovelScreen), matching: alvo);
 
+  group('tracer', () {
     setUp(() {
-      cidadeSelecaoCubit = _CidadeSelecaoCubitFalso();
-      salvarCidade = _SalvarCidadeUseCaseFalso();
       getIt.registerFactory<DetalheImovelCubit>(
         () => DetalheImovelCubit(
           ObterDetalheImovelUseCase(
@@ -85,44 +143,6 @@ void main() {
         ),
       );
     });
-
-    tearDown(() async {
-      await getIt.reset();
-    });
-
-    Future<void> pumpVitrine(WidgetTester tester) async {
-      tester.view.physicalSize = const Size(400, 2400);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-
-      whenListen(
-        cidadeSelecaoCubit,
-        Stream<CidadeSelecaoState>.value(
-          const CidadeSelecaoState.autorizadaEAtendida(campinas),
-        ),
-        initialState: const CidadeSelecaoState.autorizadaEAtendida(campinas),
-      );
-      await tester.pumpWidget(
-        MaterialApp(
-          home: BlocProvider<CidadeSelecaoCubit>.value(
-            value: cidadeSelecaoCubit,
-            child: CidadeSelecaoScreen(
-              salvarCidade: salvarCidade,
-              criarVitrineCubit: criarVitrineCubitReal,
-              criarOpcoesFiltroCubit: criarOpcoesFiltroCubitReal,
-            ),
-          ),
-        ),
-      );
-      // Nunca pumpAndSettle com spinner de pé: a animação indeterminada
-      // nunca se estabiliza.
-      await tester.pump();
-      await tester.pump();
-    }
-
-    Finder naPagina(Finder alvo) =>
-        find.descendant(of: find.byType(DetalheImovelScreen), matching: alvo);
 
     testWidgets(
       'tocar no card 42 mostra a prévia com spinner na hora, depois a '
@@ -142,7 +162,10 @@ void main() {
         );
         expect(naPagina(find.text('Cambuí · Campinas, SP')), findsOneWidget);
         expect(naPagina(find.text('R\$ 450.000')), findsOneWidget);
-        expect(naPagina(find.byType(CircularProgressIndicator)), findsOneWidget);
+        expect(
+          naPagina(find.byType(CircularProgressIndicator)),
+          findsOneWidget,
+        );
         expect(naPagina(find.text('Descrição')), findsNothing);
 
         await tester.pump(const Duration(seconds: 1));
@@ -176,19 +199,79 @@ void main() {
     );
   });
 
+  group('retry', () {
+    late _DataSourceFalhaNaPrimeira dataSource;
+
+    setUp(() {
+      dataSource = _DataSourceFalhaNaPrimeira(
+        ImovelDetalheMockDataSource.paraTeste(
+          detalhes: detalhesAcervoFixture(),
+          latencia: const Duration(milliseconds: 300),
+        ),
+      );
+      getIt.registerFactory<DetalheImovelCubit>(
+        () => DetalheImovelCubit(
+          ObterDetalheImovelUseCase(ImovelDetalheRepositoryImpl(dataSource)),
+        ),
+      );
+    });
+
+    testWidgets(
+      'falha ao abrir mostra a mensagem com "Tentar de novo"; tocar repete '
+      'a busca (spinner) e mostra a Descrição quando dá certo (D-17)',
+      (tester) async {
+        await pumpVitrine(tester);
+
+        await tester.tap(find.byKey(const ValueKey('imovel-42')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+
+        expect(
+          naPagina(find.text('Não foi possível carregar este imóvel.')),
+          findsOneWidget,
+        );
+        expect(naPagina(find.text('Tentar de novo')), findsOneWidget);
+        expect(naPagina(find.byType(CircularProgressIndicator)), findsNothing);
+        expect(dataSource.chamadas, 1);
+
+        await tester.tap(naPagina(find.text('Tentar de novo')));
+        await tester.pump();
+
+        expect(
+          naPagina(find.byType(CircularProgressIndicator)),
+          findsOneWidget,
+        );
+        expect(naPagina(find.text('Tentar de novo')), findsNothing);
+
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pump();
+
+        expect(naPagina(find.text('Descrição')), findsOneWidget);
+        expect(
+          naPagina(find.text('Não foi possível carregar este imóvel.')),
+          findsNothing,
+        );
+        expect(dataSource.chamadas, 2);
+      },
+    );
+  });
+
   group('DI real', () {
     tearDown(() async {
       await getIt.reset();
     });
 
-    test('resolve DetalheImovelCubit e a DataSource do detalhe (mock)', () async {
-      await configureDependencies();
+    test(
+      'resolve DetalheImovelCubit e a DataSource do detalhe (mock)',
+      () async {
+        await configureDependencies();
 
-      expect(getIt<DetalheImovelCubit>(), isA<DetalheImovelCubit>());
-      expect(
-        getIt<ImovelDetalheDataSource>(),
-        isA<ImovelDetalheMockDataSource>(),
-      );
-    });
+        expect(getIt<DetalheImovelCubit>(), isA<DetalheImovelCubit>());
+        expect(
+          getIt<ImovelDetalheDataSource>(),
+          isA<ImovelDetalheMockDataSource>(),
+        );
+      },
+    );
   });
 }
