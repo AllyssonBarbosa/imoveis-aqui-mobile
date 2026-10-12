@@ -247,6 +247,11 @@ lista chega pronta (regra de negócio do projeto: "nada é recalculado dentro do
   por manipulação de `id`/`cidade`/outro parâmetro — daí o `publicado=True` obrigatório no
   queryset, sempre, independentemente dos filtros pedidos.
 
+**Emenda da Fase 4:** a allowlist do endpoint de **detalhe** (`GET /api/publico/imoveis/{id}/`)
+é a do §11, não a desta seção. `preco_condominio` e `preco_iptu` passam a ser públicos
+**somente no detalhe** (a lista segue sem eles); `corretor` expõe apenas `id`, `nome`, `foto`
+e `slug`. Ver §11.
+
 ---
 
 ## 7. Itens PENDENTES de sign-off da frente web
@@ -421,3 +426,163 @@ sincronização de §8 se aplica igualmente a eles:
 
 Assim como os itens de §7 e §9, nenhum destes itens deve ser tratado como decidido pela app ou
 pela API antes do sign-off explícito do E2.
+
+---
+
+## 11. Adendos da Fase 4 — detalhe do imóvel (aguardando sign-off do E2)
+
+A Fase 4 (Página do Imóvel) adiciona o endpoint de **detalhe** a este contrato, como **proposta
+de trabalho do app**, ainda pendente do sign-off do E2 — o mesmo processo de sincronização do
+§8 se aplica. O app constrói sobre uma DataSource mock que serve exatamente o JSON de
+`contrato/imovel_detalhe.example.json`; a implementação real do endpoint é a API-07 (Fase 5).
+**Reversibilidade: custosa** — esta forma de wire é compartilhada com WEB 09 / API-07 (serializer
+Django, Model do app e mock); mudá-la depois mexe nos três ao mesmo tempo.
+
+### 11.1 Endpoint
+
+`GET /api/publico/imoveis/{id}/` — `AllowAny`, sem paginação, `id` inteiro (PK).
+
+- **200:** o objeto descrito em §11.2–§11.4.
+- **404:** corpo padrão do DRF (`{"detail": "..."}`) para id **inexistente** E para imóvel com
+  `publicado=False` — **a mesma resposta nos dois casos**, para que ninguém consiga enumerar
+  rascunhos (D-01).
+- **Queryset obrigatório:** `Imovel.objects.filter(publicado=True)`, sempre; nunca confiar em
+  parâmetro do cliente para decidir o que é público (mesma disciplina do §6).
+- **Serializer dedicado e público** com a allowlist deste §11 — nunca o `ImovelSerializer`
+  autenticado (que expõe `corretor_responsavel` e `proprietario`).
+- **Sugestão de performance (não é decisão do app):** `select_related("endereco__cidade",
+  "corretor_responsavel")` e `prefetch_related("fotos", "caracteristicas")`.
+- **URLs absolutas:** o serializer deve receber `context={"request": request}` para que
+  `fotos[].url` e `corretor.foto` saiam como URLs absolutas (precedente:
+  `EmpresaPublicaAPIView`, `../imoveis-aqui/Web/empresas/api/views.py`).
+
+### 11.2 Campos comuns (D-06)
+
+Nomes em snake_case; valores monetários, áreas e coordenadas como **string decimal** (mesma regra
+da Fase 2 / D-03). Nulos são sempre `null`, nunca string vazia.
+
+| Campo | Tipo | Nulo? | Observação |
+|-------|------|-------|------------|
+| `id` | inteiro | não | igual à lista (§3.1) |
+| `titulo` | string | não | igual à lista |
+| `finalidade` | enum string | não | `VENDA` \| `ALUGUEL` \| `VENDA_E_ALUGUEL` |
+| `preco_venda` | string decimal | sim | `null` quando só `ALUGUEL` |
+| `preco_aluguel` | string decimal | sim | `null` quando só `VENDA` |
+| `preco_condominio` | string decimal | sim | público **somente no detalhe** (emenda do §6) |
+| `preco_iptu` | string decimal | sim | público **somente no detalhe** (emenda do §6); período: ver §11.5 (c) |
+| `descricao` | string | não | pode ser vazia |
+| `bairro` | string | não | pode ser vazio |
+| `cidade` | objeto `{id, nome, uf}` | não | mesma forma do §2.1 |
+| `latitude`, `longitude` | string decimal | sim | `Endereco.latitude/longitude` são `DecimalField(9, 6)`; **sem** logradouro, número nem CEP (endereço exato não é público). Pensados para o APP 05 (mapa) |
+| `fotos` | lista `[{url, capa, ordem}]` | não (pode ser `[]`) | **já ordenada para exibição, com a capa primeiro**; `url` absoluta; `[]` quando o imóvel não tem fotos |
+| `caracteristicas` | lista de strings | não (pode ser `[]`) | igual à lista |
+| `corretor` | objeto `{id, nome, foto, slug}` | sim | `foto` e `slug` nullable; ver §11.5 (a), (g) |
+| `natureza` | enum string | sim | `CASA` \| `APARTAMENTO` \| `TERRENO` \| `LOTE` — PENDENTE E2 (o model ainda não tem natureza) |
+| `casa`, `apartamento`, `terreno`, `lote` | objeto ou `null` | sim | **exatamente um** preenchido e coerente com `natureza`; os outros três vêm `null`. O app tolera `null` **ou** chave ausente (D-02) |
+
+`fotos[]`: `url` string (absoluta), `capa` booleano, `ordem` inteiro (posição de exibição, a partir
+de 0). O app mostra as fotos na ordem recebida e **nunca reordena**.
+
+### 11.3 Natureza em bloco por tipo (D-02, D-05)
+
+Em vez de campos soltos, o detalhe traz `natureza` e **um** objeto preenchido entre `casa`,
+`apartamento`, `terreno` e `lote`. **Todo campo de bloco é nullable** — o app omite a linha cujo
+valor é `null` e esconde a seção inteira quando todos os campos são nulos (D-14).
+
+**`casa`** (WEB 05)
+
+| Campo | Tipo |
+|-------|------|
+| `area_terreno`, `area_construida`, `area_livre` | string decimal (m²) |
+| `quartos`, `suites`, `banheiros`, `salas`, `vagas`, `pavimentos`, `ano_construcao` | inteiro |
+| `piscina`, `quintal`, `churrasqueira`, `mobiliada` | booleano |
+
+**`terreno`** (WEB 05)
+
+| Campo | Tipo |
+|-------|------|
+| `area_total`, `frente`, `fundo`, `laterais` | string decimal (m² / m) |
+| `topografia` | enum string `PLANO` \| `ACLIVE` \| `DECLIVE` |
+| `murado`, `esquina` | booleano |
+| `uso_permitido` | string |
+
+**`apartamento`** (WEB 06) — com o **prédio embutido completo** (D-03)
+
+| Campo | Tipo |
+|-------|------|
+| `andar` | inteiro |
+| `numero` | string |
+| `area_privativa`, `area_total` | string decimal (m²) |
+| `quartos`, `suites`, `banheiros`, `vagas` | inteiro |
+| `varanda` | booleano |
+| `posicao_solar` | string — **texto livre legível** (ex. `"Nascente"`), sem conjunto fechado; ver §11.5 (b) |
+| `predio` | objeto (abaixo) ou `null` |
+
+`apartamento.predio`: `nome` (string); `andares`, `unidades_por_andar`, `ano`, `elevadores`
+(inteiro); `portaria_24h`, `piscina`, `academia`, `salao_de_festas`, `playground` (booleano).
+
+**`lote`** (WEB 07) — com **quadra e loteamento embutidos completos** (D-03)
+
+| Campo | Tipo |
+|-------|------|
+| `numero` | string |
+| `area`, `frente`, `fundo` | string decimal (m² / m) |
+| `preco` | string decimal — ver §11.5 (d) |
+| `condicoes_parcelamento` | string |
+| `quadra` | objeto `{identificacao, loteamento}` ou `null` |
+
+`lote.quadra`: `identificacao` (string); `loteamento` (objeto ou `null`) com `nome` (string),
+`incorporadora` (string), `infraestrutura` (lista de strings) e `areas_lazer` (lista de strings).
+
+**`area_livre` (D-04):** é **calculada pelo servidor** (regra do WEB 05) e chega pronta. O app
+nunca a calcula, nunca a deriva de `area_terreno − area_construida` e nunca a corrige. Quando
+`area_terreno` ou `area_construida` for nula, `area_livre` deve vir `null` — **nunca `0`**.
+
+### 11.4 Exemplo
+
+`contrato/imovel_detalhe.example.json` — apartamento 42 (Cambuí, Campinas) com `apartamento.predio`
+preenchido, 3 fotos e corretor. É exatamente o JSON que o mock do app serve para o id 42, e o teste
+`test/data/contrato_detalhe_test.dart` falha se os dois divergirem ou se qualquer entrada da
+fixture sair da allowlist deste §11.
+
+### 11.5 Itens PENDENTE E2 (sign-off da frente web)
+
+Todos **DEFERRED ao E2** (dono: frente web — WEB 05/06/07/09). Nenhum deve ser tratado como
+decidido pela app ou pela API antes do sign-off explícito. Ao lado de cada um, o tratamento
+**defensivo** que o app adota até lá (D-19):
+
+- **(a) `corretor.slug` não existe em `Usuario`.** O model `Usuario` só tem `id`, `nome`, `email`,
+  `perfil`, `empresa`, `creci`, `foto`, `telefone`, `whatsapp`, `apresentacao` etc. — nenhum `slug`.
+  *App:* `slug` é nullable no Model e na entidade; a tela de perfil do corretor abre com o objeto
+  `corretor` **já carregado pelo detalhe**, nunca com uma URL montada a partir de `id` ou `slug`.
+- **(b) `posicao_solar` não tem conjunto fechado de valores.** *App:* a API manda um rótulo legível
+  (ex. `"Nascente"`) e o app mostra exatamente esse texto — sem enum e sem tabela de rótulos
+  própria; a linha é omitida quando `null`.
+- **(c) Período do `preco_iptu`** (mensal ou anual?) indefinido. *App:* mostra `IPTU R$ X` **sem**
+  `/mês` nem `/ano` até o E2 definir; já o condomínio é mostrado como `/mês`.
+- **(d) Duplicidade `lote.preco` × `preco_venda`.** *App:* o lote mostra no cabeçalho os preços da
+  parte comum (`preco_venda`/`preco_aluguel`), como qualquer imóvel, e exibe `lote.preco` como linha
+  separada **"Preço do lote"** somente quando vier preenchido — nunca deriva um do outro.
+- **(e) Regra de `area_livre`** (WEB 05) e seus nulos: `null` (não `0`) quando faltar entrada;
+  ver §11.3.
+- **(f) `fotos[].url` e `corretor.foto` absolutas** — dependem de `context={"request": request}`
+  no serializer; sem isso as imagens relativas não carregariam no app.
+- **(g) Exposição pública de `nome` e `foto` do corretor (LGPD)** — confirmar com produto antes de
+  publicar. O contrato expõe só `id`, `nome`, `foto` e `slug`; **nunca** e-mail, telefone, WhatsApp,
+  CRECI nem empresa (o WhatsApp é do APP 06, via mensagem do servidor).
+- **(h) `terreno.laterais`:** é uma medida só ou duas (esquerda/direita)? O exemplo assume uma
+  string decimal.
+- **(i) Qual área da natureza a `area` da lista (§3.2) espelha.** Fixture do app: casa →
+  `area_construida`; apartamento → `area_privativa`; terreno → `area_total`; lote → `area`. Se o E2
+  escolher outra, lista e detalhe passam a divergir.
+- **(j) Latitude/longitude como string decimal.** O DRF serializa `DecimalField` como string por
+  padrão (`COERCE_DECIMAL_TO_STRING`); se o E2 mudar isso para número, o Model do app precisa
+  acompanhar.
+- **(k) `natureza` e os blocos dependem dos cards WEB 05/06/07**, ainda não entregues (§3.2).
+
+### 11.6 Sincronização
+
+Vale a regra do §8: copiar este documento e o `imovel_detalhe.example.json` para
+`../imoveis-aqui/Web`, obter o sign-off do E2 sobre §11.1–§11.5 e só então tratar o detalhe como
+**congelado**. Até lá o mock do app (`ImovelDetalheMockDataSource` + `imoveis_detalhe_fixture.dart`)
+serve esta mesma forma, protegida por `test/data/contrato_detalhe_test.dart`.

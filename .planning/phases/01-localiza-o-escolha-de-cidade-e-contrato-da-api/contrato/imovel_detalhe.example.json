@@ -1,0 +1,54 @@
+{
+  "id": 42,
+  "titulo": "Apartamento 2 quartos no Cambuí",
+  "finalidade": "VENDA",
+  "preco_venda": "450000.00",
+  "preco_aluguel": null,
+  "preco_condominio": "850.00",
+  "preco_iptu": "1200.00",
+  "descricao": "Apartamento reformado, próximo ao centro, com varanda gourmet.",
+  "bairro": "Cambuí",
+  "cidade": { "id": 1, "nome": "Campinas", "uf": "SP" },
+  "latitude": "-22.894100",
+  "longitude": "-47.052300",
+  "fotos": [
+    { "url": "https://api.imoveisaqui.exemplo.com/media/imoveis/fotos/capa-42.jpg", "capa": true, "ordem": 0 },
+    { "url": "https://api.imoveisaqui.exemplo.com/media/imoveis/fotos/sala-42.jpg", "capa": false, "ordem": 1 },
+    { "url": "https://api.imoveisaqui.exemplo.com/media/imoveis/fotos/varanda-42.jpg", "capa": false, "ordem": 2 }
+  ],
+  "caracteristicas": ["Portão eletrônico", "Ar-condicionado", "Varanda gourmet"],
+  "corretor": {
+    "id": 7,
+    "nome": "Marina Lopes",
+    "foto": "https://api.imoveisaqui.exemplo.com/media/imoveis/corretores/marina-lopes.jpg",
+    "slug": "marina-lopes"
+  },
+  "natureza": "APARTAMENTO",
+  "casa": null,
+  "terreno": null,
+  "lote": null,
+  "apartamento": {
+    "andar": 8,
+    "numero": "82",
+    "area_privativa": "68.50",
+    "area_total": "92.00",
+    "quartos": 2,
+    "suites": 1,
+    "banheiros": 2,
+    "vagas": 1,
+    "varanda": true,
+    "posicao_solar": "Nascente",
+    "predio": {
+      "nome": "Edifício Jequitibá",
+      "andares": 15,
+      "unidades_por_andar": 4,
+      "ano": 2012,
+      "elevadores": 2,
+      "portaria_24h": true,
+      "piscina": true,
+      "academia": true,
+      "salao_de_festas": true,
+      "playground": false
+    }
+  }
+}
