@@ -132,6 +132,43 @@ List<LinhaDado> linhasDe(DadosNatureza dados) {
   };
 }
 
+/// Linhas do card do prédio do apartamento, na ordem de exibição; campo nulo
+/// não gera linha (D-14).
+List<LinhaDado> linhasDoPredio(DadosPredio predio) {
+  return [
+    ..._texto('Nome', predio.nome),
+    ..._inteiro('Andares', predio.andares),
+    ..._inteiro('Unidades por andar', predio.unidadesPorAndar),
+    ..._inteiro('Ano', predio.ano),
+    ..._inteiro('Elevadores', predio.elevadores),
+    ..._simNao('Portaria 24h', predio.portaria24h),
+    ..._simNao('Piscina', predio.piscina),
+    ..._simNao('Academia', predio.academia),
+    ..._simNao('Salão de festas', predio.salaoDeFestas),
+    ..._simNao('Playground', predio.playground),
+  ];
+}
+
+/// Linhas do card da quadra e do loteamento do lote; as listas de
+/// infraestrutura e áreas de lazer são desenhadas à parte, como `Chip`s.
+List<LinhaDado> linhasDaQuadra(DadosQuadra quadra) {
+  return [
+    ..._texto('Quadra', quadra.identificacao),
+    ..._texto('Loteamento', quadra.loteamento?.nome),
+    ..._texto('Incorporadora', quadra.loteamento?.incorporadora),
+  ];
+}
+
+/// `true` quando o card da quadra e do loteamento tem algo para mostrar:
+/// alguma linha ou alguma das duas listas (D-14).
+bool quadraTemConteudo(DadosQuadra quadra) {
+  final loteamento = quadra.loteamento;
+  return linhasDaQuadra(quadra).isNotEmpty ||
+      (loteamento != null &&
+          (loteamento.infraestrutura.isNotEmpty ||
+              loteamento.areasLazer.isNotEmpty));
+}
+
 List<Destaque> _destaquesDeComodos({
   required int? quartos,
   required int? suites,

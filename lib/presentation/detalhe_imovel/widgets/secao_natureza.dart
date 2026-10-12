@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../domain/entities/dados_natureza.dart';
 import '../apresentacao_natureza.dart';
+import 'cards_natureza.dart';
 import 'secoes_detalhe.dart';
 
 /// Seção "Sobre a casa / o apartamento / o terreno / o lote" (D-13): linha de
@@ -17,12 +18,27 @@ class SecaoNatureza extends StatelessWidget {
   Widget build(BuildContext context) {
     final destaques = destaquesDe(dados);
     final linhas = linhasDe(dados);
-    if (destaques.isEmpty && linhas.isEmpty) return const SizedBox.shrink();
+    // Prédio (apartamento) e quadra/loteamento (lote) ganham card próprio; o
+    // switch é exaustivo, sem ramo abrangente.
+    final Widget? cartao = switch (dados) {
+      DadosApartamento(:final predio?) when linhasDoPredio(predio).isNotEmpty =>
+        CardPredio(predio: predio),
+      DadosLote(:final quadra?) when quadraTemConteudo(quadra) =>
+        CardQuadraLoteamento(quadra: quadra),
+      DadosCasa() ||
+      DadosTerreno() ||
+      DadosApartamento() ||
+      DadosLote() => null,
+    };
+    if (destaques.isEmpty && linhas.isEmpty && cartao == null) {
+      return const SizedBox.shrink();
+    }
 
     return SecaoDetalhe(
       titulo: tituloSecaoNatureza(dados),
       conteudo: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        // Stretch para que os cards ocupem a largura toda.
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (destaques.isNotEmpty)
             Padding(
@@ -37,6 +53,8 @@ class SecaoNatureza extends StatelessWidget {
               ),
             ),
           if (linhas.isNotEmpty) LinhasDeDados(linhas: linhas),
+          if (cartao != null)
+            Padding(padding: const EdgeInsets.only(top: 12), child: cartao),
         ],
       ),
     );
