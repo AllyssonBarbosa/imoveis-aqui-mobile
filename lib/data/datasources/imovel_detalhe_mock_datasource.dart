@@ -5,6 +5,7 @@ import '../../domain/repositories/imovel_detalhe_repository.dart';
 import '../mocks/imoveis_detalhe_fixture.dart';
 import '../models/detalhe_imovel_model.dart';
 import 'imovel_detalhe_datasource.dart';
+import 'imovel_mock_datasource.dart' show FalhaSimuladaDoMock;
 
 /// Servidor simulado do detalhe do imóvel — serve mapas de wire da fixture,
 /// parseados pelo MESMO `DetalheImovelModel.fromJson` que o remoto da Fase 5
@@ -34,6 +35,11 @@ class ImovelDetalheMockDataSource implements ImovelDetalheDataSource {
   Future<DetalheImovelModel> buscarDetalhe(int id) async {
     if (_latencia > Duration.zero) {
       await Future<void>.delayed(_latencia);
+    }
+    if (id == idDetalheFalhaMock) {
+      // Falha determinística (D-17): o detalhe existe no servidor simulado,
+      // mas buscá-lo sempre falha — prova o fluxo "Tentar de novo" à mão.
+      throw const FalhaSimuladaDoMock();
     }
     final mapa = _detalhes[id];
     if (mapa == null) {
