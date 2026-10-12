@@ -12,6 +12,8 @@ import 'package:imoveis_aqui/presentation/comum/imagem_rede.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_cubit.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_screen.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_state.dart';
+import 'package:imoveis_aqui/presentation/detalhe_imovel/perfil_corretor_screen.dart';
+import 'package:imoveis_aqui/presentation/detalhe_imovel/widgets/cartao_corretor.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/widgets/galeria_imovel.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/widgets/visualizador_fotos.dart';
 import 'package:mocktail/mocktail.dart';
@@ -626,6 +628,88 @@ void main() {
           .dy;
       expect(natureza, lessThan(descricao));
       expect(descricao, lessThan(caracteristicas));
+    });
+  });
+
+  group('corretor responsável (DET-05, D-15)', () {
+    const marina = CorretorResponsavel(
+      id: 7,
+      nome: 'Marina Lopes',
+      foto: 'https://exemplo.com/marina.jpg',
+      slug: 'marina-lopes',
+    );
+    final comCorretor = detalhe.copyWith(
+      caracteristicas: const ['Portão eletrônico'],
+      corretor: marina,
+    );
+
+    testWidgets('carregado com corretor mostra o título e o cartão depois de '
+        '"Características"', (tester) async {
+      await pumpEstado(
+        tester,
+        DetalheImovelState.carregado(comCorretor),
+        altura: 2400,
+      );
+
+      expect(find.text('Corretor responsável'), findsOneWidget);
+      expect(find.byType(CartaoCorretor), findsOneWidget);
+      expect(find.text('Marina Lopes'), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.text('Características')).dy,
+        lessThan(tester.getTopLeft(find.text('Corretor responsável')).dy),
+      );
+      expect(
+        find.byKey(const ValueKey('https://exemplo.com/marina.jpg')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('sem corretor a seção some', (tester) async {
+      await pumpEstado(tester, const DetalheImovelState.carregado(detalhe));
+
+      expect(find.text('Corretor responsável'), findsNothing);
+      expect(find.byType(CartaoCorretor), findsNothing);
+    });
+
+    testWidgets('tocar no cartão abre o perfil com o nome do detalhe', (
+      tester,
+    ) async {
+      await pumpEstado(
+        tester,
+        DetalheImovelState.carregado(comCorretor),
+        altura: 2400,
+      );
+
+      await tester.tap(find.byType(CartaoCorretor));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(find.byType(PerfilCorretorScreen), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(PerfilCorretorScreen),
+          matching: find.text('Marina Lopes'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a página não tem barra inferior fixa (D-12)', (tester) async {
+      await pumpEstado(
+        tester,
+        DetalheImovelState.carregado(comCorretor),
+        altura: 2400,
+      );
+
+      final scaffold = tester.widget<Scaffold>(
+        find.descendant(
+          of: find.byType(DetalheImovelScreen),
+          matching: find.byType(Scaffold),
+        ),
+      );
+      expect(scaffold.bottomNavigationBar, isNull);
+      expect(scaffold.persistentFooterButtons, isNull);
+      expect(scaffold.bottomSheet, isNull);
     });
   });
 

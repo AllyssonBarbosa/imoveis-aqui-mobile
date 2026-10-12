@@ -24,6 +24,7 @@ import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_screen.d
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_state.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_cubit.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_screen.dart';
+import 'package:imoveis_aqui/presentation/detalhe_imovel/perfil_corretor_screen.dart';
 import 'package:imoveis_aqui/presentation/vitrine/opcoes_filtro_cubit.dart';
 import 'package:imoveis_aqui/presentation/vitrine/sessao_filtros_vitrine.dart';
 import 'package:imoveis_aqui/presentation/vitrine/vitrine_cubit.dart';
@@ -188,6 +189,89 @@ void main() {
           findsOneWidget,
         );
 
+        await tester.tap(find.byTooltip('Voltar'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.pump(const Duration(milliseconds: 400));
+
+        expect(find.byType(DetalheImovelScreen), findsNothing);
+        expect(find.byKey(const ValueKey('imovel-42')), findsOneWidget);
+      },
+    );
+  });
+
+  group('fluxo completo (DET-01..05, D-12, D-15)', () {
+    testWidgets(
+      'vitrine -> detalhe 42 completo -> perfil da Marina Lopes -> volta ao '
+      'detalhe -> volta à vitrine intacta',
+      (tester) async {
+        getIt.registerFactory<DetalheImovelCubit>(
+          () => DetalheImovelCubit(
+            ObterDetalheImovelUseCase(
+              ImovelDetalheRepositoryImpl(
+                ImovelDetalheMockDataSource.paraTeste(
+                  detalhes: detalhesAcervoFixture(),
+                  latencia: const Duration(seconds: 1),
+                ),
+              ),
+            ),
+          ),
+        );
+        await pumpVitrine(tester);
+
+        await tester.tap(find.byKey(const ValueKey('imovel-42')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.pump(const Duration(seconds: 1));
+        await tester.pump();
+
+        // Cabeçalho alimentado pelo detalhe, com custos e características.
+        expect(naPagina(find.text('R\$\u00A0450.000')), findsOneWidget);
+        expect(
+          naPagina(find.text('Condomínio R\$\u00A0850/mês')),
+          findsOneWidget,
+        );
+        expect(naPagina(find.text('IPTU R\$\u00A01.200')), findsOneWidget);
+        expect(naPagina(find.text('Características')), findsOneWidget);
+        expect(naPagina(find.byType(Chip)), findsNWidgets(3));
+
+        // Sem barra inferior fixa (D-12).
+        final scaffold = tester.widget<Scaffold>(
+          naPagina(find.byType(Scaffold)),
+        );
+        expect(scaffold.bottomNavigationBar, isNull);
+        expect(scaffold.persistentFooterButtons, isNull);
+
+        // Rola até o corretor e abre o perfil.
+        await tester.scrollUntilVisible(
+          naPagina(find.text('Marina Lopes')),
+          200,
+          scrollable: naPagina(find.byType(Scrollable)).first,
+        );
+        await tester.tap(naPagina(find.text('Marina Lopes')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+
+        expect(find.byType(PerfilCorretorScreen), findsOneWidget);
+        expect(
+          find.descendant(
+            of: find.byType(PerfilCorretorScreen),
+            matching: find.text('Marina Lopes'),
+          ),
+          findsOneWidget,
+        );
+
+        // Volta ao detalhe, ainda carregado.
+        await tester.tap(find.byType(BackButton));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.pump(const Duration(milliseconds: 400));
+
+        expect(find.byType(PerfilCorretorScreen), findsNothing);
+        expect(find.byType(DetalheImovelScreen), findsOneWidget);
+        expect(naPagina(find.text('Descrição')), findsOneWidget);
+
+        // Volta à vitrine, intacta.
         await tester.tap(find.byTooltip('Voltar'));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 400));
