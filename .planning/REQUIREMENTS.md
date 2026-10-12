@@ -49,7 +49,7 @@ Requisitos da primeira entrega (tarefas APP01, APP02, APP03, APP04 + os endpoint
 - [x] **API-02**: `GET /api/publico/cidades/` — endpoint público sem token, expõe as cidades atendidas para a vitrine (app e site).
 - [ ] **API-03**: `GET /api/publico/imoveis/?cidade=...&filtros` — endpoint público sem token com busca, ordenação, filtros e paginação server-side; retorna só imóveis publicados; usa serializer público com allowlist (sem proprietário/documento/dado interno) e não quebra o isolamento multitenant.
 - [x] **API-04**: A camada de dados do app é trocável (DataSource mock/fixture honrando o contrato → DataSource real por DI), permitindo desenvolver APP02/APP03 antes de o endpoint real de imóveis existir.
-- [ ] **API-06**: O contrato de `GET /api/publico/imoveis/{id}/` fica congelado por escrito no §11 do contrato da API + `imovel_detalhe.example.json`, e o app o consome por DataSource trocável (mock honrando o contrato).
+- [x] **API-06**: O contrato de `GET /api/publico/imoveis/{id}/` fica congelado por escrito no §11 do contrato da API + `imovel_detalhe.example.json`, e o app o consome por DataSource trocável (mock honrando o contrato).
 - [ ] **API-07**: Endpoint real `GET /api/publico/imoveis/{id}/` público, só imóveis publicados, 404 igual para inexistente e não publicado, serializer com a allowlist do §11, e troca da DataSource do detalhe por DI.
 
 ## v2 Requirements
@@ -107,7 +107,7 @@ Excluídos de propósito. Documentados para evitar scope creep.
 | DET-04 | Phase 4 | Pending |
 | DET-05 | Phase 4 | Pending |
 | DET-06 | Phase 4 | Complete |
-| API-06 | Phase 4 | Pending |
+| API-06 | Phase 4 | Complete |
 | API-03 | Phase 5 | Pending |
 | API-07 | Phase 5 | Pending |
 

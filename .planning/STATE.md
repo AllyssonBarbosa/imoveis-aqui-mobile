@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 04
 current_phase_name: Página do Imóvel — Galeria e Dados da Natureza
 status: executing
-stopped_at: Completed 04-04-PLAN.md
-last_updated: "2026-10-12T05:35:25.545Z"
+stopped_at: Completed 04-05-PLAN.md
+last_updated: "2026-10-12T05:47:52.771Z"
 last_activity: 2026-10-12
 last_activity_desc: Phase 04 execution started
-state_head: 0354b47325a877c0d928af4eeafe7568770ba727
+state_head: 5a7b19de6896fe27dd9426a6a7ae9230c7049e0a
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 22
-  completed_plans: 18
+  completed_plans: 19
   percent: 0
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-09-21)
 ## Current Position
 
 Phase: 04 (Página do Imóvel — Galeria e Dados da Natureza) — EXECUTING
-Plan: 5 of 8
+Plan: 6 of 8
 Status: Ready to execute
 Last activity: 2026-10-12 — Phase 04 execution started
 
@@ -69,6 +69,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04 P02 | 3 min | 2 tasks | 6 files |
 | Phase 04 P03 | 15 min | 2 tasks | 9 files |
 | Phase 04 P04 | 9 min | 2 tasks | 10 files |
+| Phase 04 P05 | 12 min | 2 tasks | 15 files |
 
 ## Accumulated Context
 
@@ -96,6 +97,7 @@ Recent decisions affecting current work:
 - [Phase 04]: 404 detectado só em data/ (DioException 404 -> ImovelNaoEncontradoException); presentation decide só pelo tipo de domínio e esconde a prévia (preço) no 404 — Repetir não resolve um imóvel despublicado; a Fase 5 troca a DataSource sem tocar acima do repositório
 - [Phase 04]: 04-04: detalhe gerado deriva de linhasAcervoFixture (id%10==9 = campos nulos; fotos extras id%4; corretores id%3; ids 338 falha / 339 404) — Todo card abre um detalhe coerente e os fluxos de erro/404 ficam provaveis a mao, sem Random nem relogio
 - [Phase 04]: 04-04: urlHttpOuNula (data/models/url_segura.dart) filtra http/https em fotos, capa da lista e foto do corretor — URLs vindas da API sao nao confiaveis (V12/V13); filtro na camada de dados mantem a ordem recebida
+- [Phase 04]: 04-05: blocos de natureza parseados por switch (natureza) com curinga para null; fixture varia por id ~/ 4 (id % 4 e constante por natureza); area_livre vem pronta do servidor (57: 300/180/100) e lote.preco so existe no 103 — Natureza desconhecida/bloco incoerente nunca derruba o parse (D-14); o app nunca calcula area (D-04); lote.preco nunca derivado de preco_venda (D-19 d)
 
 ### Pending Todos
 
@@ -124,6 +126,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-12T05:35:25.510Z
-Stopped at: Completed 04-04-PLAN.md
+Last session: 2026-10-12T05:47:52.737Z
+Stopped at: Completed 04-05-PLAN.md
 Resume file: None
