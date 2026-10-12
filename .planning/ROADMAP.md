@@ -23,7 +23,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 1: Localização, Escolha de Cidade e Contrato da API** - Abertura do app, permissão de localização e entrada na cidade (com fallback de escolha), mais o contrato escrito de `/cidades` e `/imoveis`.
 - [ ] **Phase 2: Vitrine — Lista, Busca e Ordenação** - Vitrine da cidade escolhida com lista paginada, busca e ordenação, cidades já vindas da API, imóveis ainda sobre mock.
 - [ ] **Phase 3: Vitrine — Filtros Server-Side** - Filtros completos da vitrine (finalidade, natureza, faixas, características), chips ativos e paginação sempre consistente.
-- [ ] **Phase 4: Imóveis Real — Endpoint Público e Integração Final** - Endpoint público real de imóveis e troca da DataSource mock pela real via DI.
+- [ ] **Phase 4: Página do Imóvel — Galeria e Dados da Natureza** - Tela de detalhe (card APP 04): galeria a partir da capa, preços, corretor e bloco por natureza (casa, terreno, apartamento, lote), sobre mock seguindo o contrato de `GET /api/publico/imoveis/{id}/`.
+- [ ] **Phase 5: Imóveis Real — Endpoint Público e Integração Final** - Endpoints públicos reais de lista e detalhe de imóveis e troca das DataSources mock pelas reais via DI.
 
 ## Phase Details
 
@@ -128,11 +129,28 @@ Plans:
 
 **UI hint**: yes
 
-### Phase 4: Imóveis Real — Endpoint Público e Integração Final
+### Phase 4: Página do Imóvel — Galeria e Dados da Natureza
+
+**Goal**: O visitante abre um imóvel a partir da vitrine e vê tudo sobre ele para decidir se vale falar com o corretor; o que aparece abaixo da galeria depende da natureza do imóvel. Card APP 04 (tarefa A04).
+**Mode:** mvp
+**Depends on**: Phase 3 (externally: WEB 05/06/07 for the nature data and WEB 09 for the public detail endpoint, in `../imoveis-aqui/Web` — this phase builds over a mock that follows the detail contract)
+**Requirements**: APP-04 (to be detailed in discuss)
+**Success Criteria** (what must be TRUE):
+
+  1. A galeria mostra todas as fotos do imóvel, começando pela capa.
+  2. Casa mostra terreno, área construída e área livre; terreno mostra frente, fundo e topografia.
+  3. Apartamento mostra os dados do prédio; lote mostra a quadra e o loteamento a que pertence.
+  4. Mostra valores de venda ou aluguel, condomínio e IPTU.
+  5. Mostra o corretor responsável com foto e o caminho para o perfil dele.
+  6. Tudo vem do detalhe da API (contrato de `GET /api/publico/imoveis/{id}/`), sem dado montado dentro do app — nesta fase via DataSource mock que respeita o contrato; a troca pela real fica na Phase 5.
+
+**Plans**: TBD
+
+### Phase 5: Imóveis Real — Endpoint Público e Integração Final
 
 **Goal**: A API expõe o acervo real de imóveis com busca, ordenação, filtros e paginação resolvidos no servidor, sem dado interno; o app troca a DataSource mock pela real, e a vitrine com filtros passa a funcionar ponta a ponta com dados reais.
 **Mode:** mvp
-**Depends on**: Phase 3 (also blocked externally on the `Imóvel` model landing in the sibling API repo `../imoveis-aqui/Web`, owned by teammate E2 and outside this project's phases)
+**Depends on**: Phase 4 (also blocked externally on the `Imóvel` model landing in the sibling API repo `../imoveis-aqui/Web`, owned by teammate E2 and outside this project's phases)
 **Requirements**: API-03
 **Success Criteria** (what must be TRUE):
 
@@ -140,17 +158,19 @@ Plans:
   2. A resposta usa um serializer público com allowlist explícita (sem proprietário/documento/dado interno) e não quebra o isolamento multitenant — nenhum imóvel de outra empresa ou não publicado aparece.
   3. A resposta segue o contrato congelado na Fase 1 (nomes de campo, envelope de paginação, nomes de parâmetro de filtro), sem drift silencioso.
   4. O app troca a DataSource mock pela real via injeção de dependência (troca de uma linha), sem mudar UI/Cubit/domain; de ponta a ponta, o visitante vê, busca, ordena e filtra imóveis reais na vitrine.
+  5. O detalhe (`GET /api/publico/imoveis/{id}/`) também passa a vir da API real, incluindo os dados de natureza, e a página do imóvel da Phase 4 funciona ponta a ponta.
 
 **Plans**: TBD
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Localização, Escolha de Cidade e Contrato da API | 4/4 | In Progress|  |
 | 2. Vitrine — Lista, Busca e Ordenação | 5/5 | In Progress|  |
 | 3. Vitrine — Filtros Server-Side | 5/5 | In Progress|  |
-| 4. Imóveis Real — Endpoint Público e Integração Final | 0/TBD | Not started | - |
+| 4. Página do Imóvel — Galeria e Dados da Natureza | 0/TBD | Not started | - |
+| 5. Imóveis Real — Endpoint Público e Integração Final | 0/TBD | Not started | - |

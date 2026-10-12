@@ -91,7 +91,7 @@ Excluídos de propósito. Documentados para evitar scope creep.
 | FIL-04 | Phase 3 | Complete |
 | FIL-05 | Phase 3 | Complete |
 | FIL-06 | Phase 3 | Complete |
-| API-03 | Phase 4 | Pending |
+| API-03 | Phase 5 | Pending |
 
 **Coverage:**
 

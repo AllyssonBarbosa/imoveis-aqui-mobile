@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 current_phase: 03
 current_phase_name: Vitrine — Filtros Server-Side
 status: verifying
-stopped_at: Completed 03-01-PLAN.md
-last_updated: "2026-10-01T01:38:05.986Z"
+stopped_at: Phase 4 context gathered
+last_updated: "2026-10-12T03:51:47.871Z"
 last_activity: 2026-09-30
 last_activity_desc: Phase 03 execution started
-state_head: 7481465598b93c6862f9918b7dfe4ea16be92c5b
+state_head: 6e39683dc79e97f5ccd96017e41decd5644d5d6a
 progress:
-  total_phases: 4
+  total_phases: 5
   completed_phases: 0
   total_plans: 14
   completed_plans: 14
@@ -75,9 +75,9 @@ Recent decisions affecting current work:
 
 - [Roadmap]: API-01 (contract freeze) bundled into Phase 1 alongside APP01 rather than as a standalone phase — research called it parallelizable with zero-API-dependency APP01; keeps it from being a thin, non-user-observable single-requirement phase.
 - [Roadmap]: API-02 (`GET /cidades` real endpoint) folded into Phase 2 rather than a standalone phase — Phase 2 is where the app actually consumes it (VIT-06), so build+consume ship as one coherent, user-observable capability.
-- [Roadmap]: API-03 (`GET /imoveis` real endpoint) kept as its own final Phase 4 per explicit project constraint — genuinely gated on the teammate's (E2) `Imóvel` model landing in the sibling API repo.
+- [Roadmap]: API-03 (`GET /imoveis` real endpoint) kept as its own final Phase 5 (renumbered from 4 when APP 04 was inserted) per explicit project constraint — genuinely gated on the teammate's (E2) `Imóvel` model landing in the sibling API repo.
 - [Phase 01]: GET /cidades e GET /imoveis frozen contract written (01-CONTRATO-API.md), grounded in real sibling Django models; corrected stale PROJECT.md note that the Imovel model didn't exist. — Public serializer must use an explicit allowlist and never the authenticated ImovelSerializer; tipologia fields marked PENDENTE E2; four semantically-open items (quartos/suites/vagas range-vs-exact, cidade param format, VENDA_E_ALUGUEL card price, ordenacao values) flagged for web-team sign-off instead of guessed.
-- [Phase 02]: ImovelMockDataSource filtra/ordena sobre mapas de wire (snake_case) e só então parseia via ImoveisEnvelopeModel.fromJson — Garante que o parsing exercitado nos testes é idêntico ao usado contra o endpoint real na Fase 4
+- [Phase 02]: ImovelMockDataSource filtra/ordena sobre mapas de wire (snake_case) e só então parseia via ImoveisEnvelopeModel.fromJson — Garante que o parsing exercitado nos testes é idêntico ao usado contra o endpoint real na Fase 5
 - [Phase 02]: [Phase 02-02]: GET /api/publico/cidades/ real criado no repo irmão (AllowAny, cursor page_size=50, servido-only) + seed idempotente semear_vitrine_dev; tudo uncommitted em feat/APP02 aguardando autorização do usuário
 - [Phase 02]: [Phase 02-02]: Adendos da Fase 2 (busca D-05, ordenacao D-11, preço-base nulls-last D-12 + risco CursorPagination) registrados em 01-CONTRATO-API.md §9, pendentes de sign-off do E2
 - [Phase 02]: [Phase 02-03]: Instante-base da fixture (2026-07-20) escolhido anterior a todas as 3 datas verbatim do contrato — linhas 42/57/63 continuam na 1a pagina apos expandir para 40 imoveis/cidade
@@ -93,7 +93,7 @@ None yet.
 
 ### Blockers/Concerns
 
-- [Phase 4]: Externally blocked on the `Imóvel` model (owned by teammate E2 in `../imoveis-aqui/Web`) — Phases 1-3 do not require it (mock-first build), but Phase 4 cannot complete until that model lands.
+- [Phase 5]: Externally blocked on the `Imóvel` model (owned by teammate E2 in `../imoveis-aqui/Web`) — Phases 1-3 do not require it (mock-first build), but Phase 5 cannot complete until that model lands.
 - [Phase 1]: API-AUDIT needs live coordination with the teammate on exact `Imóvel` field names/enum values (natureza, finalidade, características shape, quartos/suítes/vagas exact-vs-range semantics) — not resolvable from docs alone.
 
 ### Quick Tasks Completed
@@ -114,6 +114,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-30T20:22:48.632Z
-Stopped at: Completed 03-01-PLAN.md
-Resume file: None
+Last session: 2026-10-12T03:51:47.807Z
+Stopped at: Phase 4 context gathered
+Resume file: .planning/phases/04-pagina-do-imovel-galeria-e-dados-da-natureza/04-CONTEXT.md
