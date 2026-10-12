@@ -38,9 +38,9 @@ Requisitos da primeira entrega (tarefas APP01, APP02, APP03, APP04 + os endpoint
 
 - [x] **DET-01**: Tocar num card da vitrine abre a página do imóvel; a abertura mostra de imediato a prévia que a vitrine já tem (capa, título, preço) e carrega o detalhe.
 - [x] **DET-02**: A galeria mostra todas as fotos do imóvel começando pela capa, com contador "N/M"; o toque abre um visualizador em tela cheia com swipe e pinch-zoom; sem fotos mostra o placeholder, sem contador.
-- [ ] **DET-03**: A página mostra os preços de venda e/ou aluguel, condomínio e IPTU exatamente como vieram da API (valores formatados, nunca calculados no app).
+- [x] **DET-03**: A página mostra os preços de venda e/ou aluguel, condomínio e IPTU exatamente como vieram da API (valores formatados, nunca calculados no app).
 - [x] **DET-04**: A página mostra os dados da natureza — casa (terreno, área construída, área livre), terreno (frente, fundo, topografia), apartamento (dados do prédio) e lote (quadra e loteamento); campo nulo omite a linha e seção vazia some.
-- [ ] **DET-05**: A página mostra descrição, características e o corretor responsável com foto; tocar no corretor abre a tela de perfil do corretor, cujo conteúdo completo é do APP 07.
+- [x] **DET-05**: A página mostra descrição, características e o corretor responsável com foto; tocar no corretor abre a tela de perfil do corretor, cujo conteúdo completo é do APP 07.
 - [x] **DET-06**: Imóvel não encontrado (404) mostra "Este imóvel não está mais disponível" com volta à vitrine; os demais erros mostram "Tentar de novo".
 
 ### API pública (endpoints que o app consome)
@@ -103,9 +103,9 @@ Excluídos de propósito. Documentados para evitar scope creep.
 | FIL-06 | Phase 3 | Complete |
 | DET-01 | Phase 4 | Complete |
 | DET-02 | Phase 4 | Complete |
-| DET-03 | Phase 4 | Pending |
+| DET-03 | Phase 4 | Complete |
 | DET-04 | Phase 4 | Complete |
-| DET-05 | Phase 4 | Pending |
+| DET-05 | Phase 4 | Complete |
 | DET-06 | Phase 4 | Complete |
 | API-06 | Phase 4 | Complete |
 | API-03 | Phase 5 | Pending |

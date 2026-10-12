@@ -2,17 +2,17 @@
 gsd_state_version: "1.0"
 current_phase: 04
 current_phase_name: Página do Imóvel — Galeria e Dados da Natureza
-status: executing
-stopped_at: Completed 04-07-PLAN.md
-last_updated: "2026-10-12T14:38:50.838Z"
+status: verifying
+stopped_at: Completed 04-08-PLAN.md
+last_updated: "2026-10-12T14:45:37.873Z"
 last_activity: 2026-10-12
 last_activity_desc: Phase 04 execution started
-state_head: 07d6255ec29c3ded5150f0e03e0dd3020d71bb7a
+state_head: 84099b5d19ae0aea6456f0bab14e51b41db50be3
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 22
-  completed_plans: 21
+  completed_plans: 22
   percent: 0
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-21)
 
 Phase: 04 (Página do Imóvel — Galeria e Dados da Natureza) — EXECUTING
 Plan: 8 of 8
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-10-12 — Phase 04 execution started
 
 Progress: [░░░░░░░░░░] 0%
@@ -72,6 +72,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04 P05 | 12 min | 2 tasks | 15 files |
 | Phase 04 P06 | 16 min | 2 tasks | 7 files |
 | Phase 04 P07 | 10 min | 2 tasks | 8 files |
+| Phase 04 P08 | 5 min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -103,6 +104,7 @@ Recent decisions affecting current work:
 - [Phase 04]: 04-06: LinhasDeDados em secoes_detalhe.dart e quadraTemConteudo pura compartilhada; card da secao por switch exaustivo com guardas, sem default — Evita import circular e mantem a decisao de quais linhas existem em funcoes puras (D-13, D-14)
 - [Phase 04]: 04-07: @visibleForTesting only on DetalheImovelScreen and FotoCapaImovel; ImagemRede/GaleriaImovel pass the test hook through without the annotation (analyzer warns otherwise)
 - [Phase 04]: 04-07: viewer locks PageView swipe via NeverScrollableScrollPhysics while the visible photo is zoomed (A1); real pinch feel left to end-of-phase human check
+- [Phase 04]: 04-08: IPTU sem periodo ate o E2 (D-19 c); cabecalho usa precos da parte comum inclusive para lote (D-19 d); perfil do corretor abre com o objeto em memoria, sem rede nem contato (D-15) — Regras de negocio pendentes do E2 nao sao decididas no app
 
 ### Pending Todos
 
@@ -131,6 +133,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-12T14:38:50.801Z
-Stopped at: Completed 04-07-PLAN.md
+Last session: 2026-10-12T14:45:37.839Z
+Stopped at: Completed 04-08-PLAN.md
 Resume file: None
