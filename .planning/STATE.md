@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 05
 current_phase_name: Imóveis Real — Endpoint Público e Integração Final
 status: executing
-stopped_at: Completed 05-03-PLAN.md
-last_updated: "2026-10-30T23:09:50.166Z"
+stopped_at: Completed 05-04-PLAN.md
+last_updated: "2026-10-30T23:16:09.149Z"
 last_activity: 2026-10-30
 last_activity_desc: Phase 05 execution started
-state_head: 24c73669f6a078c475e5cb107dc56552f3040057
+state_head: 82ca24dfe24b979cc6b9dc07d682a3156581234b
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 40
-  completed_plans: 25
+  completed_plans: 26
   percent: 0
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-09-21)
 ## Current Position
 
 Phase: 05 (Imóveis Real — Endpoint Público e Integração Final) — EXECUTING
-Plan: 4 of 18
+Plan: 5 of 18
 Status: Ready to execute
 Last activity: 2026-10-30 — Phase 05 execution started
 
@@ -76,6 +76,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 05 P01 | 5 min | 3 tasks | 6 files |
 | Phase 05 P02 | 12min | 3 tasks | 4 files |
 | Phase 05 P03 | 25min | 2 tasks | 11 files |
+| Phase 05 P04 | 15min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -111,6 +112,7 @@ Recent decisions affecting current work:
 - [Phase 05]: Fase 5 git: opcao-a + app-a (API: só commit do merge, resto sem commit; app: commit por task na feat/APP05; nunca push)
 - [Phase 05]: 05-02: opcao-a — empresa_id mantido em corretor_responsavel (W02); PENDENTE para a frente web, junto com a revisão LGPD de contato (§11.5 g)
 - [Phase 05]: 05-03: Imovel.cidade removida (A-06); cidade da vitrine vem da consulta, a do imovel vem do detalhe
+- [Phase 05]: 05-04: bairros por cidade e catálogo de características públicos; natureza/bairro em CSV (OU); vírgula em bairro é risco aceito A-05
 
 ### Pending Todos
 
@@ -139,6 +141,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-30T23:09:50.125Z
-Stopped at: Completed 05-03-PLAN.md
+Last session: 2026-10-30T23:16:09.109Z
+Stopped at: Completed 05-04-PLAN.md
 Resume file: None
