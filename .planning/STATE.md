@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 05
 current_phase_name: Imóveis Real — Endpoint Público e Integração Final
 status: executing
-stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-10-30T18:37:39.979Z"
+stopped_at: Completed 05-02-PLAN.md
+last_updated: "2026-10-30T22:59:38.312Z"
 last_activity: 2026-10-30
 last_activity_desc: Phase 05 execution started
-state_head: 575c69742566fc6d251e5c52c7020cfae7b0c208
+state_head: f4d8fc0b52d286fb9b33747e5c2cec9f4425f6e0
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 40
-  completed_plans: 23
+  completed_plans: 24
   percent: 0
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-09-21)
 ## Current Position
 
 Phase: 05 (Imóveis Real — Endpoint Público e Integração Final) — EXECUTING
-Plan: 2 of 18
+Plan: 3 of 18
 Status: Ready to execute
 Last activity: 2026-10-30 — Phase 05 execution started
 
@@ -74,6 +74,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04 P07 | 10 min | 2 tasks | 8 files |
 | Phase 04 P08 | 5 min | 2 tasks | 10 files |
 | Phase 05 P01 | 5 min | 3 tasks | 6 files |
+| Phase 05 P02 | 12min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -107,6 +108,7 @@ Recent decisions affecting current work:
 - [Phase 04]: 04-07: viewer locks PageView swipe via NeverScrollableScrollPhysics while the visible photo is zoomed (A1); real pinch feel left to end-of-phase human check
 - [Phase 04]: 04-08: IPTU sem periodo ate o E2 (D-19 c); cabecalho usa precos da parte comum inclusive para lote (D-19 d); perfil do corretor abre com o objeto em memoria, sem rede nem contato (D-15) — Regras de negocio pendentes do E2 nao sao decididas no app
 - [Phase 05]: Fase 5 git: opcao-a + app-a (API: só commit do merge, resto sem commit; app: commit por task na feat/APP05; nunca push)
+- [Phase 05]: 05-02: opcao-a — empresa_id mantido em corretor_responsavel (W02); PENDENTE para a frente web, junto com a revisão LGPD de contato (§11.5 g)
 
 ### Pending Todos
 
@@ -135,6 +137,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-30T18:37:39.937Z
-Stopped at: Completed 05-01-PLAN.md
+Last session: 2026-10-30T22:59:38.269Z
+Stopped at: Completed 05-02-PLAN.md
 Resume file: None

@@ -191,7 +191,7 @@ Plans:
   4. O app troca a DataSource mock pela real via injeção de dependência (troca de uma linha), sem mudar UI/Cubit/domain; de ponta a ponta, o visitante vê, busca, ordena e filtra imóveis reais na vitrine.
   5. O detalhe (`GET /api/publico/imoveis/{id}/`) também passa a vir da API real, incluindo os dados de natureza, e a página do imóvel da Phase 4 funciona ponta a ponta.
 
-**Plans**: 1/18 plans executed
+**Plans**: 2/18 plans executed
 Plans:
 **Wave 1**
 
@@ -199,7 +199,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 05-02-PLAN.md — API: lote na vitrine pública (LotePublicoSerializer, área do lote), decisão informada sobre o corretor público (contatos expostos, empresa_id, LGPD adiada), allowlist exata, galeria começando pela capa (API-03, API-07) [checkpoint]
+- [x] 05-02-PLAN.md — API: lote na vitrine pública (LotePublicoSerializer, área do lote), decisão informada sobre o corretor público (contatos expostos, empresa_id, LGPD adiada), allowlist exata, galeria começando pela capa (API-03, API-07) [checkpoint]
 - [ ] 05-03-PLAN.md — App: item da vitrine sem cidade (A-06), prévia só com o bairro (API-03)
 
 **Wave 3** *(blocked on Wave 2 completion)*
@@ -264,4 +264,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Vitrine — Lista, Busca e Ordenação | 5/5 | In Progress|  |
 | 3. Vitrine — Filtros Server-Side | 5/5 | In Progress|  |
 | 4. Página do Imóvel — Galeria e Dados da Natureza | 8/8 | In Progress|  |
-| 5. Imóveis Real — Endpoint Público e Integração Final | 1/18 | In Progress|  |
+| 5. Imóveis Real — Endpoint Público e Integração Final | 2/18 | In Progress|  |
