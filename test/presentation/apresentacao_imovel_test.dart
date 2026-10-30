@@ -140,6 +140,14 @@ void main() {
     test('bairro vazio é omitido', () {
       expect(rotuloLocalizacao('', campinas), 'Campinas, SP');
     });
+
+    test('cidade nula mostra só o bairro (prévia sem cidade, A-06)', () {
+      expect(rotuloLocalizacao('Cambuí', null), 'Cambuí');
+    });
+
+    test('sem bairro e sem cidade devolve texto vazio', () {
+      expect(rotuloLocalizacao('', null), '');
+    });
   });
 
   group('linhasDeCustos', () {

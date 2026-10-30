@@ -61,6 +61,36 @@ void main() {
     ],
   );
 
+  test(
+    'a primeira requisição de uma cidade leva ConsultaImoveis.cidade igual à '
+    'cidade escolhida (a cidade da vitrine vem da consulta, não do item, A-06)',
+    () async {
+      when(() => buscarImoveis(any())).thenAnswer(
+        (_) async => Result.success(PaginaImoveis(itens: [imovelDe(7)])),
+      );
+      final cubit = construir();
+
+      cubit.carregar(valinhos);
+      await Future<void>.delayed(Duration.zero);
+      await cubit.close();
+
+      final consulta =
+          verify(() => buscarImoveis(captureAny())).captured.single
+              as ConsultaImoveis;
+      expect(consulta.cidade, valinhos);
+    },
+  );
+
+  test(
+    'Imovel: igualdade definida sem cidade — campos iguais são ==, só o id '
+    'diferente não',
+    () {
+      expect(imovelDe(1), imovelDe(1));
+      expect(imovelDe(1).hashCode, imovelDe(1).hashCode);
+      expect(imovelDe(1), isNot(imovelDe(2)));
+    },
+  );
+
   blocTest<VitrineCubit, VitrineState>(
     'carregar com sucesso vazio e sem busca emite vazioNaCidade (D-15)',
     build: construir,
