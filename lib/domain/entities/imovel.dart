@@ -1,5 +1,3 @@
-import 'cidade.dart';
-
 /// Finalidade comercial do imóvel — espelha o enum `finalidade` do contrato
 /// (`VENDA` | `ALUGUEL` | `VENDA_E_ALUGUEL`, §3.1).
 enum FinalidadeImovel { venda, aluguel, vendaEAluguel }
@@ -11,6 +9,9 @@ enum NaturezaImovel { casa, apartamento, terreno, lote }
 /// Entidade de domínio: um imóvel do acervo (VIT-01/VIT-02).
 ///
 /// Imutável, sem serialização — isso é papel de `ImovelModel` em `data/`.
+/// Não carrega cidade: o item da lista da W09 não manda cidade (D-17, A-06).
+/// A cidade da vitrine é a escolhida pelo visitante (`ConsultaImoveis.cidade`)
+/// e a do imóvel individual vem do detalhe (`endereco.cidade`).
 /// Preços chegam prontos como strings decimais do servidor; o domínio nunca
 /// os parseia/formata (D-03) — a apresentação fica em
 /// `presentation/vitrine/apresentacao_imovel.dart`.
@@ -22,7 +23,6 @@ class Imovel {
     this.precoVenda,
     this.precoAluguel,
     required this.bairro,
-    required this.cidade,
     this.fotoCapa,
     this.natureza,
     this.quartos,
@@ -41,7 +41,6 @@ class Imovel {
   final String? precoAluguel;
 
   final String bairro;
-  final Cidade cidade;
 
   /// URL da foto de capa, nullable — placeholder é decisão de `presentation/`
   /// (D-04).
@@ -63,7 +62,6 @@ class Imovel {
           other.precoVenda == precoVenda &&
           other.precoAluguel == precoAluguel &&
           other.bairro == bairro &&
-          other.cidade == cidade &&
           other.fotoCapa == fotoCapa &&
           other.natureza == natureza &&
           other.quartos == quartos);
@@ -76,7 +74,6 @@ class Imovel {
     precoVenda,
     precoAluguel,
     bairro,
-    cidade,
     fotoCapa,
     natureza,
     quartos,
@@ -85,5 +82,5 @@ class Imovel {
   @override
   String toString() =>
       'Imovel(id: $id, titulo: $titulo, finalidade: $finalidade, '
-      'bairro: $bairro, cidade: $cidade)';
+      'bairro: $bairro)';
 }

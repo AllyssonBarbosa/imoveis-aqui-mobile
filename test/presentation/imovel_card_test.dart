@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:imoveis_aqui/domain/entities/cidade.dart';
 import 'package:imoveis_aqui/domain/entities/imovel.dart';
 import 'package:imoveis_aqui/presentation/vitrine/widgets/foto_capa_imovel.dart';
 import 'package:imoveis_aqui/presentation/vitrine/widgets/imovel_card.dart';
 
 void main() {
-  const campinas = Cidade(nome: 'Campinas', uf: 'SP');
-
   Future<void> pumpCard(WidgetTester tester, Imovel imovel) async {
     await tester.pumpWidget(
       MaterialApp(home: Scaffold(body: ImovelCard(imovel: imovel))),
@@ -25,7 +22,6 @@ void main() {
         finalidade: FinalidadeImovel.venda,
         precoVenda: '450000.00',
         bairro: 'Cambuí',
-        cidade: campinas,
         natureza: NaturezaImovel.apartamento,
         quartos: 2,
       );
@@ -49,7 +45,6 @@ void main() {
         precoVenda: '220000.00',
         precoAluguel: '1500.00',
         bairro: 'Jardim das Palmeiras',
-        cidade: campinas,
         natureza: NaturezaImovel.terreno,
       );
 
@@ -70,7 +65,6 @@ void main() {
         finalidade: FinalidadeImovel.venda,
         precoVenda: '300000.00',
         bairro: 'Centro',
-        cidade: campinas,
       );
 
       await pumpCard(tester, imovel);
@@ -128,7 +122,6 @@ void main() {
       finalidade: FinalidadeImovel.venda,
       precoVenda: '450000.00',
       bairro: 'Cambuí',
-      cidade: campinas,
     );
 
     testWidgets('com onTap, cada toque chama a ação uma vez', (tester) async {

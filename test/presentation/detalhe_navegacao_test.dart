@@ -161,7 +161,10 @@ void main() {
           naPagina(find.text('Apartamento 2 quartos no Cambuí')),
           findsOneWidget,
         );
-        expect(naPagina(find.text('Cambuí · Campinas, SP')), findsOneWidget);
+        // A prévia vem do item da lista, que não traz cidade (A-06): só o
+        // bairro até o detalhe chegar.
+        expect(naPagina(find.text('Cambuí')), findsOneWidget);
+        expect(naPagina(find.textContaining(', SP')), findsNothing);
         expect(naPagina(find.text('R\$ 450.000')), findsOneWidget);
         expect(
           naPagina(find.byType(CircularProgressIndicator)),
@@ -183,6 +186,8 @@ void main() {
           findsOneWidget,
         );
         expect(naPagina(find.byType(CircularProgressIndicator)), findsNothing);
+        // Com o detalhe, o cabeçalho completa a localização com a cidade.
+        expect(naPagina(find.text('Cambuí · Campinas, SP')), findsOneWidget);
         // O cabeçalho da prévia continua no mesmo lugar.
         expect(
           naPagina(find.text('Apartamento 2 quartos no Cambuí')),

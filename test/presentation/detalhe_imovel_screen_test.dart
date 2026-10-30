@@ -33,7 +33,6 @@ void main() {
     finalidade: FinalidadeImovel.venda,
     precoVenda: '450000.00',
     bairro: 'Cambuí',
-    cidade: campinas,
   );
   const detalhe = DetalheImovel(
     id: 42,
@@ -130,7 +129,6 @@ void main() {
       finalidade: FinalidadeImovel.venda,
       precoVenda: '450000.00',
       bairro: 'Cambuí',
-      cidade: campinas,
       fotoCapa: capa,
     );
 

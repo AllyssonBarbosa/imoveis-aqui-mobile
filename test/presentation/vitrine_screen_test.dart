@@ -38,7 +38,6 @@ void main() {
     finalidade: FinalidadeImovel.venda,
     precoVenda: '100000.00',
     bairro: 'Centro',
-    cidade: campinas,
   );
 
   setUpAll(() {

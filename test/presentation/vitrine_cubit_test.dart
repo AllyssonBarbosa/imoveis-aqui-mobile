@@ -25,13 +25,12 @@ void main() {
   const campinas = Cidade(nome: 'Campinas', uf: 'SP');
   const valinhos = Cidade(nome: 'Valinhos', uf: 'SP');
 
-  Imovel imovelDe(Cidade cidade, int id) => Imovel(
+  Imovel imovelDe(int id) => Imovel(
     id: id,
     titulo: 'Imóvel $id',
     finalidade: FinalidadeImovel.venda,
     precoVenda: '100000.00',
     bairro: 'Centro',
-    cidade: cidade,
   );
 
   setUpAll(() {
@@ -50,14 +49,14 @@ void main() {
     setUp: () {
       when(() => buscarImoveis(any())).thenAnswer(
         (_) async =>
-            Result.success(PaginaImoveis(itens: [imovelDe(campinas, 1)])),
+            Result.success(PaginaImoveis(itens: [imovelDe(1)])),
       );
     },
     act: (cubit) => cubit.carregar(campinas),
     expect: () => [
       const VitrineState(conteudo: ConteudoVitrine.carregando()),
       VitrineState(
-        conteudo: ConteudoVitrine.carregada(itens: [imovelDe(campinas, 1)]),
+        conteudo: ConteudoVitrine.carregada(itens: [imovelDe(1)]),
       ),
     ],
   );
@@ -108,7 +107,7 @@ void main() {
 
       when(() => buscarImoveis(any())).thenAnswer(
         (_) async =>
-            Result.success(PaginaImoveis(itens: [imovelDe(campinas, 1)])),
+            Result.success(PaginaImoveis(itens: [imovelDe(1)])),
       );
       cubit.tentarNovamente();
       await Future<void>.delayed(Duration.zero);
@@ -121,7 +120,7 @@ void main() {
         const VitrineState(conteudo: ConteudoVitrine.erro()),
         const VitrineState(conteudo: ConteudoVitrine.carregando()),
         VitrineState(
-          conteudo: ConteudoVitrine.carregada(itens: [imovelDe(campinas, 1)]),
+          conteudo: ConteudoVitrine.carregada(itens: [imovelDe(1)]),
         ),
       ]);
       verify(() => buscarImoveis(any())).called(2);
@@ -161,7 +160,7 @@ void main() {
           return completerCampinas.future;
         }
         return Future.value(
-          Result.success(PaginaImoveis(itens: [imovelDe(valinhos, 2)])),
+          Result.success(PaginaImoveis(itens: [imovelDe(2)])),
         );
       });
 
@@ -178,7 +177,7 @@ void main() {
       // resolvido — precisa ser descartada, nunca sobrescrever a lista
       // atual (D-13).
       completerCampinas.complete(
-        Result.success(PaginaImoveis(itens: [imovelDe(campinas, 1)])),
+        Result.success(PaginaImoveis(itens: [imovelDe(1)])),
       );
       await Future<void>.delayed(const Duration(milliseconds: 10));
 
@@ -192,7 +191,9 @@ void main() {
           .toList();
       expect(carregadas, hasLength(1));
       final unica = carregadas.single.conteudo as VitrineCarregada;
-      expect(unica.itens.single.cidade, valinhos);
+      // Só o item servido para Valinhos (id 2); o de Campinas (id 1) foi
+      // descartado. A cidade vem da consulta, não do item.
+      expect(unica.itens.map((i) => i.id), [2]);
     },
   );
 
@@ -212,7 +213,7 @@ void main() {
       // Resolver a Future depois do close nunca deve lançar "emit after
       // close" nem qualquer outro erro (T-02-01-04).
       completer.complete(
-        Result.success(PaginaImoveis(itens: [imovelDe(campinas, 1)])),
+        Result.success(PaginaImoveis(itens: [imovelDe(1)])),
       );
       await Future<void>.delayed(Duration.zero);
     },
@@ -390,7 +391,7 @@ void main() {
                 invocation.positionalArguments.first as ConsultaImoveis;
             if (consulta.busca == 'aaaa') return completerA.future;
             return Future.value(
-              Result.success(PaginaImoveis(itens: [imovelDe(campinas, 9)])),
+              Result.success(PaginaImoveis(itens: [imovelDe(9)])),
             );
           });
 
@@ -405,7 +406,7 @@ void main() {
           async.elapse(const Duration(milliseconds: 400)); // B resolve
 
           completerA.complete(
-            Result.success(PaginaImoveis(itens: [imovelDe(campinas, 1)])),
+            Result.success(PaginaImoveis(itens: [imovelDe(1)])),
           );
           async.flushMicrotasks();
 
@@ -441,7 +442,7 @@ void main() {
       setUp: () {
         when(() => buscarImoveis(any())).thenAnswer(
           (_) async =>
-              Result.success(PaginaImoveis(itens: [imovelDe(campinas, 1)])),
+              Result.success(PaginaImoveis(itens: [imovelDe(1)])),
         );
       },
       act: (cubit) async {
@@ -452,7 +453,7 @@ void main() {
       expect: () => [
         const VitrineState(conteudo: ConteudoVitrine.carregando()),
         VitrineState(
-          conteudo: ConteudoVitrine.carregada(itens: [imovelDe(campinas, 1)]),
+          conteudo: ConteudoVitrine.carregada(itens: [imovelDe(1)]),
         ),
         const VitrineState(
           ordenacao: OrdenacaoVitrine.precoAsc,
@@ -460,7 +461,7 @@ void main() {
         ),
         VitrineState(
           ordenacao: OrdenacaoVitrine.precoAsc,
-          conteudo: ConteudoVitrine.carregada(itens: [imovelDe(campinas, 1)]),
+          conteudo: ConteudoVitrine.carregada(itens: [imovelDe(1)]),
         ),
       ],
       verify: (_) {
@@ -481,7 +482,7 @@ void main() {
       () async {
         when(() => buscarImoveis(any())).thenAnswer(
           (_) async =>
-              Result.success(PaginaImoveis(itens: [imovelDe(campinas, 1)])),
+              Result.success(PaginaImoveis(itens: [imovelDe(1)])),
         );
         final cubit = VitrineCubit(buscarImoveis, SessaoFiltrosVitrine());
         cubit.carregar(campinas);
@@ -508,7 +509,7 @@ void main() {
             return completerAntiga.future;
           }
           return Future.value(
-            Result.success(PaginaImoveis(itens: [imovelDe(campinas, 2)])),
+            Result.success(PaginaImoveis(itens: [imovelDe(2)])),
           );
         });
 
@@ -522,7 +523,7 @@ void main() {
         await cubit.ordenarPor(OrdenacaoVitrine.areaAsc);
 
         completerAntiga.complete(
-          Result.success(PaginaImoveis(itens: [imovelDe(campinas, 1)])),
+          Result.success(PaginaImoveis(itens: [imovelDe(1)])),
         );
         await Future<void>.delayed(Duration.zero);
 
@@ -564,12 +565,12 @@ void main() {
       setUp: () {
         when(() => buscarImoveis(any())).thenAnswer(
           (_) async => Result.success(
-            PaginaImoveis(itens: [imovelDe(campinas, 1)], proximaPagina: 'p2'),
+            PaginaImoveis(itens: [imovelDe(1)], proximaPagina: 'p2'),
           ),
         );
         when(() => buscarImoveis.proximaPagina('p2')).thenAnswer(
           (_) async => Result.success(
-            PaginaImoveis(itens: [imovelDe(campinas, 2)]),
+            PaginaImoveis(itens: [imovelDe(2)]),
           ),
         );
       },
@@ -582,20 +583,20 @@ void main() {
         const VitrineState(conteudo: ConteudoVitrine.carregando()),
         VitrineState(
           conteudo: ConteudoVitrine.carregada(
-            itens: [imovelDe(campinas, 1)],
+            itens: [imovelDe(1)],
             proximaPagina: 'p2',
           ),
         ),
         VitrineState(
           conteudo: ConteudoVitrine.carregada(
-            itens: [imovelDe(campinas, 1)],
+            itens: [imovelDe(1)],
             proximaPagina: 'p2',
             carregandoMais: true,
           ),
         ),
         VitrineState(
           conteudo: ConteudoVitrine.carregada(
-            itens: [imovelDe(campinas, 1), imovelDe(campinas, 2)],
+            itens: [imovelDe(1), imovelDe(2)],
           ),
         ),
       ],
@@ -611,7 +612,7 @@ void main() {
         final completer = Completer<Result<PaginaImoveis>>();
         when(() => buscarImoveis(any())).thenAnswer(
           (_) async => Result.success(
-            PaginaImoveis(itens: [imovelDe(campinas, 1)], proximaPagina: 'p2'),
+            PaginaImoveis(itens: [imovelDe(1)], proximaPagina: 'p2'),
           ),
         );
         when(
@@ -626,7 +627,7 @@ void main() {
         final futuro2 = cubit.carregarMais();
 
         completer.complete(
-          Result.success(PaginaImoveis(itens: [imovelDe(campinas, 2)])),
+          Result.success(PaginaImoveis(itens: [imovelDe(2)])),
         );
         await Future.wait([futuro1, futuro2]);
 
@@ -642,7 +643,7 @@ void main() {
       'e não emite',
       () async {
         final cubit = await construirCarregada(
-          itens: [imovelDe(campinas, 1)],
+          itens: [imovelDe(1)],
         );
         final estadoAntes = cubit.state;
 
@@ -679,7 +680,7 @@ void main() {
       'refaz com o mesmo cursor e anexa em caso de sucesso',
       () async {
         final cubit = await construirCarregada(
-          itens: [imovelDe(campinas, 1)],
+          itens: [imovelDe(1)],
           proximaPagina: 'p2',
         );
         when(
@@ -700,7 +701,7 @@ void main() {
 
         when(() => buscarImoveis.proximaPagina('p2')).thenAnswer(
           (_) async => Result.success(
-            PaginaImoveis(itens: [imovelDe(campinas, 2)]),
+            PaginaImoveis(itens: [imovelDe(2)]),
           ),
         );
         cubit.tentarNovamente();
@@ -721,7 +722,7 @@ void main() {
       () async {
         final completer = Completer<Result<PaginaImoveis>>();
         final cubit = await construirCarregada(
-          itens: [imovelDe(campinas, 1)],
+          itens: [imovelDe(1)],
           proximaPagina: 'p2',
         );
         when(
@@ -732,10 +733,10 @@ void main() {
               invocation.positionalArguments.first as ConsultaImoveis;
           if (consulta.cidade == valinhos) {
             return Result.success(
-              PaginaImoveis(itens: [imovelDe(valinhos, 9)]),
+              PaginaImoveis(itens: [imovelDe(9)]),
             );
           }
-          return Result.success(PaginaImoveis(itens: [imovelDe(campinas, 1)]));
+          return Result.success(PaginaImoveis(itens: [imovelDe(1)]));
         });
 
         final futuroCarregarMais = cubit.carregarMais();
@@ -743,13 +744,15 @@ void main() {
         await Future<void>.delayed(Duration.zero);
 
         completer.complete(
-          Result.success(PaginaImoveis(itens: [imovelDe(campinas, 2)])),
+          Result.success(PaginaImoveis(itens: [imovelDe(2)])),
         );
         await futuroCarregarMais;
         await Future<void>.delayed(Duration.zero);
 
         final conteudoFinal = cubit.state.conteudo as VitrineCarregada;
-        expect(conteudoFinal.itens.single.cidade, valinhos);
+        // Só o item servido para Valinhos (id 9); a página atrasada de
+        // Campinas (id 2) foi descartada.
+        expect(conteudoFinal.itens.map((i) => i.id), [9]);
         await cubit.close();
       },
     );
@@ -759,7 +762,7 @@ void main() {
       () async {
         final completer = Completer<Result<PaginaImoveis>>();
         final cubit = await construirCarregada(
-          itens: [imovelDe(campinas, 1)],
+          itens: [imovelDe(1)],
           proximaPagina: 'p2',
         );
         when(
@@ -771,7 +774,7 @@ void main() {
         expect(cubit.isClosed, isTrue);
 
         completer.complete(
-          Result.success(PaginaImoveis(itens: [imovelDe(campinas, 2)])),
+          Result.success(PaginaImoveis(itens: [imovelDe(2)])),
         );
         await futuro;
       },
@@ -786,7 +789,7 @@ void main() {
       setUp: () {
         when(() => buscarImoveis(any())).thenAnswer(
           (_) async =>
-              Result.success(PaginaImoveis(itens: [imovelDe(campinas, 1)])),
+              Result.success(PaginaImoveis(itens: [imovelDe(1)])),
         );
       },
       act: (cubit) async {
@@ -799,7 +802,7 @@ void main() {
       expect: () => [
         const VitrineState(conteudo: ConteudoVitrine.carregando()),
         VitrineState(
-          conteudo: ConteudoVitrine.carregada(itens: [imovelDe(campinas, 1)]),
+          conteudo: ConteudoVitrine.carregada(itens: [imovelDe(1)]),
         ),
         const VitrineState(
           filtros: FiltrosVitrine(finalidade: FinalidadeFiltro.venda),
@@ -807,7 +810,7 @@ void main() {
         ),
         VitrineState(
           filtros: const FiltrosVitrine(finalidade: FinalidadeFiltro.venda),
-          conteudo: ConteudoVitrine.carregada(itens: [imovelDe(campinas, 1)]),
+          conteudo: ConteudoVitrine.carregada(itens: [imovelDe(1)]),
         ),
       ],
       verify: (_) {
@@ -828,7 +831,7 @@ void main() {
       () async {
         when(() => buscarImoveis(any())).thenAnswer(
           (_) async =>
-              Result.success(PaginaImoveis(itens: [imovelDe(campinas, 1)])),
+              Result.success(PaginaImoveis(itens: [imovelDe(1)])),
         );
         final cubit = VitrineCubit(buscarImoveis, SessaoFiltrosVitrine());
         cubit.carregar(campinas);
@@ -878,7 +881,7 @@ void main() {
       () async {
         when(() => buscarImoveis(any())).thenAnswer(
           (_) async =>
-              Result.success(PaginaImoveis(itens: [imovelDe(campinas, 1)])),
+              Result.success(PaginaImoveis(itens: [imovelDe(1)])),
         );
         final cubit = VitrineCubit(buscarImoveis, SessaoFiltrosVitrine());
         cubit.carregar(campinas);
@@ -942,7 +945,7 @@ void main() {
             return completerA.future;
           }
           return Future.value(
-            Result.success(PaginaImoveis(itens: [imovelDe(campinas, 9)])),
+            Result.success(PaginaImoveis(itens: [imovelDe(9)])),
           );
         });
 
@@ -961,7 +964,7 @@ void main() {
         );
 
         completerA.complete(
-          Result.success(PaginaImoveis(itens: [imovelDe(campinas, 1)])),
+          Result.success(PaginaImoveis(itens: [imovelDe(1)])),
         );
         await Future<void>.delayed(Duration.zero);
 
@@ -979,7 +982,7 @@ void main() {
         final completer = Completer<Result<PaginaImoveis>>();
         when(() => buscarImoveis(any())).thenAnswer(
           (_) async => Result.success(
-            PaginaImoveis(itens: [imovelDe(campinas, 1)], proximaPagina: 'p2'),
+            PaginaImoveis(itens: [imovelDe(1)], proximaPagina: 'p2'),
           ),
         );
         when(
@@ -996,7 +999,7 @@ void main() {
         );
 
         completer.complete(
-          Result.success(PaginaImoveis(itens: [imovelDe(campinas, 2)])),
+          Result.success(PaginaImoveis(itens: [imovelDe(2)])),
         );
         await futuroCarregarMais;
         await Future<void>.delayed(Duration.zero);

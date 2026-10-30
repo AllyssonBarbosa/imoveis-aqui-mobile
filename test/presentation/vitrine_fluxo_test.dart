@@ -83,6 +83,16 @@ void main() {
     );
   }
 
+  /// Ids do acervo que pertencem à [cidade], lidos das linhas do próprio mock
+  /// (`linha['cidade']`) — o item `Imovel` não carrega cidade (A-06).
+  Set<int> idsDaCidade(Cidade cidade) => linhasAcervoFixture()
+      .where((linha) {
+        final c = linha['cidade']! as Map<String, Object?>;
+        return c['nome'] == cidade.nome && c['uf'] == cidade.uf;
+      })
+      .map((linha) => linha['id']! as int)
+      .toSet();
+
   setUp(() {
     cidadeSelecaoCubit = _CidadeSelecaoCubitFalso();
     salvarCidade = _SalvarCidadeUseCaseFalso();
@@ -138,10 +148,13 @@ void main() {
       // aparecem antes de rolar (VIT-05, scroll infinito); a contagem exata
       // materializada depende do cache extent do ListView, não é o que este
       // teste verifica (isso é papel do teste de scroll dedicado abaixo).
+      // O item da lista não carrega cidade (A-06): a prova de "só Campinas"
+      // são os ids que o mock serve para a consulta de Campinas.
+      final idsCampinas = idsDaCidade(campinas);
       final cards = tester.widgetList<ImovelCard>(find.byType(ImovelCard));
       expect(cards, isNotEmpty);
       for (final card in cards) {
-        expect(card.imovel.cidade, campinas);
+        expect(idsCampinas, contains(card.imovel.id));
       }
 
       expect(find.text('Apartamento 2 quartos no Cambuí'), findsOneWidget);
@@ -192,7 +205,8 @@ void main() {
 
       expect(conteudo.itens, hasLength(40));
       expect(conteudo.itens.map((i) => i.id).toSet(), hasLength(40));
-      expect(conteudo.itens.every((i) => i.cidade == campinas), isTrue);
+      final idsCampinas = idsDaCidade(campinas);
+      expect(conteudo.itens.every((i) => idsCampinas.contains(i.id)), isTrue);
 
       // Mesma ordem que andar o mock diretamente, sem passar pela UI.
       final mockDireto = ImovelMockDataSource.paraTeste(
@@ -851,8 +865,9 @@ void main() {
       );
       final conteudo = vitrineCubit.state.conteudo as VitrineCarregada;
       expect(conteudo.itens, isNotEmpty);
+      final idsValinhos = idsDaCidade(valinhos);
       bool bateComOsFiltros(Imovel imovel) =>
-          imovel.cidade == valinhos &&
+          idsValinhos.contains(imovel.id) &&
           (imovel.finalidade == FinalidadeImovel.venda ||
               imovel.finalidade == FinalidadeImovel.vendaEAluguel) &&
           (imovel.quartos ?? 0) >= 2;

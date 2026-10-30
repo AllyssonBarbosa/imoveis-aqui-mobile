@@ -50,7 +50,6 @@ abstract class ImovelModel with _$ImovelModel {
       precoVenda: precoVenda,
       precoAluguel: precoAluguel,
       bairro: bairro,
-      cidade: cidade.paraEntidade(),
       fotoCapa: urlHttpOuNula(fotoCapa),
       natureza: _mapearNatureza(natureza),
       quartos: quartos,

@@ -67,11 +67,12 @@ List<String> linhasDePrecoPorFinalidade({
 }
 
 /// Localização do imóvel: "bairro · cidade, UF"; o bairro é omitido quando
-/// vazio.
-String rotuloLocalizacao(String bairro, Cidade cidade) {
+/// vazio e a cidade quando nula (a prévia vinda do item da lista não tem
+/// cidade — A-06). Sem os dois devolve texto vazio.
+String rotuloLocalizacao(String bairro, Cidade? cidade) {
   return [
     bairro,
-    '${cidade.nome}, ${cidade.uf}',
+    if (cidade != null) '${cidade.nome}, ${cidade.uf}',
   ].where((texto) => texto.isNotEmpty).join(' · ');
 }
 

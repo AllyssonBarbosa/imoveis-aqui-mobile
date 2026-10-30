@@ -17,7 +17,6 @@ void main() {
     precoVenda: precoVenda,
     precoAluguel: precoAluguel,
     bairro: 'Centro',
-    cidade: campinas,
   );
 
   group('formatarPrecoBrl', () {
