@@ -71,6 +71,18 @@ o contrato do app é atualizado para documentar o formato real.
   estendido e versionado na `feat/APP05`: cria empresa demo, corretor, características,
   imóveis das **4 naturezas** (incluindo loteamento → quadra → lote) com fotos, publicados e
   disponíveis, nas 4 cidades. Continua idempotente e só com `DEBUG=True`.
+- **D-10a:** (verificação da `feat/web-07`/`feat/web-08`, 2026-10-29) A **W08 também criou uma
+  vitrine pública** — `VitrineImovelViewSet` em `/api/publico/imoveis/` (lista + detalhe, sem
+  filtros/paginação própria), com `VitrineImovelSerializer(ImovelSerializer)` que **já traz
+  `lote`** (via `LoteSerializer` da W07: quadra → loteamento resumido + `vendido`), mas expõe
+  `codigo`, `empresa`, `corretor_responsavel` (id) e o `endereco` interno. Colide com a rota
+  `imoveis/<pk>/` da W09 (conflito add/add em `urls_publico.py`). No merge: **vencem as views
+  e serializers públicos da W09** (allowlist explícita, coerente com D-05); a
+  `VitrineImovelViewSet` da W08 sai e os testes dela são reapontados para a W09. A regra
+  `na_vitrine()` da W08 é aproveitada em `imoveis_da_vitrine()` (D-04), e o
+  `LoteSerializer`/`LoteamentoResumoSerializer` da W07 servem de base para o
+  `LotePublicoSerializer` (sem ids internos de empresa). Conflitos previstos (`git merge-tree`):
+  `config/urls.py`, `imoveis/api/{serializers,views,urls_publico}.py`, `imoveis/tests.py`.
 - **D-10:** Toda mudança na API vem com testes no padrão de `Web/imoveis/tests.py`
   (inclusive o teste de allowlist "nada de proprietário/documento/dado interno" estendido ao
   bloco `lote` e aos endpoints novos).
