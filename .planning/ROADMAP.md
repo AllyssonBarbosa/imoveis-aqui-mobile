@@ -191,7 +191,67 @@ Plans:
   4. O app troca a DataSource mock pela real via injeção de dependência (troca de uma linha), sem mudar UI/Cubit/domain; de ponta a ponta, o visitante vê, busca, ordena e filtra imóveis reais na vitrine.
   5. O detalhe (`GET /api/publico/imoveis/{id}/`) também passa a vir da API real, incluindo os dados de natureza, e a página do imóvel da Phase 4 funciona ponta a ponta.
 
-**Plans**: TBD
+**Plans**: 18 plans
+Plans:
+**Wave 1**
+
+- [ ] 05-01-PLAN.md — API: autorização git dos dois repositórios (API e app), feat/APP05 = WEB-09 + merge da web-08 (W09 vence o público), regra única na_vitrine, situação fora da vitrine (API-03, API-07) [checkpoint]
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 05-02-PLAN.md — API: lote na vitrine pública (LotePublicoSerializer, área do lote), decisão informada sobre o corretor público (contatos expostos, empresa_id, LGPD adiada), allowlist exata, galeria começando pela capa (API-03, API-07) [checkpoint]
+- [ ] 05-03-PLAN.md — App: item da vitrine sem cidade (A-06), prévia só com o bairro (API-03)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 05-04-PLAN.md — API: bairros da cidade e catálogo de características públicos, natureza/bairro em CSV, README da vitrine (API-03)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 05-05-PLAN.md — API: seed das 4 naturezas nas 4 cidades (versionado, idempotente) + [BLOCKING] migrações no banco de dev (API-03, API-07)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 05-06-PLAN.md — Captura do JSON real de lista e opções para test/fixtures/api/ (tool/capturar_fixtures_api.py) (API-03)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [ ] 05-07-PLAN.md — Captura do JSON real dos detalhes (4 naturezas, sem fotos, sem corretor, 404) (API-07)
+- [ ] 05-08-PLAN.md — App: cidades em array com id, cidade salva com id, ApiFalsa (API-03)
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [ ] 05-09-PLAN.md — App: lista real por GET /cidades/<id>/imoveis/ via DI, Model no wire da W09, next de mesma origem (API-03)
+
+**Wave 8** *(blocked on Wave 7 completion)*
+
+- [ ] 05-10-PLAN.md — App: busca e ordenação reais, rolagem e falhas (500, JSON malformado), sem card repetido (API-03)
+
+**Wave 9** *(blocked on Wave 8 completion)*
+
+- [ ] 05-11-PLAN.md — App: filtros com os nomes da W09 + servidor simulado da lista removido (API-03)
+
+**Wave 10** *(blocked on Wave 9 completion)*
+
+- [ ] 05-12-PLAN.md — App: opções reais de bairro/característica via DI, mock de opções removido (API-03)
+
+**Wave 11** *(blocked on Wave 10 completion)*
+
+- [ ] 05-13-PLAN.md — App: característica {id, nome} nas opções (domínio, cubit, modal) (API-03)
+- [ ] 05-14-PLAN.md — App: detalhe real via DI (endereco completo, fotos imagem/ordem/capa, corretor_responsavel), últimos mocks fora de lib/, contrato do detalhe (API-07)
+
+**Wave 12** *(blocked on Wave 11 completion)*
+
+- [ ] 05-15-PLAN.md — App: filtro de características por id na consulta, sessão entre cidades (API-03)
+- [ ] 05-16-PLAN.md — App: detalhe nas bordas (404, 500, sem fotos, sem corretor, fechada em voo) + corretor sem slug (API-07)
+
+**Wave 13** *(blocked on Wave 12 completion)*
+
+- [ ] 05-17-PLAN.md — App: blocos de natureza no wire real (lote com parcelamento/quadra/loteamento, laterais, prédio) + rótulos de códigos (API-07)
+
+**Wave 14** *(blocked on Wave 13 completion)*
+
+- [ ] 05-18-PLAN.md — Fechamento: contrato e exemplos = respostas reais + testes de contrato, rota real e critérios 3/4 em REQUIREMENTS/ROADMAP, README, gates dos dois repos, roteiro E2E (API-03, API-07)
 
 ## Progress
 
@@ -204,4 +264,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Vitrine — Lista, Busca e Ordenação | 5/5 | In Progress|  |
 | 3. Vitrine — Filtros Server-Side | 5/5 | In Progress|  |
 | 4. Página do Imóvel — Galeria e Dados da Natureza | 8/8 | In Progress|  |
-| 5. Imóveis Real — Endpoint Público e Integração Final | 0/TBD | Not started | - |
+| 5. Imóveis Real — Endpoint Público e Integração Final | 0/18 | Planned | - |

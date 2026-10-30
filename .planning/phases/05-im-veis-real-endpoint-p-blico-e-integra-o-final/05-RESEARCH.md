@@ -540,27 +540,35 @@ curl -s "http://127.0.0.1:8000/api/publico/imoveis/<id-de-cada-natureza>/" > tes
 | A6 | `Imovel.cidade` pode sair da entidade de lista sem quebrar UI além da prévia do detalhe | Desvio de wire (lista) | Baixo; `rotuloLocalizacao` é o único consumidor lido |
 | A7 | `iOS Simulator` + `127.0.0.1` e Android `10.0.2.2` funcionam com os `ALLOWED_HOSTS` do `.env.example` | Pitfall 2 | Baixo |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Como `Cidade` ganha `id` no app (e no ramo de falha de rede)?**
    - Sabemos: rota exige `cidades/<id>/...`; `CidadeModel.paraEntidade()` hoje descarta o id; prefs guardam só `nome|uf`; `ValidarCidadeAtendidaUseCase` devolve a cidade **da lista** (com id) quando a lista carrega, mas no ramo `Failure` entra com a cidade salva (sem id).
    - Falta: política quando não há id.
    - Recomendação: `Cidade` ganha `final int? id` **fora de `==`/`hashCode`** (chave natural continua a identidade); `CidadeModel.paraEntidade()` passa o id; `ImovelRemoteDataSource`/`OpcoesFiltroRemoteDataSource` lançam `FormatException` clara se `cidade.id == null` (cai em "Tentar de novo"; sem rede a vitrine falharia de qualquer jeito). Opcional: persistir `nome|uf|id` com leitura retrocompatível.
+   - **RESOLVED → 05-08 (planner assumption A-01):** `Cidade.id` fora de `==`/`hashCode`, prefs `nome|uf|id` com leitura de `nome|uf`, invariante sobre `cidades.json`; as DataSources remotas de 05-09 e 05-12 lançam `FormatException` sem requisição quando a cidade não tem id.
 
 2. **Fotos: onde garantir "capa primeiro"?** (ver Pitfall 6) — Recomendação: na API (ordenar por `-capa, ordem, id` no detalhe) + teste.
+   - **RESOLVED → 05-02 Task 3 (planner assumption A-02):** `Prefetch("fotos", queryset=FotoImovel.objects.order_by("-capa", "ordem", "id"))` no detalhe + `VitrineFotosCapaTests`; o app nunca reordena (05-14).
 
 3. **`areas_de_lazer` (texto livre) e infraestrutura (booleanos) no app.**
    - Recomendação: infraestrutura → lista de rótulos no Model (domínio inalterado); `areas_de_lazer` → `DadosLoteamento.areasLazer: String?` mostrado como linha de texto "Áreas de lazer" (chips com frase longa ficam ruins). Não dividir por vírgula no app (heurística de dado).
+   - **RESOLVED → 05-17 Task 1 (planner assumption A-03):** booleanos traduzidos em `data/` para rótulos de infraestrutura em ordem fixa; `areas_de_lazer` como `String?` mostrado em texto corrido, sem dividir por vírgula.
 
 4. **Rótulos de `posicao_solar`/`uso_permitido`.** Recomendação: tabelas pequenas em `presentation/` (`NASCENTE`→"Nascente", ...) com fallback para o texto cru.
+   - **RESOLVED → 05-17 Task 2 (planner assumption A-04):** `rotuloPosicaoSolar`/`rotuloUsoPermitido` em `presentation/`, código desconhecido aparece como veio e vazio omite a linha (substitui F4/D-19 b).
 
 5. **Bairro com vírgula (CSV).** Recomendação: manter CSV (D-07 travado); opcionalmente a view lê também `getlist("bairro")`. Decidir antes do plano da API ou registrar como risco aceito.
+   - **RESOLVED → 05-04 Task 2 (planner assumption A-05):** CSV mantido (D-07); bairro com vírgula no nome registrado como risco aceito no README da API (05-04) e no contrato (05-18); ameaça T-05-04-05 com disposição accept.
 
 6. **`vendido` e `empresa_id`.** Não incluir `vendido` no bloco `lote` público (sempre `false` na vitrine); sugerir à web remover `empresa_id` do corretor público (fora do escopo).
+   - **RESOLVED → 05-02:** `vendido` fica fora do `LotePublicoSerializer` (Task 1) e entra no deny-list `CHAVES_PROIBIDAS` (Task 3). `empresa_id` e a exposição dos contatos do corretor foram encaminhados ao checkpoint bloqueante da Task 2 do 05-02 (`checkpoint:decision`, opcao-a/b/c, que lista os contatos expostos sem token): o usuário decide durante a execução, o executor registra a resposta, o conjunto final de chaves e o adiamento da revisão LGPD no 05-02-SUMMARY.md, e a Task 3 trava esse conjunto com teste de chaves exatas.
 
 7. **REQUIREMENTS/ROADMAP descrevem a rota antiga** (`/api/publico/imoveis/?cidade=`). Recomendação: o plano inclui atualizar o texto de API-03 (e Success Criteria 1) para `cidades/<id>/imoveis/`, para a verificação da fase não reprovar por texto desatualizado.
+   - **RESOLVED → 05-18 Task 2:** troca a rota em API-03 (REQUIREMENTS) e no critério 1 da Fase 5 (ROADMAP), e reescreve os critérios 3 e 4 conforme D-01/D-02, com grep no verify.
 
 8. **E2E manual:** não há emulador/simulador aberto (`flutter devices` = macOS desktop + Chrome; o projeto **não tem pasta `macos/`** e a API não tem CORS, logo web/desktop não servem). iOS 17.5 simulators e AVDs (`Medium_Phone_API_36.0`, `Pixel_API_24`) existem. O check humano de fim de fase deve usar um deles.
+   - **RESOLVED → 05-18 Task 3:** banco de dev semeado, runserver em `0.0.0.0:8000` provado para o Host `10.0.2.2:8000`, e roteiro E2E no AVD `Medium_Phone_API_36.0` (ou simulador iOS 17.5 com `API_BASE_URL=http://127.0.0.1:8000`) documentado no README e consolidado no UAT de fim de fase.
 
 ## Environment Availability
 

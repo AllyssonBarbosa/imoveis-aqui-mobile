@@ -20,14 +20,19 @@
     },
     {
       "number": "4",
+      "name": "Página do Imóvel — Galeria e Dados da Natureza",
+      "status": "in_progress"
+    },
+    {
+      "number": "5",
       "name": "Imóveis Real — Endpoint Público e Integração Final",
       "status": "pending"
     }
   ],
   "next": {
     "command": "/gsd:progress --next",
-    "label": "Advance to the next step (verify)",
-    "reason": "Phase 03 of 4 · 0% · ready to verify"
+    "label": "Advance to the next step",
+    "reason": "Phase 5 of 5 · 0% · executing"
   },
-  "updated_at": "2026-10-01T01:38:06.004Z"
+  "updated_at": "2026-10-30T15:03:33.720Z"
 }

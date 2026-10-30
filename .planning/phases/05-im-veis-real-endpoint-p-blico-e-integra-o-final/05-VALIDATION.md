@@ -24,7 +24,7 @@ created: "2026-10-30"
 | **Config file** | none — app: `test/**_test.dart`; API: `manage.py test` |
 | **Quick run command (app)** | `flutter test <arquivos de teste tocados pela task>` |
 | **Quick run command (API)** | `cd ../imoveis-aqui/Web && .venv/bin/python manage.py test imoveis.tests.<Classe> -v 1` |
-| **Full suite command (app)** | `flutter test && flutter analyze` (baseline: 587 verdes) |
+| **Full suite command (app)** | `flutter test && flutter analyze` — pass = exit code 0 with no "Some tests failed" and no "issues found" (no fixed test count: plans add and delete tests) |
 | **Full suite command (API)** | `cd ../imoveis-aqui/Web && .venv/bin/python manage.py test` |
 | **Codegen** | `dart run build_runner build -d` antes de testes que dependem de `*.freezed.dart` / `*.g.dart` / DI |
 | **Estimated runtime** | ~90 seconds (cada suíte) |
