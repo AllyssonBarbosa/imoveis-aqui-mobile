@@ -10,6 +10,28 @@ import '../../domain/entities/ordenacao_vitrine.dart';
 /// (API-04).
 const String caminhoImoveisPublico = '/api/publico/imoveis/';
 
+/// Caminho da lista pública de imóveis de uma cidade (W09): a cidade vai no
+/// caminho, pelo id da API, nunca como query param (D-12, A-01).
+String caminhoImoveisDaCidade(int cidadeId) =>
+    '/api/publico/cidades/$cidadeId/imoveis/';
+
+/// Mapeia [ConsultaImoveis] para os query params da API real (W09, D-12).
+/// Nesta etapa só `ordenar`; os demais parâmetros entram nos planos
+/// seguintes. Não há `cidade`: o id já vai em [caminhoImoveisDaCidade].
+Map<String, String> parametrosDaApi(ConsultaImoveis consulta) {
+  return {'ordenar': _valorOrdenar(consulta.ordenacao)};
+}
+
+/// Valor de `ordenar` da W09 para cada [OrdenacaoVitrine] (os rótulos da UI
+/// não mudam).
+String _valorOrdenar(OrdenacaoVitrine ordenacao) => switch (ordenacao) {
+  OrdenacaoVitrine.maisRecentes => 'recentes',
+  OrdenacaoVitrine.precoAsc => 'preco',
+  OrdenacaoVitrine.precoDesc => '-preco',
+  OrdenacaoVitrine.areaAsc => 'area',
+  OrdenacaoVitrine.areaDesc => '-area',
+};
+
 /// Mapeia [ConsultaImoveis] para os query params exatos do contrato (§5,
 /// D-04 snake_case). `cidade` usa a chave natural `nome-uf` (§7.2 do
 /// contrato, recomendação provisória — isolada aqui para trocar fácil se o

@@ -26,7 +26,9 @@ class _Sobrescrita {
 
 /// API pública falsa: um [Dio] sobre um `HttpClientAdapter` de teste que serve
 /// as fixtures de `test/fixtures/api/` por rota e grava as requisições. Sem
-/// pacote novo. Rota ainda não servida responde 404 com um objeto JSON vazio.
+/// pacote novo. Rotas: cidades e `/api/publico/cidades/<id>/imoveis/` (página
+/// 2 com `page=2`; só Campinas tem imóveis capturados, as outras cidades
+/// recebem a lista vazia). Rota ainda não servida responde 404 com um objeto JSON vazio.
 class ApiFalsa {
   ApiFalsa({this.latencia = Duration.zero});
 
@@ -77,7 +79,38 @@ class ApiFalsa {
     if (uri.path == '/api/publico/cidades/') {
       return _corpoJson(lerFixtureApi('cidades.json'), 200);
     }
+    final cidadeDaLista = _idDaListaDeImoveis(uri.path);
+    if (cidadeDaLista != null) {
+      final String fixture;
+      if (cidadeDaLista != _idDeCampinas()) {
+        fixture = 'lista_campinas_vazia.json';
+      } else if (uri.queryParameters['page'] == '2') {
+        fixture = 'lista_campinas_p2.json';
+      } else {
+        fixture = 'lista_campinas_p1.json';
+      }
+      return _corpoJson(lerFixtureApi(fixture), 200);
+    }
     return _corpoJson(const <String, Object?>{}, 404);
+  }
+
+  /// Id da cidade de `/api/publico/cidades/<id>/imoveis/`, ou nulo se [caminho]
+  /// não é essa rota.
+  int? _idDaListaDeImoveis(String caminho) {
+    final casamento = RegExp(
+      r'^/api/publico/cidades/(\d+)/imoveis/$',
+    ).firstMatch(caminho);
+    if (casamento == null) return null;
+    return int.parse(casamento.group(1)!);
+  }
+
+  /// Id de Campinas lido de `cidades.json` (as listas capturadas são dela).
+  int _idDeCampinas() {
+    final cidades = lerFixtureApi('cidades.json')! as List<Object?>;
+    final campinas = cidades.cast<Map<String, Object?>>().firstWhere(
+      (cidade) => cidade['nome'] == 'Campinas',
+    );
+    return campinas['id']! as int;
   }
 
   ResponseBody _corpoJson(Object? corpo, int status) {

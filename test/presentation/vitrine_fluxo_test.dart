@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/core/texto_normalizado.dart';
 import 'package:imoveis_aqui/data/datasources/imovel_mock_datasource.dart';
+import 'package:imoveis_aqui/data/datasources/imovel_remote_datasource.dart';
 import 'package:imoveis_aqui/data/datasources/opcoes_filtro_mock_datasource.dart';
 import 'package:imoveis_aqui/data/mocks/imoveis_fixture.dart';
 import 'package:imoveis_aqui/data/repositories/imovel_repository_impl.dart';
@@ -27,6 +28,8 @@ import 'package:imoveis_aqui/presentation/vitrine/vitrine_cubit.dart';
 import 'package:imoveis_aqui/presentation/vitrine/vitrine_state.dart';
 import 'package:imoveis_aqui/presentation/vitrine/widgets/imovel_card.dart';
 import 'package:mocktail/mocktail.dart';
+
+import '../support/api_falsa.dart';
 
 /// Teste ponta a ponta (VIT-01): pilha REAL
 /// `VitrineCubit -> BuscarImoveisUseCase -> ImovelRepositoryImpl ->
@@ -880,4 +883,111 @@ void main() {
       }
     },
   );
+
+  group('API real (JSON capturado)', () {
+    // Campinas como a API devolve (com id), lida da fixture capturada.
+    final campinasDaApi = () {
+      final linhas = lerFixtureApi('cidades.json')! as List<Object?>;
+      final linha = linhas.cast<Map<String, Object?>>().firstWhere(
+        (c) => c['nome'] == 'Campinas',
+      );
+      return Cidade(
+        id: linha['id']! as int,
+        nome: linha['nome']! as String,
+        uf: linha['uf']! as String,
+      );
+    }();
+
+    List<int> idsDaFixture(String arquivo) =>
+        ((lerFixtureApi(arquivo)! as Map<String, Object?>)['results']!
+                as List<Object?>)
+            .cast<Map<String, Object?>>()
+            .map((linha) => linha['id']! as int)
+            .toList();
+
+    testWidgets(
+      'Campinas: p1 da API aparece e, rolando até o fim, a p2 vem pela URL '
+      'next (D-11, API-04)',
+      (tester) async {
+        final apiFalsa = ApiFalsa();
+        final idsP1 = idsDaFixture('lista_campinas_p1.json');
+        final idsP2 = idsDaFixture('lista_campinas_p2.json');
+
+        tester.view.physicalSize = const Size(400, 2400);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        whenListen(
+          cidadeSelecaoCubit,
+          Stream<CidadeSelecaoState>.value(
+            CidadeSelecaoState.autorizadaEAtendida(campinasDaApi),
+          ),
+          initialState: CidadeSelecaoState.autorizadaEAtendida(campinasDaApi),
+        );
+        await tester.pumpWidget(
+          MaterialApp(
+            home: BlocProvider<CidadeSelecaoCubit>.value(
+              value: cidadeSelecaoCubit,
+              child: CidadeSelecaoScreen(
+                salvarCidade: salvarCidade,
+                criarVitrineCubit: () => VitrineCubit(
+                  BuscarImoveisUseCase(
+                    ImovelRepositoryImpl(
+                      ImovelRemoteDataSource(apiFalsa.criarDio()),
+                    ),
+                  ),
+                  sessaoFiltros,
+                ),
+                criarOpcoesFiltroCubit: criarOpcoesFiltroCubitReal,
+              ),
+            ),
+          ),
+        );
+        // Nunca pumpAndSettle com o spinner de pé.
+        await tester.pump();
+        await tester.pump();
+        // O dio leva alguns turnos do event loop a mais que o mock em
+        // memória para entregar a resposta.
+        await tester.pump(const Duration(milliseconds: 50));
+        expect(find.text('Campinas, SP'), findsOneWidget);
+        final primeiros = tester
+            .widgetList<ImovelCard>(find.byType(ImovelCard))
+            .map((card) => card.imovel.id)
+            .toList();
+        expect(primeiros, isNotEmpty);
+        expect(primeiros.first, idsP1.first);
+        expect(idsP1, containsAll(primeiros));
+        final primeiraRequisicao = apiFalsa.requisicoes.first;
+        expect(
+          primeiraRequisicao.path,
+          '/api/publico/cidades/${campinasDaApi.id}/imoveis/',
+        );
+        expect(primeiraRequisicao.queryParameters['ordenar'], 'recentes');
+
+        var tentativas = 0;
+        while (find.text('Você chegou ao fim da lista').evaluate().isEmpty &&
+            tentativas < 60) {
+          await tester.drag(find.byType(ListView), const Offset(0, -3000));
+          await tester.pump();
+          await tester.pump(const Duration(milliseconds: 20));
+          tentativas++;
+        }
+
+        expect(find.text('Você chegou ao fim da lista'), findsOneWidget);
+        final vitrineCubit = BlocProvider.of<VitrineCubit>(
+          tester.element(find.byType(ListView)),
+        );
+        final conteudo = vitrineCubit.state.conteudo as VitrineCarregada;
+        expect(conteudo.itens.map((i) => i.id).toList(), [
+          ...idsP1,
+          ...idsP2,
+        ]);
+        expect(
+          apiFalsa.requisicoes.map((u) => u.queryParameters['page']).toList(),
+          [null, '2'],
+        );
+      },
+    );
+  });
 }

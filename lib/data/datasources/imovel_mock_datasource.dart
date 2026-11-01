@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
-import 'package:injectable/injectable.dart';
 
 import '../../core/texto_normalizado.dart';
 import '../../domain/entities/cidade.dart';
@@ -46,7 +45,10 @@ class FalhaSimuladaDoMock implements Exception {
 /// acervo fixo com a latência simulada de rede; testes usam
 /// [ImovelMockDataSource.paraTeste] para injetar linhas, latência e tamanho
 /// de página próprios.
-@LazySingleton(as: ImovelDataSource)
+///
+/// Desde a 05-09 NÃO é mais registrado no DI (quem atende a lista é
+/// `ImovelRemoteDataSource`): é só um dublê de teste até a 05-11 apagá-lo
+/// (D-18).
 class ImovelMockDataSource implements ImovelDataSource {
   ImovelMockDataSource()
     : _linhas = linhasAcervoFixture(),

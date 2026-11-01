@@ -27,6 +27,13 @@ const _caracteristicasCatalogo = [
   'Vista para o parque',
 ];
 
+/// Ids do acervo de uma cidade, lidos das linhas de wire do próprio mock — o
+/// `ImovelModel` não carrega cidade (D-17).
+Set<int> _idsDaCidade(String nome) => linhasAcervoFixture()
+    .where((l) => (l['cidade']! as Map<String, Object?>)['nome'] == nome)
+    .map((l) => l['id']! as int)
+    .toSet();
+
 void main() {
   const campinas = Cidade(nome: 'Campinas', uf: 'SP');
   const valinhos = Cidade(nome: 'Valinhos', uf: 'SP');
@@ -309,8 +316,7 @@ void main() {
         );
         expect(apartamento.titulo, 'Apartamento 2 quartos no Cambuí');
         expect(apartamento.finalidade, 'VENDA');
-        expect(apartamento.cidade.nome, 'Campinas');
-        expect(apartamento.cidade.uf, 'SP');
+        expect(_idsDaCidade('Campinas'), contains(apartamento.id));
         expect(apartamento.natureza, 'APARTAMENTO');
         expect(apartamento.quartos, 2);
       },
@@ -387,7 +393,9 @@ void main() {
           tamanhos.add(envelope.results.length);
           ids.addAll(envelope.results.map((m) => m.id));
           expect(
-            envelope.results.every((m) => m.cidade.nome == 'Campinas'),
+            envelope.results.every(
+              (m) => _idsDaCidade('Campinas').contains(m.id),
+            ),
             isTrue,
           );
         }
@@ -442,12 +450,14 @@ void main() {
         final envelopeCampinas = resultados[0];
         final envelopeValinhos = resultados[1];
 
+        final idsCampinas = _idsDaCidade('Campinas');
+        final idsValinhos = _idsDaCidade('Valinhos');
         expect(
-          envelopeCampinas.results.every((m) => m.cidade.nome == 'Campinas'),
+          envelopeCampinas.results.every((m) => idsCampinas.contains(m.id)),
           isTrue,
         );
         expect(
-          envelopeValinhos.results.every((m) => m.cidade.nome == 'Valinhos'),
+          envelopeValinhos.results.every((m) => idsValinhos.contains(m.id)),
           isTrue,
         );
         expect(envelopeCampinas.results.first.id, 42);

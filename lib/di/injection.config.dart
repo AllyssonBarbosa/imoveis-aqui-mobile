@@ -21,8 +21,8 @@ import 'package:imoveis_aqui/data/datasources/imovel_detalhe_datasource.dart'
     as _i631;
 import 'package:imoveis_aqui/data/datasources/imovel_detalhe_mock_datasource.dart'
     as _i569;
-import 'package:imoveis_aqui/data/datasources/imovel_mock_datasource.dart'
-    as _i609;
+import 'package:imoveis_aqui/data/datasources/imovel_remote_datasource.dart'
+    as _i877;
 import 'package:imoveis_aqui/data/datasources/opcoes_filtro_datasource.dart'
     as _i585;
 import 'package:imoveis_aqui/data/datasources/opcoes_filtro_mock_datasource.dart'
@@ -94,6 +94,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i59.SessaoFiltrosVitrine>(
       () => _i59.SessaoFiltrosVitrine(),
     );
+    gh.lazySingleton<_i326.ImovelDataSource>(
+      () => _i877.ImovelRemoteDataSource(gh<_i361.Dio>()),
+    );
     gh.lazySingleton<_i585.OpcoesFiltroDataSource>(
       () => _i158.OpcoesFiltroMockDataSource(),
     );
@@ -105,9 +108,6 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i246.GeolocatorGateway>(
       () => _i777.GeolocatorGatewayImpl(),
-    );
-    gh.lazySingleton<_i326.ImovelDataSource>(
-      () => _i609.ImovelMockDataSource(),
     );
     gh.lazySingleton<_i970.ImovelRepository>(
       () => _i1051.ImovelRepositoryImpl(gh<_i326.ImovelDataSource>()),
