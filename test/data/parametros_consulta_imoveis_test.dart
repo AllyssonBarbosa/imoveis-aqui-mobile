@@ -4,6 +4,7 @@ import 'package:imoveis_aqui/domain/entities/cidade.dart';
 import 'package:imoveis_aqui/domain/entities/consulta_imoveis.dart';
 import 'package:imoveis_aqui/domain/entities/filtros_vitrine.dart';
 import 'package:imoveis_aqui/domain/entities/imovel.dart';
+import 'package:imoveis_aqui/domain/entities/ordenacao_vitrine.dart';
 
 void main() {
   const campinas = Cidade(nome: 'Campinas', uf: 'SP');
@@ -371,6 +372,39 @@ void main() {
 
     test('decimal lança FormatException', () {
       expect(() => minimoDoParametro('1.5'), throwsFormatException);
+    });
+  });
+
+  group('parametrosDaApi (W09, D-12)', () {
+    const campinasComId = Cidade(id: 1, nome: 'Campinas', uf: 'SP');
+
+    test('cada OrdenacaoVitrine vira o ordenar da W09', () {
+      const esperado = {
+        OrdenacaoVitrine.maisRecentes: 'recentes',
+        OrdenacaoVitrine.precoAsc: 'preco',
+        OrdenacaoVitrine.precoDesc: '-preco',
+        OrdenacaoVitrine.areaAsc: 'area',
+        OrdenacaoVitrine.areaDesc: '-area',
+      };
+      expect(esperado.keys, unorderedEquals(OrdenacaoVitrine.values));
+      for (final entrada in esperado.entries) {
+        final params = parametrosDaApi(
+          ConsultaImoveis(cidade: campinasComId, ordenacao: entrada.key),
+        );
+        expect(params['ordenar'], entrada.value, reason: '${entrada.key}');
+      }
+    });
+
+    test('nunca leva a cidade como query (o id vai no caminho)', () {
+      final params = parametrosDaApi(
+        const ConsultaImoveis(cidade: campinasComId),
+      );
+
+      expect(params.containsKey('cidade'), isFalse);
+    });
+
+    test('caminhoImoveisDaCidade põe o id no caminho', () {
+      expect(caminhoImoveisDaCidade(7), '/api/publico/cidades/7/imoveis/');
     });
   });
 }
