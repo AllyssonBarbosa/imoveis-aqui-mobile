@@ -191,7 +191,7 @@ Plans:
   4. O app troca a DataSource mock pela real via injeção de dependência (troca de uma linha), sem mudar UI/Cubit/domain; de ponta a ponta, o visitante vê, busca, ordena e filtra imóveis reais na vitrine.
   5. O detalhe (`GET /api/publico/imoveis/{id}/`) também passa a vir da API real, incluindo os dados de natureza, e a página do imóvel da Phase 4 funciona ponta a ponta.
 
-**Plans**: 5/18 plans executed
+**Plans**: 6/18 plans executed
 Plans:
 **Wave 1**
 
@@ -212,7 +212,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 05-06-PLAN.md — Captura do JSON real de lista e opções para test/fixtures/api/ (tool/capturar_fixtures_api.py) (API-03)
+- [x] 05-06-PLAN.md — Captura do JSON real de lista e opções para test/fixtures/api/ (tool/capturar_fixtures_api.py) (API-03)
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
@@ -264,4 +264,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Vitrine — Lista, Busca e Ordenação | 5/5 | In Progress|  |
 | 3. Vitrine — Filtros Server-Side | 5/5 | In Progress|  |
 | 4. Página do Imóvel — Galeria e Dados da Natureza | 8/8 | In Progress|  |
-| 5. Imóveis Real — Endpoint Público e Integração Final | 5/18 | In Progress|  |
+| 5. Imóveis Real — Endpoint Público e Integração Final | 6/18 | In Progress|  |
