@@ -5,8 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/data/datasources/imovel_remote_datasource.dart';
-import 'package:imoveis_aqui/data/datasources/opcoes_filtro_mock_datasource.dart';
-import 'package:imoveis_aqui/data/mocks/imoveis_fixture.dart';
+import 'package:imoveis_aqui/data/datasources/opcoes_filtro_remote_datasource.dart';
 import 'package:imoveis_aqui/data/repositories/imovel_repository_impl.dart';
 import 'package:imoveis_aqui/data/repositories/opcoes_filtro_repository_impl.dart';
 import 'package:imoveis_aqui/domain/entities/cidade.dart';
@@ -56,11 +55,12 @@ void main() {
   /// fecha sobre esta MESMA variável a cada chamada.
   late SessaoFiltrosVitrine sessaoFiltros;
 
-  /// Opções de bairro/característica: ainda vêm do dublê do acervo até o
-  /// plano 05-12 trocá-las pela API (a lista de imóveis já é a real).
-  OpcoesFiltroCubit criarOpcoesFiltroCubitReal() {
+  /// Opções de bairro/característica pela pilha REAL
+  /// `OpcoesFiltroCubit -> use cases -> OpcoesFiltroRepositoryImpl ->
+  /// OpcoesFiltroRemoteDataSource -> Dio` sobre a mesma [ApiFalsa] da lista.
+  OpcoesFiltroCubit criarOpcoesFiltroCubitApi(ApiFalsa apiFalsa) {
     final repositorio = OpcoesFiltroRepositoryImpl(
-      OpcoesFiltroMockDataSource.paraTeste(linhas: linhasAcervoFixture()),
+      OpcoesFiltroRemoteDataSource(apiFalsa.criarDio()),
     );
     return OpcoesFiltroCubit(
       ObterBairrosUseCase(repositorio),
@@ -131,7 +131,7 @@ void main() {
             child: CidadeSelecaoScreen(
               salvarCidade: salvarCidade,
               criarVitrineCubit: () => criarVitrineCubitApi(apiFalsa),
-              criarOpcoesFiltroCubit: criarOpcoesFiltroCubitReal,
+              criarOpcoesFiltroCubit: () => criarOpcoesFiltroCubitApi(apiFalsa),
             ),
           ),
         ),
@@ -806,6 +806,20 @@ void main() {
         await tester.tap(find.text('Bairros'));
         await tester.pumpAndSettle();
 
+        // A seção lista exatamente os bairros de bairros_campinas.json, na
+        // ordem recebida (D-08), lidos do caminho do id da cidade.
+        final bairrosDoServidor = (lerFixtureApi('bairros_campinas.json')!
+                as List<Object?>)
+            .cast<String>();
+        final titulosListados = tester
+            .widgetList<CheckboxListTile>(find.byType(CheckboxListTile))
+            .map((item) => (item.title! as Text).data);
+        expect(titulosListados, bairrosDoServidor);
+        expect(
+          apiFalsa.requisicoes.map((uri) => uri.path),
+          contains('/api/publico/cidades/${campinasDaApi.id}/bairros/'),
+        );
+
         await tester.enterText(
           find.widgetWithText(TextField, 'Filtrar bairros'),
           'camb',
@@ -837,9 +851,21 @@ void main() {
       (tester) async {
         final apiFalsa = ApiFalsa();
         await pumpVitrineApi(tester, apiFalsa);
-        final antes = apiFalsa.requisicoes.length;
+        int requisicoesDaLista() => apiFalsa.requisicoes
+            .where((uri) => uri.path.endsWith('/imoveis/'))
+            .length;
+        final antes = requisicoesDaLista();
 
         await abrirFiltros(tester);
+        // As opções vêm do catálogo real (nomes de caracteristicas.json).
+        final nomesDoCatalogo = (lerFixtureApi('caracteristicas.json')!
+                as List<Object?>)
+            .cast<Map<String, Object?>>()
+            .map((linha) => linha['nome']! as String);
+        for (final nome in nomesDoCatalogo) {
+          await tester.ensureVisible(find.widgetWithText(FilterChip, nome));
+          expect(find.widgetWithText(FilterChip, nome), findsOneWidget);
+        }
         final chipPiscina = find.widgetWithText(FilterChip, 'Piscina');
         await tester.ensureVisible(chipPiscina);
         await tester.tap(chipPiscina);
@@ -855,7 +881,7 @@ void main() {
 
         expect(find.widgetWithText(InputChip, 'Piscina +1'), findsOneWidget);
         expect(find.textContaining('Filtros (1)'), findsOneWidget);
-        expect(apiFalsa.requisicoes.length, antes + 1);
+        expect(requisicoesDaLista(), antes + 1);
         final requisicao = apiFalsa.ultimaRequisicaoDaLista!;
         expect(
           requisicao.path,
@@ -917,7 +943,8 @@ void main() {
               child: CidadeSelecaoScreen(
                 salvarCidade: salvarCidade,
                 criarVitrineCubit: () => criarVitrineCubitApi(apiFalsa),
-                criarOpcoesFiltroCubit: criarOpcoesFiltroCubitReal,
+                criarOpcoesFiltroCubit: () =>
+                    criarOpcoesFiltroCubitApi(apiFalsa),
               ),
             ),
           ),

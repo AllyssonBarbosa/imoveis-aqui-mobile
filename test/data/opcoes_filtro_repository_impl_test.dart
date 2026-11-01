@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/core/result.dart';
 import 'package:imoveis_aqui/data/datasources/opcoes_filtro_datasource.dart';
+import 'package:imoveis_aqui/data/models/caracteristica_model.dart';
 import 'package:imoveis_aqui/data/repositories/opcoes_filtro_repository_impl.dart';
 import 'package:imoveis_aqui/domain/entities/cidade.dart';
 import 'package:mocktail/mocktail.dart';
@@ -53,16 +54,23 @@ void main() {
 
   group('caracteristicas', () {
     test(
-      'lista do datasource vira Result.success com a mesma lista',
+      'modelos {id, nome} do datasource viram Result.success com os nomes, '
+      'na ordem recebida',
       () async {
-        when(
-          () => dataSource.caracteristicas(),
-        ).thenAnswer((_) async => ['Piscina']);
+        when(() => dataSource.caracteristicas()).thenAnswer(
+          (_) async => const [
+            CaracteristicaModel(id: 2, nome: 'Churrasqueira'),
+            CaracteristicaModel(id: 1, nome: 'Piscina'),
+          ],
+        );
 
         final resultado = await repositorio.caracteristicas();
 
         expect(resultado, isA<Success<List<String>>>());
-        expect((resultado as Success<List<String>>).data, ['Piscina']);
+        expect((resultado as Success<List<String>>).data, [
+          'Churrasqueira',
+          'Piscina',
+        ]);
       },
     );
 

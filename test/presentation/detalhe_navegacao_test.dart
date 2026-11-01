@@ -5,9 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/data/datasources/imovel_detalhe_datasource.dart';
 import 'package:imoveis_aqui/data/datasources/imovel_detalhe_mock_datasource.dart';
 import 'package:imoveis_aqui/data/datasources/imovel_remote_datasource.dart';
-import 'package:imoveis_aqui/data/datasources/opcoes_filtro_mock_datasource.dart';
+import 'package:imoveis_aqui/data/datasources/opcoes_filtro_remote_datasource.dart';
 import 'package:imoveis_aqui/data/mocks/imoveis_detalhe_fixture.dart';
-import 'package:imoveis_aqui/data/mocks/imoveis_fixture.dart';
 import 'package:imoveis_aqui/data/models/detalhe_imovel_model.dart';
 import 'package:imoveis_aqui/data/repositories/imovel_detalhe_repository_impl.dart';
 import 'package:imoveis_aqui/data/repositories/imovel_repository_impl.dart';
@@ -112,7 +111,7 @@ void main() {
 
   OpcoesFiltroCubit criarOpcoesFiltroCubitReal() {
     final repositorio = OpcoesFiltroRepositoryImpl(
-      OpcoesFiltroMockDataSource.paraTeste(linhas: linhasAcervoFixture()),
+      OpcoesFiltroRemoteDataSource(apiFalsa.criarDio()),
     );
     return OpcoesFiltroCubit(
       ObterBairrosUseCase(repositorio),

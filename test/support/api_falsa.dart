@@ -36,7 +36,10 @@ class _Falha {
 /// as fixtures de `test/fixtures/api/` por rota e grava as requisições. Sem
 /// pacote novo. Rotas: cidades e `/api/publico/cidades/<id>/imoveis/` (página
 /// 2 com `page=2`; só Campinas tem imóveis capturados, as outras cidades
-/// recebem a lista vazia). Rota ainda não servida responde 404 com um objeto JSON vazio.
+/// recebem a lista vazia), bairros da cidade (`/bairros/`, só Campinas tem
+/// bairros capturados, as outras cidades recebem `[]`) e o catálogo de
+/// características. Rota ainda não servida responde 404 com um objeto JSON
+/// vazio.
 class ApiFalsa {
   ApiFalsa({this.latencia = Duration.zero});
 
@@ -111,6 +114,18 @@ class ApiFalsa {
     if (uri.path == '/api/publico/cidades/') {
       return _corpoJson(lerFixtureApi('cidades.json'), 200);
     }
+    if (uri.path == '/api/publico/caracteristicas/') {
+      return _corpoJson(lerFixtureApi('caracteristicas.json'), 200);
+    }
+    final cidadeDosBairros = _idDosBairros(uri.path);
+    if (cidadeDosBairros != null) {
+      return _corpoJson(
+        cidadeDosBairros == _idDeCampinas()
+            ? lerFixtureApi('bairros_campinas.json')
+            : const <String>[],
+        200,
+      );
+    }
     final cidadeDaLista = _idDaListaDeImoveis(uri.path);
     if (cidadeDaLista != null) {
       final String fixture;
@@ -131,6 +146,16 @@ class ApiFalsa {
   int? _idDaListaDeImoveis(String caminho) {
     final casamento = RegExp(
       r'^/api/publico/cidades/(\d+)/imoveis/$',
+    ).firstMatch(caminho);
+    if (casamento == null) return null;
+    return int.parse(casamento.group(1)!);
+  }
+
+  /// Id da cidade de `/api/publico/cidades/<id>/bairros/`, ou nulo se
+  /// [caminho] não é essa rota.
+  int? _idDosBairros(String caminho) {
+    final casamento = RegExp(
+      r'^/api/publico/cidades/(\d+)/bairros/$',
     ).firstMatch(caminho);
     if (casamento == null) return null;
     return int.parse(casamento.group(1)!);
