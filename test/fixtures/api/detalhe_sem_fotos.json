@@ -1,0 +1,60 @@
+{
+  "id": 11,
+  "titulo": "Terreno no bairro Cambuí",
+  "natureza": "TERRENO",
+  "finalidade": "VENDA_E_ALUGUEL",
+  "preco_venda": "209000.00",
+  "preco_aluguel": "1700.00",
+  "preco_condominio": null,
+  "preco_iptu": null,
+  "descricao": "Terreno de demonstração em Campinas (Cambuí), semeado para o desenvolvimento da vitrine.",
+  "caracteristicas": [
+    {
+      "id": 3,
+      "nome": "Portão eletrônico"
+    },
+    {
+      "id": 6,
+      "nome": "Quintal"
+    }
+  ],
+  "casa": null,
+  "terreno": {
+    "area_total": "300.00",
+    "frente": "12.00",
+    "fundo": "25.00",
+    "lateral_esquerda": "25.00",
+    "lateral_direita": "25.00",
+    "topografia": "ACLIVE",
+    "murado": true,
+    "esquina": true,
+    "uso_permitido": "COMERCIAL"
+  },
+  "apartamento": null,
+  "lote": null,
+  "endereco": {
+    "logradouro": "Avenida Norte-Sul",
+    "numero": "170",
+    "bairro": "Cambuí",
+    "cep": "13020-000",
+    "cidade": {
+      "id": 1,
+      "nome": "Campinas",
+      "uf": "SP"
+    },
+    "latitude": "-22.892600",
+    "longitude": "-47.073800"
+  },
+  "fotos": [],
+  "corretor_responsavel": {
+    "id": 1,
+    "empresa_id": 1,
+    "foto": "http://127.0.0.1:8000/media/corretores/fotos/corretor_oNKldeD.vitrine.demo.jpg",
+    "nome": "Corretor Vitrine Demo",
+    "email": "corretor.vitrine.demo@example.com",
+    "creci": "12345-F",
+    "telefone": "19988887777",
+    "whatsapp": "19988887777",
+    "apresentacao": "Corretor de demonstração da vitrine de desenvolvimento."
+  }
+}
