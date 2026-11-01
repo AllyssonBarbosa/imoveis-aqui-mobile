@@ -905,6 +905,55 @@ void main() {
             .map((linha) => linha['id']! as int)
             .toList();
 
+    /// Monta a vitrine REAL sobre `ImovelRemoteDataSource(apiFalsa)`. Nunca
+    /// `pumpAndSettle` aqui: o spinner de carregamento mantém a animação de pé.
+    Future<void> pumpVitrineApi(
+      WidgetTester tester,
+      ApiFalsa apiFalsa, {
+      Cidade? cidade,
+    }) async {
+      final cidadeAtual = cidade ?? campinasDaApi;
+      tester.view.physicalSize = const Size(400, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      whenListen(
+        cidadeSelecaoCubit,
+        Stream<CidadeSelecaoState>.value(
+          CidadeSelecaoState.autorizadaEAtendida(cidadeAtual),
+        ),
+        initialState: CidadeSelecaoState.autorizadaEAtendida(cidadeAtual),
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: BlocProvider<CidadeSelecaoCubit>.value(
+            value: cidadeSelecaoCubit,
+            child: CidadeSelecaoScreen(
+              salvarCidade: salvarCidade,
+              criarVitrineCubit: () => VitrineCubit(
+                BuscarImoveisUseCase(
+                  ImovelRepositoryImpl(
+                    ImovelRemoteDataSource(apiFalsa.criarDio()),
+                  ),
+                ),
+                sessaoFiltros,
+              ),
+              criarOpcoesFiltroCubit: criarOpcoesFiltroCubitReal,
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+      // O dio leva alguns turnos do event loop a mais que o mock em memória
+      // para entregar a resposta.
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+
+    VitrineCubit vitrineCubitDe(WidgetTester tester) =>
+        BlocProvider.of<VitrineCubit>(tester.element(find.byType(ListView)));
+
     testWidgets(
       'Campinas: p1 da API aparece e, rolando até o fim, a p2 vem pela URL '
       'next (D-11, API-04)',
@@ -913,43 +962,8 @@ void main() {
         final idsP1 = idsDaFixture('lista_campinas_p1.json');
         final idsP2 = idsDaFixture('lista_campinas_p2.json');
 
-        tester.view.physicalSize = const Size(400, 2400);
-        tester.view.devicePixelRatio = 1.0;
-        addTearDown(tester.view.resetPhysicalSize);
-        addTearDown(tester.view.resetDevicePixelRatio);
+        await pumpVitrineApi(tester, apiFalsa);
 
-        whenListen(
-          cidadeSelecaoCubit,
-          Stream<CidadeSelecaoState>.value(
-            CidadeSelecaoState.autorizadaEAtendida(campinasDaApi),
-          ),
-          initialState: CidadeSelecaoState.autorizadaEAtendida(campinasDaApi),
-        );
-        await tester.pumpWidget(
-          MaterialApp(
-            home: BlocProvider<CidadeSelecaoCubit>.value(
-              value: cidadeSelecaoCubit,
-              child: CidadeSelecaoScreen(
-                salvarCidade: salvarCidade,
-                criarVitrineCubit: () => VitrineCubit(
-                  BuscarImoveisUseCase(
-                    ImovelRepositoryImpl(
-                      ImovelRemoteDataSource(apiFalsa.criarDio()),
-                    ),
-                  ),
-                  sessaoFiltros,
-                ),
-                criarOpcoesFiltroCubit: criarOpcoesFiltroCubitReal,
-              ),
-            ),
-          ),
-        );
-        // Nunca pumpAndSettle com o spinner de pé.
-        await tester.pump();
-        await tester.pump();
-        // O dio leva alguns turnos do event loop a mais que o mock em
-        // memória para entregar a resposta.
-        await tester.pump(const Duration(milliseconds: 50));
         expect(find.text('Campinas, SP'), findsOneWidget);
         final primeiros = tester
             .widgetList<ImovelCard>(find.byType(ImovelCard))
@@ -987,6 +1001,112 @@ void main() {
           apiFalsa.requisicoes.map((u) => u.queryParameters['page']).toList(),
           [null, '2'],
         );
+      },
+    );
+
+    testWidgets(
+      'digitar "Cambuí" e aguardar o debounce envia busca=Cambuí e '
+      'ordenar=recentes no caminho da cidade pelo id (D-12, VIT-03)',
+      (tester) async {
+        final apiFalsa = ApiFalsa();
+        await pumpVitrineApi(tester, apiFalsa);
+
+        await tester.enterText(find.byType(SearchBar), 'Cambuí');
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 50));
+
+        final requisicao = apiFalsa.ultimaRequisicaoDaLista!;
+        expect(
+          requisicao.path,
+          '/api/publico/cidades/${campinasDaApi.id}/imoveis/',
+        );
+        expect(requisicao.queryParameters['busca'], 'Cambuí');
+        expect(requisicao.queryParameters['ordenar'], 'recentes');
+        expect(requisicao.queryParameters.containsKey('cidade'), isFalse);
+        // O app mostra o que o servidor devolveu (aqui a p1 da fixture).
+        expect(
+          vitrineCubitDe(tester).state.conteudo,
+          isA<VitrineCarregada>(),
+        );
+        expect(find.byType(ImovelCard), findsWidgets);
+      },
+    );
+
+    testWidgets(
+      'busca sem resultado no servidor mostra o estado "nenhum resultado" '
+      'da busca, sem filtrar nada no app (D-14, FIL-05)',
+      (tester) async {
+        final apiFalsa = ApiFalsa()
+          ..responder(
+            (uri) => uri.queryParameters['busca'] == 'nada-encontrado-zzz',
+            status: 200,
+            fixture: 'lista_campinas_vazia.json',
+          );
+        await pumpVitrineApi(tester, apiFalsa);
+
+        await tester.enterText(find.byType(SearchBar), 'nada-encontrado-zzz');
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 50));
+
+        expect(
+          apiFalsa.ultimaRequisicaoDaLista!.queryParameters['busca'],
+          'nada-encontrado-zzz',
+        );
+        expect(
+          find.text('Nenhum imóvel encontrado para "nada-encontrado-zzz"'),
+          findsOneWidget,
+        );
+        expect(find.byType(ImovelCard), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'escolher "Maior preço" envia ordenar=-preco e volta a lista ao topo '
+      '(D-12, VIT-04)',
+      (tester) async {
+        final apiFalsa = ApiFalsa();
+        await pumpVitrineApi(tester, apiFalsa);
+
+        // Rola para longe do topo ANTES de trocar a ordem.
+        await tester.drag(find.byType(ListView), const Offset(0, -3000));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 20));
+        final posicaoAntes = tester
+            .state<ScrollableState>(
+              find.descendant(
+                of: find.byType(ListView),
+                matching: find.byType(Scrollable),
+              ),
+            )
+            .position
+            .pixels;
+        expect(posicaoAntes, greaterThan(0));
+
+        await tester.tap(find.textContaining('Ordenar:'));
+        await tester.pumpAndSettle();
+        expect(find.text('Ordenar por'), findsOneWidget);
+        await tester.tap(find.text('Maior preço'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.pump(const Duration(milliseconds: 50));
+
+        expect(
+          apiFalsa.ultimaRequisicaoDaLista!.queryParameters['ordenar'],
+          '-preco',
+        );
+        expect(find.textContaining('Ordenar: Maior preço'), findsOneWidget);
+        final posicaoDepois = tester
+            .state<ScrollableState>(
+              find.descendant(
+                of: find.byType(ListView),
+                matching: find.byType(Scrollable),
+              ),
+            )
+            .position
+            .pixels;
+        expect(posicaoDepois, 0);
       },
     );
   });

@@ -403,6 +403,23 @@ void main() {
       expect(params.containsKey('cidade'), isFalse);
     });
 
+    test('busca vai aparada e só quando não vazia depois do trim', () {
+      final comTermo = parametrosDaApi(
+        const ConsultaImoveis(cidade: campinasComId, busca: '  Cambuí '),
+      );
+      final vazia = parametrosDaApi(
+        const ConsultaImoveis(cidade: campinasComId, busca: '   '),
+      );
+      final nula = parametrosDaApi(
+        const ConsultaImoveis(cidade: campinasComId),
+      );
+
+      expect(comTermo['busca'], 'Cambuí');
+      expect(comTermo['ordenar'], 'recentes');
+      expect(vazia.containsKey('busca'), isFalse);
+      expect(nula.containsKey('busca'), isFalse);
+    });
+
     test('caminhoImoveisDaCidade põe o id no caminho', () {
       expect(caminhoImoveisDaCidade(7), '/api/publico/cidades/7/imoveis/');
     });

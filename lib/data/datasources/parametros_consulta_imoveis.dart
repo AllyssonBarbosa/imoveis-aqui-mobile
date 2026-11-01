@@ -16,10 +16,18 @@ String caminhoImoveisDaCidade(int cidadeId) =>
     '/api/publico/cidades/$cidadeId/imoveis/';
 
 /// Mapeia [ConsultaImoveis] para os query params da API real (W09, D-12).
-/// Nesta etapa só `ordenar`; os demais parâmetros entram nos planos
-/// seguintes. Não há `cidade`: o id já vai em [caminhoImoveisDaCidade].
+/// Nesta etapa `ordenar` e `busca` (só quando não vazia após `trim`); os
+/// filtros entram nos planos seguintes. Não há `cidade`: o id já vai em
+/// [caminhoImoveisDaCidade].
 Map<String, String> parametrosDaApi(ConsultaImoveis consulta) {
-  return {'ordenar': _valorOrdenar(consulta.ordenacao)};
+  final params = <String, String>{
+    'ordenar': _valorOrdenar(consulta.ordenacao),
+  };
+  final busca = consulta.busca?.trim();
+  if (busca != null && busca.isNotEmpty) {
+    params['busca'] = busca;
+  }
+  return params;
 }
 
 /// Valor de `ordenar` da W09 para cada [OrdenacaoVitrine] (os rótulos da UI

@@ -41,6 +41,15 @@ class ApiFalsa {
   /// Todas as URIs requisitadas, na ordem.
   List<Uri> get requisicoes => List.unmodifiable(_requisicoes);
 
+  /// Última requisição à lista de imóveis de uma cidade
+  /// (`/api/publico/cidades/<id>/imoveis/`), ou nulo se ainda não houve.
+  Uri? get ultimaRequisicaoDaLista {
+    for (final uri in _requisicoes.reversed) {
+      if (_idDaListaDeImoveis(uri.path) != null) return uri;
+    }
+    return null;
+  }
+
   /// Registra uma resposta que vale para as URIs em que [quando] é verdadeiro.
   /// Vale a última registrada. [fixture] é o nome do arquivo em
   /// `test/fixtures/api/`; [corpo] serve um valor JSON derivado de uma
