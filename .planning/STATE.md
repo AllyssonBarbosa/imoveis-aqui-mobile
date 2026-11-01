@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 05
 current_phase_name: Imóveis Real — Endpoint Público e Integração Final
 status: executing
-stopped_at: Completed 05-10-PLAN.md
-last_updated: "2026-11-01T23:40:20.244Z"
+stopped_at: Completed 05-11-PLAN.md
+last_updated: "2026-11-01T23:49:23.584Z"
 last_activity: 2026-10-30
 last_activity_desc: Phase 05 execution started
-state_head: f8c1a39fcbcd3c448fc9932f3e6335c93351ed96
+state_head: 72c2f7aa22b40727741a20d173cc651901f840de
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 40
-  completed_plans: 32
+  completed_plans: 33
   percent: 0
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-09-21)
 ## Current Position
 
 Phase: 05 (Imóveis Real — Endpoint Público e Integração Final) — EXECUTING
-Plan: 11 of 18
+Plan: 12 of 18
 Status: Ready to execute
 Last activity: 2026-10-30 — Phase 05 execution started
 
@@ -83,6 +83,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 05 P08 | 20min | 2 tasks | 9 files |
 | Phase 05 P09 | 25 min | 2 tasks | 12 files |
 | Phase 05 P10 | 30min | 2 tasks | 8 files |
+| Phase 05 P11 | 45min | 2 tasks | 17 files |
 
 ## Accumulated Context
 
@@ -120,6 +121,7 @@ Recent decisions affecting current work:
 - [Phase 05]: 05-03: Imovel.cidade removida (A-06); cidade da vitrine vem da consulta, a do imovel vem do detalhe
 - [Phase 05]: 05-04: bairros por cidade e catálogo de características públicos; natureza/bairro em CSV (OU); vírgula em bairro é risco aceito A-05
 - [Phase 05]: 05-05: seed pula imóvel já existente inteiro (fotos e situação preservadas); apartamento sem endereço próprio; guarda de DEBUG testada em banco vazio
+- [Phase 05]: 05-11: parametrosDaApi e o unico mapeamento de params (nomes W09); ImovelMockDataSource removido; FalhaSimuladaDoMock movida para o mock do detalhe ate o 05-14
 
 ### Pending Todos
 
@@ -148,6 +150,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-01T23:40:20.197Z
-Stopped at: Completed 05-10-PLAN.md
+Last session: 2026-11-01T23:49:23.546Z
+Stopped at: Completed 05-11-PLAN.md
 Resume file: None
