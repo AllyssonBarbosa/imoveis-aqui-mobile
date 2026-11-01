@@ -1,7 +1,7 @@
 /// Fixture do mock de imóveis (D-14) — servidor simulado em memória. As
 /// linhas ficam em forma de wire (snake_case), exatamente como chegariam de
-/// `GET /imoveis`, para que `ImovelMockDataSource` exercite o parsing real
-/// via `ImoveisEnvelopeModel.fromJson`.
+/// `GET /imoveis`; hoje alimenta só os mocks de opções e de detalhe, que saem
+/// nos planos 05-12 e 05-14.
 ///
 /// As 4 cidades espelham `contrato/cidades.example.json`. Indaiatuba fica
 /// intencionalmente sem nenhuma linha no acervo (D-15) — exercita o estado

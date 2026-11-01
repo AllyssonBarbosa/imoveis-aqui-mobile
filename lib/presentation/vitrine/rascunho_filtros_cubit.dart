@@ -111,8 +111,8 @@ class RascunhoFiltrosCubit extends Cubit<FiltrosVitrine> {
 }
 
 /// Validação de FORMULÁRIO do rascunho de filtros (D-12) — nunca uma regra
-/// de negócio: o servidor simulado revalida sozinho, independentemente desta
-/// extensão (03-03/Task 1, `filtrosDosParametros`). Mínimo maior que máximo
+/// de negócio: o servidor revalida sozinho (responde 400), independentemente
+/// desta extensão. Mínimo maior que máximo
 /// mostra erro inline e desabilita "Ver imóveis"; mínimo IGUAL ao máximo é
 /// válido (faixa de um único valor).
 extension ValidacaoRascunho on FiltrosVitrine {

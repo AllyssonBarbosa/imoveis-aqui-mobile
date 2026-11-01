@@ -5,7 +5,19 @@ import '../../domain/repositories/imovel_detalhe_repository.dart';
 import '../mocks/imoveis_detalhe_fixture.dart';
 import '../models/detalhe_imovel_model.dart';
 import 'imovel_detalhe_datasource.dart';
-import 'imovel_mock_datasource.dart' show FalhaSimuladaDoMock;
+
+/// Gatilho determinístico de falha do servidor simulado do detalhe (D-17) —
+/// disparado ao buscar o id reservado [idDetalheFalhaMock]. Vive só aqui: sai
+/// junto com o resto do mock no plano 05-14, nunca em `domain/` ou
+/// `presentation/`.
+class FalhaSimuladaDoMock implements Exception {
+  const FalhaSimuladaDoMock();
+
+  @override
+  String toString() =>
+      'FalhaSimuladaDoMock: falha determinística provocada pelo id '
+      'reservado do detalhe (D-17)';
+}
 
 /// Servidor simulado do detalhe do imóvel — serve mapas de wire da fixture,
 /// parseados pelo MESMO `DetalheImovelModel.fromJson` que o remoto da Fase 5

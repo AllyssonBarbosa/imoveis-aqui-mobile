@@ -8,7 +8,7 @@ import 'opcoes_filtro_datasource.dart';
 
 /// Servidor simulado das opções de bairro/característica (D-20) — deriva
 /// tudo das MESMAS linhas do acervo (`linhasAcervoFixture()`), nunca uma
-/// lista fixa paralela, mesma disciplina de [ImovelMockDataSource]. O
+/// lista fixa paralela. Sai na 05-12 junto com o resto do mock das opções. O
 /// construtor padrão (o único que o `injectable` enxerga) sempre usa o
 /// acervo fixo com a latência simulada de rede; testes usam
 /// [OpcoesFiltroMockDataSource.paraTeste] para injetar linhas/latência

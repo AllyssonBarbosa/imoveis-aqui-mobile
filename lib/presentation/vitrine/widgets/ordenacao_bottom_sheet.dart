@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../domain/entities/ordenacao_vitrine.dart';
 
 /// Rótulos em PT das opções de ordenação (D-11) — ficam em `presentation/`;
-/// o enum de domínio guarda só o valor do query param (`valorApi`).
+/// o enum de domínio só enumera as opções e a tradução para o parâmetro da
+/// API mora em `data/`.
 extension RotuloOrdenacaoVitrine on OrdenacaoVitrine {
   String get rotulo => switch (this) {
     OrdenacaoVitrine.maisRecentes => 'Mais recentes',

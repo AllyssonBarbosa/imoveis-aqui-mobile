@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/data/datasources/imovel_detalhe_mock_datasource.dart';
-import 'package:imoveis_aqui/data/datasources/imovel_mock_datasource.dart';
 import 'package:imoveis_aqui/data/mocks/imoveis_detalhe_fixture.dart';
 import 'package:imoveis_aqui/data/mocks/imoveis_fixture.dart';
 import 'package:imoveis_aqui/data/models/detalhe_imovel_model.dart';

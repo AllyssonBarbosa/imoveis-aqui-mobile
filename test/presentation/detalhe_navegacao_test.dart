@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/data/datasources/imovel_detalhe_datasource.dart';
 import 'package:imoveis_aqui/data/datasources/imovel_detalhe_mock_datasource.dart';
-import 'package:imoveis_aqui/data/datasources/imovel_mock_datasource.dart';
+import 'package:imoveis_aqui/data/datasources/imovel_remote_datasource.dart';
 import 'package:imoveis_aqui/data/datasources/opcoes_filtro_mock_datasource.dart';
 import 'package:imoveis_aqui/data/mocks/imoveis_detalhe_fixture.dart';
 import 'package:imoveis_aqui/data/mocks/imoveis_fixture.dart';
@@ -30,13 +30,17 @@ import 'package:imoveis_aqui/presentation/vitrine/sessao_filtros_vitrine.dart';
 import 'package:imoveis_aqui/presentation/vitrine/vitrine_cubit.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../support/api_falsa.dart';
+
 /// Teste ponta a ponta do tracer da Fase 4 (DET-01, critério 6): tocar num
-/// card da vitrine abre a página do imóvel pelo caminho de produção
+/// card da vitrine (lista REAL: `ImovelRemoteDataSource` sobre o JSON
+/// capturado da `ApiFalsa`) abre a página do imóvel pelo caminho de produção
 /// (`abrirDetalheImovel`, que resolve o Cubit no DI só no toque), mostra a
-/// prévia na hora e, quando o detalhe chega pela pilha REAL
+/// prévia na hora e, quando o detalhe chega pela pilha
 /// `DetalheImovelCubit -> ObterDetalheImovelUseCase ->
 /// ImovelDetalheRepositoryImpl -> ImovelDetalheMockDataSource`, a seção
-/// "Descrição".
+/// "Descrição". O detalhe ainda é o dublê da Fase 4 (sai no plano 05-14): os
+/// mapas dele são reindexados para os ids dos cards capturados.
 class _CidadeSelecaoCubitFalso extends MockCubit<CidadeSelecaoState>
     implements CidadeSelecaoCubit {}
 
@@ -59,19 +63,49 @@ class _DataSourceFalhaNaPrimeira implements ImovelDetalheDataSource {
 }
 
 void main() {
-  const campinas = Cidade(nome: 'Campinas', uf: 'SP');
+  // Campinas como a API devolve (com id), lida da fixture capturada.
+  final campinas = () {
+    final linha = (lerFixtureApi('cidades.json')! as List<Object?>)
+        .cast<Map<String, Object?>>()
+        .firstWhere((c) => c['nome'] == 'Campinas');
+    return Cidade(
+      id: linha['id']! as int,
+      nome: linha['nome']! as String,
+      uf: linha['uf']! as String,
+    );
+  }();
+
+  // Os dois primeiros cards da p1 capturada: os que os testes tocam.
+  final cardsDaP1 =
+      ((lerFixtureApi('lista_campinas_p1.json')!
+                  as Map<String, Object?>)['results']!
+              as List<Object?>)
+          .cast<Map<String, Object?>>();
+  final idPrimeiro = cardsDaP1[0]['id']! as int;
+  final tituloPrimeiro = cardsDaP1[0]['titulo']! as String;
+  final bairroPrimeiro = cardsDaP1[0]['bairro']! as String;
+  final idSegundo = cardsDaP1[1]['id']! as int;
+  final tituloSegundo = cardsDaP1[1]['titulo']! as String;
+
+  /// Mapas do dublê do detalhe reindexados para os cards capturados: o
+  /// primeiro leva o detalhe completo do 42 da fixture antiga, o segundo o do
+  /// 57; título do card capturado mantido para o cabeçalho não mudar quando o
+  /// detalhe chega. Sai no plano 05-14.
+  Map<int, Map<String, Object?>> detalhesDosCards() {
+    final antigos = detalhesAcervoFixture();
+    return {
+      idPrimeiro: {...antigos[42]!, 'id': idPrimeiro, 'titulo': tituloPrimeiro},
+      idSegundo: {...antigos[57]!, 'id': idSegundo, 'titulo': tituloSegundo},
+    };
+  }
 
   late _CidadeSelecaoCubitFalso cidadeSelecaoCubit;
   late _SalvarCidadeUseCaseFalso salvarCidade;
+  late ApiFalsa apiFalsa;
 
   VitrineCubit criarVitrineCubitReal() => VitrineCubit(
     BuscarImoveisUseCase(
-      ImovelRepositoryImpl(
-        ImovelMockDataSource.paraTeste(
-          linhas: linhasAcervoFixture(),
-          tamanhoPagina: 10,
-        ),
-      ),
+      ImovelRepositoryImpl(ImovelRemoteDataSource(apiFalsa.criarDio())),
     ),
     SessaoFiltrosVitrine(),
   );
@@ -89,6 +123,7 @@ void main() {
   setUp(() {
     cidadeSelecaoCubit = _CidadeSelecaoCubitFalso();
     salvarCidade = _SalvarCidadeUseCaseFalso();
+    apiFalsa = ApiFalsa();
   });
 
   tearDown(() async {
@@ -104,9 +139,9 @@ void main() {
     whenListen(
       cidadeSelecaoCubit,
       Stream<CidadeSelecaoState>.value(
-        const CidadeSelecaoState.autorizadaEAtendida(campinas),
+        CidadeSelecaoState.autorizadaEAtendida(campinas),
       ),
-      initialState: const CidadeSelecaoState.autorizadaEAtendida(campinas),
+      initialState: CidadeSelecaoState.autorizadaEAtendida(campinas),
     );
     await tester.pumpWidget(
       MaterialApp(
@@ -124,6 +159,9 @@ void main() {
     // nunca se estabiliza.
     await tester.pump();
     await tester.pump();
+    // O dio leva alguns turnos do event loop a mais que um dublê em memória
+    // para entregar a resposta.
+    await tester.pump(const Duration(milliseconds: 50));
   }
 
   Finder naPagina(Finder alvo) =>
@@ -136,7 +174,7 @@ void main() {
           ObterDetalheImovelUseCase(
             ImovelDetalheRepositoryImpl(
               ImovelDetalheMockDataSource.paraTeste(
-                detalhes: detalhesAcervoFixture(),
+                detalhes: detalhesDosCards(),
                 latencia: const Duration(seconds: 1),
               ),
             ),
@@ -146,26 +184,27 @@ void main() {
     });
 
     testWidgets(
-      'tocar no card 42 mostra a prévia com spinner na hora, depois a '
-      'Descrição do detalhe do mock, e voltar devolve a vitrine (DET-01, '
+      'tocar no primeiro card da lista real mostra a prévia com spinner na '
+      'hora, depois a Descrição do detalhe do mock, e voltar devolve a '
+      'vitrine (DET-01, '
       'D-09, D-11, D-16)',
       (tester) async {
         await pumpVitrine(tester);
 
-        await tester.tap(find.byKey(const ValueKey('imovel-42')));
+        await tester.tap(find.byKey(ValueKey('imovel-$idPrimeiro')));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 400));
 
         expect(find.byType(DetalheImovelScreen), findsOneWidget);
         expect(
-          naPagina(find.text('Apartamento 2 quartos no Cambuí')),
+          naPagina(find.text(tituloPrimeiro)),
           findsOneWidget,
         );
         // A prévia vem do item da lista, que não traz cidade (A-06): só o
         // bairro até o detalhe chegar.
-        expect(naPagina(find.text('Cambuí')), findsOneWidget);
+        expect(naPagina(find.text(bairroPrimeiro)), findsOneWidget);
         expect(naPagina(find.textContaining(', SP')), findsNothing);
-        expect(naPagina(find.text('R\$ 450.000')), findsOneWidget);
+        expect(naPagina(find.text('R\$ 235.000')), findsOneWidget);
         expect(
           naPagina(find.byType(CircularProgressIndicator)),
           findsOneWidget,
@@ -190,7 +229,7 @@ void main() {
         expect(naPagina(find.text('Cambuí · Campinas, SP')), findsOneWidget);
         // O cabeçalho da prévia continua no mesmo lugar.
         expect(
-          naPagina(find.text('Apartamento 2 quartos no Cambuí')),
+          naPagina(find.text(tituloPrimeiro)),
           findsOneWidget,
         );
 
@@ -200,14 +239,15 @@ void main() {
         await tester.pump(const Duration(milliseconds: 400));
 
         expect(find.byType(DetalheImovelScreen), findsNothing);
-        expect(find.byKey(const ValueKey('imovel-42')), findsOneWidget);
+        expect(find.byKey(ValueKey('imovel-$idPrimeiro')), findsOneWidget);
       },
     );
   });
 
   group('fluxo completo (DET-01..05, D-12, D-15)', () {
     testWidgets(
-      'vitrine -> detalhe 42 completo -> perfil da Marina Lopes -> volta ao '
+      'vitrine -> detalhe do primeiro card completo -> perfil da Marina Lopes '
+      '-> volta ao '
       'detalhe -> volta à vitrine intacta',
       (tester) async {
         getIt.registerFactory<DetalheImovelCubit>(
@@ -215,7 +255,7 @@ void main() {
             ObterDetalheImovelUseCase(
               ImovelDetalheRepositoryImpl(
                 ImovelDetalheMockDataSource.paraTeste(
-                  detalhes: detalhesAcervoFixture(),
+                  detalhes: detalhesDosCards(),
                   latencia: const Duration(seconds: 1),
                 ),
               ),
@@ -224,7 +264,7 @@ void main() {
         );
         await pumpVitrine(tester);
 
-        await tester.tap(find.byKey(const ValueKey('imovel-42')));
+        await tester.tap(find.byKey(ValueKey('imovel-$idPrimeiro')));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 400));
         await tester.pump(const Duration(seconds: 1));
@@ -283,22 +323,22 @@ void main() {
         await tester.pump(const Duration(milliseconds: 400));
 
         expect(find.byType(DetalheImovelScreen), findsNothing);
-        expect(find.byKey(const ValueKey('imovel-42')), findsOneWidget);
+        expect(find.byKey(ValueKey('imovel-$idPrimeiro')), findsOneWidget);
       },
     );
   });
 
   group('outros cards da vitrine (DET-01, API-06)', () {
     testWidgets(
-      'tocar no card 57 abre o detalhe dele e, depois da latência, mostra a '
-      'própria descrição (não a do 42)',
+      'tocar no segundo card abre o detalhe dele e, depois da latência, mostra '
+      'a própria descrição (não a do primeiro)',
       (tester) async {
         getIt.registerFactory<DetalheImovelCubit>(
           () => DetalheImovelCubit(
             ObterDetalheImovelUseCase(
               ImovelDetalheRepositoryImpl(
                 ImovelDetalheMockDataSource.paraTeste(
-                  detalhes: detalhesAcervoFixture(),
+                  detalhes: detalhesDosCards(),
                   latencia: const Duration(milliseconds: 300),
                 ),
               ),
@@ -307,12 +347,12 @@ void main() {
         );
         await pumpVitrine(tester);
 
-        await tester.tap(find.byKey(const ValueKey('imovel-57')));
+        await tester.tap(find.byKey(ValueKey('imovel-$idSegundo')));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 400));
 
         expect(
-          naPagina(find.text('Casa térrea 3 quartos no Taquaral')),
+          naPagina(find.text(tituloSegundo)),
           findsOneWidget,
         );
 
@@ -341,16 +381,16 @@ void main() {
     );
 
     testWidgets(
-      'servidor sem o imóvel: o card 42 termina em "Este imóvel não está '
+      'servidor sem o imóvel: o primeiro card termina em "Este imóvel não está '
       'mais disponível" e "Voltar à vitrine" devolve a vitrine (D-17)',
       (tester) async {
-        final semOCard42 = detalhesAcervoFixture()..remove(42);
+        final semOPrimeiro = detalhesDosCards()..remove(idPrimeiro);
         getIt.registerFactory<DetalheImovelCubit>(
           () => DetalheImovelCubit(
             ObterDetalheImovelUseCase(
               ImovelDetalheRepositoryImpl(
                 ImovelDetalheMockDataSource.paraTeste(
-                  detalhes: semOCard42,
+                  detalhes: semOPrimeiro,
                   latencia: const Duration(milliseconds: 300),
                 ),
               ),
@@ -359,7 +399,7 @@ void main() {
         );
         await pumpVitrine(tester);
 
-        await tester.tap(find.byKey(const ValueKey('imovel-42')));
+        await tester.tap(find.byKey(ValueKey('imovel-$idPrimeiro')));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 400));
         await tester.pump(const Duration(milliseconds: 300));
@@ -376,7 +416,7 @@ void main() {
         await tester.pump(const Duration(milliseconds: 400));
 
         expect(find.byType(DetalheImovelScreen), findsNothing);
-        expect(find.byKey(const ValueKey('imovel-42')), findsOneWidget);
+        expect(find.byKey(ValueKey('imovel-$idPrimeiro')), findsOneWidget);
       },
     );
   });
@@ -387,7 +427,7 @@ void main() {
     setUp(() {
       dataSource = _DataSourceFalhaNaPrimeira(
         ImovelDetalheMockDataSource.paraTeste(
-          detalhes: detalhesAcervoFixture(),
+          detalhes: detalhesDosCards(),
           latencia: const Duration(milliseconds: 300),
         ),
       );
@@ -404,7 +444,7 @@ void main() {
       (tester) async {
         await pumpVitrine(tester);
 
-        await tester.tap(find.byKey(const ValueKey('imovel-42')));
+        await tester.tap(find.byKey(ValueKey('imovel-$idPrimeiro')));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 400));
 

@@ -5,7 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/core/result.dart';
 import 'package:imoveis_aqui/data/datasources/imovel_detalhe_datasource.dart';
-import 'package:imoveis_aqui/data/datasources/imovel_mock_datasource.dart';
+import 'package:imoveis_aqui/data/datasources/imovel_detalhe_mock_datasource.dart';
 import 'package:imoveis_aqui/data/mocks/imoveis_detalhe_fixture.dart';
 import 'package:imoveis_aqui/data/models/detalhe_imovel_model.dart';
 import 'package:imoveis_aqui/data/repositories/imovel_detalhe_repository_impl.dart';

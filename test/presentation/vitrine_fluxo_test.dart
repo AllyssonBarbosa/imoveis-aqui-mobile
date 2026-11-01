@@ -4,14 +4,12 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:imoveis_aqui/data/datasources/imovel_mock_datasource.dart';
 import 'package:imoveis_aqui/data/datasources/imovel_remote_datasource.dart';
 import 'package:imoveis_aqui/data/datasources/opcoes_filtro_mock_datasource.dart';
 import 'package:imoveis_aqui/data/mocks/imoveis_fixture.dart';
 import 'package:imoveis_aqui/data/repositories/imovel_repository_impl.dart';
 import 'package:imoveis_aqui/data/repositories/opcoes_filtro_repository_impl.dart';
 import 'package:imoveis_aqui/domain/entities/cidade.dart';
-import 'package:imoveis_aqui/domain/entities/imovel.dart';
 import 'package:imoveis_aqui/domain/usecases/buscar_imoveis_usecase.dart';
 import 'package:imoveis_aqui/domain/entities/ordenacao_vitrine.dart';
 import 'package:imoveis_aqui/domain/usecases/obter_bairros_usecase.dart';
@@ -29,11 +27,13 @@ import 'package:mocktail/mocktail.dart';
 
 import '../support/api_falsa.dart';
 
-/// Teste ponta a ponta (VIT-01): pilha REAL
+/// Teste ponta a ponta da vitrine (VIT-01): pilha REAL
 /// `VitrineCubit -> BuscarImoveisUseCase -> ImovelRepositoryImpl ->
-/// ImovelMockDataSource` montada dentro de `CidadeSelecaoScreen`, com apenas
-/// o `CidadeSelecaoCubit` mockado (para controlar diretamente o desfecho
-/// `autorizadaEAtendida`).
+/// ImovelRemoteDataSource -> Dio` sobre a `ApiFalsa` (JSON capturado da API
+/// real), montada dentro de `CidadeSelecaoScreen`, com apenas o
+/// `CidadeSelecaoCubit` mockado (para controlar diretamente o desfecho
+/// `autorizadaEAtendida`). Os testes afirmam a requisição enviada e o que a
+/// tela mostra da resposta; filtrar, ordenar e paginar é do servidor (FIL-05).
 class _CidadeSelecaoCubitFalso extends MockCubit<CidadeSelecaoState>
     implements CidadeSelecaoCubit {}
 
@@ -41,7 +41,6 @@ class _SalvarCidadeUseCaseFalso extends Mock implements SalvarCidadeUseCase {}
 
 void main() {
   const campinas = Cidade(nome: 'Campinas', uf: 'SP');
-  const valinhos = Cidade(nome: 'Valinhos', uf: 'SP');
 
   late _CidadeSelecaoCubitFalso cidadeSelecaoCubit;
   late _SalvarCidadeUseCaseFalso salvarCidade;
@@ -53,26 +52,12 @@ void main() {
   /// UMA única instância por teste (Task 2, D-14, D-23) — mesmo precedente
   /// do `@lazySingleton` real do DI: sobrevive à troca de cidade mesmo que
   /// `_CorpoVitrine` recrie o `VitrineCubit` do zero (chaveado por
-  /// `cidade.chaveNatural`), já que [criarVitrineCubitReal] fecha sobre esta
-  /// MESMA variável a cada chamada.
+  /// `cidade.chaveNatural`), já que a fábrica de `VitrineCubit` do grupo
+  /// fecha sobre esta MESMA variável a cada chamada.
   late SessaoFiltrosVitrine sessaoFiltros;
 
-  VitrineCubit criarVitrineCubitReal({Duration latencia = Duration.zero}) =>
-      VitrineCubit(
-        BuscarImoveisUseCase(
-          ImovelRepositoryImpl(
-            ImovelMockDataSource.paraTeste(
-              linhas: linhasAcervoFixture(),
-              latencia: latencia,
-              tamanhoPagina: 10,
-            ),
-          ),
-        ),
-        sessaoFiltros,
-      );
-
-  /// Pilha real das opções (Task 2, D-20) — mesmas linhas de
-  /// `linhasAcervoFixture()`, nunca uma lista fixa paralela.
+  /// Opções de bairro/característica: ainda vêm do dublê do acervo até o
+  /// plano 05-12 trocá-las pela API (a lista de imóveis já é a real).
   OpcoesFiltroCubit criarOpcoesFiltroCubitReal() {
     final repositorio = OpcoesFiltroRepositoryImpl(
       OpcoesFiltroMockDataSource.paraTeste(linhas: linhasAcervoFixture()),
@@ -83,600 +68,11 @@ void main() {
     );
   }
 
-  /// Ids do acervo que pertencem à [cidade], lidos das linhas do próprio mock
-  /// (`linha['cidade']`) — o item `Imovel` não carrega cidade (A-06).
-  Set<int> idsDaCidade(Cidade cidade) => linhasAcervoFixture()
-      .where((linha) {
-        final c = linha['cidade']! as Map<String, Object?>;
-        return c['nome'] == cidade.nome && c['uf'] == cidade.uf;
-      })
-      .map((linha) => linha['id']! as int)
-      .toSet();
-
   setUp(() {
     cidadeSelecaoCubit = _CidadeSelecaoCubitFalso();
     salvarCidade = _SalvarCidadeUseCaseFalso();
     sessaoFiltros = SessaoFiltrosVitrine();
   });
-
-  Future<void> pumpVitrineDe(WidgetTester tester, Cidade cidade) async {
-    // Viewport moderado: alto o bastante para materializar (via cache
-    // extent) alguns ImovelCards do topo da primeira página, mas baixo o
-    // bastante para a lista continuar rolável — uma viewport que já
-    // renderizasse a página inteira sem rolar dispararia o carregamento
-    // automático de "não preenche a tela" (Task 3), o que descaracterizaria
-    // o teste de "primeira página" deste bloco.
-    tester.view.physicalSize = const Size(400, 2400);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-
-    whenListen(
-      cidadeSelecaoCubit,
-      Stream<CidadeSelecaoState>.value(
-        CidadeSelecaoState.autorizadaEAtendida(cidade),
-      ),
-      initialState: CidadeSelecaoState.autorizadaEAtendida(cidade),
-    );
-    await tester.pumpWidget(
-      MaterialApp(
-        home: BlocProvider<CidadeSelecaoCubit>.value(
-          value: cidadeSelecaoCubit,
-          child: CidadeSelecaoScreen(
-            salvarCidade: salvarCidade,
-            criarVitrineCubit: criarVitrineCubitReal,
-            criarOpcoesFiltroCubit: criarOpcoesFiltroCubitReal,
-          ),
-        ),
-      ),
-    );
-    // Nunca pumpAndSettle aqui — o CircularProgressIndicator (estado
-    // `carregando`) tem animação indeterminada e pumpAndSettle nunca se
-    // estabiliza enquanto ele está de pé.
-    await tester.pump();
-    await tester.pump();
-  }
-
-  testWidgets(
-    'Campinas: tocar Filtros -> Venda -> Ver imóveis filtra pela pilha real '
-    '(sheet -> rascunho -> VitrineCubit -> query params -> servidor '
-    'simulado); reabrir, escolher Qualquer e aplicar volta à lista completa '
-    '(FIL-01, FIL-05, D-02, D-07, D-08, D-11, D-15)',
-    (tester) async {
-      await pumpVitrineDe(tester, campinas);
-
-      expect(find.text('Filtros'), findsOneWidget);
-
-      await tester.tap(find.text('Filtros'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Venda'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Ver imóveis'));
-      await tester.pumpAndSettle();
-
-      expect(find.textContaining('Filtros (1)'), findsOneWidget);
-
-      final idsEsperadosVenda = linhasAcervoFixture()
-          .where(
-            (l) =>
-                (l['cidade']! as Map<String, Object?>)['nome'] ==
-                    'Campinas' &&
-                (l['finalidade'] == 'VENDA' ||
-                    l['finalidade'] == 'VENDA_E_ALUGUEL'),
-          )
-          .map((l) => l['id']! as int)
-          .toSet();
-
-      final vitrineCubit = BlocProvider.of<VitrineCubit>(
-        tester.element(find.byType(ListView)),
-      );
-      // Só a primeira página (10) é carregada sem rolar — a lista de
-      // finalidade=VENDA (inclusiva, D-02) tem mais de 10 itens em
-      // Campinas, então esta é uma checagem de subconjunto, não de
-      // igualdade total.
-      final conteudoFiltrado = vitrineCubit.state.conteudo as VitrineCarregada;
-      expect(conteudoFiltrado.itens, isNotEmpty);
-      expect(
-        conteudoFiltrado.itens.every(
-          (i) => idsEsperadosVenda.contains(i.id),
-        ),
-        isTrue,
-      );
-      for (final card in tester.widgetList<ImovelCard>(
-        find.byType(ImovelCard),
-      )) {
-        expect(idsEsperadosVenda.contains(card.imovel.id), isTrue);
-      }
-
-      // Reabre o sheet, escolhe "Qualquer" e aplica — volta a mostrar um
-      // imóvel exclusivamente aluguel (id 57, "Casa térrea 3 quartos no
-      // Taquaral"). "Qualquer" também rotula a opção padrão dos ChoiceChips
-      // de mínimo (Task 2) — escopa ao SegmentedButton de finalidade.
-      await tester.tap(find.textContaining('Filtros ('));
-      await tester.pumpAndSettle();
-      await tester.tap(
-        find.descendant(
-          of: find.byWidgetPredicate((widget) => widget is SegmentedButton),
-          matching: find.text('Qualquer'),
-        ),
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Ver imóveis'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Filtros'), findsOneWidget);
-      expect(find.textContaining('Filtros ('), findsNothing);
-
-      final conteudoCompleto = vitrineCubit.state.conteudo as VitrineCarregada;
-      expect(conteudoCompleto.itens.map((i) => i.id).toSet(), hasLength(10));
-      expect(
-        conteudoCompleto.itens.any((i) => i.id == 57),
-        isTrue,
-      );
-    },
-  );
-
-  testWidgets(
-    'Campinas: aplicar Venda mostra o chip "Venda"; remover pelo "x" do '
-    'chip volta a "Filtros" sem a linha de chips e traz de volta um imóvel '
-    'só-aluguel (FIL-06, D-15..D-19)',
-    (tester) async {
-      await pumpVitrineDe(tester, campinas);
-
-      await tester.tap(find.text('Filtros'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Venda'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Ver imóveis'));
-      await tester.pumpAndSettle();
-
-      expect(find.widgetWithText(InputChip, 'Venda'), findsOneWidget);
-      expect(find.text('Limpar filtros'), findsOneWidget);
-
-      await tester.tap(find.byTooltip('Remover filtro Venda'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Filtros'), findsOneWidget);
-      expect(find.textContaining('Filtros ('), findsNothing);
-      expect(find.byType(InputChip), findsNothing);
-      expect(find.text('Limpar filtros'), findsNothing);
-
-      final vitrineCubit = BlocProvider.of<VitrineCubit>(
-        tester.element(find.byType(ListView)),
-      );
-      final conteudo = vitrineCubit.state.conteudo as VitrineCarregada;
-      expect(conteudo.itens.any((i) => i.id == 57), isTrue);
-    },
-  );
-
-  testWidgets(
-    'Campinas: aplicar Aluguel e tocar "Limpar filtros" (ActionChip) traz o '
-    'mesmo resultado que remover pelo chip (FIL-06, D-18)',
-    (tester) async {
-      await pumpVitrineDe(tester, campinas);
-
-      await tester.tap(find.text('Filtros'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Aluguel'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Ver imóveis'));
-      await tester.pumpAndSettle();
-
-      expect(find.widgetWithText(InputChip, 'Aluguel'), findsOneWidget);
-
-      await tester.tap(find.widgetWithText(ActionChip, 'Limpar filtros'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Filtros'), findsOneWidget);
-      expect(find.byType(InputChip), findsNothing);
-
-      final vitrineCubit = BlocProvider.of<VitrineCubit>(
-        tester.element(find.byType(ListView)),
-      );
-      final conteudo = vitrineCubit.state.conteudo as VitrineCarregada;
-      expect(conteudo.itens.map((i) => i.id).toSet(), hasLength(10));
-    },
-  );
-
-  testWidgets(
-    'Campinas: Filtros -> Casa + Apartamento + "2+" quartos -> Ver imóveis '
-    'filtra pela pilha real; chips "Casa, Apto" e "2+ quartos" aparecem, '
-    'botão "Filtros (2)" (FIL-02, FIL-03, D-01, D-05, D-10, D-11)',
-    (tester) async {
-      await pumpVitrineDe(tester, campinas);
-
-      await tester.tap(find.text('Filtros'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(FilterChip, 'Casa'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(FilterChip, 'Apartamento'));
-      await tester.pumpAndSettle();
-      final choiceQuartosDoisMais = find
-          .widgetWithText(ChoiceChip, '2+')
-          .at(0);
-      await tester.ensureVisible(choiceQuartosDoisMais);
-      await tester.tap(choiceQuartosDoisMais);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Ver imóveis'));
-      await tester.pumpAndSettle();
-
-      expect(find.textContaining('Filtros (2)'), findsOneWidget);
-      expect(find.widgetWithText(InputChip, 'Casa, Apto'), findsOneWidget);
-      expect(find.widgetWithText(InputChip, '2+ quartos'), findsOneWidget);
-
-      final vitrineCubit = BlocProvider.of<VitrineCubit>(
-        tester.element(find.byType(ListView)),
-      );
-      final conteudo = vitrineCubit.state.conteudo as VitrineCarregada;
-      expect(conteudo.itens, isNotEmpty);
-      bool bateComOsFiltros(Imovel imovel) =>
-          (imovel.natureza == NaturezaImovel.casa ||
-              imovel.natureza == NaturezaImovel.apartamento) &&
-          (imovel.quartos ?? 0) >= 2;
-      expect(conteudo.itens.every(bateComOsFiltros), isTrue);
-
-      for (final card in tester.widgetList<ImovelCard>(
-        find.byType(ImovelCard),
-      )) {
-        expect(bateComOsFiltros(card.imovel), isTrue);
-      }
-    },
-  );
-
-  testWidgets(
-    'Campinas: Filtros -> Terreno + "1+" quartos mostra "Nenhum imóvel com '
-    'esses filtros"; "Limpar filtros" (do próprio estado vazio) volta à '
-    'lista completa (D-22, FIL-02, FIL-03)',
-    (tester) async {
-      await pumpVitrineDe(tester, campinas);
-
-      await tester.tap(find.text('Filtros'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(FilterChip, 'Terreno'));
-      await tester.pumpAndSettle();
-      final choiceQuartosUmMais = find
-          .widgetWithText(ChoiceChip, '1+')
-          .at(0);
-      await tester.ensureVisible(choiceQuartosUmMais);
-      await tester.tap(choiceQuartosUmMais);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Ver imóveis'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Nenhum imóvel com esses filtros'), findsOneWidget);
-      expect(find.byType(ImovelCard), findsNothing);
-
-      await tester.tap(find.widgetWithText(TextButton, 'Limpar filtros'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Filtros'), findsOneWidget);
-      expect(find.textContaining('Filtros ('), findsNothing);
-
-      final vitrineCubit = BlocProvider.of<VitrineCubit>(
-        tester.element(find.byType(ListView)),
-      );
-      final conteudo = vitrineCubit.state.conteudo as VitrineCarregada;
-      expect(conteudo.itens, hasLength(10));
-    },
-  );
-
-  testWidgets(
-    'Campinas: Filtros -> Venda + preço 250.000..300.000 -> Ver imóveis '
-    'filtra pela pilha real; todo card tem precoVenda na faixa e o chip '
-    '"R\$ 250 mil–300 mil" aparece (FIL-03, D-03, D-09)',
-    (tester) async {
-      await pumpVitrineDe(tester, campinas);
-
-      await tester.tap(find.text('Filtros'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Venda'));
-      await tester.pumpAndSettle();
-      // A tela cheia da vitrine tem sua própria SearchBar (que também é um
-      // TextField) à frente do sheet — localiza os campos de preço pelo
-      // label, nunca por índice cru (D-09).
-      await tester.enterText(
-        find.widgetWithText(TextField, 'Mínimo').at(0),
-        '250000',
-      );
-      await tester.pumpAndSettle();
-      await tester.enterText(
-        find.widgetWithText(TextField, 'Máximo').at(0),
-        '300000',
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Ver imóveis'));
-      await tester.pumpAndSettle();
-
-      expect(
-        find.widgetWithText(InputChip, 'R\$ 250 mil–300 mil'),
-        findsOneWidget,
-      );
-
-      bool dentroDaFaixa(Imovel imovel) {
-        final preco = double.tryParse(imovel.precoVenda ?? '');
-        return preco != null && preco >= 250000 && preco <= 300000;
-      }
-
-      final vitrineCubit = BlocProvider.of<VitrineCubit>(
-        tester.element(find.byType(ListView)),
-      );
-      final conteudo = vitrineCubit.state.conteudo as VitrineCarregada;
-      expect(conteudo.itens, isNotEmpty);
-      expect(conteudo.itens.every(dentroDaFaixa), isTrue);
-
-      for (final card in tester.widgetList<ImovelCard>(
-        find.byType(ImovelCard),
-      )) {
-        expect(dentroDaFaixa(card.imovel), isTrue);
-      }
-    },
-  );
-
-  testWidgets(
-    'Campinas: Filtros -> área 80..120 (sem finalidade) -> Ver imóveis '
-    'filtra pela pilha real; todo card mapeia (via fixture) para uma linha '
-    'com área na faixa e o chip "80–120 m²" aparece (FIL-04, D-09)',
-    (tester) async {
-      await pumpVitrineDe(tester, campinas);
-
-      await tester.tap(find.text('Filtros'));
-      await tester.pumpAndSettle();
-      // A tela cheia da vitrine tem sua própria SearchBar (que também é um
-      // TextField) à frente do sheet — localiza os campos de área pelo
-      // label (segunda ocorrência de "Mínimo"/"Máximo", depois de Preço),
-      // nunca por índice cru (D-09).
-      await tester.enterText(
-        find.widgetWithText(TextField, 'Mínimo').at(1),
-        '80',
-      );
-      await tester.pumpAndSettle();
-      await tester.enterText(
-        find.widgetWithText(TextField, 'Máximo').at(1),
-        '120',
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Ver imóveis'));
-      await tester.pumpAndSettle();
-
-      expect(find.widgetWithText(InputChip, '80–120 m²'), findsOneWidget);
-
-      bool areaNaFaixa(int id) {
-        final linha = linhasAcervoFixture().firstWhere((l) => l['id'] == id);
-        final area = linha['area'] as String?;
-        if (area == null) return false;
-        final valor = double.parse(area);
-        return valor >= 80 && valor <= 120;
-      }
-
-      final vitrineCubit = BlocProvider.of<VitrineCubit>(
-        tester.element(find.byType(ListView)),
-      );
-      final conteudo = vitrineCubit.state.conteudo as VitrineCarregada;
-      expect(conteudo.itens, isNotEmpty);
-      expect(conteudo.itens.every((i) => areaNaFaixa(i.id)), isTrue);
-
-      for (final card in tester.widgetList<ImovelCard>(
-        find.byType(ImovelCard),
-      )) {
-        expect(areaNaFaixa(card.imovel.id), isTrue);
-      }
-    },
-  );
-
-  testWidgets(
-    'Campinas: Filtros -> expandir Bairros -> digitar "camb" -> marcar '
-    'Cambuí -> limpar o campo -> marcar Taquaral -> Ver imóveis filtra pela '
-    'pilha real (opções do servidor simulado, D-20); chip "Cambuí +1", '
-    'botão "Filtros (1)" (FIL-04, D-05, D-21)',
-    (tester) async {
-      await pumpVitrineDe(tester, campinas);
-
-      await tester.tap(find.text('Filtros'));
-      // As opções (D-20) carregam de forma assíncrona assim que o sheet
-      // abre — pumpAndSettle aqui (nenhum spinner indeterminado visível
-      // ainda, a seção "Bairros" começa colapsada) dá tempo de sobra para a
-      // pilha real (latência zero no helper) resolver antes de expandir.
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Bairros'));
-      await tester.pumpAndSettle();
-
-      await tester.enterText(
-        find.widgetWithText(TextField, 'Filtrar bairros'),
-        'camb',
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(CheckboxListTile, 'Cambuí'));
-      await tester.pumpAndSettle();
-
-      await tester.enterText(
-        find.widgetWithText(TextField, 'Filtrar bairros'),
-        '',
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(CheckboxListTile, 'Taquaral'));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Ver imóveis'));
-      await tester.pumpAndSettle();
-
-      expect(find.widgetWithText(InputChip, 'Cambuí +1'), findsOneWidget);
-      expect(find.textContaining('Filtros (1)'), findsOneWidget);
-
-      final vitrineCubit = BlocProvider.of<VitrineCubit>(
-        tester.element(find.byType(ListView)),
-      );
-      final conteudo = vitrineCubit.state.conteudo as VitrineCarregada;
-      expect(conteudo.itens, isNotEmpty);
-      bool bateComOsFiltros(Imovel imovel) =>
-          imovel.bairro == 'Cambuí' || imovel.bairro == 'Taquaral';
-      expect(conteudo.itens.every(bateComOsFiltros), isTrue);
-
-      for (final card in tester.widgetList<ImovelCard>(
-        find.byType(ImovelCard),
-      )) {
-        expect(bateComOsFiltros(card.imovel), isTrue);
-      }
-    },
-  );
-
-  testWidgets(
-    'Campinas: Filtros -> marcar Piscina e Churrasqueira -> Ver imóveis '
-    'filtra pela pilha real (E entre as duas, D-04); chip "Piscina +1", '
-    'botão "Filtros (1)" (FIL-04, D-16, D-20)',
-    (tester) async {
-      await pumpVitrineDe(tester, campinas);
-
-      await tester.tap(find.text('Filtros'));
-      await tester.pumpAndSettle();
-
-      final chipPiscina = find.widgetWithText(FilterChip, 'Piscina');
-      await tester.ensureVisible(chipPiscina);
-      await tester.tap(chipPiscina);
-      await tester.pumpAndSettle();
-      final chipChurrasqueira = find.widgetWithText(
-        FilterChip,
-        'Churrasqueira',
-      );
-      await tester.ensureVisible(chipChurrasqueira);
-      await tester.tap(chipChurrasqueira);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Ver imóveis'));
-      await tester.pumpAndSettle();
-
-      expect(find.widgetWithText(InputChip, 'Piscina +1'), findsOneWidget);
-      expect(find.textContaining('Filtros (1)'), findsOneWidget);
-
-      bool temAmbasCaracteristicas(int id) {
-        final linha = linhasAcervoFixture().firstWhere((l) => l['id'] == id);
-        final caracteristicas = (linha['caracteristicas']! as List)
-            .cast<String>();
-        return caracteristicas.contains('Piscina') &&
-            caracteristicas.contains('Churrasqueira');
-      }
-
-      final vitrineCubit = BlocProvider.of<VitrineCubit>(
-        tester.element(find.byType(ListView)),
-      );
-      final conteudo = vitrineCubit.state.conteudo as VitrineCarregada;
-      expect(conteudo.itens, isNotEmpty);
-      expect(
-        conteudo.itens.every((i) => temAmbasCaracteristicas(i.id)),
-        isTrue,
-      );
-
-      for (final card in tester.widgetList<ImovelCard>(
-        find.byType(ImovelCard),
-      )) {
-        expect(temAmbasCaracteristicas(card.imovel.id), isTrue);
-      }
-    },
-  );
-
-  testWidgets(
-    'Campinas: aplicar Venda + "2+" quartos + bairro Cambuí, trocar para '
-    'Valinhos pelo cabeçalho -> filtros gerais sobrevivem sem o bairro, a '
-    'nova cidade já abre filtrada, busca/ordenação voltam ao padrão da F2 '
-    '(FIL-06, D-14, D-23)',
-    (tester) async {
-      tester.view.physicalSize = const Size(400, 2400);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-
-      final estados = StreamController<CidadeSelecaoState>.broadcast();
-      addTearDown(estados.close);
-      final estadoInicial = CidadeSelecaoState.autorizadaEAtendida(campinas);
-      whenListen(cidadeSelecaoCubit, estados.stream, initialState: estadoInicial);
-      when(() => cidadeSelecaoCubit.carregarLista()).thenAnswer((_) async {
-        estados.add(CidadeSelecaoState.recusada([campinas, valinhos]));
-      });
-      when(() => cidadeSelecaoCubit.entrarDireto(any())).thenAnswer((
-        invocation,
-      ) {
-        final cidade = invocation.positionalArguments.first as Cidade;
-        estados.add(CidadeSelecaoState.autorizadaEAtendida(cidade));
-      });
-      when(() => salvarCidade(any())).thenAnswer((_) async {});
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: BlocProvider<CidadeSelecaoCubit>.value(
-            value: cidadeSelecaoCubit,
-            child: CidadeSelecaoScreen(
-              salvarCidade: salvarCidade,
-              criarVitrineCubit: criarVitrineCubitReal,
-              criarOpcoesFiltroCubit: criarOpcoesFiltroCubitReal,
-            ),
-          ),
-        ),
-      );
-      await tester.pump();
-      await tester.pump();
-
-      // Campinas: aplica Venda + "2+" quartos + bairro Cambuí.
-      await tester.tap(find.text('Filtros'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Venda'));
-      await tester.pumpAndSettle();
-      final choiceQuartosDoisMais = find
-          .widgetWithText(ChoiceChip, '2+')
-          .at(0);
-      await tester.ensureVisible(choiceQuartosDoisMais);
-      await tester.tap(choiceQuartosDoisMais);
-      await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('Bairros'));
-      await tester.tap(find.text('Bairros'));
-      await tester.pumpAndSettle();
-      final checkboxCambui = find.widgetWithText(CheckboxListTile, 'Cambuí');
-      await tester.ensureVisible(checkboxCambui);
-      await tester.tap(checkboxCambui);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Ver imóveis'));
-      await tester.pumpAndSettle();
-
-      expect(find.textContaining('Filtros (3)'), findsOneWidget);
-
-      // Troca de cidade pelo cabeçalho: toque reabre a lista, tocar
-      // "Valinhos, SP" entra direto na nova cidade (D-10).
-      await tester.tap(find.text('Campinas, SP'));
-      await tester.pump();
-      await tester.pump();
-      await tester.tap(find.text('Valinhos, SP'));
-      await tester.pump();
-      await tester.pump();
-
-      expect(find.text('Valinhos, SP'), findsOneWidget);
-      // Filtros gerais sobrevivem (Venda, 2+ quartos) — SEM o bairro, que
-      // pertencia só a Campinas (D-14).
-      expect(find.widgetWithText(InputChip, 'Venda'), findsOneWidget);
-      expect(find.widgetWithText(InputChip, '2+ quartos'), findsOneWidget);
-      expect(find.byType(InputChip), findsNWidgets(2));
-      expect(find.textContaining('Filtros (2)'), findsOneWidget);
-      // Busca e ordenação voltam ao padrão da F2 — cidade nova, Cubit novo.
-      expect(find.textContaining('Ordenar: Mais recentes'), findsOneWidget);
-      final searchBar = tester.widget<SearchBar>(find.byType(SearchBar));
-      expect(searchBar.controller?.text ?? '', isEmpty);
-
-      final vitrineCubit = BlocProvider.of<VitrineCubit>(
-        tester.element(find.byType(ListView)),
-      );
-      final conteudo = vitrineCubit.state.conteudo as VitrineCarregada;
-      expect(conteudo.itens, isNotEmpty);
-      final idsValinhos = idsDaCidade(valinhos);
-      bool bateComOsFiltros(Imovel imovel) =>
-          idsValinhos.contains(imovel.id) &&
-          (imovel.finalidade == FinalidadeImovel.venda ||
-              imovel.finalidade == FinalidadeImovel.vendaEAluguel) &&
-          (imovel.quartos ?? 0) >= 2;
-      expect(conteudo.itens.every(bateComOsFiltros), isTrue);
-
-      for (final card in tester.widgetList<ImovelCard>(
-        find.byType(ImovelCard),
-      )) {
-        expect(bateComOsFiltros(card.imovel), isTrue);
-      }
-    },
-  );
 
   group('API real (JSON capturado)', () {
     // Campinas como a API devolve (com id), lida da fixture capturada.
@@ -698,6 +94,15 @@ void main() {
             .cast<Map<String, Object?>>()
             .map((linha) => linha['id']! as int)
             .toList();
+
+    /// Um `VitrineCubit` real sobre `ImovelRemoteDataSource(apiFalsa)`,
+    /// compartilhando a sessão de filtros do teste.
+    VitrineCubit criarVitrineCubitApi(ApiFalsa apiFalsa) => VitrineCubit(
+      BuscarImoveisUseCase(
+        ImovelRepositoryImpl(ImovelRemoteDataSource(apiFalsa.criarDio())),
+      ),
+      sessaoFiltros,
+    );
 
     /// Monta a vitrine REAL sobre `ImovelRemoteDataSource(apiFalsa)`. Nunca
     /// `pumpAndSettle` aqui: o spinner de carregamento mantém a animação de pé.
@@ -725,14 +130,7 @@ void main() {
             value: cidadeSelecaoCubit,
             child: CidadeSelecaoScreen(
               salvarCidade: salvarCidade,
-              criarVitrineCubit: () => VitrineCubit(
-                BuscarImoveisUseCase(
-                  ImovelRepositoryImpl(
-                    ImovelRemoteDataSource(apiFalsa.criarDio()),
-                  ),
-                ),
-                sessaoFiltros,
-              ),
+              criarVitrineCubit: () => criarVitrineCubitApi(apiFalsa),
               criarOpcoesFiltroCubit: criarOpcoesFiltroCubitReal,
             ),
           ),
@@ -1120,6 +518,477 @@ void main() {
         expect(idsNosCards, isNotEmpty);
         expect(idsNosCards.first, idsCasaLote.first);
         expect(idsCasaLote, containsAll(idsNosCards));
+      },
+    );
+
+    // ---- Fluxos de filtro (FIL-01..06): afirmam a requisição enviada e o
+    // que a tela mostra da resposta do servidor, nunca uma regra de filtro
+    // calculada no app (FIL-05, D-14). ----
+
+    final idsP1 = idsDaFixture('lista_campinas_p1.json');
+
+    Future<void> abrirFiltros(WidgetTester tester) async {
+      await tester.tap(find.text('Filtros'));
+      await tester.pumpAndSettle();
+    }
+
+    /// Toca "Ver imóveis" e deixa a nova primeira página chegar. Nunca
+    /// `pumpAndSettle` aqui: o spinner da recarga mantém a animação de pé.
+    Future<void> verImoveis(WidgetTester tester) async {
+      await tester.tap(find.text('Ver imóveis'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.pump();
+    }
+
+    Map<String, String> consultaEnviada(ApiFalsa apiFalsa) =>
+        apiFalsa.ultimaRequisicaoDaLista!.queryParameters;
+
+    List<int> idsNaTela(WidgetTester tester) => tester
+        .widgetList<ImovelCard>(find.byType(ImovelCard))
+        .map((card) => card.imovel.id)
+        .toList();
+
+    testWidgets(
+      'Filtros -> Venda -> Ver imóveis envia finalidade=VENDA e mostra o '
+      'chip; reabrir, escolher Qualquer e aplicar volta a pedir sem '
+      'finalidade (FIL-01, D-02, D-12)',
+      (tester) async {
+        final apiFalsa = ApiFalsa();
+        await pumpVitrineApi(tester, apiFalsa);
+
+        await abrirFiltros(tester);
+        await tester.tap(find.text('Venda'));
+        await tester.pumpAndSettle();
+        await verImoveis(tester);
+
+        expect(consultaEnviada(apiFalsa)['finalidade'], 'VENDA');
+        expect(find.widgetWithText(InputChip, 'Venda'), findsOneWidget);
+        expect(find.textContaining('Filtros (1)'), findsOneWidget);
+        // O app mostra o que o servidor devolveu (aqui a p1 da fixture).
+        expect(idsNaTela(tester).first, idsP1.first);
+
+        // "Qualquer" também rotula a opção padrão dos ChoiceChips de
+        // mínimo — escopa ao SegmentedButton de finalidade.
+        await tester.tap(find.textContaining('Filtros ('));
+        await tester.pumpAndSettle();
+        await tester.tap(
+          find.descendant(
+            of: find.byWidgetPredicate((widget) => widget is SegmentedButton),
+            matching: find.text('Qualquer'),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await verImoveis(tester);
+
+        expect(consultaEnviada(apiFalsa).containsKey('finalidade'), isFalse);
+        expect(find.text('Filtros'), findsOneWidget);
+        expect(find.textContaining('Filtros ('), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'aplicar Venda mostra o chip "Venda"; remover pelo "x" do chip volta a '
+      '"Filtros" e a próxima requisição sai sem finalidade (FIL-06, D-15)',
+      (tester) async {
+        final apiFalsa = ApiFalsa();
+        await pumpVitrineApi(tester, apiFalsa);
+
+        await abrirFiltros(tester);
+        await tester.tap(find.text('Venda'));
+        await tester.pumpAndSettle();
+        await verImoveis(tester);
+
+        expect(find.widgetWithText(InputChip, 'Venda'), findsOneWidget);
+        expect(find.text('Limpar filtros'), findsOneWidget);
+        final antes = apiFalsa.requisicoes.length;
+
+        await tester.tap(find.byTooltip('Remover filtro Venda'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 50));
+        await tester.pump();
+
+        expect(apiFalsa.requisicoes.length, antes + 1);
+        expect(consultaEnviada(apiFalsa).containsKey('finalidade'), isFalse);
+        expect(find.text('Filtros'), findsOneWidget);
+        expect(find.textContaining('Filtros ('), findsNothing);
+        expect(find.byType(InputChip), findsNothing);
+        expect(find.text('Limpar filtros'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'aplicar Aluguel e tocar "Limpar filtros" (ActionChip) pede de novo só '
+      'com ordenar (FIL-06, D-18)',
+      (tester) async {
+        final apiFalsa = ApiFalsa();
+        await pumpVitrineApi(tester, apiFalsa);
+
+        await abrirFiltros(tester);
+        await tester.tap(find.text('Aluguel'));
+        await tester.pumpAndSettle();
+        await verImoveis(tester);
+
+        expect(consultaEnviada(apiFalsa)['finalidade'], 'ALUGUEL');
+        expect(find.widgetWithText(InputChip, 'Aluguel'), findsOneWidget);
+
+        await tester.tap(find.widgetWithText(ActionChip, 'Limpar filtros'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 50));
+        await tester.pump();
+
+        expect(consultaEnviada(apiFalsa), {'ordenar': 'recentes'});
+        expect(find.text('Filtros'), findsOneWidget);
+        expect(find.byType(InputChip), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'Filtros -> Casa + Apartamento + "2+" quartos envia '
+      'natureza=CASA,APARTAMENTO e quartos=2; chips "Casa, Apto" e "2+ '
+      'quartos", botão "Filtros (2)" (FIL-02, FIL-03, D-01, D-05, D-07)',
+      (tester) async {
+        final apiFalsa = ApiFalsa();
+        await pumpVitrineApi(tester, apiFalsa);
+
+        await abrirFiltros(tester);
+        await tester.tap(find.widgetWithText(FilterChip, 'Casa'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.widgetWithText(FilterChip, 'Apartamento'));
+        await tester.pumpAndSettle();
+        final choiceQuartosDoisMais = find
+            .widgetWithText(ChoiceChip, '2+')
+            .at(0);
+        await tester.ensureVisible(choiceQuartosDoisMais);
+        await tester.tap(choiceQuartosDoisMais);
+        await tester.pumpAndSettle();
+        await verImoveis(tester);
+
+        final consulta = consultaEnviada(apiFalsa);
+        expect(consulta['natureza'], 'CASA,APARTAMENTO');
+        expect(consulta['quartos'], '2');
+        expect(consulta.containsKey('quartos_min'), isFalse);
+        expect(find.textContaining('Filtros (2)'), findsOneWidget);
+        expect(find.widgetWithText(InputChip, 'Casa, Apto'), findsOneWidget);
+        expect(find.widgetWithText(InputChip, '2+ quartos'), findsOneWidget);
+        expect(idsNaTela(tester).first, idsP1.first);
+      },
+    );
+
+    testWidgets(
+      'Filtros -> Terreno + "1+" quartos com resposta vazia do servidor '
+      'mostra "Nenhum imóvel com esses filtros"; "Limpar filtros" volta à '
+      'p1 (D-22, FIL-02, FIL-03)',
+      (tester) async {
+        final apiFalsa = ApiFalsa()
+          ..responder(
+            (uri) => uri.queryParameters['natureza'] == 'TERRENO',
+            status: 200,
+            fixture: 'lista_campinas_vazia.json',
+          );
+        await pumpVitrineApi(tester, apiFalsa);
+
+        await abrirFiltros(tester);
+        await tester.tap(find.widgetWithText(FilterChip, 'Terreno'));
+        await tester.pumpAndSettle();
+        final choiceQuartosUmMais = find
+            .widgetWithText(ChoiceChip, '1+')
+            .at(0);
+        await tester.ensureVisible(choiceQuartosUmMais);
+        await tester.tap(choiceQuartosUmMais);
+        await tester.pumpAndSettle();
+        await verImoveis(tester);
+
+        expect(consultaEnviada(apiFalsa)['natureza'], 'TERRENO');
+        expect(consultaEnviada(apiFalsa)['quartos'], '1');
+        expect(find.text('Nenhum imóvel com esses filtros'), findsOneWidget);
+        expect(find.byType(ImovelCard), findsNothing);
+
+        await tester.tap(find.widgetWithText(TextButton, 'Limpar filtros'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 50));
+        await tester.pump();
+
+        expect(consultaEnviada(apiFalsa), {'ordenar': 'recentes'});
+        expect(find.text('Filtros'), findsOneWidget);
+        expect(find.textContaining('Filtros ('), findsNothing);
+        expect(
+          (vitrineCubitDe(tester).state.conteudo as VitrineCarregada).itens
+              .map((i) => i.id)
+              .toList(),
+          idsP1,
+        );
+      },
+    );
+
+    testWidgets(
+      'Filtros -> Venda + preço 250.000..300.000 envia '
+      'finalidade=VENDA&preco_min=250000&preco_max=300000 e mostra o chip '
+      '"R\$ 250 mil–300 mil" (FIL-03, D-03, D-09)',
+      (tester) async {
+        final apiFalsa = ApiFalsa();
+        await pumpVitrineApi(tester, apiFalsa);
+
+        await abrirFiltros(tester);
+        await tester.tap(find.text('Venda'));
+        await tester.pumpAndSettle();
+        // A tela cheia da vitrine tem sua própria SearchBar (que também é um
+        // TextField) à frente do sheet — localiza os campos de preço pelo
+        // label, nunca por índice cru (D-09).
+        await tester.enterText(
+          find.widgetWithText(TextField, 'Mínimo').at(0),
+          '250000',
+        );
+        await tester.pumpAndSettle();
+        await tester.enterText(
+          find.widgetWithText(TextField, 'Máximo').at(0),
+          '300000',
+        );
+        await tester.pumpAndSettle();
+        await verImoveis(tester);
+
+        final consulta = consultaEnviada(apiFalsa);
+        expect(consulta['finalidade'], 'VENDA');
+        expect(consulta['preco_min'], '250000');
+        expect(consulta['preco_max'], '300000');
+        expect(
+          find.widgetWithText(InputChip, 'R\$ 250 mil–300 mil'),
+          findsOneWidget,
+        );
+        expect(idsNaTela(tester).first, idsP1.first);
+      },
+    );
+
+    testWidgets(
+      'Filtros -> área 80..120 (sem finalidade) envia area_min=80&area_max='
+      '120 e mostra o chip "80–120 m²" (FIL-04, D-09)',
+      (tester) async {
+        final apiFalsa = ApiFalsa();
+        await pumpVitrineApi(tester, apiFalsa);
+
+        await abrirFiltros(tester);
+        // Os campos de área são a segunda ocorrência de "Mínimo"/"Máximo",
+        // depois de Preço — localizados pelo label, nunca por índice cru.
+        await tester.enterText(
+          find.widgetWithText(TextField, 'Mínimo').at(1),
+          '80',
+        );
+        await tester.pumpAndSettle();
+        await tester.enterText(
+          find.widgetWithText(TextField, 'Máximo').at(1),
+          '120',
+        );
+        await tester.pumpAndSettle();
+        await verImoveis(tester);
+
+        final consulta = consultaEnviada(apiFalsa);
+        expect(consulta['area_min'], '80');
+        expect(consulta['area_max'], '120');
+        expect(consulta.containsKey('finalidade'), isFalse);
+        expect(find.widgetWithText(InputChip, '80–120 m²'), findsOneWidget);
+        expect(idsNaTela(tester).first, idsP1.first);
+      },
+    );
+
+    testWidgets(
+      'Filtros -> expandir Bairros -> digitar "camb" -> marcar Cambuí -> '
+      'limpar o campo -> marcar Taquaral envia bairro=Cambuí,Taquaral; chip '
+      '"Cambuí +1", botão "Filtros (1)" (FIL-04, D-05, D-07, D-21)',
+      (tester) async {
+        final apiFalsa = ApiFalsa();
+        await pumpVitrineApi(tester, apiFalsa);
+
+        // As opções carregam de forma assíncrona assim que o sheet abre —
+        // pumpAndSettle (nenhum spinner visível, a seção "Bairros" começa
+        // colapsada) dá tempo de sobra para resolverem antes de expandir.
+        await abrirFiltros(tester);
+        await tester.tap(find.text('Bairros'));
+        await tester.pumpAndSettle();
+
+        await tester.enterText(
+          find.widgetWithText(TextField, 'Filtrar bairros'),
+          'camb',
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.widgetWithText(CheckboxListTile, 'Cambuí'));
+        await tester.pumpAndSettle();
+
+        await tester.enterText(
+          find.widgetWithText(TextField, 'Filtrar bairros'),
+          '',
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.widgetWithText(CheckboxListTile, 'Taquaral'));
+        await tester.pumpAndSettle();
+        await verImoveis(tester);
+
+        expect(consultaEnviada(apiFalsa)['bairro'], 'Cambuí,Taquaral');
+        expect(find.widgetWithText(InputChip, 'Cambuí +1'), findsOneWidget);
+        expect(find.textContaining('Filtros (1)'), findsOneWidget);
+        expect(idsNaTela(tester).first, idsP1.first);
+      },
+    );
+
+    testWidgets(
+      'Filtros -> marcar Piscina e Churrasqueira mostra o chip "Piscina +1" '
+      'e pede de novo a primeira página da nova consulta; os ids de '
+      'características viajam no plano 05-15 (FIL-04, D-16)',
+      (tester) async {
+        final apiFalsa = ApiFalsa();
+        await pumpVitrineApi(tester, apiFalsa);
+        final antes = apiFalsa.requisicoes.length;
+
+        await abrirFiltros(tester);
+        final chipPiscina = find.widgetWithText(FilterChip, 'Piscina');
+        await tester.ensureVisible(chipPiscina);
+        await tester.tap(chipPiscina);
+        await tester.pumpAndSettle();
+        final chipChurrasqueira = find.widgetWithText(
+          FilterChip,
+          'Churrasqueira',
+        );
+        await tester.ensureVisible(chipChurrasqueira);
+        await tester.tap(chipChurrasqueira);
+        await tester.pumpAndSettle();
+        await verImoveis(tester);
+
+        expect(find.widgetWithText(InputChip, 'Piscina +1'), findsOneWidget);
+        expect(find.textContaining('Filtros (1)'), findsOneWidget);
+        expect(apiFalsa.requisicoes.length, antes + 1);
+        final requisicao = apiFalsa.ultimaRequisicaoDaLista!;
+        expect(
+          requisicao.path,
+          '/api/publico/cidades/${campinasDaApi.id}/imoveis/',
+        );
+        expect(requisicao.queryParameters.containsKey('page'), isFalse);
+        expect(idsNaTela(tester).first, idsP1.first);
+      },
+    );
+
+    testWidgets(
+      'aplicar Venda + "2+" quartos + bairro Cambuí em Campinas e trocar '
+      'para Valinhos: a requisição do id de Valinhos mantém finalidade e '
+      'quartos, sem bairro; busca/ordenação voltam ao padrão (FIL-06, '
+      'F3/D-19)',
+      (tester) async {
+        tester.view.physicalSize = const Size(400, 2400);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        final cidadesDaApi = (lerFixtureApi('cidades.json')! as List<Object?>)
+            .cast<Map<String, Object?>>()
+            .map(
+              (c) => Cidade(
+                id: c['id']! as int,
+                nome: c['nome']! as String,
+                uf: c['uf']! as String,
+              ),
+            )
+            .toList();
+        final valinhosDaApi = cidadesDaApi.firstWhere(
+          (c) => c.nome == 'Valinhos',
+        );
+
+        final apiFalsa = ApiFalsa();
+        final estados = StreamController<CidadeSelecaoState>.broadcast();
+        addTearDown(estados.close);
+        whenListen(
+          cidadeSelecaoCubit,
+          estados.stream,
+          initialState: CidadeSelecaoState.autorizadaEAtendida(campinasDaApi),
+        );
+        when(() => cidadeSelecaoCubit.carregarLista()).thenAnswer((_) async {
+          estados.add(CidadeSelecaoState.recusada(cidadesDaApi));
+        });
+        when(() => cidadeSelecaoCubit.entrarDireto(any())).thenAnswer((
+          invocation,
+        ) {
+          final cidade = invocation.positionalArguments.first as Cidade;
+          estados.add(CidadeSelecaoState.autorizadaEAtendida(cidade));
+        });
+        when(() => salvarCidade(any())).thenAnswer((_) async {});
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: BlocProvider<CidadeSelecaoCubit>.value(
+              value: cidadeSelecaoCubit,
+              child: CidadeSelecaoScreen(
+                salvarCidade: salvarCidade,
+                criarVitrineCubit: () => criarVitrineCubitApi(apiFalsa),
+                criarOpcoesFiltroCubit: criarOpcoesFiltroCubitReal,
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 50));
+
+        // Campinas: aplica Venda + "2+" quartos + bairro Cambuí.
+        await abrirFiltros(tester);
+        await tester.tap(find.text('Venda'));
+        await tester.pumpAndSettle();
+        final choiceQuartosDoisMais = find
+            .widgetWithText(ChoiceChip, '2+')
+            .at(0);
+        await tester.ensureVisible(choiceQuartosDoisMais);
+        await tester.tap(choiceQuartosDoisMais);
+        await tester.pumpAndSettle();
+        await tester.ensureVisible(find.text('Bairros'));
+        await tester.tap(find.text('Bairros'));
+        await tester.pumpAndSettle();
+        final checkboxCambui = find.widgetWithText(CheckboxListTile, 'Cambuí');
+        await tester.ensureVisible(checkboxCambui);
+        await tester.tap(checkboxCambui);
+        await tester.pumpAndSettle();
+        await verImoveis(tester);
+
+        expect(find.textContaining('Filtros (3)'), findsOneWidget);
+        final emCampinas = apiFalsa.ultimaRequisicaoDaLista!;
+        expect(
+          emCampinas.path,
+          '/api/publico/cidades/${campinasDaApi.id}/imoveis/',
+        );
+        expect(emCampinas.queryParameters['bairro'], 'Cambuí');
+
+        // Troca de cidade pelo cabeçalho: toque reabre a lista, tocar
+        // "Valinhos, SP" entra direto na nova cidade (D-10).
+        await tester.tap(find.text('Campinas, SP'));
+        await tester.pump();
+        await tester.pump();
+        await tester.tap(find.text('Valinhos, SP'));
+        await tester.pump();
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 50));
+        await tester.pump();
+
+        final emValinhos = apiFalsa.ultimaRequisicaoDaLista!;
+        expect(
+          emValinhos.path,
+          '/api/publico/cidades/${valinhosDaApi.id}/imoveis/',
+        );
+        expect(emValinhos.queryParameters['finalidade'], 'VENDA');
+        expect(emValinhos.queryParameters['quartos'], '2');
+        expect(emValinhos.queryParameters.containsKey('bairro'), isFalse);
+        expect(emValinhos.queryParameters['ordenar'], 'recentes');
+        expect(emValinhos.queryParameters.containsKey('busca'), isFalse);
+
+        expect(find.text('Valinhos, SP'), findsOneWidget);
+        // Filtros gerais sobrevivem (Venda, 2+ quartos) — SEM o bairro, que
+        // pertencia só a Campinas (D-14, F3/D-19).
+        expect(find.widgetWithText(InputChip, 'Venda'), findsOneWidget);
+        expect(find.widgetWithText(InputChip, '2+ quartos'), findsOneWidget);
+        expect(find.byType(InputChip), findsNWidgets(2));
+        expect(find.textContaining('Filtros (2)'), findsOneWidget);
+        // Busca e ordenação voltam ao padrão da F2 — cidade nova, Cubit novo.
+        expect(find.textContaining('Ordenar: Mais recentes'), findsOneWidget);
+        final searchBar = tester.widget<SearchBar>(find.byType(SearchBar));
+        expect(searchBar.controller?.text ?? '', isEmpty);
+        // O servidor respondeu vazio para Valinhos: o app só mostra isso.
+        expect(find.byType(ImovelCard), findsNothing);
+        expect(find.text('Nenhum imóvel com esses filtros'), findsOneWidget);
       },
     );
   });
