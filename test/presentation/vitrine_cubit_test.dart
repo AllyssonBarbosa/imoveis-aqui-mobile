@@ -636,6 +636,30 @@ void main() {
     );
 
     test(
+      'página seguinte que repete um id já listado (acervo mudou entre as '
+      'páginas) lista o id uma vez só e mantém os demais itens na ordem '
+      '(edge API-03)',
+      () async {
+        final cubit = await construirCarregada(
+          itens: [imovelDe(3), imovelDe(2)],
+          proximaPagina: 'p2',
+        );
+        when(() => buscarImoveis.proximaPagina('p2')).thenAnswer(
+          (_) async => Result.success(
+            PaginaImoveis(itens: [imovelDe(2), imovelDe(1), imovelDe(0)]),
+          ),
+        );
+
+        await cubit.carregarMais();
+
+        final conteudo = cubit.state.conteudo as VitrineCarregada;
+        expect(conteudo.itens.map((i) => i.id).toList(), [3, 2, 1, 0]);
+        expect(conteudo.carregandoMais, isFalse);
+        await cubit.close();
+      },
+    );
+
+    test(
       'duas chamadas de carregarMais() com a primeira em voo -> '
       'proximaPagina chamado exatamente uma vez',
       () async {

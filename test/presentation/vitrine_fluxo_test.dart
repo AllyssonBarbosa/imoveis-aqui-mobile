@@ -4,7 +4,6 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:imoveis_aqui/core/texto_normalizado.dart';
 import 'package:imoveis_aqui/data/datasources/imovel_mock_datasource.dart';
 import 'package:imoveis_aqui/data/datasources/imovel_remote_datasource.dart';
 import 'package:imoveis_aqui/data/datasources/opcoes_filtro_mock_datasource.dart';
@@ -12,7 +11,6 @@ import 'package:imoveis_aqui/data/mocks/imoveis_fixture.dart';
 import 'package:imoveis_aqui/data/repositories/imovel_repository_impl.dart';
 import 'package:imoveis_aqui/data/repositories/opcoes_filtro_repository_impl.dart';
 import 'package:imoveis_aqui/domain/entities/cidade.dart';
-import 'package:imoveis_aqui/domain/entities/consulta_imoveis.dart';
 import 'package:imoveis_aqui/domain/entities/imovel.dart';
 import 'package:imoveis_aqui/domain/usecases/buscar_imoveis_usecase.dart';
 import 'package:imoveis_aqui/domain/entities/ordenacao_vitrine.dart';
@@ -44,7 +42,6 @@ class _SalvarCidadeUseCaseFalso extends Mock implements SalvarCidadeUseCase {}
 void main() {
   const campinas = Cidade(nome: 'Campinas', uf: 'SP');
   const valinhos = Cidade(nome: 'Valinhos', uf: 'SP');
-  const indaiatuba = Cidade(nome: 'Indaiatuba', uf: 'SP');
 
   late _CidadeSelecaoCubitFalso cidadeSelecaoCubit;
   late _SalvarCidadeUseCaseFalso salvarCidade;
@@ -139,209 +136,6 @@ void main() {
     await tester.pump();
     await tester.pump();
   }
-
-  testWidgets(
-    'Campinas: cabeçalho "Campinas, SP" + cards só de Campinas, pela pilha '
-    'real Cubit -> UseCase -> Repository -> DataSource (VIT-01, API-04)',
-    (tester) async {
-      await pumpVitrineDe(tester, campinas);
-
-      expect(find.text('Campinas, SP'), findsOneWidget);
-      // Primeira página (tamanhoPagina 10) — só os imóveis de Campinas
-      // aparecem antes de rolar (VIT-05, scroll infinito); a contagem exata
-      // materializada depende do cache extent do ListView, não é o que este
-      // teste verifica (isso é papel do teste de scroll dedicado abaixo).
-      // O item da lista não carrega cidade (A-06): a prova de "só Campinas"
-      // são os ids que o mock serve para a consulta de Campinas.
-      final idsCampinas = idsDaCidade(campinas);
-      final cards = tester.widgetList<ImovelCard>(find.byType(ImovelCard));
-      expect(cards, isNotEmpty);
-      for (final card in cards) {
-        expect(idsCampinas, contains(card.imovel.id));
-      }
-
-      expect(find.text('Apartamento 2 quartos no Cambuí'), findsOneWidget);
-      expect(find.text('Casa térrea 3 quartos no Taquaral'), findsOneWidget);
-      expect(
-        find.text('Terreno no Loteamento Jardim das Palmeiras'),
-        findsNothing,
-      );
-    },
-  );
-
-  testWidgets(
-    'Indaiatuba (atendida, sem imóveis na fixture): estado vazio próprio '
-    '(D-15), distinto de erro',
-    (tester) async {
-      await pumpVitrineDe(tester, indaiatuba);
-
-      expect(
-        find.text('Ainda não há imóveis anunciados em Indaiatuba.'),
-        findsOneWidget,
-      );
-      expect(find.byType(ImovelCard), findsNothing);
-      expect(find.byType(ErrorWidget), findsNothing);
-    },
-  );
-
-  testWidgets(
-    'Campinas: rolar até o fim mostra as 40 linhas, ids únicos, mesma ordem '
-    'da pilha real do mock (VIT-05, critério 4 da fase)',
-    (tester) async {
-      await pumpVitrineDe(tester, campinas);
-
-      var tentativas = 0;
-      while (find.text('Você chegou ao fim da lista').evaluate().isEmpty &&
-          tentativas < 60) {
-        await tester.drag(find.byType(ListView), const Offset(0, -3000));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 20));
-        tentativas++;
-      }
-
-      expect(find.text('Você chegou ao fim da lista'), findsOneWidget);
-
-      final vitrineCubit = BlocProvider.of<VitrineCubit>(
-        tester.element(find.byType(ListView)),
-      );
-      final conteudo = vitrineCubit.state.conteudo as VitrineCarregada;
-
-      expect(conteudo.itens, hasLength(40));
-      expect(conteudo.itens.map((i) => i.id).toSet(), hasLength(40));
-      final idsCampinas = idsDaCidade(campinas);
-      expect(conteudo.itens.every((i) => idsCampinas.contains(i.id)), isTrue);
-
-      // Mesma ordem que andar o mock diretamente, sem passar pela UI.
-      final mockDireto = ImovelMockDataSource.paraTeste(
-        linhas: linhasAcervoFixture(),
-        tamanhoPagina: 10,
-      );
-      final idsEsperados = <int>[];
-      var envelope = await mockDireto.buscar(
-        const ConsultaImoveis(cidade: campinas),
-      );
-      idsEsperados.addAll(envelope.results.map((m) => m.id));
-      while (envelope.next != null) {
-        envelope = await mockDireto.seguir(envelope.next!);
-        idsEsperados.addAll(envelope.results.map((m) => m.id));
-      }
-
-      expect(conteudo.itens.map((i) => i.id).toList(), idsEsperados);
-    },
-  );
-
-  testWidgets(
-    'Campinas: digitar "cambui" na SearchBar e aguardar 400 ms mostra só os '
-    'imóveis cujo título ou bairro contém "Cambuí" (VIT-03, D-06, D-08)',
-    (tester) async {
-      await pumpVitrineDe(tester, campinas);
-
-      await tester.enterText(find.byType(SearchBar), 'cambui');
-      await tester.pump(const Duration(milliseconds: 400));
-      // Latência da DataSource é zero neste helper — mais um pump assenta a
-      // resposta que chega no microtask seguinte ao disparo do debounce.
-      await tester.pump();
-
-      bool linhaContemTermo(Map<String, Object?> linha) {
-        final tituloNormalizado = normalizarTexto(linha['titulo']! as String);
-        final bairroNormalizado = normalizarTexto(linha['bairro']! as String);
-        return tituloNormalizado.contains('cambui') ||
-            bairroNormalizado.contains('cambui');
-      }
-
-      final idsEsperados =
-          linhasAcervoFixture()
-              .where(
-                (l) =>
-                    (l['cidade']! as Map<String, Object?>)['nome'] ==
-                        'Campinas' &&
-                    linhaContemTermo(l),
-              )
-              .map((l) => l['id']! as int)
-              .toSet();
-      expect(idsEsperados, isNotEmpty);
-
-      final vitrineCubit = BlocProvider.of<VitrineCubit>(
-        tester.element(find.byType(ListView)),
-      );
-      final conteudo = vitrineCubit.state.conteudo as VitrineCarregada;
-      expect(conteudo.itens.map((i) => i.id).toSet(), idsEsperados);
-
-      final cards = tester.widgetList<ImovelCard>(find.byType(ImovelCard));
-      expect(cards, isNotEmpty);
-      for (final card in cards) {
-        expect(idsEsperados.contains(card.imovel.id), isTrue);
-      }
-    },
-  );
-
-  testWidgets(
-    'Campinas: escolher "Menor preço" no bottom sheet reordena pelo menor '
-    'preco_venda (nulls-last, D-12) e volta o scroll ao topo (VIT-04, D-13)',
-    (tester) async {
-      await pumpVitrineDe(tester, campinas);
-
-      // Rola para longe do topo ANTES de trocar a ordenação (D-13: a troca
-      // precisa voltar ao topo).
-      await tester.drag(find.byType(ListView), const Offset(0, -3000));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 20));
-      await tester.drag(find.byType(ListView), const Offset(0, -3000));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 20));
-
-      final buscaLista = find.descendant(
-        of: find.byType(ListView),
-        matching: find.byType(Scrollable),
-      );
-      final scrollableAntes = tester.state<ScrollableState>(buscaLista);
-      expect(scrollableAntes.position.pixels, greaterThan(0));
-
-      await tester.tap(find.textContaining('Ordenar:'));
-      await tester.pumpAndSettle();
-      expect(find.text('Ordenar por'), findsOneWidget);
-
-      await tester.tap(find.text('Menor preço'));
-      await tester.pumpAndSettle();
-
-      final vitrineCubit = BlocProvider.of<VitrineCubit>(
-        tester.element(find.byType(ListView)),
-      );
-      expect(vitrineCubit.state.ordenacao, OrdenacaoVitrine.precoAsc);
-      expect(find.textContaining('Ordenar: Menor preço'), findsOneWidget);
-
-      // Menor preco_venda entre as linhas de Campinas — nulls-last (D-12),
-      // desempate por id ascendente, derivado da própria fixture.
-      final linhasComPreco =
-          linhasAcervoFixture()
-              .where(
-                (l) =>
-                    (l['cidade']! as Map<String, Object?>)['nome'] ==
-                        'Campinas' &&
-                    l['preco_venda'] != null,
-              )
-              .toList()
-            ..sort((a, b) {
-              final precoA = double.parse(a['preco_venda']! as String);
-              final precoB = double.parse(b['preco_venda']! as String);
-              final comparacao = precoA.compareTo(precoB);
-              if (comparacao != 0) return comparacao;
-              return (a['id']! as int).compareTo(b['id']! as int);
-            });
-      final idEsperado = linhasComPreco.first['id']! as int;
-
-      final conteudo = vitrineCubit.state.conteudo as VitrineCarregada;
-      expect(conteudo.itens.first.id, idEsperado);
-
-      final scrollableDepois = tester.state<ScrollableState>(
-        find.descendant(
-          of: find.byType(ListView),
-          matching: find.byType(Scrollable),
-        ),
-      );
-      expect(scrollableDepois.position.pixels, 0);
-    },
-  );
 
   testWidgets(
     'Campinas: tocar Filtros -> Venda -> Ver imóveis filtra pela pilha real '
@@ -1000,6 +794,174 @@ void main() {
         expect(
           apiFalsa.requisicoes.map((u) => u.queryParameters['page']).toList(),
           [null, '2'],
+        );
+        // A segunda requisição é a URL `next` da p1, como o servidor mandou.
+        final p1 = lerFixtureApi('lista_campinas_p1.json')! as Map<String, Object?>;
+        expect(apiFalsa.requisicoes[1].toString(), p1['next']);
+        expect(conteudo.itens.map((i) => i.id).toSet(), hasLength(idsP1.length + idsP2.length));
+      },
+    );
+
+    testWidgets(
+      'Indaiatuba (outra cidade, lista vazia do servidor): estado vazio '
+      'próprio da cidade, distinto de erro (D-15)',
+      (tester) async {
+        final apiFalsa = ApiFalsa();
+        final indaiatubaDaApi = () {
+          final linhas = lerFixtureApi('cidades.json')! as List<Object?>;
+          final linha = linhas.cast<Map<String, Object?>>().firstWhere(
+            (c) => c['nome'] == 'Indaiatuba',
+          );
+          return Cidade(
+            id: linha['id']! as int,
+            nome: linha['nome']! as String,
+            uf: linha['uf']! as String,
+          );
+        }();
+
+        await pumpVitrineApi(tester, apiFalsa, cidade: indaiatubaDaApi);
+
+        expect(
+          apiFalsa.ultimaRequisicaoDaLista!.path,
+          '/api/publico/cidades/${indaiatubaDaApi.id}/imoveis/',
+        );
+        expect(
+          find.text('Ainda não há imóveis anunciados em Indaiatuba.'),
+          findsOneWidget,
+        );
+        expect(find.byType(ImovelCard), findsNothing);
+        expect(find.text('Tentar de novo'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'primeira página com 500: "Tentar de novo" no corpo; tocar repete a '
+      'mesma requisição e mostra a p1 (VIT-05)',
+      (tester) async {
+        final apiFalsa = ApiFalsa()
+          ..falharProximas(
+            '/api/publico/cidades/${campinasDaApi.id}/imoveis/',
+          );
+        final idsP1 = idsDaFixture('lista_campinas_p1.json');
+
+        await pumpVitrineApi(tester, apiFalsa);
+
+        expect(find.text('Não foi possível carregar os imóveis'), findsOneWidget);
+        expect(find.text('Tentar de novo'), findsOneWidget);
+        expect(find.byType(ImovelCard), findsNothing);
+
+        await tester.tap(find.text('Tentar de novo'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 50));
+
+        expect(apiFalsa.requisicoes, hasLength(2));
+        expect(apiFalsa.requisicoes[1], apiFalsa.requisicoes[0]);
+        expect(find.text('Tentar de novo'), findsNothing);
+        final primeiros = tester
+            .widgetList<ImovelCard>(find.byType(ImovelCard))
+            .map((card) => card.imovel.id)
+            .toList();
+        expect(primeiros.first, idsP1.first);
+        expect(idsP1, containsAll(primeiros));
+      },
+    );
+
+    testWidgets(
+      'carregar mais com 500: "Tentar de novo" no rodapé mantendo a lista; '
+      'tocar repete a requisição e traz a p2 (VIT-05)',
+      (tester) async {
+        final apiFalsa = ApiFalsa();
+        final idsP1 = idsDaFixture('lista_campinas_p1.json');
+        final idsP2 = idsDaFixture('lista_campinas_p2.json');
+        await pumpVitrineApi(tester, apiFalsa);
+        apiFalsa.falharProximas(
+          '/api/publico/cidades/${campinasDaApi.id}/imoveis/',
+        );
+
+        var tentativas = 0;
+        while (find
+                .text('Não foi possível carregar mais imóveis')
+                .evaluate()
+                .isEmpty &&
+            tentativas < 20) {
+          await tester.drag(find.byType(ListView), const Offset(0, -3000));
+          await tester.pump();
+          await tester.pump(const Duration(milliseconds: 50));
+          tentativas++;
+        }
+
+        expect(
+          find.text('Não foi possível carregar mais imóveis'),
+          findsOneWidget,
+        );
+        expect(find.text('Tentar de novo'), findsOneWidget);
+        expect(
+          (vitrineCubitDe(tester).state.conteudo as VitrineCarregada).itens
+              .map((i) => i.id)
+              .toList(),
+          idsP1,
+        );
+
+        await tester.tap(find.text('Tentar de novo'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 50));
+
+        expect(apiFalsa.requisicoes, hasLength(3));
+        expect(apiFalsa.requisicoes[2], apiFalsa.requisicoes[1]);
+        expect(
+          (vitrineCubitDe(tester).state.conteudo as VitrineCarregada).itens
+              .map((i) => i.id)
+              .toList(),
+          [...idsP1, ...idsP2],
+        );
+      },
+    );
+
+    testWidgets(
+      'JSON da lista malformado (titulo numérico) mostra "Tentar de novo", '
+      'nunca fica preso no carregando (Pitfall 1)',
+      (tester) async {
+        final malformada = Map<String, Object?>.from(
+          lerFixtureApi('lista_campinas_p1.json')! as Map<String, Object?>,
+        );
+        final itens = (malformada['results']! as List<Object?>)
+            .cast<Map<String, Object?>>()
+            .map(Map<String, Object?>.from)
+            .toList();
+        itens.first['titulo'] = 123;
+        malformada['results'] = itens;
+        final apiFalsa = ApiFalsa()
+          ..responder((_) => true, status: 200, corpo: malformada);
+
+        await pumpVitrineApi(tester, apiFalsa);
+
+        expect(find.byType(CircularProgressIndicator), findsNothing);
+        expect(find.text('Tentar de novo'), findsOneWidget);
+        expect(find.byType(ImovelCard), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'escolher "Menor preço" envia ordenar=preco (D-12, VIT-04)',
+      (tester) async {
+        final apiFalsa = ApiFalsa();
+        await pumpVitrineApi(tester, apiFalsa);
+
+        await tester.tap(find.textContaining('Ordenar:'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Menor preço'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.pump(const Duration(milliseconds: 50));
+
+        expect(
+          apiFalsa.ultimaRequisicaoDaLista!.queryParameters['ordenar'],
+          'preco',
+        );
+        expect(find.textContaining('Ordenar: Menor preço'), findsOneWidget);
+        expect(
+          vitrineCubitDe(tester).state.ordenacao,
+          OrdenacaoVitrine.precoAsc,
         );
       },
     );

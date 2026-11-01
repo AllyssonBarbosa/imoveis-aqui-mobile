@@ -24,6 +24,14 @@ class _Sobrescrita {
   final Object? corpo;
 }
 
+class _Falha {
+  _Falha(this.caminho, this.status, this.restantes);
+
+  final String caminho;
+  final int status;
+  int restantes;
+}
+
 /// API pública falsa: um [Dio] sobre um `HttpClientAdapter` de teste que serve
 /// as fixtures de `test/fixtures/api/` por rota e grava as requisições. Sem
 /// pacote novo. Rotas: cidades e `/api/publico/cidades/<id>/imoveis/` (página
@@ -37,6 +45,7 @@ class ApiFalsa {
 
   final List<Uri> _requisicoes = [];
   final List<_Sobrescrita> _sobrescritas = [];
+  final List<_Falha> _falhas = [];
 
   /// Todas as URIs requisitadas, na ordem.
   List<Uri> get requisicoes => List.unmodifiable(_requisicoes);
@@ -64,6 +73,13 @@ class ApiFalsa {
     _sobrescritas.add(_Sobrescrita(quando, status, fixture, corpo));
   }
 
+  /// As próximas [vezes] requisições cujo caminho começa com [caminho]
+  /// respondem [status] com um objeto JSON vazio no corpo; depois disso a rota
+  /// volta a responder normalmente.
+  void falharProximas(String caminho, {int status = 500, int vezes = 1}) {
+    _falhas.add(_Falha(caminho, status, vezes));
+  }
+
   Dio criarDio() {
     final dio = Dio(BaseOptions(baseUrl: urlBaseApiFalsa));
     dio.httpClientAdapter = _AdaptadorApiFalsa(this);
@@ -73,6 +89,13 @@ class ApiFalsa {
   Future<ResponseBody> _atender(Uri uri) async {
     _requisicoes.add(uri);
     if (latencia > Duration.zero) await Future<void>.delayed(latencia);
+
+    for (final falha in _falhas) {
+      if (falha.restantes > 0 && uri.path.startsWith(falha.caminho)) {
+        falha.restantes--;
+        return _corpoJson(const <String, Object?>{}, falha.status);
+      }
+    }
 
     for (final sobrescrita in _sobrescritas.reversed) {
       if (sobrescrita.quando(uri)) {
