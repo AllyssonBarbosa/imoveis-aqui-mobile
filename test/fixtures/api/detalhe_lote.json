@@ -1,0 +1,82 @@
+{
+  "id": 24,
+  "titulo": "Lote no bairro Barão Geraldo",
+  "natureza": "LOTE",
+  "finalidade": "VENDA",
+  "preco_venda": "235000.00",
+  "preco_aluguel": null,
+  "preco_condominio": null,
+  "preco_iptu": null,
+  "descricao": "Lote de demonstração em Campinas (Barão Geraldo), semeado para o desenvolvimento da vitrine.",
+  "caracteristicas": [
+    {
+      "id": 2,
+      "nome": "Churrasqueira"
+    },
+    {
+      "id": 5,
+      "nome": "Varanda gourmet"
+    }
+  ],
+  "casa": null,
+  "terreno": null,
+  "apartamento": null,
+  "lote": {
+    "numero": "24",
+    "area": "275.00",
+    "frente": "11.00",
+    "fundo": "25.00",
+    "entrada_minima": "23500.00",
+    "parcelas_maximas": 120,
+    "condicoes_parcelamento": "Correção anual pelo IPCA.",
+    "quadra": {
+      "identificacao": "B",
+      "loteamento": {
+        "nome": "Loteamento Jardim dos Ipês Campinas",
+        "incorporadora": "Incorporadora Verde Vale",
+        "asfalto": true,
+        "agua": true,
+        "energia": true,
+        "esgoto": true,
+        "iluminacao": true,
+        "areas_de_lazer": "Praça central, quadra poliesportiva e pista de caminhada."
+      }
+    }
+  },
+  "endereco": {
+    "logradouro": "Rua Barão de Itapura",
+    "numero": "261",
+    "bairro": "Barão Geraldo",
+    "cep": "13033-000",
+    "cidade": {
+      "id": 1,
+      "nome": "Campinas",
+      "uf": "SP"
+    },
+    "latitude": "-22.875700",
+    "longitude": "-47.090700"
+  },
+  "fotos": [
+    {
+      "imagem": "http://127.0.0.1:8000/media/imoveis/fotos/dev-campinas-24-1_rIG1rhB.jpg",
+      "ordem": 0,
+      "capa": true
+    },
+    {
+      "imagem": "http://127.0.0.1:8000/media/imoveis/fotos/dev-campinas-24-2_UIC0Z09.jpg",
+      "ordem": 1,
+      "capa": false
+    }
+  ],
+  "corretor_responsavel": {
+    "id": 1,
+    "empresa_id": 1,
+    "foto": "http://127.0.0.1:8000/media/corretores/fotos/corretor_oNKldeD.vitrine.demo.jpg",
+    "nome": "Corretor Vitrine Demo",
+    "email": "corretor.vitrine.demo@example.com",
+    "creci": "12345-F",
+    "telefone": "19988887777",
+    "whatsapp": "19988887777",
+    "apresentacao": "Corretor de demonstração da vitrine de desenvolvimento."
+  }
+}

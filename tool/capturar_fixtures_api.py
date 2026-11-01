@@ -5,11 +5,12 @@ Nenhuma fixture de wire é escrita à mão (D-02, D-18): o JSON é salvo exatame
 devolve (ensure_ascii=False, indent=2, quebra de linha final). Só biblioteca padrão.
 
 Uso:
-    python3 tool/capturar_fixtures_api.py [URL_BASE] [PASTA_SAIDA] [--grupo lista|todos]
+    python3 tool/capturar_fixtures_api.py [URL_BASE] [PASTA_SAIDA] [--grupo lista|detalhe|todos]
 
 Padrões: URL_BASE=http://127.0.0.1:8000, PASTA_SAIDA=test/fixtures/api, --grupo=todos.
 Grupos: `lista` (cidades, listas de Campinas, bairros, características e o 400 de natureza);
-`todos` equivale a `lista` nesta fase (o grupo `detalhe` entra no plano 05-07).
+`detalhe` (um detalhe por natureza, o sem fotos, o sem corretor e o 404 fora da vitrine; lê a
+lista de Campinas ao vivo e NÃO reescreve as fixtures de lista); `todos` = `lista` e depois `detalhe`.
 Sai com código 1 (e mensagem em português) quando alguma resposta esperada não é produzida.
 
 Procedimento de captura (NUNCA contra o banco do Web/.env; use um SQLite temporário):
@@ -24,7 +25,7 @@ Procedimento de captura (NUNCA contra o banco do Web/.env; use um SQLite tempor�
          .venv/bin/python manage.py runserver 127.0.0.1:8000 --noreload
      e aguarde `curl -sf http://127.0.0.1:8000/api/publico/cidades/` responder (até ~30 s).
   3. Na raiz do app:
-       python3 tool/capturar_fixtures_api.py http://127.0.0.1:8000 test/fixtures/api --grupo lista
+       python3 tool/capturar_fixtures_api.py http://127.0.0.1:8000 test/fixtures/api --grupo <grupo>
   4. Pare o servidor temporário e apague o SQLite temporário.
 
 Os ids são determinísticos para um banco novo semeado pelo mesmo comando.
@@ -126,7 +127,64 @@ def capturar_lista(base, pasta):
     salvar(pasta, "erro_400_natureza", erro)
 
 
-GRUPOS = {"lista": capturar_lista}
+def _itens_de_campinas(base):
+    """Itens da p1 e da p2 de Campinas lidos ao vivo (id de Campinas vem de /cidades/)."""
+    publico = f"{base}/api/publico"
+    cidades = obter(f"{publico}/cidades/")
+    campinas = next((c for c in cidades if c.get("nome") == "Campinas"), None)
+    if campinas is None:
+        raise ErroCaptura("Campinas não está em /api/publico/cidades/ (o seed rodou?).")
+    p1 = obter(f"{publico}/cidades/{campinas['id']}/imoveis/")
+    if not p1.get("next"):
+        raise ErroCaptura("A primeira página de Campinas deveria ter `next` (seed com 24 imóveis).")
+    p2 = obter(p1["next"])
+    return p1["results"] + p2["results"], p1["results"]
+
+
+def capturar_detalhe(base, pasta):
+    """Um detalhe por natureza, o sem fotos, o sem corretor e o 404 fora da vitrine."""
+    publico = f"{base}/api/publico"
+    itens, itens_p1 = _itens_de_campinas(base)
+
+    for natureza in ("CASA", "APARTAMENTO", "TERRENO", "LOTE"):
+        item = next(
+            (i for i in itens_p1 if i["natureza"] == natureza and i.get("foto_capa")), None
+        )
+        if item is None:
+            raise ErroCaptura(f"A p1 de Campinas não tem {natureza} com foto_capa.")
+        detalhe = obter(f"{publico}/imoveis/{item['id']}/")
+        if not detalhe.get("fotos"):
+            raise ErroCaptura(f"O detalhe {item['id']} ({natureza}) deveria ter fotos.")
+        if not detalhe.get("corretor_responsavel"):
+            raise ErroCaptura(f"O detalhe {item['id']} ({natureza}) deveria ter corretor.")
+        salvar(pasta, f"detalhe_{natureza.lower()}", detalhe)
+        print(f"  {natureza} = id {item['id']}")
+
+    sem_foto = next((i for i in itens if i.get("foto_capa") is None), None)
+    if sem_foto is None:
+        raise ErroCaptura("Nenhum item de Campinas (p1+p2) com foto_capa nula.")
+    detalhe = obter(f"{publico}/imoveis/{sem_foto['id']}/")
+    if detalhe.get("fotos") != []:
+        raise ErroCaptura(f"O detalhe {sem_foto['id']} deveria ter fotos vazio.")
+    salvar(pasta, "detalhe_sem_fotos", detalhe)
+    print(f"  sem fotos = id {sem_foto['id']}")
+
+    for item in itens:
+        detalhe = obter(f"{publico}/imoveis/{item['id']}/")
+        if detalhe.get("corretor_responsavel") is None:
+            salvar(pasta, "detalhe_sem_corretor", detalhe)
+            print(f"  sem corretor = id {item['id']}")
+            break
+    else:
+        raise ErroCaptura("Nenhum detalhe de Campinas (p1+p2) com corretor_responsavel nulo.")
+
+    erro = obter(f"{publico}/imoveis/999999/", status_esperado=404)
+    if "detail" not in erro:
+        raise ErroCaptura("O 404 do detalhe deveria trazer a chave `detail`.")
+    salvar(pasta, "erro_404_detalhe", erro)
+
+
+GRUPOS = {"lista": capturar_lista, "detalhe": capturar_detalhe}
 
 
 def main():
@@ -137,9 +195,9 @@ def main():
     analisador.add_argument("pasta_saida", nargs="?", default="test/fixtures/api")
     analisador.add_argument(
         "--grupo",
-        choices=["lista", "todos"],
+        choices=["lista", "detalhe", "todos"],
         default="todos",
-        help="`lista` (lista e opções) ou `todos` (equivale a `lista` nesta fase).",
+        help="`lista` (lista e opções), `detalhe` (detalhes) ou `todos` (lista e depois detalhe).",
     )
     argumentos = analisador.parse_args()
 
