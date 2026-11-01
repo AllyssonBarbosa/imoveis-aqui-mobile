@@ -19,6 +19,10 @@ class OpcoesFiltroRepositoryImpl implements OpcoesFiltroRepository {
     try {
       final bairros = await _dataSource.bairros(cidade);
       return Result.success(bairros);
+    } on TypeError catch (erro) {
+      return Result.failure(
+        FormatException('opções de filtro malformadas: $erro'),
+      );
     } on Exception catch (erro) {
       return Result.failure(erro);
     }
@@ -32,6 +36,10 @@ class OpcoesFiltroRepositoryImpl implements OpcoesFiltroRepository {
       return Result.success([
         for (final caracteristica in caracteristicas) caracteristica.nome,
       ]);
+    } on TypeError catch (erro) {
+      return Result.failure(
+        FormatException('opções de filtro malformadas: $erro'),
+      );
     } on Exception catch (erro) {
       return Result.failure(erro);
     }

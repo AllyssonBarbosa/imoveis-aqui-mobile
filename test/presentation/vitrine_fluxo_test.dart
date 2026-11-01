@@ -893,6 +893,53 @@ void main() {
     );
 
     testWidgets(
+      'Filtros com o catálogo de características fora do ar mostra "Tentar '
+      'de novo" só nessa seção; tocar recarrega apenas as características e '
+      'os bairros não são pedidos de novo (F3/D-20)',
+      (tester) async {
+        final apiFalsa = ApiFalsa()
+          ..falharProximas('/api/publico/caracteristicas/');
+        await pumpVitrineApi(tester, apiFalsa);
+
+        await abrirFiltros(tester);
+        final tentarDeNovo = find.text('Tentar de novo');
+        await tester.ensureVisible(tentarDeNovo);
+
+        expect(
+          find.text('Não foi possível carregar as características'),
+          findsOneWidget,
+        );
+        expect(tentarDeNovo, findsOneWidget);
+        expect(find.text('Não foi possível carregar os bairros'), findsNothing);
+
+        await tester.tap(tentarDeNovo);
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Não foi possível carregar as características'),
+          findsNothing,
+        );
+        final nomesDoCatalogo =
+            (lerFixtureApi('caracteristicas.json')! as List<Object?>)
+                .cast<Map<String, Object?>>()
+                .map((linha) => linha['nome']! as String);
+        for (final nome in nomesDoCatalogo) {
+          await tester.ensureVisible(find.widgetWithText(FilterChip, nome));
+          expect(find.widgetWithText(FilterChip, nome), findsOneWidget);
+        }
+        final caminhos = apiFalsa.requisicoes.map((uri) => uri.path);
+        expect(
+          caminhos.where((c) => c == '/api/publico/caracteristicas/'),
+          hasLength(2),
+        );
+        expect(
+          caminhos.where((c) => c.endsWith('/bairros/')),
+          hasLength(1),
+        );
+      },
+    );
+
+    testWidgets(
       'aplicar Venda + "2+" quartos + bairro Cambuí em Campinas e trocar '
       'para Valinhos: a requisição do id de Valinhos mantém finalidade e '
       'quartos, sem bairro; busca/ordenação voltam ao padrão (FIL-06, '

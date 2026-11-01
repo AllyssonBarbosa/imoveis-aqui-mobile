@@ -50,6 +50,18 @@ void main() {
 
       expect(resultado, isA<Failure<List<String>>>());
     });
+
+    test('TypeError do datasource vira Failure com FormatException', () async {
+      when(() => dataSource.bairros(any())).thenThrow(TypeError());
+
+      final resultado = await repositorio.bairrosDaCidade(campinas);
+
+      expect(resultado, isA<Failure<List<String>>>());
+      expect(
+        (resultado as Failure<List<String>>).erro,
+        isA<FormatException>(),
+      );
+    });
   });
 
   group('caracteristicas', () {
@@ -80,6 +92,18 @@ void main() {
       final resultado = await repositorio.caracteristicas();
 
       expect(resultado, isA<Failure<List<String>>>());
+    });
+
+    test('TypeError do datasource vira Failure com FormatException', () async {
+      when(() => dataSource.caracteristicas()).thenThrow(TypeError());
+
+      final resultado = await repositorio.caracteristicas();
+
+      expect(resultado, isA<Failure<List<String>>>());
+      expect(
+        (resultado as Failure<List<String>>).erro,
+        isA<FormatException>(),
+      );
     });
   });
 }
