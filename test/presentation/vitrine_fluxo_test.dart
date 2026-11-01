@@ -1071,5 +1071,56 @@ void main() {
         expect(posicaoDepois, 0);
       },
     );
+
+    testWidgets(
+      'Filtros -> Casa + Lote -> Ver imóveis envia natureza=CASA,LOTE e a '
+      'tela mostra exatamente os cards da resposta capturada (FIL-02, D-07, '
+      'D-12, D-14)',
+      (tester) async {
+        final apiFalsa = ApiFalsa()
+          ..responder(
+            (uri) => uri.queryParameters['natureza'] == 'CASA,LOTE',
+            status: 200,
+            fixture: 'lista_campinas_casa_lote.json',
+          );
+        final idsCasaLote = idsDaFixture('lista_campinas_casa_lote.json');
+        await pumpVitrineApi(tester, apiFalsa);
+
+        await tester.tap(find.text('Filtros'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.widgetWithText(FilterChip, 'Casa'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.widgetWithText(FilterChip, 'Lote'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Ver imóveis'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 50));
+        await tester.pump();
+
+        final requisicao = apiFalsa.ultimaRequisicaoDaLista!;
+        expect(
+          requisicao.path,
+          '/api/publico/cidades/${campinasDaApi.id}/imoveis/',
+        );
+        expect(requisicao.queryParameters['natureza'], 'CASA,LOTE');
+        expect(requisicao.queryParameters['ordenar'], 'recentes');
+        expect(requisicao.queryParameters.containsKey('cidade'), isFalse);
+
+        expect(find.widgetWithText(InputChip, 'Casa, Lote'), findsOneWidget);
+        expect(find.textContaining('Filtros (1)'), findsOneWidget);
+
+        // O app mostra o que o servidor devolveu, na ordem em que devolveu.
+        final conteudo = vitrineCubitDe(tester).state.conteudo
+            as VitrineCarregada;
+        expect(conteudo.itens.map((i) => i.id).toList(), idsCasaLote);
+        final idsNosCards = tester
+            .widgetList<ImovelCard>(find.byType(ImovelCard))
+            .map((card) => card.imovel.id)
+            .toList();
+        expect(idsNosCards, isNotEmpty);
+        expect(idsNosCards.first, idsCasaLote.first);
+        expect(idsCasaLote, containsAll(idsNosCards));
+      },
+    );
   });
 }

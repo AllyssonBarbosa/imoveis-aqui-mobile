@@ -16,9 +16,11 @@ String caminhoImoveisDaCidade(int cidadeId) =>
     '/api/publico/cidades/$cidadeId/imoveis/';
 
 /// Mapeia [ConsultaImoveis] para os query params da API real (W09, D-12).
-/// Nesta etapa `ordenar` e `busca` (só quando não vazia após `trim`); os
-/// filtros entram nos planos seguintes. Não há `cidade`: o id já vai em
-/// [caminhoImoveisDaCidade].
+/// `ordenar` sempre; `busca` só quando não vazia após `trim`; cada filtro de
+/// [FiltrosVitrine] só aparece quando o campo está ativo (Set vazio e campo
+/// nulo não geram chave). Não há `cidade`: o id já vai em
+/// [caminhoImoveisDaCidade]. Ainda não há `caracteristicas`: elas viajam por
+/// id e entram no plano 05-15 (D-13).
 Map<String, String> parametrosDaApi(ConsultaImoveis consulta) {
   final params = <String, String>{
     'ordenar': _valorOrdenar(consulta.ordenacao),
@@ -27,6 +29,39 @@ Map<String, String> parametrosDaApi(ConsultaImoveis consulta) {
   if (busca != null && busca.isNotEmpty) {
     params['busca'] = busca;
   }
+  final filtros = consulta.filtros;
+  final finalidade = filtros.finalidade;
+  if (finalidade != null) {
+    params['finalidade'] = switch (finalidade) {
+      FinalidadeFiltro.venda => 'VENDA',
+      FinalidadeFiltro.aluguel => 'ALUGUEL',
+    };
+  }
+  if (filtros.naturezas.isNotEmpty) {
+    // Ordem do ENUM, nunca a ordem de iteração do Set — a mesma escolha
+    // sempre gera a mesma URL (D-07).
+    params['natureza'] = NaturezaImovel.values
+        .where(filtros.naturezas.contains)
+        .map(valorWireDaNatureza)
+        .join(',');
+  }
+  final quartosMin = filtros.quartosMin;
+  if (quartosMin != null) params['quartos'] = '$quartosMin';
+  final suitesMin = filtros.suitesMin;
+  if (suitesMin != null) params['suites'] = '$suitesMin';
+  final vagasMin = filtros.vagasMin;
+  if (vagasMin != null) params['vagas'] = '$vagasMin';
+  if (filtros.bairros.isNotEmpty) {
+    params['bairro'] = _paraCsvOrdenado(filtros.bairros);
+  }
+  final precoMin = filtros.precoMin;
+  if (precoMin != null) params['preco_min'] = '$precoMin';
+  final precoMax = filtros.precoMax;
+  if (precoMax != null) params['preco_max'] = '$precoMax';
+  final areaMin = filtros.areaMin;
+  if (areaMin != null) params['area_min'] = '$areaMin';
+  final areaMax = filtros.areaMax;
+  if (areaMax != null) params['area_max'] = '$areaMax';
   return params;
 }
 

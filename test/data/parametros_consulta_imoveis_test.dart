@@ -420,6 +420,111 @@ void main() {
       expect(nula.containsKey('busca'), isFalse);
     });
 
+    test('finalidade vira VENDA ou ALUGUEL', () {
+      final venda = parametrosDaApi(
+        const ConsultaImoveis(
+          cidade: campinasComId,
+          filtros: FiltrosVitrine(finalidade: FinalidadeFiltro.venda),
+        ),
+      );
+      final aluguel = parametrosDaApi(
+        const ConsultaImoveis(
+          cidade: campinasComId,
+          filtros: FiltrosVitrine(finalidade: FinalidadeFiltro.aluguel),
+        ),
+      );
+
+      expect(venda['finalidade'], 'VENDA');
+      expect(aluguel['finalidade'], 'ALUGUEL');
+    });
+
+    test(
+      'naturezas saem em CSV na ordem do enum (LOTE incluso), independente '
+      'da ordem de inserção no Set',
+      () {
+        final params = parametrosDaApi(
+          const ConsultaImoveis(
+            cidade: campinasComId,
+            filtros: FiltrosVitrine(
+              naturezas: {
+                NaturezaImovel.lote,
+                NaturezaImovel.apartamento,
+                NaturezaImovel.casa,
+              },
+            ),
+          ),
+        );
+
+        expect(params['natureza'], 'CASA,APARTAMENTO,LOTE');
+      },
+    );
+
+    test('quartos, suites e vagas levam o mínimo com os nomes da W09', () {
+      final params = parametrosDaApi(
+        const ConsultaImoveis(
+          cidade: campinasComId,
+          filtros: FiltrosVitrine(quartosMin: 2, suitesMin: 1, vagasMin: 0),
+        ),
+      );
+
+      expect(params['quartos'], '2');
+      expect(params['suites'], '1');
+      expect(params['vagas'], '0');
+      expect(params.containsKey('quartos_min'), isFalse);
+      expect(params.containsKey('suites_min'), isFalse);
+      expect(params.containsKey('vagas_min'), isFalse);
+    });
+
+    test('bairros saem em CSV ordenado por normalizarTexto', () {
+      final params = parametrosDaApi(
+        const ConsultaImoveis(
+          cidade: campinasComId,
+          filtros: FiltrosVitrine(bairros: {'Taquaral', 'Cambuí', 'Barão'}),
+        ),
+      );
+
+      expect(params['bairro'], 'Barão,Cambuí,Taquaral');
+    });
+
+    test('faixas de preço e área levam os quatro nomes da W09', () {
+      final params = parametrosDaApi(
+        const ConsultaImoveis(
+          cidade: campinasComId,
+          filtros: FiltrosVitrine(
+            finalidade: FinalidadeFiltro.venda,
+            precoMin: 250000,
+            precoMax: 300000,
+            areaMin: 80,
+            areaMax: 120,
+          ),
+        ),
+      );
+
+      expect(params['preco_min'], '250000');
+      expect(params['preco_max'], '300000');
+      expect(params['area_min'], '80');
+      expect(params['area_max'], '120');
+    });
+
+    test('características não viajam nesta etapa (ids entram no 05-15)', () {
+      final params = parametrosDaApi(
+        const ConsultaImoveis(
+          cidade: campinasComId,
+          filtros: FiltrosVitrine(caracteristicas: {'Piscina'}),
+        ),
+      );
+
+      expect(params.containsKey('caracteristicas'), isFalse);
+    });
+
+    test('sem filtros só vai ordenar: Set vazio e campo nulo não geram chave', () {
+      final params = parametrosDaApi(
+        const ConsultaImoveis(cidade: campinasComId),
+      );
+
+      expect(params, {'ordenar': 'recentes'});
+    });
+
     test('caminhoImoveisDaCidade põe o id no caminho', () {
       expect(caminhoImoveisDaCidade(7), '/api/publico/cidades/7/imoveis/');
     });
