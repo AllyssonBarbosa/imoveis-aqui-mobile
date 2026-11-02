@@ -911,6 +911,38 @@ void main() {
       },
     );
 
+    // Invariante (D-13, D-08): toda característica do catálogo capturado,
+    // marcada sozinha e aplicada, vai à consulta como o seu id e volta ao
+    // chip como o seu nome. Um teste por entrada do caracteristicas.json.
+    for (final linha
+        in (lerFixtureApi('caracteristicas.json')! as List<Object?>)
+            .cast<Map<String, Object?>>()) {
+      final id = linha['id']! as int;
+      final nome = linha['nome']! as String;
+      testWidgets(
+        'característica "$nome" marcada sozinha envia caracteristicas=$id e '
+        'o chip mostra "$nome" (D-13, D-08)',
+        (tester) async {
+          final apiFalsa = ApiFalsa();
+          await pumpVitrineApi(tester, apiFalsa);
+
+          await abrirFiltros(tester);
+          final chipDoSheet = find.widgetWithText(FilterChip, nome);
+          await tester.ensureVisible(chipDoSheet);
+          await tester.tap(chipDoSheet);
+          await tester.pumpAndSettle();
+          await verImoveis(tester);
+
+          expect(
+            apiFalsa.ultimaRequisicaoDaLista!.queryParameters['caracteristicas'],
+            '$id',
+          );
+          expect(find.widgetWithText(InputChip, nome), findsOneWidget);
+          expect(find.textContaining('Filtros (1)'), findsOneWidget);
+        },
+      );
+    }
+
     testWidgets(
       'Filtros com o catálogo de características fora do ar mostra "Tentar '
       'de novo" só nessa seção; tocar recarrega apenas as características e '
