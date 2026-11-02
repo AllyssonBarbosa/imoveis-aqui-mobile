@@ -174,6 +174,49 @@ void main() {
       expect(erroDe(resultado), isA<FormatException>());
     });
 
+    test(
+      '200 com foto sem ordem (cópia da captura) chega como '
+      'Failure(FormatException)',
+      () async {
+        final corpo = casaCapturada();
+        final fotos = (corpo['fotos']! as List<Object?>)
+            .cast<Map<String, Object?>>();
+        corpo['fotos'] = [
+          Map<String, Object?>.of(fotos.first)..remove('ordem'),
+          ...fotos.skip(1),
+        ];
+        apiFalsa.responder(
+          (uri) => uri.path == '/api/publico/imoveis/21/',
+          status: 200,
+          corpo: corpo,
+        );
+
+        final resultado = await repositorio.buscarDetalhe(21);
+
+        expect(erroDe(resultado), isA<FormatException>());
+      },
+    );
+
+    test('200 com endereco sem logradouro, número e CEP ainda é Success', () async {
+      final corpo = casaCapturada();
+      corpo['endereco'] = {
+        ...(corpo['endereco']! as Map<String, Object?>),
+        'logradouro': null,
+        'numero': null,
+        'cep': null,
+      };
+      apiFalsa.responder(
+        (uri) => uri.path == '/api/publico/imoveis/21/',
+        status: 200,
+        corpo: corpo,
+      );
+
+      final resultado = await repositorio.buscarDetalhe(21);
+
+      expect(resultado, isA<Success<DetalheImovel>>());
+      expect((resultado as Success<DetalheImovel>).data.cidade?.nome, 'Campinas');
+    });
+
     test('200 com corpo que não é objeto chega como FormatException', () async {
       apiFalsa.responder(
         (uri) => uri.path == '/api/publico/imoveis/21/',
