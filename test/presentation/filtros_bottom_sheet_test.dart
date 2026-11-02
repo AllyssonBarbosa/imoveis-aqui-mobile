@@ -934,7 +934,7 @@ void main() {
       (tester) async {
         await abrirSheet(
           tester,
-          aplicados: const FiltrosVitrine(caracteristicas: {'Piscina'}),
+          aplicados: FiltrosVitrine(caracteristicas: {_piscina}),
           aoAplicar: (_) {},
           opcoesCubit: opcoesComEstado(
             caracteristicas: [_churrasqueira, _piscina],
@@ -985,7 +985,7 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(chamadas, 1);
-        expect(aplicado, const FiltrosVitrine(caracteristicas: {'Piscina'}));
+        expect(aplicado, FiltrosVitrine(caracteristicas: {_piscina}));
       },
     );
 

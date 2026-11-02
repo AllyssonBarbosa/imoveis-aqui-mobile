@@ -845,9 +845,10 @@ void main() {
     );
 
     testWidgets(
-      'Filtros -> marcar Piscina e Churrasqueira mostra o chip "Piscina +1" '
-      'e pede de novo a primeira página da nova consulta; os ids de '
-      'características viajam no plano 05-15 (FIL-04, D-16)',
+      'Filtros -> marcar Piscina e Churrasqueira mostra o chip "Churrasqueira '
+      '+1" (nomes em ordem alfabética) e pede de novo a primeira página com '
+      'os ids das duas em caracteristicas, nunca os nomes (FIL-04, D-13, '
+      'D-16)',
       (tester) async {
         final apiFalsa = ApiFalsa();
         await pumpVitrineApi(tester, apiFalsa);
@@ -879,7 +880,10 @@ void main() {
         await tester.pumpAndSettle();
         await verImoveis(tester);
 
-        expect(find.widgetWithText(InputChip, 'Piscina +1'), findsOneWidget);
+        expect(
+          find.widgetWithText(InputChip, 'Churrasqueira +1'),
+          findsOneWidget,
+        );
         expect(find.textContaining('Filtros (1)'), findsOneWidget);
         expect(requisicoesDaLista(), antes + 1);
         final requisicao = apiFalsa.ultimaRequisicaoDaLista!;
@@ -888,6 +892,21 @@ void main() {
           '/api/publico/cidades/${campinasDaApi.id}/imoveis/',
         );
         expect(requisicao.queryParameters.containsKey('page'), isFalse);
+        // Os ids vêm de caracteristicas.json, em ordem crescente.
+        final idsDoCatalogo = {
+          for (final linha
+              in (lerFixtureApi('caracteristicas.json')! as List<Object?>)
+                  .cast<Map<String, Object?>>())
+            linha['nome']! as String: linha['id']! as int,
+        };
+        final idsEsperados = [
+          idsDoCatalogo['Piscina']!,
+          idsDoCatalogo['Churrasqueira']!,
+        ]..sort();
+        expect(
+          requisicao.queryParameters['caracteristicas'],
+          idsEsperados.join(','),
+        );
         expect(idsNaTela(tester).first, idsP1.first);
       },
     );

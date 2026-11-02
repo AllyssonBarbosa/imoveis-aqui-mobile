@@ -18,8 +18,8 @@ String caminhoImoveisDaCidade(int cidadeId) =>
 /// `ordenar` sempre; `busca` só quando não vazia após `trim`; cada filtro de
 /// [FiltrosVitrine] só aparece quando o campo está ativo (Set vazio e campo
 /// nulo não geram chave). Não há `cidade`: o id já vai em
-/// [caminhoImoveisDaCidade]. Ainda não há `caracteristicas`: elas viajam por
-/// id e entram no plano 05-15 (D-13).
+/// [caminhoImoveisDaCidade]. `caracteristicas` viaja por id, nunca por nome
+/// (D-13): CSV dos ids em ordem crescente.
 Map<String, String> parametrosDaApi(ConsultaImoveis consulta) {
   final params = <String, String>{
     'ordenar': _valorOrdenar(consulta.ordenacao),
@@ -52,6 +52,12 @@ Map<String, String> parametrosDaApi(ConsultaImoveis consulta) {
   if (vagasMin != null) params['vagas'] = '$vagasMin';
   if (filtros.bairros.isNotEmpty) {
     params['bairro'] = _paraCsvOrdenado(filtros.bairros);
+  }
+  if (filtros.caracteristicas.isNotEmpty) {
+    // Só `int` de entidades já parseadas; ordem crescente para a mesma
+    // seleção gerar sempre a mesma URL (D-07, D-13).
+    final ids = [for (final c in filtros.caracteristicas) c.id]..sort();
+    params['caracteristicas'] = ids.join(',');
   }
   final precoMin = filtros.precoMin;
   if (precoMin != null) params['preco_min'] = '$precoMin';

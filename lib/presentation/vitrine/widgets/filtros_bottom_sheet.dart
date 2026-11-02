@@ -645,15 +645,13 @@ class _SecaoCaracteristicas extends StatelessWidget {
                         for (final caracteristica in opcoes)
                           FilterChip(
                             label: Text(caracteristica.nome),
-                            // Ponte até o 05-15: o rascunho ainda guarda o
-                            // nome; ele passa a guardar a Caracteristica (id).
                             selected: rascunho.caracteristicas.contains(
-                              caracteristica.nome,
+                              caracteristica,
                             ),
                             onSelected: (marcada) => context
                                 .read<RascunhoFiltrosCubit>()
                                 .alternarCaracteristica(
-                                  caracteristica.nome,
+                                  caracteristica,
                                   marcada: marcada,
                                 ),
                           ),

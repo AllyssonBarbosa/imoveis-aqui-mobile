@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:imoveis_aqui/domain/entities/caracteristica.dart';
 import 'package:imoveis_aqui/domain/entities/cidade.dart';
 import 'package:imoveis_aqui/domain/entities/filtros_vitrine.dart';
 import 'package:imoveis_aqui/domain/entities/imovel.dart';
@@ -41,7 +42,7 @@ void main() {
       'limpos, mantendo todos os demais campos gerais (D-14)',
       () {
         final sessao = SessaoFiltrosVitrine();
-        const filtros = FiltrosVitrine(
+        final filtros = FiltrosVitrine(
           finalidade: FinalidadeFiltro.venda,
           naturezas: {NaturezaImovel.casa},
           precoMin: 200000,
@@ -52,7 +53,7 @@ void main() {
           bairros: {'Cambuí'},
           areaMin: 80,
           areaMax: 200,
-          caracteristicas: {'Piscina'},
+          caracteristicas: {Caracteristica(id: 1, nome: 'Piscina')},
         );
 
         sessao.lembrar(campinas, filtros);

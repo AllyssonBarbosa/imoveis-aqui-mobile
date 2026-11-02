@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'caracteristica.dart';
 import 'imovel.dart';
 
 part 'filtros_vitrine.freezed.dart';
@@ -55,8 +56,9 @@ abstract class FiltrosVitrine with _$FiltrosVitrine {
     int? areaMin,
     int? areaMax,
 
-    /// E entre valores (D-04) — o imóvel precisa ter TODAS as marcadas.
-    @Default(<String>{}) Set<String> caracteristicas,
+    /// E entre valores (D-04) — o imóvel precisa ter TODAS as marcadas; o
+    /// servidor recebe os ids (D-13), o nome é só para mostrar.
+    @Default(<Caracteristica>{}) Set<Caracteristica> caracteristicas,
   }) = _FiltrosVitrine;
 
   const FiltrosVitrine._();

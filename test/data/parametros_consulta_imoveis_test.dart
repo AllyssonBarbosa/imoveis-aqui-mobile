@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/data/datasources/parametros_consulta_imoveis.dart';
+import 'package:imoveis_aqui/domain/entities/caracteristica.dart';
 import 'package:imoveis_aqui/domain/entities/cidade.dart';
 import 'package:imoveis_aqui/domain/entities/consulta_imoveis.dart';
 import 'package:imoveis_aqui/domain/entities/filtros_vitrine.dart';
@@ -138,12 +139,40 @@ void main() {
       expect(params['area_max'], '120');
     });
 
-    test('características não viajam nesta etapa (ids entram no 05-15)', () {
+    test('características viajam como CSV de ids em ordem crescente (D-13)', () {
       final params = parametrosDaApi(
-        const ConsultaImoveis(
+        ConsultaImoveis(
           cidade: campinasComId,
-          filtros: FiltrosVitrine(caracteristicas: {'Piscina'}),
+          filtros: FiltrosVitrine(
+            caracteristicas: {
+              Caracteristica(id: 10, nome: 'Varanda gourmet'),
+              Caracteristica(id: 2, nome: 'Churrasqueira'),
+              Caracteristica(id: 1, nome: 'Piscina'),
+            },
+          ),
         ),
+      );
+
+      // Ordem numérica (2 antes de 10), nunca lexicográfica, e nunca o nome.
+      expect(params['caracteristicas'], '1,2,10');
+    });
+
+    test('característica com vírgula no nome ainda viaja só pelo id (D-13)', () {
+      final params = parametrosDaApi(
+        ConsultaImoveis(
+          cidade: campinasComId,
+          filtros: FiltrosVitrine(
+            caracteristicas: {Caracteristica(id: 5, nome: 'Sol, vista mar')},
+          ),
+        ),
+      );
+
+      expect(params['caracteristicas'], '5');
+    });
+
+    test('sem características a chave não aparece', () {
+      final params = parametrosDaApi(
+        const ConsultaImoveis(cidade: campinasComId),
       );
 
       expect(params.containsKey('caracteristicas'), isFalse);
