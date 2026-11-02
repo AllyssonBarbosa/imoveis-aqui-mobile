@@ -191,7 +191,7 @@ Plans:
   4. O app troca as DataSources mock pelas reais via injeção de dependência; a adaptação ao formato real fica concentrada em data/ e UI, Cubits e domain/ mudam só o mínimo necessário (D-01); de ponta a ponta, o visitante vê, busca, ordena e filtra imóveis reais na vitrine.
   5. O detalhe (`GET /api/publico/imoveis/{id}/`) também passa a vir da API real, incluindo os dados de natureza, e a página do imóvel da Phase 4 funciona ponta a ponta.
 
-**Plans**: 17/18 plans executed
+**Plans**: 18/18 plans executed
 Plans:
 **Wave 1**
 
@@ -251,7 +251,7 @@ Plans:
 
 **Wave 14** *(blocked on Wave 13 completion)*
 
-- [ ] 05-18-PLAN.md — Fechamento: contrato e exemplos = respostas reais + testes de contrato, rota real e critérios 3/4 em REQUIREMENTS/ROADMAP, README, gates dos dois repos, roteiro E2E (API-03, API-07)
+- [x] 05-18-PLAN.md — Fechamento: contrato e exemplos = respostas reais + testes de contrato, rota real e critérios 3/4 em REQUIREMENTS/ROADMAP, README, gates dos dois repos, roteiro E2E (API-03, API-07)
 
 ## Progress
 
@@ -264,4 +264,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Vitrine — Lista, Busca e Ordenação | 5/5 | In Progress|  |
 | 3. Vitrine — Filtros Server-Side | 5/5 | In Progress|  |
 | 4. Página do Imóvel — Galeria e Dados da Natureza | 8/8 | In Progress|  |
-| 5. Imóveis Real — Endpoint Público e Integração Final | 17/18 | In Progress|  |
+| 5. Imóveis Real — Endpoint Público e Integração Final | 18/18 | In Progress|  |

@@ -2,17 +2,17 @@
 gsd_state_version: "1.0"
 current_phase: 05
 current_phase_name: Imóveis Real — Endpoint Público e Integração Final
-status: executing
-stopped_at: Completed 05-17-PLAN.md
-last_updated: "2026-11-02T00:43:40.627Z"
+status: verifying
+stopped_at: Completed 05-18-PLAN.md
+last_updated: "2026-11-02T01:37:15.119Z"
 last_activity: 2026-10-30
 last_activity_desc: Phase 05 execution started
-state_head: 10a22347f48f1c5548ad9d6406811bf8a535c838
+state_head: 10e7580d8311d2fb48c159b1667b2ea1e26297a9
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 40
-  completed_plans: 39
+  completed_plans: 40
   percent: 0
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-21)
 
 Phase: 05 (Imóveis Real — Endpoint Público e Integração Final) — EXECUTING
 Plan: 18 of 18
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-10-30 — Phase 05 execution started
 
 Progress: [░░░░░░░░░░] 0%
@@ -90,6 +90,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 05 P15 | 20min | 2 tasks | 13 files |
 | Phase 05 P16 | 25min | 2 tasks | 9 files |
 | Phase 05 P17 | 40min | 2 tasks | 8 files |
+| Phase 05 P18 | 35min | 3 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -131,6 +132,7 @@ Recent decisions affecting current work:
 - [Phase 05]: 05-12: dominio segue com nomes de caracteristica; repositorio mapeia CaracteristicaModel -> nome ate 05-13/05-15
 - [Phase 05]: 05-14: DetalheImovel.cidade nula; Model le endereco completo mas a pagina mostra so bairro · cidade, UF; CorretorModel so id/nome/foto
 - [Phase 05]: 05-17: infraestrutura do lote = booleanos verdadeiros traduzidos em data/ (ordem fixa); areas_de_lazer texto corrido; codigos de posicao solar/uso permitido rotulados em presentation/ (A-03, A-04)
+- [Phase 05]: 05-18: contrato reescrito para o formato real; PENDENTE web: IPTU, LGPD de contato do corretor e empresa_id
 
 ### Pending Todos
 
@@ -159,6 +161,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-02T00:43:40.588Z
-Stopped at: Completed 05-17-PLAN.md
+Last session: 2026-11-02T01:37:15.079Z
+Stopped at: Completed 05-18-PLAN.md
 Resume file: None
