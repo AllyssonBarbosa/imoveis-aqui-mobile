@@ -140,6 +140,58 @@ python3 tool/capturar_fixtures_api.py http://127.0.0.1:8000 test/fixtures/api --
 Depois, copie as fixtures para os exemplos do contrato (tabela no §12 do `01-CONTRATO-API.md`) e rode
 `flutter test`.
 
+### Verificação ponta a ponta (emulador)
+
+Só um emulador ou simulador contra o Django semeado prova a integração de verdade (rede, imagens,
+rolagem, latência). Desktop e web **não** servem: o projeto não tem a pasta `macos/` e a API não tem CORS.
+
+1. Suba a API (veja "Subir o Django" acima), com o banco migrado e semeado:
+
+   ```bash
+   cd ../imoveis-aqui/Web
+   .venv/bin/python manage.py runserver 0.0.0.0:8000
+   ```
+
+2. Rode o app:
+
+   - **Android** (AVD `Medium_Phone_API_36.0`, base URL padrão `http://10.0.2.2:8000`):
+
+     ```bash
+     flutter emulators --launch Medium_Phone_API_36.0
+     flutter run
+     ```
+
+   - **iOS** (simulador iOS 17.5):
+
+     ```bash
+     open -a Simulator
+     flutter run --dart-define=API_BASE_URL=http://127.0.0.1:8000
+     ```
+
+3. Roteiro (o que deve aparecer entre parênteses):
+   1. Escolha Campinas (ou deixe a localização escolher) e role a lista inteira (imóveis semeados com
+      fotos geradas em cores; duas páginas, sem cards repetidos).
+   2. Busque `Cambuí` e depois uma palavra que não casa com nada (cards correspondentes; depois o estado
+      sem resultado).
+   3. Ordene por "Maior preço" (o mais caro primeiro).
+   4. Abra "Filtros": marque Casa e Lote, um bairro, "Piscina" e uma faixa de preço; aplique; remova um
+      chip; toque em "Limpar filtros" (o servidor responde a cada combinação; chips e contador
+      acompanham; "Limpar filtros" volta à lista completa).
+   5. Abra uma casa, um apartamento, um terreno e um lote (galeria começando pela capa com "N/M"; preços
+      com condomínio/IPTU; "Sobre a casa"; "Sobre o apartamento" com o cartão do prédio e "Ano de
+      construção"; "Sobre o terreno" com "Lateral esquerda" e "Lateral direita" e "Uso permitido" em
+      português; "Sobre o lote" com "Entrada mínima", "Parcelas máximas" e o cartão "Quadra e loteamento",
+      sem "Preço do lote"; posição solar em português). No lote, toque no cartão do corretor e volte (o
+      perfil mostra só nome e foto).
+   6. Abra o imóvel sem fotos e o sem corretor (placeholder sem contador; sem a seção "Corretor
+      responsável").
+   7. Troque para Valinhos com um filtro ativo (a lista de Valinhos mantém o filtro e os bairros
+      escolhidos são limpos).
+
+   Textos e layout devem ler naturalmente em português a 360 dp, em Material 3 verde e branco.
+
+4. Ao terminar, pare o `runserver` (Ctrl+C).
+
 ## Testes e análise
 
 ```bash
