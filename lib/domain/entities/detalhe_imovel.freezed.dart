@@ -664,7 +664,7 @@ as bool,
 /// @nodoc
 mixin _$CorretorResponsavel {
 
- int get id; String get nome; String? get foto; String? get slug;
+ int get id; String get nome; String? get foto;
 /// Create a copy of CorretorResponsavel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -676,20 +676,20 @@ $CorretorResponsavelCopyWith<CorretorResponsavel> get copyWith => _$CorretorResp
 @override
 bool operator ==(Object other) {
   final _this = this as CorretorResponsavel;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CorretorResponsavel&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.nome, _this.nome) || other.nome == _this.nome)&&(identical(other.foto, _this.foto) || other.foto == _this.foto)&&(identical(other.slug, _this.slug) || other.slug == _this.slug));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CorretorResponsavel&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.nome, _this.nome) || other.nome == _this.nome)&&(identical(other.foto, _this.foto) || other.foto == _this.foto));
 }
 
 
 @override
 int get hashCode {
   final _this = this as CorretorResponsavel;
-  return Object.hash(runtimeType,_this.id,_this.nome,_this.foto,_this.slug);
+  return Object.hash(runtimeType,_this.id,_this.nome,_this.foto);
 }
 
 @override
 String toString() {
   final _this = this as CorretorResponsavel;
-  return 'CorretorResponsavel(id: ${_this.id}, nome: ${_this.nome}, foto: ${_this.foto}, slug: ${_this.slug})';
+  return 'CorretorResponsavel(id: ${_this.id}, nome: ${_this.nome}, foto: ${_this.foto})';
 }
 
 
@@ -700,7 +700,7 @@ abstract mixin class $CorretorResponsavelCopyWith<$Res>  {
   factory $CorretorResponsavelCopyWith(CorretorResponsavel value, $Res Function(CorretorResponsavel) _then) = _$CorretorResponsavelCopyWithImpl;
 @useResult
 $Res call({
- int id, String nome, String? foto, String? slug
+ int id, String nome, String? foto
 });
 
 
@@ -717,12 +717,11 @@ class _$CorretorResponsavelCopyWithImpl<$Res>
 
 /// Create a copy of CorretorResponsavel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? nome = null,Object? foto = freezed,Object? slug = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? nome = null,Object? foto = freezed,}) {
   return _then(CorretorResponsavel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,nome: null == nome ? _self.nome : nome // ignore: cast_nullable_to_non_nullable
 as String,foto: freezed == foto ? _self.foto : foto // ignore: cast_nullable_to_non_nullable
-as String?,slug: freezed == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -808,10 +807,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String nome,  String? foto,  String? slug)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String nome,  String? foto)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CorretorResponsavel() when $default != null:
-return $default(_that.id,_that.nome,_that.foto,_that.slug);case _:
+return $default(_that.id,_that.nome,_that.foto);case _:
   return orElse();
 
 }
@@ -829,10 +828,10 @@ return $default(_that.id,_that.nome,_that.foto,_that.slug);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String nome,  String? foto,  String? slug)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String nome,  String? foto)  $default,) {final _that = this;
 switch (_that) {
 case _CorretorResponsavel():
-return $default(_that.id,_that.nome,_that.foto,_that.slug);case _:
+return $default(_that.id,_that.nome,_that.foto);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -849,10 +848,10 @@ return $default(_that.id,_that.nome,_that.foto,_that.slug);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String nome,  String? foto,  String? slug)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String nome,  String? foto)?  $default,) {final _that = this;
 switch (_that) {
 case _CorretorResponsavel() when $default != null:
-return $default(_that.id,_that.nome,_that.foto,_that.slug);case _:
+return $default(_that.id,_that.nome,_that.foto);case _:
   return null;
 
 }
@@ -864,13 +863,12 @@ return $default(_that.id,_that.nome,_that.foto,_that.slug);case _:
 
 
 class _CorretorResponsavel implements CorretorResponsavel {
-  const _CorretorResponsavel({required this.id, required this.nome, this.foto, this.slug});
+  const _CorretorResponsavel({required this.id, required this.nome, this.foto});
   
 
 @override final  int id;
 @override final  String nome;
 @override final  String? foto;
-@override final  String? slug;
 
 /// Create a copy of CorretorResponsavel
 /// with the given fields replaced by the non-null parameter values.
@@ -882,18 +880,18 @@ _$CorretorResponsavelCopyWith<_CorretorResponsavel> get copyWith => __$CorretorR
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CorretorResponsavel&&(identical(other.id, id) || other.id == id)&&(identical(other.nome, nome) || other.nome == nome)&&(identical(other.foto, foto) || other.foto == foto)&&(identical(other.slug, slug) || other.slug == slug));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CorretorResponsavel&&(identical(other.id, id) || other.id == id)&&(identical(other.nome, nome) || other.nome == nome)&&(identical(other.foto, foto) || other.foto == foto));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,nome,foto,slug);
+    return Object.hash(runtimeType,id,nome,foto);
 }
 
 @override
 String toString() {
-    return 'CorretorResponsavel(id: $id, nome: $nome, foto: $foto, slug: $slug)';
+    return 'CorretorResponsavel(id: $id, nome: $nome, foto: $foto)';
 }
 
 
@@ -904,7 +902,7 @@ abstract mixin class _$CorretorResponsavelCopyWith<$Res> implements $CorretorRes
   factory _$CorretorResponsavelCopyWith(_CorretorResponsavel value, $Res Function(_CorretorResponsavel) _then) = __$CorretorResponsavelCopyWithImpl;
 @override @useResult
 $Res call({
- int id, String nome, String? foto, String? slug
+ int id, String nome, String? foto
 });
 
 
@@ -921,12 +919,11 @@ class __$CorretorResponsavelCopyWithImpl<$Res>
 
 /// Create a copy of CorretorResponsavel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? nome = null,Object? foto = freezed,Object? slug = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? nome = null,Object? foto = freezed,}) {
   return _then(_CorretorResponsavel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,nome: null == nome ? _self.nome : nome // ignore: cast_nullable_to_non_nullable
 as String,foto: freezed == foto ? _self.foto : foto // ignore: cast_nullable_to_non_nullable
-as String?,slug: freezed == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }

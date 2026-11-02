@@ -12,9 +12,8 @@ void main() {
     id: 7,
     nome: 'Marina Lopes',
     foto: 'https://exemplo.com/marina.jpg',
-    slug: 'marina-lopes',
   );
-  const semFotoNemSlug = CorretorResponsavel(id: 9, nome: 'Camila Duarte');
+  const semFoto = CorretorResponsavel(id: 9, nome: 'Camila Duarte');
 
   /// Abre o perfil por cima de uma página-base, como o detalhe faz, para que
   /// o botão voltar tenha para onde voltar.
@@ -79,10 +78,10 @@ void main() {
     }
   });
 
-  testWidgets('corretor sem foto e sem slug abre do mesmo jeito (D-19 a)', (
+  testWidgets('corretor sem foto abre do mesmo jeito (D-19 a)', (
     tester,
   ) async {
-    await abrirPerfil(tester, semFotoNemSlug);
+    await abrirPerfil(tester, semFoto);
 
     expect(find.byType(PerfilCorretorScreen), findsOneWidget);
     expect(find.text('Camila Duarte'), findsOneWidget);

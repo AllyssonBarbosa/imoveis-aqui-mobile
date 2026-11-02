@@ -22,6 +22,7 @@ import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_state.da
 import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_cubit.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_screen.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/perfil_corretor_screen.dart';
+import 'package:imoveis_aqui/presentation/detalhe_imovel/widgets/cartao_corretor.dart';
 import 'package:imoveis_aqui/presentation/vitrine/opcoes_filtro_cubit.dart';
 import 'package:imoveis_aqui/presentation/vitrine/sessao_filtros_vitrine.dart';
 import 'package:imoveis_aqui/presentation/vitrine/vitrine_cubit.dart';
@@ -299,6 +300,107 @@ void main() {
 
         expect(find.byType(DetalheImovelScreen), findsNothing);
         expect(find.byKey(ValueKey('imovel-$idCasa')), findsOneWidget);
+      },
+    );
+  });
+
+  group('corretor ausente e perfil em memória (D-16, D-17)', () {
+    final semCorretor =
+        lerFixtureApi('detalhe_sem_corretor.json')! as Map<String, Object?>;
+    final idSemCorretor = semCorretor['id']! as int;
+
+    testWidgets(
+      'imóvel cujo corretor foi desativado (corretor_responsavel nulo) abre '
+      'sem a seção "Corretor responsável"',
+      (tester) async {
+        final apiDoDetalhe = ApiFalsa(
+          latencia: const Duration(milliseconds: 300),
+        );
+        registrarDetalhe(ImovelDetalheRemoteDataSource(apiDoDetalhe.criarDio()));
+        await pumpVitrine(tester);
+
+        // O card fica abaixo da dobra da lista (ListView preguiçosa).
+        await tester.scrollUntilVisible(
+          find.byKey(ValueKey('imovel-$idSemCorretor')),
+          300,
+          scrollable: find
+              .byWidgetPredicate(
+                (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
+              )
+              .first,
+        );
+        await tester.ensureVisible(
+          find.byKey(ValueKey('imovel-$idSemCorretor')),
+        );
+        await tester.pump();
+        await tester.tap(find.byKey(ValueKey('imovel-$idSemCorretor')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await esperarDetalhe(tester, const Duration(milliseconds: 300));
+
+        expect(naPagina(find.text('Descrição')), findsOneWidget);
+        expect(
+          naPagina(find.text(semCorretor['descricao']! as String)),
+          findsOneWidget,
+        );
+        expect(naPagina(find.text('Corretor responsável')), findsNothing);
+        expect(naPagina(find.byType(CartaoCorretor)), findsNothing);
+        expect(
+          apiDoDetalhe.requisicoes.where(
+            (uri) => uri.path.startsWith('/api/publico/corretores/'),
+          ),
+          isEmpty,
+        );
+      },
+    );
+
+    testWidgets(
+      'o perfil do corretor de outro imóvel abre com o objeto em memória '
+      '(nome e foto) e nenhuma chamada a /api/publico/corretores/',
+      (tester) async {
+        final apiDoDetalhe = ApiFalsa(
+          latencia: const Duration(milliseconds: 300),
+        );
+        registrarDetalhe(ImovelDetalheRemoteDataSource(apiDoDetalhe.criarDio()));
+        await pumpVitrine(tester);
+
+        await tester.tap(find.byKey(ValueKey('imovel-$idCasa')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await esperarDetalhe(tester, const Duration(milliseconds: 300));
+        final requisicoesAteAqui = apiDoDetalhe.requisicoes.length;
+
+        await tester.scrollUntilVisible(
+          naPagina(find.text(nomeCorretor)),
+          200,
+          scrollable: naPagina(find.byType(Scrollable)).first,
+        );
+        await tester.tap(naPagina(find.text(nomeCorretor)));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.pump(const Duration(milliseconds: 50));
+
+        final noPerfil = find.byType(PerfilCorretorScreen);
+        expect(noPerfil, findsOneWidget);
+        expect(
+          find.descendant(of: noPerfil, matching: find.text(nomeCorretor)),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(of: noPerfil, matching: find.byType(AvatarCorretor)),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(of: noPerfil, matching: find.textContaining('@')),
+          findsNothing,
+        );
+        expect(apiDoDetalhe.requisicoes, hasLength(requisicoesAteAqui));
+        expect(
+          apiDoDetalhe.requisicoes.where(
+            (uri) => uri.path.startsWith('/api/publico/corretores/'),
+          ),
+          isEmpty,
+        );
       },
     );
   });

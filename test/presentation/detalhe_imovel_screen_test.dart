@@ -634,7 +634,6 @@ void main() {
       id: 7,
       nome: 'Marina Lopes',
       foto: 'https://exemplo.com/marina.jpg',
-      slug: 'marina-lopes',
     );
     final comCorretor = detalhe.copyWith(
       caracteristicas: const ['Portão eletrônico'],

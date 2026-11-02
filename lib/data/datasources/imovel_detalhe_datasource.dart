@@ -4,12 +4,11 @@ import '../models/detalhe_imovel_model.dart';
 /// texto do usuário).
 String caminhoDetalheImovelPublico(int id) => '/api/publico/imoveis/$id/';
 
-/// Fronteira trocável mock->real do detalhe do imóvel. A troca por uma
-/// implementação `dio` na Fase 5 é só uma mudança de DI — `domain/` e
-/// `presentation/` não são tocados (API-07).
+/// Fronteira do detalhe do imóvel (API-07). A única implementação é a remota
+/// (`ImovelDetalheRemoteDataSource`, `dio` sobre a API pública); `domain/` e
+/// `presentation/` só conhecem esta interface.
 abstract class ImovelDetalheDataSource {
-  /// Busca o detalhe do imóvel [id]. Lança `ImovelNaoEncontradoException`
-  /// (mock) ou `DioException` 404 (remoto) quando o imóvel não existe ou não
-  /// está publicado.
+  /// Busca o detalhe do imóvel [id]. Lança `DioException` 404 quando o imóvel
+  /// não existe ou não está disponível.
   Future<DetalheImovelModel> buscarDetalhe(int id);
 }

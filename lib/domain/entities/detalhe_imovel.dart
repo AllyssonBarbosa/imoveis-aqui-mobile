@@ -49,14 +49,13 @@ abstract class FotoImovel with _$FotoImovel {
       _FotoImovel;
 }
 
-/// Corretor responsável pelo imóvel. [slug] é PENDENTE E2 — o app nunca o
-/// coloca em URL; a tela de perfil abre já com este objeto em memória.
+/// Corretor responsável pelo imóvel: só o que a API manda (id, nome e foto —
+/// D-17). A tela de perfil abre já com este objeto em memória.
 @freezed
 abstract class CorretorResponsavel with _$CorretorResponsavel {
   const factory CorretorResponsavel({
     required int id,
     required String nome,
     String? foto,
-    String? slug,
   }) = _CorretorResponsavel;
 }

@@ -4,8 +4,9 @@ import '../../domain/entities/detalhe_imovel.dart';
 import 'widgets/cartao_corretor.dart';
 
 /// Abre o perfil do corretor por `Navigator.push` (D-18, sem pacote de
-/// rotas). Recebe o [CorretorResponsavel] já carregado pelo detalhe: nem o
-/// `id` nem o `slug` (PENDENTE E2) entram em URL nesta fase.
+/// rotas). Recebe o [CorretorResponsavel] já carregado pelo detalhe e abre
+/// com o nome e a foto em memória (D-16): nenhum dado do corretor entra em URL
+/// nem há chamada de rede.
 Future<void> abrirPerfilCorretor(
   BuildContext context,
   CorretorResponsavel corretor, {
