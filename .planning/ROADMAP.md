@@ -185,10 +185,10 @@ Plans:
 **Requirements**: API-03, API-07
 **Success Criteria** (what must be TRUE):
 
-  1. `GET /api/publico/imoveis/?cidade=...&filtros` responde sem token, só com imóveis publicados, com busca/ordenação/filtros/paginação resolvidos no servidor.
+  1. `GET /api/publico/cidades/<id>/imoveis/?filtros` responde sem token, só com imóveis publicados, com busca/ordenação/filtros/paginação resolvidos no servidor.
   2. A resposta usa um serializer público com allowlist explícita (sem proprietário/documento/dado interno) e não quebra o isolamento multitenant — nenhum imóvel de outra empresa ou não publicado aparece.
-  3. A resposta segue o contrato congelado na Fase 1 (nomes de campo, envelope de paginação, nomes de parâmetro de filtro), sem drift silencioso.
-  4. O app troca a DataSource mock pela real via injeção de dependência (troca de uma linha), sem mudar UI/Cubit/domain; de ponta a ponta, o visitante vê, busca, ordena e filtra imóveis reais na vitrine.
+  3. A resposta segue o contrato do formato real da API (01-CONTRATO-API.md reescrito na Fase 5, com exemplos copiados de respostas capturadas e testes de contrato nos dois repositórios), sem drift silencioso.
+  4. O app troca as DataSources mock pelas reais via injeção de dependência; a adaptação ao formato real fica concentrada em data/ e UI, Cubits e domain/ mudam só o mínimo necessário (D-01); de ponta a ponta, o visitante vê, busca, ordena e filtra imóveis reais na vitrine.
   5. O detalhe (`GET /api/publico/imoveis/{id}/`) também passa a vir da API real, incluindo os dados de natureza, e a página do imóvel da Phase 4 funciona ponta a ponta.
 
 **Plans**: 17/18 plans executed
