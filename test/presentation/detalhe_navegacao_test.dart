@@ -19,10 +19,12 @@ import 'package:imoveis_aqui/domain/usecases/salvar_cidade_usecase.dart';
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_cubit.dart';
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_screen.dart';
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_state.dart';
+import 'package:imoveis_aqui/presentation/comum/imagem_rede.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_cubit.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_screen.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/perfil_corretor_screen.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/widgets/cartao_corretor.dart';
+import 'package:imoveis_aqui/presentation/detalhe_imovel/widgets/galeria_imovel.dart';
 import 'package:imoveis_aqui/presentation/vitrine/opcoes_filtro_cubit.dart';
 import 'package:imoveis_aqui/presentation/vitrine/sessao_filtros_vitrine.dart';
 import 'package:imoveis_aqui/presentation/vitrine/vitrine_cubit.dart';
@@ -157,6 +159,24 @@ void main() {
 
   Finder naPagina(Finder alvo) =>
       find.descendant(of: find.byType(DetalheImovelScreen), matching: alvo);
+
+  /// Rola a lista da vitrine até o card [id] (a lista é preguiçosa e há cards
+  /// abaixo da dobra) e toca nele.
+  Future<void> tocarNoCard(WidgetTester tester, int id) async {
+    final card = find.byKey(ValueKey('imovel-$id'));
+    await tester.scrollUntilVisible(
+      card,
+      300,
+      scrollable: find
+          .byWidgetPredicate(
+            (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
+          )
+          .first,
+    );
+    await tester.ensureVisible(card);
+    await tester.pump();
+    await tester.tap(card);
+  }
 
   /// Deixa a resposta do dio (com [latencia]) chegar e a página redesenhar.
   Future<void> esperarDetalhe(WidgetTester tester, Duration latencia) async {
@@ -319,21 +339,7 @@ void main() {
         registrarDetalhe(ImovelDetalheRemoteDataSource(apiDoDetalhe.criarDio()));
         await pumpVitrine(tester);
 
-        // O card fica abaixo da dobra da lista (ListView preguiçosa).
-        await tester.scrollUntilVisible(
-          find.byKey(ValueKey('imovel-$idSemCorretor')),
-          300,
-          scrollable: find
-              .byWidgetPredicate(
-                (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
-              )
-              .first,
-        );
-        await tester.ensureVisible(
-          find.byKey(ValueKey('imovel-$idSemCorretor')),
-        );
-        await tester.pump();
-        await tester.tap(find.byKey(ValueKey('imovel-$idSemCorretor')));
+        await tocarNoCard(tester, idSemCorretor);
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 400));
         await esperarDetalhe(tester, const Duration(milliseconds: 300));
@@ -465,13 +471,102 @@ void main() {
     );
   });
 
+  group('bordas do detalhe real (D-15, D-18, DET-06)', () {
+    final semFotos =
+        lerFixtureApi('detalhe_sem_fotos.json')! as Map<String, Object?>;
+    final idSemFotos = semFotos['id']! as int;
+
+    testWidgets(
+      'imóvel sem fotos mostra o placeholder da galeria, sem o contador N/M',
+      (tester) async {
+        registrarDetalhe(
+          ImovelDetalheRemoteDataSource(
+            ApiFalsa(latencia: const Duration(milliseconds: 300)).criarDio(),
+          ),
+        );
+        await pumpVitrine(tester);
+
+        await tocarNoCard(tester, idSemFotos);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await esperarDetalhe(tester, const Duration(milliseconds: 300));
+
+        expect(naPagina(find.text('Descrição')), findsOneWidget);
+        expect(naPagina(find.byType(ImagemPadraoImovel)), findsOneWidget);
+        expect(naPagina(find.byType(GaleriaImovel)), findsOneWidget);
+        expect(naPagina(find.byKey(const ValueKey('contador-fotos'))), findsNothing);
+        expect(naPagina(find.byType(PageView)), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'imóvel que saiu da vitrine entre a lista e o toque (404 no detalhe): '
+      'mostra "Este imóvel não está mais disponível" e nunca o dado velho',
+      (tester) async {
+        final apiDoDetalhe = ApiFalsa(latencia: const Duration(milliseconds: 300))
+          ..responder(
+            (uri) => uri.path == '/api/publico/imoveis/$idCasa/',
+            status: 404,
+            fixture: 'erro_404_detalhe.json',
+          );
+        registrarDetalhe(ImovelDetalheRemoteDataSource(apiDoDetalhe.criarDio()));
+        await pumpVitrine(tester);
+
+        await tester.tap(find.byKey(ValueKey('imovel-$idCasa')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await esperarDetalhe(tester, const Duration(milliseconds: 300));
+
+        expect(
+          naPagina(find.text('Este imóvel não está mais disponível')),
+          findsOneWidget,
+        );
+        expect(naPagina(find.text('Descrição')), findsNothing);
+        expect(naPagina(find.text(descricaoCasa)), findsNothing);
+        expect(naPagina(find.text('Tentar de novo')), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'página fechada com a requisição em voo: o Cubit fechado não emite '
+      'nada depois (guarda isClosed, sem exceção)',
+      (tester) async {
+        final apiDoDetalhe = ApiFalsa(latencia: const Duration(seconds: 2));
+        registrarDetalhe(ImovelDetalheRemoteDataSource(apiDoDetalhe.criarDio()));
+        await pumpVitrine(tester);
+
+        await tester.tap(find.byKey(ValueKey('imovel-$idCasa')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        expect(find.byType(DetalheImovelScreen), findsOneWidget);
+        expect(apiDoDetalhe.requisicoes, hasLength(1));
+
+        // Fecha a página com a resposta ainda a caminho.
+        await tester.tap(find.byTooltip('Voltar'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.pump(const Duration(milliseconds: 400));
+        expect(find.byType(DetalheImovelScreen), findsNothing);
+
+        // A resposta (2 s de latência) chega depois do close(): nada a emitir
+        // nem a lançar.
+        await tester.pump(const Duration(seconds: 1));
+        await tester.pump(const Duration(milliseconds: 50));
+
+        expect(tester.takeException(), isNull);
+        expect(find.byType(DetalheImovelScreen), findsNothing);
+        expect(find.byKey(ValueKey('imovel-$idCasa')), findsOneWidget);
+      },
+    );
+  });
+
   group('retry', () {
     testWidgets(
       'erro 500 ao abrir mostra a mensagem com "Tentar de novo"; tocar repete '
       'a busca (spinner) e mostra a Descrição quando dá certo (D-17)',
       (tester) async {
         final apiDoDetalhe = ApiFalsa(latencia: const Duration(milliseconds: 300))
-          ..falharProximas('/api/publico/imoveis/');
+          ..falharProximas('/api/publico/imoveis/', status: 500);
         registrarDetalhe(ImovelDetalheRemoteDataSource(apiDoDetalhe.criarDio()));
         await pumpVitrine(tester);
 
