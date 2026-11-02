@@ -1,6 +1,7 @@
 import 'package:injectable/injectable.dart';
 
 import '../../core/result.dart';
+import '../../domain/entities/caracteristica.dart';
 import '../../domain/entities/cidade.dart';
 import '../../domain/repositories/opcoes_filtro_repository.dart';
 import '../datasources/opcoes_filtro_datasource.dart';
@@ -29,12 +30,13 @@ class OpcoesFiltroRepositoryImpl implements OpcoesFiltroRepository {
   }
 
   @override
-  Future<Result<List<String>>> caracteristicas() async {
+  Future<Result<List<Caracteristica>>> caracteristicas() async {
     try {
       final caracteristicas = await _dataSource.caracteristicas();
-      // O domínio ainda fala em nomes; {id, nome} chega no domínio no 05-13.
+      // Ordem do servidor preservada (D-14): o app nunca re-ordena.
       return Result.success([
-        for (final caracteristica in caracteristicas) caracteristica.nome,
+        for (final modelo in caracteristicas)
+          Caracteristica(id: modelo.id, nome: modelo.nome),
       ]);
     } on TypeError catch (erro) {
       return Result.failure(

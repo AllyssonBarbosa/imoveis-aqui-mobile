@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/core/result.dart';
+import 'package:imoveis_aqui/domain/entities/caracteristica.dart';
 import 'package:imoveis_aqui/domain/entities/cidade.dart';
 import 'package:imoveis_aqui/domain/usecases/obter_bairros_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/obter_caracteristicas_usecase.dart';
@@ -20,6 +21,8 @@ void main() {
   late _ObterCaracteristicasUseCaseFalso obterCaracteristicas;
 
   const campinas = Cidade(nome: 'Campinas', uf: 'SP');
+  const piscina = Caracteristica(id: 1, nome: 'Piscina');
+  const churrasqueira = Caracteristica(id: 2, nome: 'Churrasqueira');
 
   setUpAll(() {
     registerFallbackValue(campinas);
@@ -42,7 +45,7 @@ void main() {
         () => obterBairros(any()),
       ).thenAnswer((_) async => const Result.success(['Taquaral', 'Cambuí']));
       when(() => obterCaracteristicas()).thenAnswer(
-        (_) async => const Result.success(['Piscina', 'Churrasqueira']),
+        (_) async => const Result.success([piscina, churrasqueira]),
       );
     },
     act: (cubit) => cubit.carregar(campinas),
@@ -58,8 +61,8 @@ void main() {
       const OpcoesFiltroState(
         bairros: CarregamentoOpcoes.carregadas(['Taquaral', 'Cambuí']),
         caracteristicas: CarregamentoOpcoes.carregadas([
-          'Piscina',
-          'Churrasqueira',
+          piscina,
+          churrasqueira,
         ]),
       ),
     ],
@@ -75,7 +78,7 @@ void main() {
       ).thenAnswer((_) async => Result.failure(Exception('falhou')));
       when(
         () => obterCaracteristicas(),
-      ).thenAnswer((_) async => const Result.success(['Piscina']));
+      ).thenAnswer((_) async => const Result.success([piscina]));
     },
     act: (cubit) => cubit.carregar(campinas),
     expect: () => [
@@ -89,7 +92,7 @@ void main() {
       ),
       const OpcoesFiltroState(
         bairros: CarregamentoOpcoes.falha(),
-        caracteristicas: CarregamentoOpcoes.carregadas(['Piscina']),
+        caracteristicas: CarregamentoOpcoes.carregadas([piscina]),
       ),
     ],
   );
@@ -103,7 +106,7 @@ void main() {
       ).thenAnswer((_) async => Result.failure(Exception('falhou')));
       when(
         () => obterCaracteristicas(),
-      ).thenAnswer((_) async => const Result.success(['Piscina']));
+      ).thenAnswer((_) async => const Result.success([piscina]));
 
       final cubit = construir();
       await cubit.carregar(campinas);
@@ -121,7 +124,7 @@ void main() {
         cubit.state,
         const OpcoesFiltroState(
           bairros: CarregamentoOpcoes.carregadas(['Cambuí']),
-          caracteristicas: CarregamentoOpcoes.carregadas(['Piscina']),
+          caracteristicas: CarregamentoOpcoes.carregadas([piscina]),
         ),
       );
       verify(() => obterCaracteristicas()).called(1);
@@ -137,7 +140,7 @@ void main() {
       when(() => obterBairros(any())).thenAnswer((_) => completer.future);
       when(
         () => obterCaracteristicas(),
-      ).thenAnswer((_) async => const Result.success(['Piscina']));
+      ).thenAnswer((_) async => const Result.success([piscina]));
 
       final cubit = construir();
       final futuro = cubit.carregar(campinas);
