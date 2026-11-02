@@ -59,7 +59,8 @@ abstract class TerrenoModel with _$TerrenoModel {
     @JsonKey(name: 'area_total') String? areaTotal,
     String? frente,
     String? fundo,
-    String? laterais,
+    @JsonKey(name: 'lateral_esquerda') String? lateralEsquerda,
+    @JsonKey(name: 'lateral_direita') String? lateralDireita,
     @JsonKey(name: 'topografia') String? topografia,
     bool? murado,
     bool? esquina,
@@ -74,7 +75,8 @@ abstract class TerrenoModel with _$TerrenoModel {
     areaTotal: areaTotal,
     frente: frente,
     fundo: fundo,
-    laterais: laterais,
+    lateralEsquerda: lateralEsquerda,
+    lateralDireita: lateralDireita,
     topografia: _mapearTopografia(topografia),
     murado: murado,
     esquina: esquina,
@@ -96,14 +98,13 @@ abstract class TerrenoModel with _$TerrenoModel {
 }
 
 /// Bloco `apartamento` do detalhe no formato de transporte.
-/// `posicao_solar` é o texto da API, sem enum no app (D-19 b).
+/// `posicao_solar` chega como código e segue assim até a apresentação (A-04).
 @freezed
 abstract class ApartamentoModel with _$ApartamentoModel {
   const ApartamentoModel._();
 
   const factory ApartamentoModel({
     int? andar,
-    String? numero,
     @JsonKey(name: 'area_privativa') String? areaPrivativa,
     @JsonKey(name: 'area_total') String? areaTotal,
     int? quartos,
@@ -120,7 +121,6 @@ abstract class ApartamentoModel with _$ApartamentoModel {
 
   DadosNatureza paraEntidade() => DadosNatureza.apartamento(
     andar: andar,
-    numero: numero,
     areaPrivativa: areaPrivativa,
     areaTotal: areaTotal,
     quartos: quartos,
@@ -173,8 +173,7 @@ abstract class PredioModel with _$PredioModel {
   const factory PredioModel({
     String? nome,
     int? andares,
-    @JsonKey(name: 'unidades_por_andar') int? unidadesPorAndar,
-    int? ano,
+    @JsonKey(name: 'ano_construcao') int? anoConstrucao,
     int? elevadores,
     @JsonKey(name: 'portaria_24h') bool? portaria24h,
     bool? piscina,
@@ -189,8 +188,7 @@ abstract class PredioModel with _$PredioModel {
   DadosPredio paraEntidade() => DadosPredio(
     nome: nome,
     andares: andares,
-    unidadesPorAndar: unidadesPorAndar,
-    ano: ano,
+    anoConstrucao: anoConstrucao,
     elevadores: elevadores,
     portaria24h: portaria24h,
     piscina: piscina,

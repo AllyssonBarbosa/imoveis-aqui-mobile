@@ -276,9 +276,8 @@ void main() {
       expect(find.text('Aclive'), findsOneWidget);
     });
 
-    testWidgets('apartamento mostra a posição solar exatamente como veio', (
-      tester,
-    ) async {
+    testWidgets('apartamento mostra um código desconhecido da posição solar '
+        'como veio', (tester) async {
       final apto = detalhe.copyWith(
         dados: const DadosNatureza.apartamento(
           andar: 8,
@@ -295,6 +294,49 @@ void main() {
       expect(find.text('Posição solar'), findsOneWidget);
       expect(find.text('Sol da manhã'), findsOneWidget);
       expect(find.text('8º'), findsOneWidget);
+    });
+
+    testWidgets('apartamento e terreno mostram rótulos em português, nunca o '
+        'código da API (A-04)', (tester) async {
+      final apto = detalhe.copyWith(
+        dados: const DadosNatureza.apartamento(
+          posicaoSolar: 'NASCENTE',
+          predio: DadosPredio(nome: 'Edifício Girassol', anoConstrucao: 2013),
+        ),
+      );
+      await pumpEstado(
+        tester,
+        DetalheImovelState.carregado(apto),
+        altura: 2400,
+      );
+
+      expect(find.text('Nascente'), findsOneWidget);
+      expect(find.text('NASCENTE'), findsNothing);
+      expect(find.text('Ano de construção'), findsOneWidget);
+      expect(find.text('2013'), findsOneWidget);
+    });
+
+    testWidgets('terreno mostra as duas laterais e o uso permitido em '
+        'português', (tester) async {
+      final terreno = detalhe.copyWith(
+        dados: const DadosNatureza.terreno(
+          lateralEsquerda: '25.00',
+          lateralDireita: '24.50',
+          usoPermitido: 'COMERCIAL',
+        ),
+      );
+      await pumpEstado(
+        tester,
+        DetalheImovelState.carregado(terreno),
+        altura: 2400,
+      );
+
+      expect(find.text('Lateral esquerda'), findsOneWidget);
+      expect(find.text('25 m'), findsOneWidget);
+      expect(find.text('Lateral direita'), findsOneWidget);
+      expect(find.text('24,5 m'), findsOneWidget);
+      expect(find.text('Comercial'), findsOneWidget);
+      expect(find.text('COMERCIAL'), findsNothing);
     });
 
     testWidgets('lote mostra entrada mínima em moeda e parcelas máximas, sem '

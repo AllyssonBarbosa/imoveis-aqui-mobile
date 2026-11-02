@@ -35,17 +35,18 @@ sealed class DadosNatureza with _$DadosNatureza {
     String? areaTotal,
     String? frente,
     String? fundo,
-    String? laterais,
+    String? lateralEsquerda,
+    String? lateralDireita,
     Topografia? topografia,
     bool? murado,
     bool? esquina,
+
+    /// Código da API (RESIDENCIAL, COMERCIAL...); o rótulo é da apresentação.
     String? usoPermitido,
   }) = DadosTerreno;
 
-  /// [posicaoSolar] é o texto que a API manda, mostrado como veio (D-19 b).
   const factory DadosNatureza.apartamento({
     int? andar,
-    String? numero,
     String? areaPrivativa,
     String? areaTotal,
     int? quartos,
@@ -53,6 +54,9 @@ sealed class DadosNatureza with _$DadosNatureza {
     int? banheiros,
     int? vagas,
     bool? varanda,
+
+    /// Código da API (NASCENTE, POENTE, NORTE, SUL) ou vazio; o rótulo é da
+    /// apresentação.
     String? posicaoSolar,
 
     /// Prédio embutido no detalhe (D-03), sem chamada extra.
@@ -82,8 +86,7 @@ abstract class DadosPredio with _$DadosPredio {
   const factory DadosPredio({
     String? nome,
     int? andares,
-    int? unidadesPorAndar,
-    int? ano,
+    int? anoConstrucao,
     int? elevadores,
     bool? portaria24h,
     bool? piscina,

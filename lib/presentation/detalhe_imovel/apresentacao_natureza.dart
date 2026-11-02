@@ -41,6 +41,30 @@ String rotuloTopografia(Topografia topografia) {
   };
 }
 
+/// Código da API -> rótulo em português (A-04). Código desconhecido sai como
+/// veio, nunca lança (T-05-17-02).
+String rotuloPosicaoSolar(String codigo) {
+  return switch (codigo) {
+    'NASCENTE' => 'Nascente',
+    'POENTE' => 'Poente',
+    'NORTE' => 'Norte',
+    'SUL' => 'Sul',
+    _ => codigo,
+  };
+}
+
+/// Código da API -> rótulo em português (A-04); desconhecido sai como veio.
+String rotuloUsoPermitido(String codigo) {
+  return switch (codigo) {
+    'RESIDENCIAL' => 'Residencial',
+    'COMERCIAL' => 'Comercial',
+    'MISTO' => 'Misto',
+    'INDUSTRIAL' => 'Industrial',
+    'RURAL' => 'Rural',
+    _ => codigo,
+  };
+}
+
 String rotuloSimNao(bool valor) => valor ? 'Sim' : 'Não';
 
 /// Título da seção de natureza: "Sobre a casa", "Sobre o apartamento"...
@@ -105,21 +129,25 @@ List<LinhaDado> linhasDe(DadosNatureza dados) {
     final DadosApartamento apartamento => [
       if (apartamento.andar case final andar?)
         (rotulo: 'Andar', valor: '$andarº'),
-      ..._texto('Unidade', apartamento.numero),
       ..._area('Área privativa', apartamento.areaPrivativa),
       ..._area('Área total', apartamento.areaTotal),
       ..._simNao('Varanda', apartamento.varanda),
-      // Texto da API como veio: o app não tem enum nem tabela de rótulos
-      // para a posição solar (D-19 b).
-      ..._texto('Posição solar', apartamento.posicaoSolar),
+      // A API manda código (NASCENTE, POENTE...); vazio omite a linha e
+      // código desconhecido sai como veio (A-04).
+      ..._codigo(
+        'Posição solar',
+        apartamento.posicaoSolar,
+        rotuloPosicaoSolar,
+      ),
     ],
     final DadosTerreno terreno => [
-      ..._medida('Laterais', terreno.laterais),
+      ..._medida('Lateral esquerda', terreno.lateralEsquerda),
+      ..._medida('Lateral direita', terreno.lateralDireita),
       if (terreno.topografia case final topografia?)
         (rotulo: 'Topografia', valor: rotuloTopografia(topografia)),
       ..._simNao('Murado', terreno.murado),
       ..._simNao('Esquina', terreno.esquina),
-      ..._texto('Uso permitido', terreno.usoPermitido),
+      ..._codigo('Uso permitido', terreno.usoPermitido, rotuloUsoPermitido),
     ],
     final DadosLote lote => [
       ..._texto('Número do lote', lote.numero),
@@ -137,8 +165,7 @@ List<LinhaDado> linhasDoPredio(DadosPredio predio) {
   return [
     ..._texto('Nome', predio.nome),
     ..._inteiro('Andares', predio.andares),
-    ..._inteiro('Unidades por andar', predio.unidadesPorAndar),
-    ..._inteiro('Ano', predio.ano),
+    ..._inteiro('Ano de construção', predio.anoConstrucao),
     ..._inteiro('Elevadores', predio.elevadores),
     ..._simNao('Portaria 24h', predio.portaria24h),
     ..._simNao('Piscina', predio.piscina),
@@ -220,6 +247,17 @@ List<Destaque> _contagem(
 List<LinhaDado> _texto(String rotulo, String? valor) {
   if (valor == null) return const [];
   return [(rotulo: rotulo, valor: valor)];
+}
+
+/// Linha de um código de enum da API: nulo ou em branco não gera linha;
+/// senão mostra o rótulo em português de [rotulo].
+List<LinhaDado> _codigo(
+  String rotulo,
+  String? codigo,
+  String Function(String) rotuloDoCodigo,
+) {
+  if (codigo == null || codigo.trim().isEmpty) return const [];
+  return [(rotulo: rotulo, valor: rotuloDoCodigo(codigo))];
 }
 
 List<LinhaDado> _inteiro(String rotulo, int? valor) {

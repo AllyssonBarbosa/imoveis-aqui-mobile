@@ -82,6 +82,10 @@ void main() {
   final idTerreno = terreno['id']! as int;
   final tituloTerreno = terreno['titulo']! as String;
 
+  final apartamento =
+      lerFixtureApi('detalhe_apartamento.json')! as Map<String, Object?>;
+  final idApartamento = apartamento['id']! as int;
+
   // O lote capturado (D-17, A-03): números e frases vêm do JSON, não escritos
   // à mão no teste.
   final lote = lerFixtureApi('detalhe_lote.json')! as Map<String, Object?>;
@@ -487,6 +491,80 @@ void main() {
         );
       },
     );
+  });
+
+  group('natureza no wire real: terreno, apartamento e casa (D-17, A-04)', () {
+    /// Abre o card [id] da vitrine e deixa o detalhe capturado chegar.
+    Future<void> abrirDetalhe(WidgetTester tester, int id) async {
+      registrarDetalhe(
+        ImovelDetalheRemoteDataSource(
+          ApiFalsa(latencia: const Duration(milliseconds: 300)).criarDio(),
+        ),
+      );
+      await pumpVitrine(tester);
+      await tocarNoCard(tester, id);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await esperarDetalhe(tester, const Duration(milliseconds: 300));
+    }
+
+    testWidgets('terreno capturado: duas laterais, topografia e uso permitido '
+        'em português, sem o código em maiúsculas', (tester) async {
+      await abrirDetalhe(tester, idTerreno);
+
+      final bloco = terreno['terreno']! as Map<String, Object?>;
+      expect(bloco['lateral_esquerda'], '25.00');
+      expect(bloco['lateral_direita'], '25.00');
+      expect(naPagina(find.text('Sobre o terreno')), findsOneWidget);
+      expect(naPagina(find.text('Lateral esquerda')), findsOneWidget);
+      expect(naPagina(find.text('Lateral direita')), findsOneWidget);
+      expect(naPagina(find.text('Laterais')), findsNothing);
+      expect(naPagina(find.text('Topografia')), findsOneWidget);
+      expect(naPagina(find.text('Aclive')), findsOneWidget);
+      expect(naPagina(find.text('Murado')), findsOneWidget);
+      expect(naPagina(find.text('Esquina')), findsOneWidget);
+      expect(naPagina(find.text('Uso permitido')), findsOneWidget);
+      expect(naPagina(find.text('Comercial')), findsOneWidget);
+      expect(naPagina(find.text('COMERCIAL')), findsNothing);
+      expect(naPagina(find.text('ACLIVE')), findsNothing);
+    });
+
+    testWidgets('apartamento capturado: posição solar em português, sem '
+        '"Unidade", prédio com "Ano de construção"', (tester) async {
+      await abrirDetalhe(tester, idApartamento);
+
+      final predio =
+          (apartamento['apartamento']! as Map<String, Object?>)['predio']!
+              as Map<String, Object?>;
+      expect(naPagina(find.text('Sobre o apartamento')), findsOneWidget);
+      expect(naPagina(find.text('Posição solar')), findsOneWidget);
+      expect(naPagina(find.text('Poente')), findsOneWidget);
+      expect(naPagina(find.text('POENTE')), findsNothing);
+      expect(naPagina(find.text('Unidade')), findsNothing);
+      expect(naPagina(find.text('Prédio')), findsOneWidget);
+      expect(naPagina(find.text(predio['nome']! as String)), findsOneWidget);
+      expect(naPagina(find.text('Ano de construção')), findsOneWidget);
+      expect(naPagina(find.text('${predio['ano_construcao']}')), findsOneWidget);
+      expect(naPagina(find.text('Unidades por andar')), findsNothing);
+    });
+
+    testWidgets('casa capturada: banheiros, salas, pavimentos, piscina, '
+        'quintal, churrasqueira e mobiliada entram como no JSON', (
+      tester,
+    ) async {
+      await abrirDetalhe(tester, idCasa);
+
+      final bloco = casa['casa']! as Map<String, Object?>;
+      expect(naPagina(find.text('Sobre a casa')), findsOneWidget);
+      expect(naPagina(find.text('${bloco['banheiros']}')), findsWidgets);
+      expect(naPagina(find.text('banheiros')), findsOneWidget);
+      expect(naPagina(find.text('Salas')), findsOneWidget);
+      expect(naPagina(find.text('Pavimentos')), findsOneWidget);
+      expect(naPagina(find.text('Piscina')), findsOneWidget);
+      expect(naPagina(find.text('Quintal')), findsOneWidget);
+      expect(naPagina(find.text('Churrasqueira')), findsWidgets);
+      expect(naPagina(find.text('Mobiliada')), findsOneWidget);
+    });
   });
 
   group('outros cards da vitrine (DET-01, API-07)', () {

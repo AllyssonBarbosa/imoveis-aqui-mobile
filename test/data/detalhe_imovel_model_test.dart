@@ -365,9 +365,26 @@ void main() {
       expect(terreno.areaTotal, '375.00');
       expect(terreno.frente, '15.00');
       expect(terreno.fundo, '25.00');
+      expect(terreno.lateralEsquerda, '25.00');
+      expect(terreno.lateralDireita, '25.00');
       expect(terreno.topografia, Topografia.aclive);
       expect(terreno.murado, isTrue);
       expect(terreno.esquina, isFalse);
+      // O código chega como a API mandou; o rótulo é da apresentação (A-04).
+      expect(terreno.usoPermitido, 'COMERCIAL');
+    });
+
+    test('lateral_esquerda e lateral_direita são lidas separadas, sem soma', () {
+      final mapa = detalheCapturado('detalhe_terreno.json');
+      mapa['terreno'] = {
+        ...(mapa['terreno']! as Map<String, Object?>),
+        'lateral_esquerda': '20.00',
+        'lateral_direita': null,
+      };
+
+      final terreno = dadosDe(mapa)! as DadosTerreno;
+      expect(terreno.lateralEsquerda, '20.00');
+      expect(terreno.lateralDireita, isNull);
     });
 
     test(
@@ -405,7 +422,7 @@ void main() {
       expect(apto.varanda, isFalse);
     });
 
-    test('posicao_solar chega como o texto da API, sem enum (D-19 b)', () {
+    test('posicao_solar chega como o código da API, sem enum (A-04)', () {
       expect(
         (dadosDe(detalheCapturado('detalhe_apartamento.json'))!
                 as DadosApartamento)
@@ -421,6 +438,7 @@ void main() {
 
       expect(apto.predio?.nome, 'Edifício Girassol Campinas');
       expect(apto.predio?.andares, 12);
+      expect(apto.predio?.anoConstrucao, 2013);
       expect(apto.predio?.elevadores, 2);
       expect(apto.predio?.portaria24h, isTrue);
       expect(apto.predio?.piscina, isTrue);

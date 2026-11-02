@@ -161,16 +161,26 @@ void main() {
     });
   });
 
+  test('rotuloPosicaoSolar e rotuloUsoPermitido traduzem os códigos da API', () {
+    expect(rotuloPosicaoSolar('NASCENTE'), 'Nascente');
+    expect(rotuloPosicaoSolar('SUL'), 'Sul');
+    expect(rotuloPosicaoSolar('OESTE'), 'OESTE');
+    expect(rotuloUsoPermitido('MISTO'), 'Misto');
+    expect(rotuloUsoPermitido('RURAL'), 'Rural');
+    expect(rotuloUsoPermitido('XPTO'), 'XPTO');
+  });
+
   group('terreno (imóvel 63)', () {
     const terreno63 = DadosNatureza.terreno(
       areaTotal: '300.00',
       frente: '12.00',
       fundo: '25.00',
-      laterais: '25.00',
+      lateralEsquerda: '25.00',
+      lateralDireita: '24.50',
       topografia: Topografia.aclive,
       murado: true,
       esquina: false,
-      usoPermitido: 'Residencial',
+      usoPermitido: 'RESIDENCIAL',
     );
 
     test('destaques: área, frente e fundo formatados', () {
@@ -181,14 +191,44 @@ void main() {
       ]);
     });
 
-    test('linhas: topografia em PT, laterais, murado, esquina, uso', () {
+    test('linhas: duas laterais, topografia em PT, murado, esquina, uso', () {
       final linhas = linhasComo(terreno63);
 
+      expect(linhas, contains(('Lateral esquerda', '25 m')));
+      expect(linhas, contains(('Lateral direita', '24,5 m')));
+      expect(linhas.map((linha) => linha.$1), isNot(contains('Laterais')));
       expect(linhas, contains(('Topografia', 'Aclive')));
-      expect(linhas, contains(('Laterais', '25 m')));
       expect(linhas, contains(('Murado', 'Sim')));
       expect(linhas, contains(('Esquina', 'Não')));
       expect(linhas, contains(('Uso permitido', 'Residencial')));
+    });
+
+    test('lateral nula omite só a sua linha; nada é somado', () {
+      expect(
+        linhasComo(const DadosNatureza.terreno(lateralDireita: '25.00')),
+        [('Lateral direita', '25 m')],
+      );
+      expect(
+        linhasComo(const DadosNatureza.terreno(lateralEsquerda: '25.00')),
+        [('Lateral esquerda', '25 m')],
+      );
+    });
+
+    test('uso permitido: código vira rótulo, desconhecido sai como veio, '
+        'nulo e em branco omitem a linha (A-04)', () {
+      List<(String, String)> usoCom(String? codigo) => linhasComo(
+        DadosNatureza.terreno(usoPermitido: codigo),
+      );
+
+      expect(usoCom('RESIDENCIAL'), [('Uso permitido', 'Residencial')]);
+      expect(usoCom('COMERCIAL'), [('Uso permitido', 'Comercial')]);
+      expect(usoCom('MISTO'), [('Uso permitido', 'Misto')]);
+      expect(usoCom('INDUSTRIAL'), [('Uso permitido', 'Industrial')]);
+      expect(usoCom('RURAL'), [('Uso permitido', 'Rural')]);
+      expect(usoCom('XPTO'), [('Uso permitido', 'XPTO')]);
+      expect(usoCom(''), isEmpty);
+      expect(usoCom('   '), isEmpty);
+      expect(usoCom(null), isEmpty);
     });
 
     test('tudo nulo: sem destaques e sem linhas', () {
@@ -202,7 +242,6 @@ void main() {
   group('apartamento (imóvel 42)', () {
     const apto42 = DadosNatureza.apartamento(
       andar: 8,
-      numero: '82',
       areaPrivativa: '68.50',
       areaTotal: '92.00',
       quartos: 2,
@@ -210,7 +249,7 @@ void main() {
       banheiros: 2,
       vagas: 1,
       varanda: true,
-      posicaoSolar: 'Nascente',
+      posicaoSolar: 'NASCENTE',
     );
 
     test('destaques: quartos, suíte, banheiros e vaga', () {
@@ -222,29 +261,29 @@ void main() {
       ]);
     });
 
-    test('linhas: andar, unidade, áreas, varanda e posição solar', () {
+    test('linhas: andar, áreas, varanda e posição solar, sem "Unidade"', () {
       final linhas = linhasComo(apto42);
 
       expect(linhas, contains(('Andar', '8º')));
-      expect(linhas, contains(('Unidade', '82')));
+      expect(linhas.map((linha) => linha.$1), isNot(contains('Unidade')));
       expect(linhas, contains(('Área privativa', '68,5 m²')));
       expect(linhas, contains(('Área total', '92 m²')));
       expect(linhas, contains(('Varanda', 'Sim')));
       expect(linhas, contains(('Posição solar', 'Nascente')));
     });
 
-    test('posição solar é o texto da API, sem mapeamento nem capitalização '
-        '(D-19 b)', () {
-      expect(
-        linhasComo(
-          const DadosNatureza.apartamento(posicaoSolar: 'Sol da manhã'),
-        ),
-        [('Posição solar', 'Sol da manhã')],
-      );
-      expect(
-        linhasComo(const DadosNatureza.apartamento(posicaoSolar: 'NASCENTE')),
-        [('Posição solar', 'NASCENTE')],
-      );
+    test('posição solar: código vira rótulo, desconhecido sai como veio, '
+        'vazio omite a linha (A-04)', () {
+      List<(String, String)> solCom(String? codigo) =>
+          linhasComo(DadosNatureza.apartamento(posicaoSolar: codigo));
+
+      expect(solCom('NASCENTE'), [('Posição solar', 'Nascente')]);
+      expect(solCom('POENTE'), [('Posição solar', 'Poente')]);
+      expect(solCom('NORTE'), [('Posição solar', 'Norte')]);
+      expect(solCom('SUL'), [('Posição solar', 'Sul')]);
+      expect(solCom('Sol da manhã'), [('Posição solar', 'Sol da manhã')]);
+      expect(solCom(''), isEmpty);
+      expect(solCom('  '), isEmpty);
     });
 
     test('posição solar nula não gera linha', () {
@@ -334,8 +373,7 @@ void main() {
       const predio = DadosPredio(
         nome: 'Edifício Jequitibá',
         andares: 12,
-        unidadesPorAndar: 4,
-        ano: 2018,
+        anoConstrucao: 2018,
         elevadores: 2,
         portaria24h: true,
         piscina: false,
@@ -347,8 +385,7 @@ void main() {
       expect(linhasDoPredio(predio).map((linha) => linha.rotulo), [
         'Nome',
         'Andares',
-        'Unidades por andar',
-        'Ano',
+        'Ano de construção',
         'Elevadores',
         'Portaria 24h',
         'Piscina',
@@ -360,7 +397,8 @@ void main() {
         for (final linha in linhasDoPredio(predio)) (linha.rotulo, linha.valor),
       ];
       expect(linhas, contains(('Nome', 'Edifício Jequitibá')));
-      expect(linhas, contains(('Ano', '2018')));
+      expect(linhas, contains(('Ano de construção', '2018')));
+      expect(linhas.map((linha) => linha.$1), isNot(contains('Unidades por andar')));
       expect(linhas, contains(('Portaria 24h', 'Sim')));
       expect(linhas, contains(('Piscina', 'Não')));
     });

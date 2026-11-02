@@ -46,7 +46,8 @@ _TerrenoModel _$TerrenoModelFromJson(Map<String, dynamic> json) =>
       areaTotal: json['area_total'] as String?,
       frente: json['frente'] as String?,
       fundo: json['fundo'] as String?,
-      laterais: json['laterais'] as String?,
+      lateralEsquerda: json['lateral_esquerda'] as String?,
+      lateralDireita: json['lateral_direita'] as String?,
       topografia: json['topografia'] as String?,
       murado: json['murado'] as bool?,
       esquina: json['esquina'] as bool?,
@@ -58,7 +59,8 @@ Map<String, dynamic> _$TerrenoModelToJson(_TerrenoModel instance) =>
       'area_total': instance.areaTotal,
       'frente': instance.frente,
       'fundo': instance.fundo,
-      'laterais': instance.laterais,
+      'lateral_esquerda': instance.lateralEsquerda,
+      'lateral_direita': instance.lateralDireita,
       'topografia': instance.topografia,
       'murado': instance.murado,
       'esquina': instance.esquina,
@@ -68,7 +70,6 @@ Map<String, dynamic> _$TerrenoModelToJson(_TerrenoModel instance) =>
 _ApartamentoModel _$ApartamentoModelFromJson(Map<String, dynamic> json) =>
     _ApartamentoModel(
       andar: (json['andar'] as num?)?.toInt(),
-      numero: json['numero'] as String?,
       areaPrivativa: json['area_privativa'] as String?,
       areaTotal: json['area_total'] as String?,
       quartos: (json['quartos'] as num?)?.toInt(),
@@ -85,7 +86,6 @@ _ApartamentoModel _$ApartamentoModelFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$ApartamentoModelToJson(_ApartamentoModel instance) =>
     <String, dynamic>{
       'andar': instance.andar,
-      'numero': instance.numero,
       'area_privativa': instance.areaPrivativa,
       'area_total': instance.areaTotal,
       'quartos': instance.quartos,
@@ -125,8 +125,7 @@ Map<String, dynamic> _$LoteModelToJson(_LoteModel instance) =>
 _PredioModel _$PredioModelFromJson(Map<String, dynamic> json) => _PredioModel(
   nome: json['nome'] as String?,
   andares: (json['andares'] as num?)?.toInt(),
-  unidadesPorAndar: (json['unidades_por_andar'] as num?)?.toInt(),
-  ano: (json['ano'] as num?)?.toInt(),
+  anoConstrucao: (json['ano_construcao'] as num?)?.toInt(),
   elevadores: (json['elevadores'] as num?)?.toInt(),
   portaria24h: json['portaria_24h'] as bool?,
   piscina: json['piscina'] as bool?,
@@ -139,8 +138,7 @@ Map<String, dynamic> _$PredioModelToJson(_PredioModel instance) =>
     <String, dynamic>{
       'nome': instance.nome,
       'andares': instance.andares,
-      'unidades_por_andar': instance.unidadesPorAndar,
-      'ano': instance.ano,
+      'ano_construcao': instance.anoConstrucao,
       'elevadores': instance.elevadores,
       'portaria_24h': instance.portaria24h,
       'piscina': instance.piscina,

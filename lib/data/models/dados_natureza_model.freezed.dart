@@ -325,7 +325,7 @@ as bool?,
 /// @nodoc
 mixin _$TerrenoModel {
 
-@JsonKey(name: 'area_total') String? get areaTotal; String? get frente; String? get fundo; String? get laterais;@JsonKey(name: 'topografia') String? get topografia; bool? get murado; bool? get esquina;@JsonKey(name: 'uso_permitido') String? get usoPermitido;
+@JsonKey(name: 'area_total') String? get areaTotal; String? get frente; String? get fundo;@JsonKey(name: 'lateral_esquerda') String? get lateralEsquerda;@JsonKey(name: 'lateral_direita') String? get lateralDireita;@JsonKey(name: 'topografia') String? get topografia; bool? get murado; bool? get esquina;@JsonKey(name: 'uso_permitido') String? get usoPermitido;
 /// Create a copy of TerrenoModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -339,20 +339,20 @@ $TerrenoModelCopyWith<TerrenoModel> get copyWith => _$TerrenoModelCopyWithImpl<T
 @override
 bool operator ==(Object other) {
   final _this = this as TerrenoModel;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TerrenoModel&&(identical(other.areaTotal, _this.areaTotal) || other.areaTotal == _this.areaTotal)&&(identical(other.frente, _this.frente) || other.frente == _this.frente)&&(identical(other.fundo, _this.fundo) || other.fundo == _this.fundo)&&(identical(other.laterais, _this.laterais) || other.laterais == _this.laterais)&&(identical(other.topografia, _this.topografia) || other.topografia == _this.topografia)&&(identical(other.murado, _this.murado) || other.murado == _this.murado)&&(identical(other.esquina, _this.esquina) || other.esquina == _this.esquina)&&(identical(other.usoPermitido, _this.usoPermitido) || other.usoPermitido == _this.usoPermitido));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TerrenoModel&&(identical(other.areaTotal, _this.areaTotal) || other.areaTotal == _this.areaTotal)&&(identical(other.frente, _this.frente) || other.frente == _this.frente)&&(identical(other.fundo, _this.fundo) || other.fundo == _this.fundo)&&(identical(other.lateralEsquerda, _this.lateralEsquerda) || other.lateralEsquerda == _this.lateralEsquerda)&&(identical(other.lateralDireita, _this.lateralDireita) || other.lateralDireita == _this.lateralDireita)&&(identical(other.topografia, _this.topografia) || other.topografia == _this.topografia)&&(identical(other.murado, _this.murado) || other.murado == _this.murado)&&(identical(other.esquina, _this.esquina) || other.esquina == _this.esquina)&&(identical(other.usoPermitido, _this.usoPermitido) || other.usoPermitido == _this.usoPermitido));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as TerrenoModel;
-  return Object.hash(runtimeType,_this.areaTotal,_this.frente,_this.fundo,_this.laterais,_this.topografia,_this.murado,_this.esquina,_this.usoPermitido);
+  return Object.hash(runtimeType,_this.areaTotal,_this.frente,_this.fundo,_this.lateralEsquerda,_this.lateralDireita,_this.topografia,_this.murado,_this.esquina,_this.usoPermitido);
 }
 
 @override
 String toString() {
   final _this = this as TerrenoModel;
-  return 'TerrenoModel(areaTotal: ${_this.areaTotal}, frente: ${_this.frente}, fundo: ${_this.fundo}, laterais: ${_this.laterais}, topografia: ${_this.topografia}, murado: ${_this.murado}, esquina: ${_this.esquina}, usoPermitido: ${_this.usoPermitido})';
+  return 'TerrenoModel(areaTotal: ${_this.areaTotal}, frente: ${_this.frente}, fundo: ${_this.fundo}, lateralEsquerda: ${_this.lateralEsquerda}, lateralDireita: ${_this.lateralDireita}, topografia: ${_this.topografia}, murado: ${_this.murado}, esquina: ${_this.esquina}, usoPermitido: ${_this.usoPermitido})';
 }
 
 
@@ -363,7 +363,7 @@ abstract mixin class $TerrenoModelCopyWith<$Res>  {
   factory $TerrenoModelCopyWith(TerrenoModel value, $Res Function(TerrenoModel) _then) = _$TerrenoModelCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'area_total') String? areaTotal, String? frente, String? fundo, String? laterais,@JsonKey(name: 'topografia') String? topografia, bool? murado, bool? esquina,@JsonKey(name: 'uso_permitido') String? usoPermitido
+@JsonKey(name: 'area_total') String? areaTotal, String? frente, String? fundo,@JsonKey(name: 'lateral_esquerda') String? lateralEsquerda,@JsonKey(name: 'lateral_direita') String? lateralDireita,@JsonKey(name: 'topografia') String? topografia, bool? murado, bool? esquina,@JsonKey(name: 'uso_permitido') String? usoPermitido
 });
 
 
@@ -380,12 +380,13 @@ class _$TerrenoModelCopyWithImpl<$Res>
 
 /// Create a copy of TerrenoModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? areaTotal = freezed,Object? frente = freezed,Object? fundo = freezed,Object? laterais = freezed,Object? topografia = freezed,Object? murado = freezed,Object? esquina = freezed,Object? usoPermitido = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? areaTotal = freezed,Object? frente = freezed,Object? fundo = freezed,Object? lateralEsquerda = freezed,Object? lateralDireita = freezed,Object? topografia = freezed,Object? murado = freezed,Object? esquina = freezed,Object? usoPermitido = freezed,}) {
   return _then(TerrenoModel(
 areaTotal: freezed == areaTotal ? _self.areaTotal : areaTotal // ignore: cast_nullable_to_non_nullable
 as String?,frente: freezed == frente ? _self.frente : frente // ignore: cast_nullable_to_non_nullable
 as String?,fundo: freezed == fundo ? _self.fundo : fundo // ignore: cast_nullable_to_non_nullable
-as String?,laterais: freezed == laterais ? _self.laterais : laterais // ignore: cast_nullable_to_non_nullable
+as String?,lateralEsquerda: freezed == lateralEsquerda ? _self.lateralEsquerda : lateralEsquerda // ignore: cast_nullable_to_non_nullable
+as String?,lateralDireita: freezed == lateralDireita ? _self.lateralDireita : lateralDireita // ignore: cast_nullable_to_non_nullable
 as String?,topografia: freezed == topografia ? _self.topografia : topografia // ignore: cast_nullable_to_non_nullable
 as String?,murado: freezed == murado ? _self.murado : murado // ignore: cast_nullable_to_non_nullable
 as bool?,esquina: freezed == esquina ? _self.esquina : esquina // ignore: cast_nullable_to_non_nullable
@@ -475,10 +476,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'area_total')  String? areaTotal,  String? frente,  String? fundo,  String? laterais, @JsonKey(name: 'topografia')  String? topografia,  bool? murado,  bool? esquina, @JsonKey(name: 'uso_permitido')  String? usoPermitido)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'area_total')  String? areaTotal,  String? frente,  String? fundo, @JsonKey(name: 'lateral_esquerda')  String? lateralEsquerda, @JsonKey(name: 'lateral_direita')  String? lateralDireita, @JsonKey(name: 'topografia')  String? topografia,  bool? murado,  bool? esquina, @JsonKey(name: 'uso_permitido')  String? usoPermitido)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TerrenoModel() when $default != null:
-return $default(_that.areaTotal,_that.frente,_that.fundo,_that.laterais,_that.topografia,_that.murado,_that.esquina,_that.usoPermitido);case _:
+return $default(_that.areaTotal,_that.frente,_that.fundo,_that.lateralEsquerda,_that.lateralDireita,_that.topografia,_that.murado,_that.esquina,_that.usoPermitido);case _:
   return orElse();
 
 }
@@ -496,10 +497,10 @@ return $default(_that.areaTotal,_that.frente,_that.fundo,_that.laterais,_that.to
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'area_total')  String? areaTotal,  String? frente,  String? fundo,  String? laterais, @JsonKey(name: 'topografia')  String? topografia,  bool? murado,  bool? esquina, @JsonKey(name: 'uso_permitido')  String? usoPermitido)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'area_total')  String? areaTotal,  String? frente,  String? fundo, @JsonKey(name: 'lateral_esquerda')  String? lateralEsquerda, @JsonKey(name: 'lateral_direita')  String? lateralDireita, @JsonKey(name: 'topografia')  String? topografia,  bool? murado,  bool? esquina, @JsonKey(name: 'uso_permitido')  String? usoPermitido)  $default,) {final _that = this;
 switch (_that) {
 case _TerrenoModel():
-return $default(_that.areaTotal,_that.frente,_that.fundo,_that.laterais,_that.topografia,_that.murado,_that.esquina,_that.usoPermitido);case _:
+return $default(_that.areaTotal,_that.frente,_that.fundo,_that.lateralEsquerda,_that.lateralDireita,_that.topografia,_that.murado,_that.esquina,_that.usoPermitido);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -516,10 +517,10 @@ return $default(_that.areaTotal,_that.frente,_that.fundo,_that.laterais,_that.to
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'area_total')  String? areaTotal,  String? frente,  String? fundo,  String? laterais, @JsonKey(name: 'topografia')  String? topografia,  bool? murado,  bool? esquina, @JsonKey(name: 'uso_permitido')  String? usoPermitido)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'area_total')  String? areaTotal,  String? frente,  String? fundo, @JsonKey(name: 'lateral_esquerda')  String? lateralEsquerda, @JsonKey(name: 'lateral_direita')  String? lateralDireita, @JsonKey(name: 'topografia')  String? topografia,  bool? murado,  bool? esquina, @JsonKey(name: 'uso_permitido')  String? usoPermitido)?  $default,) {final _that = this;
 switch (_that) {
 case _TerrenoModel() when $default != null:
-return $default(_that.areaTotal,_that.frente,_that.fundo,_that.laterais,_that.topografia,_that.murado,_that.esquina,_that.usoPermitido);case _:
+return $default(_that.areaTotal,_that.frente,_that.fundo,_that.lateralEsquerda,_that.lateralDireita,_that.topografia,_that.murado,_that.esquina,_that.usoPermitido);case _:
   return null;
 
 }
@@ -531,13 +532,14 @@ return $default(_that.areaTotal,_that.frente,_that.fundo,_that.laterais,_that.to
 @JsonSerializable()
 
 class _TerrenoModel extends TerrenoModel {
-  const _TerrenoModel({@JsonKey(name: 'area_total') this.areaTotal, this.frente, this.fundo, this.laterais, @JsonKey(name: 'topografia') this.topografia, this.murado, this.esquina, @JsonKey(name: 'uso_permitido') this.usoPermitido}): super._();
+  const _TerrenoModel({@JsonKey(name: 'area_total') this.areaTotal, this.frente, this.fundo, @JsonKey(name: 'lateral_esquerda') this.lateralEsquerda, @JsonKey(name: 'lateral_direita') this.lateralDireita, @JsonKey(name: 'topografia') this.topografia, this.murado, this.esquina, @JsonKey(name: 'uso_permitido') this.usoPermitido}): super._();
   factory _TerrenoModel.fromJson(Map<String, dynamic> json) => _$TerrenoModelFromJson(json);
 
 @override@JsonKey(name: 'area_total') final  String? areaTotal;
 @override final  String? frente;
 @override final  String? fundo;
-@override final  String? laterais;
+@override@JsonKey(name: 'lateral_esquerda') final  String? lateralEsquerda;
+@override@JsonKey(name: 'lateral_direita') final  String? lateralDireita;
 @override@JsonKey(name: 'topografia') final  String? topografia;
 @override final  bool? murado;
 @override final  bool? esquina;
@@ -556,18 +558,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _TerrenoModel&&(identical(other.areaTotal, areaTotal) || other.areaTotal == areaTotal)&&(identical(other.frente, frente) || other.frente == frente)&&(identical(other.fundo, fundo) || other.fundo == fundo)&&(identical(other.laterais, laterais) || other.laterais == laterais)&&(identical(other.topografia, topografia) || other.topografia == topografia)&&(identical(other.murado, murado) || other.murado == murado)&&(identical(other.esquina, esquina) || other.esquina == esquina)&&(identical(other.usoPermitido, usoPermitido) || other.usoPermitido == usoPermitido));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _TerrenoModel&&(identical(other.areaTotal, areaTotal) || other.areaTotal == areaTotal)&&(identical(other.frente, frente) || other.frente == frente)&&(identical(other.fundo, fundo) || other.fundo == fundo)&&(identical(other.lateralEsquerda, lateralEsquerda) || other.lateralEsquerda == lateralEsquerda)&&(identical(other.lateralDireita, lateralDireita) || other.lateralDireita == lateralDireita)&&(identical(other.topografia, topografia) || other.topografia == topografia)&&(identical(other.murado, murado) || other.murado == murado)&&(identical(other.esquina, esquina) || other.esquina == esquina)&&(identical(other.usoPermitido, usoPermitido) || other.usoPermitido == usoPermitido));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,areaTotal,frente,fundo,laterais,topografia,murado,esquina,usoPermitido);
+    return Object.hash(runtimeType,areaTotal,frente,fundo,lateralEsquerda,lateralDireita,topografia,murado,esquina,usoPermitido);
 }
 
 @override
 String toString() {
-    return 'TerrenoModel(areaTotal: $areaTotal, frente: $frente, fundo: $fundo, laterais: $laterais, topografia: $topografia, murado: $murado, esquina: $esquina, usoPermitido: $usoPermitido)';
+    return 'TerrenoModel(areaTotal: $areaTotal, frente: $frente, fundo: $fundo, lateralEsquerda: $lateralEsquerda, lateralDireita: $lateralDireita, topografia: $topografia, murado: $murado, esquina: $esquina, usoPermitido: $usoPermitido)';
 }
 
 
@@ -578,7 +580,7 @@ abstract mixin class _$TerrenoModelCopyWith<$Res> implements $TerrenoModelCopyWi
   factory _$TerrenoModelCopyWith(_TerrenoModel value, $Res Function(_TerrenoModel) _then) = __$TerrenoModelCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'area_total') String? areaTotal, String? frente, String? fundo, String? laterais,@JsonKey(name: 'topografia') String? topografia, bool? murado, bool? esquina,@JsonKey(name: 'uso_permitido') String? usoPermitido
+@JsonKey(name: 'area_total') String? areaTotal, String? frente, String? fundo,@JsonKey(name: 'lateral_esquerda') String? lateralEsquerda,@JsonKey(name: 'lateral_direita') String? lateralDireita,@JsonKey(name: 'topografia') String? topografia, bool? murado, bool? esquina,@JsonKey(name: 'uso_permitido') String? usoPermitido
 });
 
 
@@ -595,12 +597,13 @@ class __$TerrenoModelCopyWithImpl<$Res>
 
 /// Create a copy of TerrenoModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? areaTotal = freezed,Object? frente = freezed,Object? fundo = freezed,Object? laterais = freezed,Object? topografia = freezed,Object? murado = freezed,Object? esquina = freezed,Object? usoPermitido = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? areaTotal = freezed,Object? frente = freezed,Object? fundo = freezed,Object? lateralEsquerda = freezed,Object? lateralDireita = freezed,Object? topografia = freezed,Object? murado = freezed,Object? esquina = freezed,Object? usoPermitido = freezed,}) {
   return _then(_TerrenoModel(
 areaTotal: freezed == areaTotal ? _self.areaTotal : areaTotal // ignore: cast_nullable_to_non_nullable
 as String?,frente: freezed == frente ? _self.frente : frente // ignore: cast_nullable_to_non_nullable
 as String?,fundo: freezed == fundo ? _self.fundo : fundo // ignore: cast_nullable_to_non_nullable
-as String?,laterais: freezed == laterais ? _self.laterais : laterais // ignore: cast_nullable_to_non_nullable
+as String?,lateralEsquerda: freezed == lateralEsquerda ? _self.lateralEsquerda : lateralEsquerda // ignore: cast_nullable_to_non_nullable
+as String?,lateralDireita: freezed == lateralDireita ? _self.lateralDireita : lateralDireita // ignore: cast_nullable_to_non_nullable
 as String?,topografia: freezed == topografia ? _self.topografia : topografia // ignore: cast_nullable_to_non_nullable
 as String?,murado: freezed == murado ? _self.murado : murado // ignore: cast_nullable_to_non_nullable
 as bool?,esquina: freezed == esquina ? _self.esquina : esquina // ignore: cast_nullable_to_non_nullable
@@ -616,7 +619,7 @@ as String?,
 /// @nodoc
 mixin _$ApartamentoModel {
 
- int? get andar; String? get numero;@JsonKey(name: 'area_privativa') String? get areaPrivativa;@JsonKey(name: 'area_total') String? get areaTotal; int? get quartos; int? get suites; int? get banheiros; int? get vagas; bool? get varanda;@JsonKey(name: 'posicao_solar') String? get posicaoSolar; PredioModel? get predio;
+ int? get andar;@JsonKey(name: 'area_privativa') String? get areaPrivativa;@JsonKey(name: 'area_total') String? get areaTotal; int? get quartos; int? get suites; int? get banheiros; int? get vagas; bool? get varanda;@JsonKey(name: 'posicao_solar') String? get posicaoSolar; PredioModel? get predio;
 /// Create a copy of ApartamentoModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -630,20 +633,20 @@ $ApartamentoModelCopyWith<ApartamentoModel> get copyWith => _$ApartamentoModelCo
 @override
 bool operator ==(Object other) {
   final _this = this as ApartamentoModel;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ApartamentoModel&&(identical(other.andar, _this.andar) || other.andar == _this.andar)&&(identical(other.numero, _this.numero) || other.numero == _this.numero)&&(identical(other.areaPrivativa, _this.areaPrivativa) || other.areaPrivativa == _this.areaPrivativa)&&(identical(other.areaTotal, _this.areaTotal) || other.areaTotal == _this.areaTotal)&&(identical(other.quartos, _this.quartos) || other.quartos == _this.quartos)&&(identical(other.suites, _this.suites) || other.suites == _this.suites)&&(identical(other.banheiros, _this.banheiros) || other.banheiros == _this.banheiros)&&(identical(other.vagas, _this.vagas) || other.vagas == _this.vagas)&&(identical(other.varanda, _this.varanda) || other.varanda == _this.varanda)&&(identical(other.posicaoSolar, _this.posicaoSolar) || other.posicaoSolar == _this.posicaoSolar)&&(identical(other.predio, _this.predio) || other.predio == _this.predio));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ApartamentoModel&&(identical(other.andar, _this.andar) || other.andar == _this.andar)&&(identical(other.areaPrivativa, _this.areaPrivativa) || other.areaPrivativa == _this.areaPrivativa)&&(identical(other.areaTotal, _this.areaTotal) || other.areaTotal == _this.areaTotal)&&(identical(other.quartos, _this.quartos) || other.quartos == _this.quartos)&&(identical(other.suites, _this.suites) || other.suites == _this.suites)&&(identical(other.banheiros, _this.banheiros) || other.banheiros == _this.banheiros)&&(identical(other.vagas, _this.vagas) || other.vagas == _this.vagas)&&(identical(other.varanda, _this.varanda) || other.varanda == _this.varanda)&&(identical(other.posicaoSolar, _this.posicaoSolar) || other.posicaoSolar == _this.posicaoSolar)&&(identical(other.predio, _this.predio) || other.predio == _this.predio));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as ApartamentoModel;
-  return Object.hash(runtimeType,_this.andar,_this.numero,_this.areaPrivativa,_this.areaTotal,_this.quartos,_this.suites,_this.banheiros,_this.vagas,_this.varanda,_this.posicaoSolar,_this.predio);
+  return Object.hash(runtimeType,_this.andar,_this.areaPrivativa,_this.areaTotal,_this.quartos,_this.suites,_this.banheiros,_this.vagas,_this.varanda,_this.posicaoSolar,_this.predio);
 }
 
 @override
 String toString() {
   final _this = this as ApartamentoModel;
-  return 'ApartamentoModel(andar: ${_this.andar}, numero: ${_this.numero}, areaPrivativa: ${_this.areaPrivativa}, areaTotal: ${_this.areaTotal}, quartos: ${_this.quartos}, suites: ${_this.suites}, banheiros: ${_this.banheiros}, vagas: ${_this.vagas}, varanda: ${_this.varanda}, posicaoSolar: ${_this.posicaoSolar}, predio: ${_this.predio})';
+  return 'ApartamentoModel(andar: ${_this.andar}, areaPrivativa: ${_this.areaPrivativa}, areaTotal: ${_this.areaTotal}, quartos: ${_this.quartos}, suites: ${_this.suites}, banheiros: ${_this.banheiros}, vagas: ${_this.vagas}, varanda: ${_this.varanda}, posicaoSolar: ${_this.posicaoSolar}, predio: ${_this.predio})';
 }
 
 
@@ -654,7 +657,7 @@ abstract mixin class $ApartamentoModelCopyWith<$Res>  {
   factory $ApartamentoModelCopyWith(ApartamentoModel value, $Res Function(ApartamentoModel) _then) = _$ApartamentoModelCopyWithImpl;
 @useResult
 $Res call({
- int? andar, String? numero,@JsonKey(name: 'area_privativa') String? areaPrivativa,@JsonKey(name: 'area_total') String? areaTotal, int? quartos, int? suites, int? banheiros, int? vagas, bool? varanda,@JsonKey(name: 'posicao_solar') String? posicaoSolar, PredioModel? predio
+ int? andar,@JsonKey(name: 'area_privativa') String? areaPrivativa,@JsonKey(name: 'area_total') String? areaTotal, int? quartos, int? suites, int? banheiros, int? vagas, bool? varanda,@JsonKey(name: 'posicao_solar') String? posicaoSolar, PredioModel? predio
 });
 
 
@@ -671,11 +674,10 @@ class _$ApartamentoModelCopyWithImpl<$Res>
 
 /// Create a copy of ApartamentoModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? andar = freezed,Object? numero = freezed,Object? areaPrivativa = freezed,Object? areaTotal = freezed,Object? quartos = freezed,Object? suites = freezed,Object? banheiros = freezed,Object? vagas = freezed,Object? varanda = freezed,Object? posicaoSolar = freezed,Object? predio = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? andar = freezed,Object? areaPrivativa = freezed,Object? areaTotal = freezed,Object? quartos = freezed,Object? suites = freezed,Object? banheiros = freezed,Object? vagas = freezed,Object? varanda = freezed,Object? posicaoSolar = freezed,Object? predio = freezed,}) {
   return _then(ApartamentoModel(
 andar: freezed == andar ? _self.andar : andar // ignore: cast_nullable_to_non_nullable
-as int?,numero: freezed == numero ? _self.numero : numero // ignore: cast_nullable_to_non_nullable
-as String?,areaPrivativa: freezed == areaPrivativa ? _self.areaPrivativa : areaPrivativa // ignore: cast_nullable_to_non_nullable
+as int?,areaPrivativa: freezed == areaPrivativa ? _self.areaPrivativa : areaPrivativa // ignore: cast_nullable_to_non_nullable
 as String?,areaTotal: freezed == areaTotal ? _self.areaTotal : areaTotal // ignore: cast_nullable_to_non_nullable
 as String?,quartos: freezed == quartos ? _self.quartos : quartos // ignore: cast_nullable_to_non_nullable
 as int?,suites: freezed == suites ? _self.suites : suites // ignore: cast_nullable_to_non_nullable
@@ -781,10 +783,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? andar,  String? numero, @JsonKey(name: 'area_privativa')  String? areaPrivativa, @JsonKey(name: 'area_total')  String? areaTotal,  int? quartos,  int? suites,  int? banheiros,  int? vagas,  bool? varanda, @JsonKey(name: 'posicao_solar')  String? posicaoSolar,  PredioModel? predio)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? andar, @JsonKey(name: 'area_privativa')  String? areaPrivativa, @JsonKey(name: 'area_total')  String? areaTotal,  int? quartos,  int? suites,  int? banheiros,  int? vagas,  bool? varanda, @JsonKey(name: 'posicao_solar')  String? posicaoSolar,  PredioModel? predio)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ApartamentoModel() when $default != null:
-return $default(_that.andar,_that.numero,_that.areaPrivativa,_that.areaTotal,_that.quartos,_that.suites,_that.banheiros,_that.vagas,_that.varanda,_that.posicaoSolar,_that.predio);case _:
+return $default(_that.andar,_that.areaPrivativa,_that.areaTotal,_that.quartos,_that.suites,_that.banheiros,_that.vagas,_that.varanda,_that.posicaoSolar,_that.predio);case _:
   return orElse();
 
 }
@@ -802,10 +804,10 @@ return $default(_that.andar,_that.numero,_that.areaPrivativa,_that.areaTotal,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? andar,  String? numero, @JsonKey(name: 'area_privativa')  String? areaPrivativa, @JsonKey(name: 'area_total')  String? areaTotal,  int? quartos,  int? suites,  int? banheiros,  int? vagas,  bool? varanda, @JsonKey(name: 'posicao_solar')  String? posicaoSolar,  PredioModel? predio)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? andar, @JsonKey(name: 'area_privativa')  String? areaPrivativa, @JsonKey(name: 'area_total')  String? areaTotal,  int? quartos,  int? suites,  int? banheiros,  int? vagas,  bool? varanda, @JsonKey(name: 'posicao_solar')  String? posicaoSolar,  PredioModel? predio)  $default,) {final _that = this;
 switch (_that) {
 case _ApartamentoModel():
-return $default(_that.andar,_that.numero,_that.areaPrivativa,_that.areaTotal,_that.quartos,_that.suites,_that.banheiros,_that.vagas,_that.varanda,_that.posicaoSolar,_that.predio);case _:
+return $default(_that.andar,_that.areaPrivativa,_that.areaTotal,_that.quartos,_that.suites,_that.banheiros,_that.vagas,_that.varanda,_that.posicaoSolar,_that.predio);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -822,10 +824,10 @@ return $default(_that.andar,_that.numero,_that.areaPrivativa,_that.areaTotal,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? andar,  String? numero, @JsonKey(name: 'area_privativa')  String? areaPrivativa, @JsonKey(name: 'area_total')  String? areaTotal,  int? quartos,  int? suites,  int? banheiros,  int? vagas,  bool? varanda, @JsonKey(name: 'posicao_solar')  String? posicaoSolar,  PredioModel? predio)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? andar, @JsonKey(name: 'area_privativa')  String? areaPrivativa, @JsonKey(name: 'area_total')  String? areaTotal,  int? quartos,  int? suites,  int? banheiros,  int? vagas,  bool? varanda, @JsonKey(name: 'posicao_solar')  String? posicaoSolar,  PredioModel? predio)?  $default,) {final _that = this;
 switch (_that) {
 case _ApartamentoModel() when $default != null:
-return $default(_that.andar,_that.numero,_that.areaPrivativa,_that.areaTotal,_that.quartos,_that.suites,_that.banheiros,_that.vagas,_that.varanda,_that.posicaoSolar,_that.predio);case _:
+return $default(_that.andar,_that.areaPrivativa,_that.areaTotal,_that.quartos,_that.suites,_that.banheiros,_that.vagas,_that.varanda,_that.posicaoSolar,_that.predio);case _:
   return null;
 
 }
@@ -837,11 +839,10 @@ return $default(_that.andar,_that.numero,_that.areaPrivativa,_that.areaTotal,_th
 @JsonSerializable()
 
 class _ApartamentoModel extends ApartamentoModel {
-  const _ApartamentoModel({this.andar, this.numero, @JsonKey(name: 'area_privativa') this.areaPrivativa, @JsonKey(name: 'area_total') this.areaTotal, this.quartos, this.suites, this.banheiros, this.vagas, this.varanda, @JsonKey(name: 'posicao_solar') this.posicaoSolar, this.predio}): super._();
+  const _ApartamentoModel({this.andar, @JsonKey(name: 'area_privativa') this.areaPrivativa, @JsonKey(name: 'area_total') this.areaTotal, this.quartos, this.suites, this.banheiros, this.vagas, this.varanda, @JsonKey(name: 'posicao_solar') this.posicaoSolar, this.predio}): super._();
   factory _ApartamentoModel.fromJson(Map<String, dynamic> json) => _$ApartamentoModelFromJson(json);
 
 @override final  int? andar;
-@override final  String? numero;
 @override@JsonKey(name: 'area_privativa') final  String? areaPrivativa;
 @override@JsonKey(name: 'area_total') final  String? areaTotal;
 @override final  int? quartos;
@@ -865,18 +866,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ApartamentoModel&&(identical(other.andar, andar) || other.andar == andar)&&(identical(other.numero, numero) || other.numero == numero)&&(identical(other.areaPrivativa, areaPrivativa) || other.areaPrivativa == areaPrivativa)&&(identical(other.areaTotal, areaTotal) || other.areaTotal == areaTotal)&&(identical(other.quartos, quartos) || other.quartos == quartos)&&(identical(other.suites, suites) || other.suites == suites)&&(identical(other.banheiros, banheiros) || other.banheiros == banheiros)&&(identical(other.vagas, vagas) || other.vagas == vagas)&&(identical(other.varanda, varanda) || other.varanda == varanda)&&(identical(other.posicaoSolar, posicaoSolar) || other.posicaoSolar == posicaoSolar)&&(identical(other.predio, predio) || other.predio == predio));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ApartamentoModel&&(identical(other.andar, andar) || other.andar == andar)&&(identical(other.areaPrivativa, areaPrivativa) || other.areaPrivativa == areaPrivativa)&&(identical(other.areaTotal, areaTotal) || other.areaTotal == areaTotal)&&(identical(other.quartos, quartos) || other.quartos == quartos)&&(identical(other.suites, suites) || other.suites == suites)&&(identical(other.banheiros, banheiros) || other.banheiros == banheiros)&&(identical(other.vagas, vagas) || other.vagas == vagas)&&(identical(other.varanda, varanda) || other.varanda == varanda)&&(identical(other.posicaoSolar, posicaoSolar) || other.posicaoSolar == posicaoSolar)&&(identical(other.predio, predio) || other.predio == predio));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,andar,numero,areaPrivativa,areaTotal,quartos,suites,banheiros,vagas,varanda,posicaoSolar,predio);
+    return Object.hash(runtimeType,andar,areaPrivativa,areaTotal,quartos,suites,banheiros,vagas,varanda,posicaoSolar,predio);
 }
 
 @override
 String toString() {
-    return 'ApartamentoModel(andar: $andar, numero: $numero, areaPrivativa: $areaPrivativa, areaTotal: $areaTotal, quartos: $quartos, suites: $suites, banheiros: $banheiros, vagas: $vagas, varanda: $varanda, posicaoSolar: $posicaoSolar, predio: $predio)';
+    return 'ApartamentoModel(andar: $andar, areaPrivativa: $areaPrivativa, areaTotal: $areaTotal, quartos: $quartos, suites: $suites, banheiros: $banheiros, vagas: $vagas, varanda: $varanda, posicaoSolar: $posicaoSolar, predio: $predio)';
 }
 
 
@@ -887,7 +888,7 @@ abstract mixin class _$ApartamentoModelCopyWith<$Res> implements $ApartamentoMod
   factory _$ApartamentoModelCopyWith(_ApartamentoModel value, $Res Function(_ApartamentoModel) _then) = __$ApartamentoModelCopyWithImpl;
 @override @useResult
 $Res call({
- int? andar, String? numero,@JsonKey(name: 'area_privativa') String? areaPrivativa,@JsonKey(name: 'area_total') String? areaTotal, int? quartos, int? suites, int? banheiros, int? vagas, bool? varanda,@JsonKey(name: 'posicao_solar') String? posicaoSolar, PredioModel? predio
+ int? andar,@JsonKey(name: 'area_privativa') String? areaPrivativa,@JsonKey(name: 'area_total') String? areaTotal, int? quartos, int? suites, int? banheiros, int? vagas, bool? varanda,@JsonKey(name: 'posicao_solar') String? posicaoSolar, PredioModel? predio
 });
 
 
@@ -904,11 +905,10 @@ class __$ApartamentoModelCopyWithImpl<$Res>
 
 /// Create a copy of ApartamentoModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? andar = freezed,Object? numero = freezed,Object? areaPrivativa = freezed,Object? areaTotal = freezed,Object? quartos = freezed,Object? suites = freezed,Object? banheiros = freezed,Object? vagas = freezed,Object? varanda = freezed,Object? posicaoSolar = freezed,Object? predio = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? andar = freezed,Object? areaPrivativa = freezed,Object? areaTotal = freezed,Object? quartos = freezed,Object? suites = freezed,Object? banheiros = freezed,Object? vagas = freezed,Object? varanda = freezed,Object? posicaoSolar = freezed,Object? predio = freezed,}) {
   return _then(_ApartamentoModel(
 andar: freezed == andar ? _self.andar : andar // ignore: cast_nullable_to_non_nullable
-as int?,numero: freezed == numero ? _self.numero : numero // ignore: cast_nullable_to_non_nullable
-as String?,areaPrivativa: freezed == areaPrivativa ? _self.areaPrivativa : areaPrivativa // ignore: cast_nullable_to_non_nullable
+as int?,areaPrivativa: freezed == areaPrivativa ? _self.areaPrivativa : areaPrivativa // ignore: cast_nullable_to_non_nullable
 as String?,areaTotal: freezed == areaTotal ? _self.areaTotal : areaTotal // ignore: cast_nullable_to_non_nullable
 as String?,quartos: freezed == quartos ? _self.quartos : quartos // ignore: cast_nullable_to_non_nullable
 as int?,suites: freezed == suites ? _self.suites : suites // ignore: cast_nullable_to_non_nullable
@@ -1255,7 +1255,7 @@ $QuadraModelCopyWith<$Res>? get quadra {
 /// @nodoc
 mixin _$PredioModel {
 
- String? get nome; int? get andares;@JsonKey(name: 'unidades_por_andar') int? get unidadesPorAndar; int? get ano; int? get elevadores;@JsonKey(name: 'portaria_24h') bool? get portaria24h; bool? get piscina; bool? get academia;@JsonKey(name: 'salao_de_festas') bool? get salaoDeFestas; bool? get playground;
+ String? get nome; int? get andares;@JsonKey(name: 'ano_construcao') int? get anoConstrucao; int? get elevadores;@JsonKey(name: 'portaria_24h') bool? get portaria24h; bool? get piscina; bool? get academia;@JsonKey(name: 'salao_de_festas') bool? get salaoDeFestas; bool? get playground;
 /// Create a copy of PredioModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1269,20 +1269,20 @@ $PredioModelCopyWith<PredioModel> get copyWith => _$PredioModelCopyWithImpl<Pred
 @override
 bool operator ==(Object other) {
   final _this = this as PredioModel;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PredioModel&&(identical(other.nome, _this.nome) || other.nome == _this.nome)&&(identical(other.andares, _this.andares) || other.andares == _this.andares)&&(identical(other.unidadesPorAndar, _this.unidadesPorAndar) || other.unidadesPorAndar == _this.unidadesPorAndar)&&(identical(other.ano, _this.ano) || other.ano == _this.ano)&&(identical(other.elevadores, _this.elevadores) || other.elevadores == _this.elevadores)&&(identical(other.portaria24h, _this.portaria24h) || other.portaria24h == _this.portaria24h)&&(identical(other.piscina, _this.piscina) || other.piscina == _this.piscina)&&(identical(other.academia, _this.academia) || other.academia == _this.academia)&&(identical(other.salaoDeFestas, _this.salaoDeFestas) || other.salaoDeFestas == _this.salaoDeFestas)&&(identical(other.playground, _this.playground) || other.playground == _this.playground));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PredioModel&&(identical(other.nome, _this.nome) || other.nome == _this.nome)&&(identical(other.andares, _this.andares) || other.andares == _this.andares)&&(identical(other.anoConstrucao, _this.anoConstrucao) || other.anoConstrucao == _this.anoConstrucao)&&(identical(other.elevadores, _this.elevadores) || other.elevadores == _this.elevadores)&&(identical(other.portaria24h, _this.portaria24h) || other.portaria24h == _this.portaria24h)&&(identical(other.piscina, _this.piscina) || other.piscina == _this.piscina)&&(identical(other.academia, _this.academia) || other.academia == _this.academia)&&(identical(other.salaoDeFestas, _this.salaoDeFestas) || other.salaoDeFestas == _this.salaoDeFestas)&&(identical(other.playground, _this.playground) || other.playground == _this.playground));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as PredioModel;
-  return Object.hash(runtimeType,_this.nome,_this.andares,_this.unidadesPorAndar,_this.ano,_this.elevadores,_this.portaria24h,_this.piscina,_this.academia,_this.salaoDeFestas,_this.playground);
+  return Object.hash(runtimeType,_this.nome,_this.andares,_this.anoConstrucao,_this.elevadores,_this.portaria24h,_this.piscina,_this.academia,_this.salaoDeFestas,_this.playground);
 }
 
 @override
 String toString() {
   final _this = this as PredioModel;
-  return 'PredioModel(nome: ${_this.nome}, andares: ${_this.andares}, unidadesPorAndar: ${_this.unidadesPorAndar}, ano: ${_this.ano}, elevadores: ${_this.elevadores}, portaria24h: ${_this.portaria24h}, piscina: ${_this.piscina}, academia: ${_this.academia}, salaoDeFestas: ${_this.salaoDeFestas}, playground: ${_this.playground})';
+  return 'PredioModel(nome: ${_this.nome}, andares: ${_this.andares}, anoConstrucao: ${_this.anoConstrucao}, elevadores: ${_this.elevadores}, portaria24h: ${_this.portaria24h}, piscina: ${_this.piscina}, academia: ${_this.academia}, salaoDeFestas: ${_this.salaoDeFestas}, playground: ${_this.playground})';
 }
 
 
@@ -1293,7 +1293,7 @@ abstract mixin class $PredioModelCopyWith<$Res>  {
   factory $PredioModelCopyWith(PredioModel value, $Res Function(PredioModel) _then) = _$PredioModelCopyWithImpl;
 @useResult
 $Res call({
- String? nome, int? andares,@JsonKey(name: 'unidades_por_andar') int? unidadesPorAndar, int? ano, int? elevadores,@JsonKey(name: 'portaria_24h') bool? portaria24h, bool? piscina, bool? academia,@JsonKey(name: 'salao_de_festas') bool? salaoDeFestas, bool? playground
+ String? nome, int? andares,@JsonKey(name: 'ano_construcao') int? anoConstrucao, int? elevadores,@JsonKey(name: 'portaria_24h') bool? portaria24h, bool? piscina, bool? academia,@JsonKey(name: 'salao_de_festas') bool? salaoDeFestas, bool? playground
 });
 
 
@@ -1310,12 +1310,11 @@ class _$PredioModelCopyWithImpl<$Res>
 
 /// Create a copy of PredioModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? nome = freezed,Object? andares = freezed,Object? unidadesPorAndar = freezed,Object? ano = freezed,Object? elevadores = freezed,Object? portaria24h = freezed,Object? piscina = freezed,Object? academia = freezed,Object? salaoDeFestas = freezed,Object? playground = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? nome = freezed,Object? andares = freezed,Object? anoConstrucao = freezed,Object? elevadores = freezed,Object? portaria24h = freezed,Object? piscina = freezed,Object? academia = freezed,Object? salaoDeFestas = freezed,Object? playground = freezed,}) {
   return _then(PredioModel(
 nome: freezed == nome ? _self.nome : nome // ignore: cast_nullable_to_non_nullable
 as String?,andares: freezed == andares ? _self.andares : andares // ignore: cast_nullable_to_non_nullable
-as int?,unidadesPorAndar: freezed == unidadesPorAndar ? _self.unidadesPorAndar : unidadesPorAndar // ignore: cast_nullable_to_non_nullable
-as int?,ano: freezed == ano ? _self.ano : ano // ignore: cast_nullable_to_non_nullable
+as int?,anoConstrucao: freezed == anoConstrucao ? _self.anoConstrucao : anoConstrucao // ignore: cast_nullable_to_non_nullable
 as int?,elevadores: freezed == elevadores ? _self.elevadores : elevadores // ignore: cast_nullable_to_non_nullable
 as int?,portaria24h: freezed == portaria24h ? _self.portaria24h : portaria24h // ignore: cast_nullable_to_non_nullable
 as bool?,piscina: freezed == piscina ? _self.piscina : piscina // ignore: cast_nullable_to_non_nullable
@@ -1407,10 +1406,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? nome,  int? andares, @JsonKey(name: 'unidades_por_andar')  int? unidadesPorAndar,  int? ano,  int? elevadores, @JsonKey(name: 'portaria_24h')  bool? portaria24h,  bool? piscina,  bool? academia, @JsonKey(name: 'salao_de_festas')  bool? salaoDeFestas,  bool? playground)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? nome,  int? andares, @JsonKey(name: 'ano_construcao')  int? anoConstrucao,  int? elevadores, @JsonKey(name: 'portaria_24h')  bool? portaria24h,  bool? piscina,  bool? academia, @JsonKey(name: 'salao_de_festas')  bool? salaoDeFestas,  bool? playground)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PredioModel() when $default != null:
-return $default(_that.nome,_that.andares,_that.unidadesPorAndar,_that.ano,_that.elevadores,_that.portaria24h,_that.piscina,_that.academia,_that.salaoDeFestas,_that.playground);case _:
+return $default(_that.nome,_that.andares,_that.anoConstrucao,_that.elevadores,_that.portaria24h,_that.piscina,_that.academia,_that.salaoDeFestas,_that.playground);case _:
   return orElse();
 
 }
@@ -1428,10 +1427,10 @@ return $default(_that.nome,_that.andares,_that.unidadesPorAndar,_that.ano,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? nome,  int? andares, @JsonKey(name: 'unidades_por_andar')  int? unidadesPorAndar,  int? ano,  int? elevadores, @JsonKey(name: 'portaria_24h')  bool? portaria24h,  bool? piscina,  bool? academia, @JsonKey(name: 'salao_de_festas')  bool? salaoDeFestas,  bool? playground)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? nome,  int? andares, @JsonKey(name: 'ano_construcao')  int? anoConstrucao,  int? elevadores, @JsonKey(name: 'portaria_24h')  bool? portaria24h,  bool? piscina,  bool? academia, @JsonKey(name: 'salao_de_festas')  bool? salaoDeFestas,  bool? playground)  $default,) {final _that = this;
 switch (_that) {
 case _PredioModel():
-return $default(_that.nome,_that.andares,_that.unidadesPorAndar,_that.ano,_that.elevadores,_that.portaria24h,_that.piscina,_that.academia,_that.salaoDeFestas,_that.playground);case _:
+return $default(_that.nome,_that.andares,_that.anoConstrucao,_that.elevadores,_that.portaria24h,_that.piscina,_that.academia,_that.salaoDeFestas,_that.playground);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1448,10 +1447,10 @@ return $default(_that.nome,_that.andares,_that.unidadesPorAndar,_that.ano,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? nome,  int? andares, @JsonKey(name: 'unidades_por_andar')  int? unidadesPorAndar,  int? ano,  int? elevadores, @JsonKey(name: 'portaria_24h')  bool? portaria24h,  bool? piscina,  bool? academia, @JsonKey(name: 'salao_de_festas')  bool? salaoDeFestas,  bool? playground)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? nome,  int? andares, @JsonKey(name: 'ano_construcao')  int? anoConstrucao,  int? elevadores, @JsonKey(name: 'portaria_24h')  bool? portaria24h,  bool? piscina,  bool? academia, @JsonKey(name: 'salao_de_festas')  bool? salaoDeFestas,  bool? playground)?  $default,) {final _that = this;
 switch (_that) {
 case _PredioModel() when $default != null:
-return $default(_that.nome,_that.andares,_that.unidadesPorAndar,_that.ano,_that.elevadores,_that.portaria24h,_that.piscina,_that.academia,_that.salaoDeFestas,_that.playground);case _:
+return $default(_that.nome,_that.andares,_that.anoConstrucao,_that.elevadores,_that.portaria24h,_that.piscina,_that.academia,_that.salaoDeFestas,_that.playground);case _:
   return null;
 
 }
@@ -1463,13 +1462,12 @@ return $default(_that.nome,_that.andares,_that.unidadesPorAndar,_that.ano,_that.
 @JsonSerializable()
 
 class _PredioModel extends PredioModel {
-  const _PredioModel({this.nome, this.andares, @JsonKey(name: 'unidades_por_andar') this.unidadesPorAndar, this.ano, this.elevadores, @JsonKey(name: 'portaria_24h') this.portaria24h, this.piscina, this.academia, @JsonKey(name: 'salao_de_festas') this.salaoDeFestas, this.playground}): super._();
+  const _PredioModel({this.nome, this.andares, @JsonKey(name: 'ano_construcao') this.anoConstrucao, this.elevadores, @JsonKey(name: 'portaria_24h') this.portaria24h, this.piscina, this.academia, @JsonKey(name: 'salao_de_festas') this.salaoDeFestas, this.playground}): super._();
   factory _PredioModel.fromJson(Map<String, dynamic> json) => _$PredioModelFromJson(json);
 
 @override final  String? nome;
 @override final  int? andares;
-@override@JsonKey(name: 'unidades_por_andar') final  int? unidadesPorAndar;
-@override final  int? ano;
+@override@JsonKey(name: 'ano_construcao') final  int? anoConstrucao;
 @override final  int? elevadores;
 @override@JsonKey(name: 'portaria_24h') final  bool? portaria24h;
 @override final  bool? piscina;
@@ -1490,18 +1488,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PredioModel&&(identical(other.nome, nome) || other.nome == nome)&&(identical(other.andares, andares) || other.andares == andares)&&(identical(other.unidadesPorAndar, unidadesPorAndar) || other.unidadesPorAndar == unidadesPorAndar)&&(identical(other.ano, ano) || other.ano == ano)&&(identical(other.elevadores, elevadores) || other.elevadores == elevadores)&&(identical(other.portaria24h, portaria24h) || other.portaria24h == portaria24h)&&(identical(other.piscina, piscina) || other.piscina == piscina)&&(identical(other.academia, academia) || other.academia == academia)&&(identical(other.salaoDeFestas, salaoDeFestas) || other.salaoDeFestas == salaoDeFestas)&&(identical(other.playground, playground) || other.playground == playground));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PredioModel&&(identical(other.nome, nome) || other.nome == nome)&&(identical(other.andares, andares) || other.andares == andares)&&(identical(other.anoConstrucao, anoConstrucao) || other.anoConstrucao == anoConstrucao)&&(identical(other.elevadores, elevadores) || other.elevadores == elevadores)&&(identical(other.portaria24h, portaria24h) || other.portaria24h == portaria24h)&&(identical(other.piscina, piscina) || other.piscina == piscina)&&(identical(other.academia, academia) || other.academia == academia)&&(identical(other.salaoDeFestas, salaoDeFestas) || other.salaoDeFestas == salaoDeFestas)&&(identical(other.playground, playground) || other.playground == playground));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,nome,andares,unidadesPorAndar,ano,elevadores,portaria24h,piscina,academia,salaoDeFestas,playground);
+    return Object.hash(runtimeType,nome,andares,anoConstrucao,elevadores,portaria24h,piscina,academia,salaoDeFestas,playground);
 }
 
 @override
 String toString() {
-    return 'PredioModel(nome: $nome, andares: $andares, unidadesPorAndar: $unidadesPorAndar, ano: $ano, elevadores: $elevadores, portaria24h: $portaria24h, piscina: $piscina, academia: $academia, salaoDeFestas: $salaoDeFestas, playground: $playground)';
+    return 'PredioModel(nome: $nome, andares: $andares, anoConstrucao: $anoConstrucao, elevadores: $elevadores, portaria24h: $portaria24h, piscina: $piscina, academia: $academia, salaoDeFestas: $salaoDeFestas, playground: $playground)';
 }
 
 
@@ -1512,7 +1510,7 @@ abstract mixin class _$PredioModelCopyWith<$Res> implements $PredioModelCopyWith
   factory _$PredioModelCopyWith(_PredioModel value, $Res Function(_PredioModel) _then) = __$PredioModelCopyWithImpl;
 @override @useResult
 $Res call({
- String? nome, int? andares,@JsonKey(name: 'unidades_por_andar') int? unidadesPorAndar, int? ano, int? elevadores,@JsonKey(name: 'portaria_24h') bool? portaria24h, bool? piscina, bool? academia,@JsonKey(name: 'salao_de_festas') bool? salaoDeFestas, bool? playground
+ String? nome, int? andares,@JsonKey(name: 'ano_construcao') int? anoConstrucao, int? elevadores,@JsonKey(name: 'portaria_24h') bool? portaria24h, bool? piscina, bool? academia,@JsonKey(name: 'salao_de_festas') bool? salaoDeFestas, bool? playground
 });
 
 
@@ -1529,12 +1527,11 @@ class __$PredioModelCopyWithImpl<$Res>
 
 /// Create a copy of PredioModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? nome = freezed,Object? andares = freezed,Object? unidadesPorAndar = freezed,Object? ano = freezed,Object? elevadores = freezed,Object? portaria24h = freezed,Object? piscina = freezed,Object? academia = freezed,Object? salaoDeFestas = freezed,Object? playground = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? nome = freezed,Object? andares = freezed,Object? anoConstrucao = freezed,Object? elevadores = freezed,Object? portaria24h = freezed,Object? piscina = freezed,Object? academia = freezed,Object? salaoDeFestas = freezed,Object? playground = freezed,}) {
   return _then(_PredioModel(
 nome: freezed == nome ? _self.nome : nome // ignore: cast_nullable_to_non_nullable
 as String?,andares: freezed == andares ? _self.andares : andares // ignore: cast_nullable_to_non_nullable
-as int?,unidadesPorAndar: freezed == unidadesPorAndar ? _self.unidadesPorAndar : unidadesPorAndar // ignore: cast_nullable_to_non_nullable
-as int?,ano: freezed == ano ? _self.ano : ano // ignore: cast_nullable_to_non_nullable
+as int?,anoConstrucao: freezed == anoConstrucao ? _self.anoConstrucao : anoConstrucao // ignore: cast_nullable_to_non_nullable
 as int?,elevadores: freezed == elevadores ? _self.elevadores : elevadores // ignore: cast_nullable_to_non_nullable
 as int?,portaria24h: freezed == portaria24h ? _self.portaria24h : portaria24h // ignore: cast_nullable_to_non_nullable
 as bool?,piscina: freezed == piscina ? _self.piscina : piscina // ignore: cast_nullable_to_non_nullable
