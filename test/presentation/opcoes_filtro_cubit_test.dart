@@ -134,6 +134,46 @@ void main() {
   );
 
   test(
+    'tentarNovamente() com só as características em falha chama SÓ o use '
+    'case de características e termina com carregadas<Caracteristica> '
+    '(D-13, F3/D-20)',
+    () async {
+      when(
+        () => obterBairros(any()),
+      ).thenAnswer((_) async => const Result.success(['Cambuí']));
+      when(
+        () => obterCaracteristicas(),
+      ).thenAnswer((_) async => Result.failure(Exception('falhou')));
+
+      final cubit = construir();
+      await cubit.carregar(campinas);
+
+      expect(cubit.state.bairros, isA<OpcoesCarregadas<String>>());
+      expect(cubit.state.caracteristicas, isA<OpcoesFalha<Caracteristica>>());
+
+      when(() => obterCaracteristicas()).thenAnswer(
+        (_) async => const Result.success([piscina, churrasqueira]),
+      );
+
+      await cubit.tentarNovamente();
+
+      expect(
+        cubit.state,
+        const OpcoesFiltroState(
+          bairros: CarregamentoOpcoes.carregadas(['Cambuí']),
+          caracteristicas: CarregamentoOpcoes.carregadas([
+            piscina,
+            churrasqueira,
+          ]),
+        ),
+      );
+      verify(() => obterBairros(any())).called(1);
+      verify(() => obterCaracteristicas()).called(2);
+      await cubit.close();
+    },
+  );
+
+  test(
     'close() durante carregar() em voo não lança e não emite depois',
     () async {
       final completer = Completer<Result<List<String>>>();
