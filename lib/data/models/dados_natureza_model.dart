@@ -133,8 +133,8 @@ abstract class ApartamentoModel with _$ApartamentoModel {
   );
 }
 
-/// Bloco `lote` do detalhe no formato de transporte. `preco` só vem quando o
-/// servidor manda e nunca é derivado de outro campo (D-19 d).
+/// Bloco `lote` do detalhe no formato de transporte. O lote não tem preço
+/// próprio: o preço é o de venda do imóvel (§11.5 d).
 @freezed
 abstract class LoteModel with _$LoteModel {
   const LoteModel._();
@@ -144,7 +144,8 @@ abstract class LoteModel with _$LoteModel {
     String? area,
     String? frente,
     String? fundo,
-    String? preco,
+    @JsonKey(name: 'entrada_minima') String? entradaMinima,
+    @JsonKey(name: 'parcelas_maximas') int? parcelasMaximas,
     @JsonKey(name: 'condicoes_parcelamento') String? condicoesParcelamento,
     QuadraModel? quadra,
   }) = _LoteModel;
@@ -157,7 +158,8 @@ abstract class LoteModel with _$LoteModel {
     area: area,
     frente: frente,
     fundo: fundo,
-    preco: preco,
+    entradaMinima: entradaMinima,
+    parcelasMaximas: parcelasMaximas,
     condicoesParcelamento: condicoesParcelamento,
     quadra: quadra?.paraEntidade(),
   );
@@ -217,8 +219,10 @@ abstract class QuadraModel with _$QuadraModel {
   );
 }
 
-/// Loteamento embutido em `quadra.loteamento` no formato de transporte;
-/// listas ausentes viram vazias.
+/// Loteamento embutido em `quadra.loteamento` no formato de transporte. A API
+/// manda a infraestrutura como cinco booleanos; a tradução para rótulos (só os
+/// verdadeiros, em ordem fixa) fica aqui em data/ (A-03). `areas_de_lazer` é
+/// texto corrido e nunca é dividido.
 @freezed
 abstract class LoteamentoModel with _$LoteamentoModel {
   const LoteamentoModel._();
@@ -226,8 +230,12 @@ abstract class LoteamentoModel with _$LoteamentoModel {
   const factory LoteamentoModel({
     String? nome,
     String? incorporadora,
-    @Default(<String>[]) List<String> infraestrutura,
-    @JsonKey(name: 'areas_lazer') @Default(<String>[]) List<String> areasLazer,
+    bool? asfalto,
+    bool? agua,
+    bool? energia,
+    bool? esgoto,
+    bool? iluminacao,
+    @JsonKey(name: 'areas_de_lazer') String? areasDeLazer,
   }) = _LoteamentoModel;
 
   factory LoteamentoModel.fromJson(Map<String, Object?> json) =>
@@ -236,7 +244,13 @@ abstract class LoteamentoModel with _$LoteamentoModel {
   DadosLoteamento paraEntidade() => DadosLoteamento(
     nome: nome,
     incorporadora: incorporadora,
-    infraestrutura: infraestrutura,
-    areasLazer: areasLazer,
+    infraestrutura: [
+      if (asfalto == true) 'Asfalto',
+      if (agua == true) 'Água',
+      if (energia == true) 'Energia',
+      if (esgoto == true) 'Esgoto',
+      if (iluminacao == true) 'Iluminação pública',
+    ],
+    areasDeLazer: (areasDeLazer?.trim().isEmpty ?? true) ? null : areasDeLazer,
   );
 }

@@ -940,7 +940,7 @@ $PredioModelCopyWith<$Res>? get predio {
 /// @nodoc
 mixin _$LoteModel {
 
- String? get numero; String? get area; String? get frente; String? get fundo; String? get preco;@JsonKey(name: 'condicoes_parcelamento') String? get condicoesParcelamento; QuadraModel? get quadra;
+ String? get numero; String? get area; String? get frente; String? get fundo;@JsonKey(name: 'entrada_minima') String? get entradaMinima;@JsonKey(name: 'parcelas_maximas') int? get parcelasMaximas;@JsonKey(name: 'condicoes_parcelamento') String? get condicoesParcelamento; QuadraModel? get quadra;
 /// Create a copy of LoteModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -954,20 +954,20 @@ $LoteModelCopyWith<LoteModel> get copyWith => _$LoteModelCopyWithImpl<LoteModel>
 @override
 bool operator ==(Object other) {
   final _this = this as LoteModel;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LoteModel&&(identical(other.numero, _this.numero) || other.numero == _this.numero)&&(identical(other.area, _this.area) || other.area == _this.area)&&(identical(other.frente, _this.frente) || other.frente == _this.frente)&&(identical(other.fundo, _this.fundo) || other.fundo == _this.fundo)&&(identical(other.preco, _this.preco) || other.preco == _this.preco)&&(identical(other.condicoesParcelamento, _this.condicoesParcelamento) || other.condicoesParcelamento == _this.condicoesParcelamento)&&(identical(other.quadra, _this.quadra) || other.quadra == _this.quadra));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LoteModel&&(identical(other.numero, _this.numero) || other.numero == _this.numero)&&(identical(other.area, _this.area) || other.area == _this.area)&&(identical(other.frente, _this.frente) || other.frente == _this.frente)&&(identical(other.fundo, _this.fundo) || other.fundo == _this.fundo)&&(identical(other.entradaMinima, _this.entradaMinima) || other.entradaMinima == _this.entradaMinima)&&(identical(other.parcelasMaximas, _this.parcelasMaximas) || other.parcelasMaximas == _this.parcelasMaximas)&&(identical(other.condicoesParcelamento, _this.condicoesParcelamento) || other.condicoesParcelamento == _this.condicoesParcelamento)&&(identical(other.quadra, _this.quadra) || other.quadra == _this.quadra));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as LoteModel;
-  return Object.hash(runtimeType,_this.numero,_this.area,_this.frente,_this.fundo,_this.preco,_this.condicoesParcelamento,_this.quadra);
+  return Object.hash(runtimeType,_this.numero,_this.area,_this.frente,_this.fundo,_this.entradaMinima,_this.parcelasMaximas,_this.condicoesParcelamento,_this.quadra);
 }
 
 @override
 String toString() {
   final _this = this as LoteModel;
-  return 'LoteModel(numero: ${_this.numero}, area: ${_this.area}, frente: ${_this.frente}, fundo: ${_this.fundo}, preco: ${_this.preco}, condicoesParcelamento: ${_this.condicoesParcelamento}, quadra: ${_this.quadra})';
+  return 'LoteModel(numero: ${_this.numero}, area: ${_this.area}, frente: ${_this.frente}, fundo: ${_this.fundo}, entradaMinima: ${_this.entradaMinima}, parcelasMaximas: ${_this.parcelasMaximas}, condicoesParcelamento: ${_this.condicoesParcelamento}, quadra: ${_this.quadra})';
 }
 
 
@@ -978,7 +978,7 @@ abstract mixin class $LoteModelCopyWith<$Res>  {
   factory $LoteModelCopyWith(LoteModel value, $Res Function(LoteModel) _then) = _$LoteModelCopyWithImpl;
 @useResult
 $Res call({
- String? numero, String? area, String? frente, String? fundo, String? preco,@JsonKey(name: 'condicoes_parcelamento') String? condicoesParcelamento, QuadraModel? quadra
+ String? numero, String? area, String? frente, String? fundo,@JsonKey(name: 'entrada_minima') String? entradaMinima,@JsonKey(name: 'parcelas_maximas') int? parcelasMaximas,@JsonKey(name: 'condicoes_parcelamento') String? condicoesParcelamento, QuadraModel? quadra
 });
 
 
@@ -995,14 +995,15 @@ class _$LoteModelCopyWithImpl<$Res>
 
 /// Create a copy of LoteModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? numero = freezed,Object? area = freezed,Object? frente = freezed,Object? fundo = freezed,Object? preco = freezed,Object? condicoesParcelamento = freezed,Object? quadra = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? numero = freezed,Object? area = freezed,Object? frente = freezed,Object? fundo = freezed,Object? entradaMinima = freezed,Object? parcelasMaximas = freezed,Object? condicoesParcelamento = freezed,Object? quadra = freezed,}) {
   return _then(LoteModel(
 numero: freezed == numero ? _self.numero : numero // ignore: cast_nullable_to_non_nullable
 as String?,area: freezed == area ? _self.area : area // ignore: cast_nullable_to_non_nullable
 as String?,frente: freezed == frente ? _self.frente : frente // ignore: cast_nullable_to_non_nullable
 as String?,fundo: freezed == fundo ? _self.fundo : fundo // ignore: cast_nullable_to_non_nullable
-as String?,preco: freezed == preco ? _self.preco : preco // ignore: cast_nullable_to_non_nullable
-as String?,condicoesParcelamento: freezed == condicoesParcelamento ? _self.condicoesParcelamento : condicoesParcelamento // ignore: cast_nullable_to_non_nullable
+as String?,entradaMinima: freezed == entradaMinima ? _self.entradaMinima : entradaMinima // ignore: cast_nullable_to_non_nullable
+as String?,parcelasMaximas: freezed == parcelasMaximas ? _self.parcelasMaximas : parcelasMaximas // ignore: cast_nullable_to_non_nullable
+as int?,condicoesParcelamento: freezed == condicoesParcelamento ? _self.condicoesParcelamento : condicoesParcelamento // ignore: cast_nullable_to_non_nullable
 as String?,quadra: freezed == quadra ? _self.quadra : quadra // ignore: cast_nullable_to_non_nullable
 as QuadraModel?,
   ));
@@ -1101,10 +1102,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? numero,  String? area,  String? frente,  String? fundo,  String? preco, @JsonKey(name: 'condicoes_parcelamento')  String? condicoesParcelamento,  QuadraModel? quadra)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? numero,  String? area,  String? frente,  String? fundo, @JsonKey(name: 'entrada_minima')  String? entradaMinima, @JsonKey(name: 'parcelas_maximas')  int? parcelasMaximas, @JsonKey(name: 'condicoes_parcelamento')  String? condicoesParcelamento,  QuadraModel? quadra)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _LoteModel() when $default != null:
-return $default(_that.numero,_that.area,_that.frente,_that.fundo,_that.preco,_that.condicoesParcelamento,_that.quadra);case _:
+return $default(_that.numero,_that.area,_that.frente,_that.fundo,_that.entradaMinima,_that.parcelasMaximas,_that.condicoesParcelamento,_that.quadra);case _:
   return orElse();
 
 }
@@ -1122,10 +1123,10 @@ return $default(_that.numero,_that.area,_that.frente,_that.fundo,_that.preco,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? numero,  String? area,  String? frente,  String? fundo,  String? preco, @JsonKey(name: 'condicoes_parcelamento')  String? condicoesParcelamento,  QuadraModel? quadra)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? numero,  String? area,  String? frente,  String? fundo, @JsonKey(name: 'entrada_minima')  String? entradaMinima, @JsonKey(name: 'parcelas_maximas')  int? parcelasMaximas, @JsonKey(name: 'condicoes_parcelamento')  String? condicoesParcelamento,  QuadraModel? quadra)  $default,) {final _that = this;
 switch (_that) {
 case _LoteModel():
-return $default(_that.numero,_that.area,_that.frente,_that.fundo,_that.preco,_that.condicoesParcelamento,_that.quadra);case _:
+return $default(_that.numero,_that.area,_that.frente,_that.fundo,_that.entradaMinima,_that.parcelasMaximas,_that.condicoesParcelamento,_that.quadra);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1142,10 +1143,10 @@ return $default(_that.numero,_that.area,_that.frente,_that.fundo,_that.preco,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? numero,  String? area,  String? frente,  String? fundo,  String? preco, @JsonKey(name: 'condicoes_parcelamento')  String? condicoesParcelamento,  QuadraModel? quadra)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? numero,  String? area,  String? frente,  String? fundo, @JsonKey(name: 'entrada_minima')  String? entradaMinima, @JsonKey(name: 'parcelas_maximas')  int? parcelasMaximas, @JsonKey(name: 'condicoes_parcelamento')  String? condicoesParcelamento,  QuadraModel? quadra)?  $default,) {final _that = this;
 switch (_that) {
 case _LoteModel() when $default != null:
-return $default(_that.numero,_that.area,_that.frente,_that.fundo,_that.preco,_that.condicoesParcelamento,_that.quadra);case _:
+return $default(_that.numero,_that.area,_that.frente,_that.fundo,_that.entradaMinima,_that.parcelasMaximas,_that.condicoesParcelamento,_that.quadra);case _:
   return null;
 
 }
@@ -1157,14 +1158,15 @@ return $default(_that.numero,_that.area,_that.frente,_that.fundo,_that.preco,_th
 @JsonSerializable()
 
 class _LoteModel extends LoteModel {
-  const _LoteModel({this.numero, this.area, this.frente, this.fundo, this.preco, @JsonKey(name: 'condicoes_parcelamento') this.condicoesParcelamento, this.quadra}): super._();
+  const _LoteModel({this.numero, this.area, this.frente, this.fundo, @JsonKey(name: 'entrada_minima') this.entradaMinima, @JsonKey(name: 'parcelas_maximas') this.parcelasMaximas, @JsonKey(name: 'condicoes_parcelamento') this.condicoesParcelamento, this.quadra}): super._();
   factory _LoteModel.fromJson(Map<String, dynamic> json) => _$LoteModelFromJson(json);
 
 @override final  String? numero;
 @override final  String? area;
 @override final  String? frente;
 @override final  String? fundo;
-@override final  String? preco;
+@override@JsonKey(name: 'entrada_minima') final  String? entradaMinima;
+@override@JsonKey(name: 'parcelas_maximas') final  int? parcelasMaximas;
 @override@JsonKey(name: 'condicoes_parcelamento') final  String? condicoesParcelamento;
 @override final  QuadraModel? quadra;
 
@@ -1181,18 +1183,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _LoteModel&&(identical(other.numero, numero) || other.numero == numero)&&(identical(other.area, area) || other.area == area)&&(identical(other.frente, frente) || other.frente == frente)&&(identical(other.fundo, fundo) || other.fundo == fundo)&&(identical(other.preco, preco) || other.preco == preco)&&(identical(other.condicoesParcelamento, condicoesParcelamento) || other.condicoesParcelamento == condicoesParcelamento)&&(identical(other.quadra, quadra) || other.quadra == quadra));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _LoteModel&&(identical(other.numero, numero) || other.numero == numero)&&(identical(other.area, area) || other.area == area)&&(identical(other.frente, frente) || other.frente == frente)&&(identical(other.fundo, fundo) || other.fundo == fundo)&&(identical(other.entradaMinima, entradaMinima) || other.entradaMinima == entradaMinima)&&(identical(other.parcelasMaximas, parcelasMaximas) || other.parcelasMaximas == parcelasMaximas)&&(identical(other.condicoesParcelamento, condicoesParcelamento) || other.condicoesParcelamento == condicoesParcelamento)&&(identical(other.quadra, quadra) || other.quadra == quadra));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,numero,area,frente,fundo,preco,condicoesParcelamento,quadra);
+    return Object.hash(runtimeType,numero,area,frente,fundo,entradaMinima,parcelasMaximas,condicoesParcelamento,quadra);
 }
 
 @override
 String toString() {
-    return 'LoteModel(numero: $numero, area: $area, frente: $frente, fundo: $fundo, preco: $preco, condicoesParcelamento: $condicoesParcelamento, quadra: $quadra)';
+    return 'LoteModel(numero: $numero, area: $area, frente: $frente, fundo: $fundo, entradaMinima: $entradaMinima, parcelasMaximas: $parcelasMaximas, condicoesParcelamento: $condicoesParcelamento, quadra: $quadra)';
 }
 
 
@@ -1203,7 +1205,7 @@ abstract mixin class _$LoteModelCopyWith<$Res> implements $LoteModelCopyWith<$Re
   factory _$LoteModelCopyWith(_LoteModel value, $Res Function(_LoteModel) _then) = __$LoteModelCopyWithImpl;
 @override @useResult
 $Res call({
- String? numero, String? area, String? frente, String? fundo, String? preco,@JsonKey(name: 'condicoes_parcelamento') String? condicoesParcelamento, QuadraModel? quadra
+ String? numero, String? area, String? frente, String? fundo,@JsonKey(name: 'entrada_minima') String? entradaMinima,@JsonKey(name: 'parcelas_maximas') int? parcelasMaximas,@JsonKey(name: 'condicoes_parcelamento') String? condicoesParcelamento, QuadraModel? quadra
 });
 
 
@@ -1220,14 +1222,15 @@ class __$LoteModelCopyWithImpl<$Res>
 
 /// Create a copy of LoteModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? numero = freezed,Object? area = freezed,Object? frente = freezed,Object? fundo = freezed,Object? preco = freezed,Object? condicoesParcelamento = freezed,Object? quadra = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? numero = freezed,Object? area = freezed,Object? frente = freezed,Object? fundo = freezed,Object? entradaMinima = freezed,Object? parcelasMaximas = freezed,Object? condicoesParcelamento = freezed,Object? quadra = freezed,}) {
   return _then(_LoteModel(
 numero: freezed == numero ? _self.numero : numero // ignore: cast_nullable_to_non_nullable
 as String?,area: freezed == area ? _self.area : area // ignore: cast_nullable_to_non_nullable
 as String?,frente: freezed == frente ? _self.frente : frente // ignore: cast_nullable_to_non_nullable
 as String?,fundo: freezed == fundo ? _self.fundo : fundo // ignore: cast_nullable_to_non_nullable
-as String?,preco: freezed == preco ? _self.preco : preco // ignore: cast_nullable_to_non_nullable
-as String?,condicoesParcelamento: freezed == condicoesParcelamento ? _self.condicoesParcelamento : condicoesParcelamento // ignore: cast_nullable_to_non_nullable
+as String?,entradaMinima: freezed == entradaMinima ? _self.entradaMinima : entradaMinima // ignore: cast_nullable_to_non_nullable
+as String?,parcelasMaximas: freezed == parcelasMaximas ? _self.parcelasMaximas : parcelasMaximas // ignore: cast_nullable_to_non_nullable
+as int?,condicoesParcelamento: freezed == condicoesParcelamento ? _self.condicoesParcelamento : condicoesParcelamento // ignore: cast_nullable_to_non_nullable
 as String?,quadra: freezed == quadra ? _self.quadra : quadra // ignore: cast_nullable_to_non_nullable
 as QuadraModel?,
   ));
@@ -1846,7 +1849,7 @@ $LoteamentoModelCopyWith<$Res>? get loteamento {
 /// @nodoc
 mixin _$LoteamentoModel {
 
- String? get nome; String? get incorporadora; List<String> get infraestrutura;@JsonKey(name: 'areas_lazer') List<String> get areasLazer;
+ String? get nome; String? get incorporadora; bool? get asfalto; bool? get agua; bool? get energia; bool? get esgoto; bool? get iluminacao;@JsonKey(name: 'areas_de_lazer') String? get areasDeLazer;
 /// Create a copy of LoteamentoModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1860,20 +1863,20 @@ $LoteamentoModelCopyWith<LoteamentoModel> get copyWith => _$LoteamentoModelCopyW
 @override
 bool operator ==(Object other) {
   final _this = this as LoteamentoModel;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LoteamentoModel&&(identical(other.nome, _this.nome) || other.nome == _this.nome)&&(identical(other.incorporadora, _this.incorporadora) || other.incorporadora == _this.incorporadora)&&const DeepCollectionEquality().equals(other.infraestrutura, _this.infraestrutura)&&const DeepCollectionEquality().equals(other.areasLazer, _this.areasLazer));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LoteamentoModel&&(identical(other.nome, _this.nome) || other.nome == _this.nome)&&(identical(other.incorporadora, _this.incorporadora) || other.incorporadora == _this.incorporadora)&&(identical(other.asfalto, _this.asfalto) || other.asfalto == _this.asfalto)&&(identical(other.agua, _this.agua) || other.agua == _this.agua)&&(identical(other.energia, _this.energia) || other.energia == _this.energia)&&(identical(other.esgoto, _this.esgoto) || other.esgoto == _this.esgoto)&&(identical(other.iluminacao, _this.iluminacao) || other.iluminacao == _this.iluminacao)&&(identical(other.areasDeLazer, _this.areasDeLazer) || other.areasDeLazer == _this.areasDeLazer));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as LoteamentoModel;
-  return Object.hash(runtimeType,_this.nome,_this.incorporadora,const DeepCollectionEquality().hash(_this.infraestrutura),const DeepCollectionEquality().hash(_this.areasLazer));
+  return Object.hash(runtimeType,_this.nome,_this.incorporadora,_this.asfalto,_this.agua,_this.energia,_this.esgoto,_this.iluminacao,_this.areasDeLazer);
 }
 
 @override
 String toString() {
   final _this = this as LoteamentoModel;
-  return 'LoteamentoModel(nome: ${_this.nome}, incorporadora: ${_this.incorporadora}, infraestrutura: ${_this.infraestrutura}, areasLazer: ${_this.areasLazer})';
+  return 'LoteamentoModel(nome: ${_this.nome}, incorporadora: ${_this.incorporadora}, asfalto: ${_this.asfalto}, agua: ${_this.agua}, energia: ${_this.energia}, esgoto: ${_this.esgoto}, iluminacao: ${_this.iluminacao}, areasDeLazer: ${_this.areasDeLazer})';
 }
 
 
@@ -1884,7 +1887,7 @@ abstract mixin class $LoteamentoModelCopyWith<$Res>  {
   factory $LoteamentoModelCopyWith(LoteamentoModel value, $Res Function(LoteamentoModel) _then) = _$LoteamentoModelCopyWithImpl;
 @useResult
 $Res call({
- String? nome, String? incorporadora, List<String> infraestrutura,@JsonKey(name: 'areas_lazer') List<String> areasLazer
+ String? nome, String? incorporadora, bool? asfalto, bool? agua, bool? energia, bool? esgoto, bool? iluminacao,@JsonKey(name: 'areas_de_lazer') String? areasDeLazer
 });
 
 
@@ -1901,13 +1904,17 @@ class _$LoteamentoModelCopyWithImpl<$Res>
 
 /// Create a copy of LoteamentoModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? nome = freezed,Object? incorporadora = freezed,Object? infraestrutura = null,Object? areasLazer = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? nome = freezed,Object? incorporadora = freezed,Object? asfalto = freezed,Object? agua = freezed,Object? energia = freezed,Object? esgoto = freezed,Object? iluminacao = freezed,Object? areasDeLazer = freezed,}) {
   return _then(LoteamentoModel(
 nome: freezed == nome ? _self.nome : nome // ignore: cast_nullable_to_non_nullable
 as String?,incorporadora: freezed == incorporadora ? _self.incorporadora : incorporadora // ignore: cast_nullable_to_non_nullable
-as String?,infraestrutura: null == infraestrutura ? _self.infraestrutura : infraestrutura // ignore: cast_nullable_to_non_nullable
-as List<String>,areasLazer: null == areasLazer ? _self.areasLazer : areasLazer // ignore: cast_nullable_to_non_nullable
-as List<String>,
+as String?,asfalto: freezed == asfalto ? _self.asfalto : asfalto // ignore: cast_nullable_to_non_nullable
+as bool?,agua: freezed == agua ? _self.agua : agua // ignore: cast_nullable_to_non_nullable
+as bool?,energia: freezed == energia ? _self.energia : energia // ignore: cast_nullable_to_non_nullable
+as bool?,esgoto: freezed == esgoto ? _self.esgoto : esgoto // ignore: cast_nullable_to_non_nullable
+as bool?,iluminacao: freezed == iluminacao ? _self.iluminacao : iluminacao // ignore: cast_nullable_to_non_nullable
+as bool?,areasDeLazer: freezed == areasDeLazer ? _self.areasDeLazer : areasDeLazer // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -1992,10 +1999,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? nome,  String? incorporadora,  List<String> infraestrutura, @JsonKey(name: 'areas_lazer')  List<String> areasLazer)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? nome,  String? incorporadora,  bool? asfalto,  bool? agua,  bool? energia,  bool? esgoto,  bool? iluminacao, @JsonKey(name: 'areas_de_lazer')  String? areasDeLazer)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _LoteamentoModel() when $default != null:
-return $default(_that.nome,_that.incorporadora,_that.infraestrutura,_that.areasLazer);case _:
+return $default(_that.nome,_that.incorporadora,_that.asfalto,_that.agua,_that.energia,_that.esgoto,_that.iluminacao,_that.areasDeLazer);case _:
   return orElse();
 
 }
@@ -2013,10 +2020,10 @@ return $default(_that.nome,_that.incorporadora,_that.infraestrutura,_that.areasL
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? nome,  String? incorporadora,  List<String> infraestrutura, @JsonKey(name: 'areas_lazer')  List<String> areasLazer)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? nome,  String? incorporadora,  bool? asfalto,  bool? agua,  bool? energia,  bool? esgoto,  bool? iluminacao, @JsonKey(name: 'areas_de_lazer')  String? areasDeLazer)  $default,) {final _that = this;
 switch (_that) {
 case _LoteamentoModel():
-return $default(_that.nome,_that.incorporadora,_that.infraestrutura,_that.areasLazer);case _:
+return $default(_that.nome,_that.incorporadora,_that.asfalto,_that.agua,_that.energia,_that.esgoto,_that.iluminacao,_that.areasDeLazer);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -2033,10 +2040,10 @@ return $default(_that.nome,_that.incorporadora,_that.infraestrutura,_that.areasL
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? nome,  String? incorporadora,  List<String> infraestrutura, @JsonKey(name: 'areas_lazer')  List<String> areasLazer)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? nome,  String? incorporadora,  bool? asfalto,  bool? agua,  bool? energia,  bool? esgoto,  bool? iluminacao, @JsonKey(name: 'areas_de_lazer')  String? areasDeLazer)?  $default,) {final _that = this;
 switch (_that) {
 case _LoteamentoModel() when $default != null:
-return $default(_that.nome,_that.incorporadora,_that.infraestrutura,_that.areasLazer);case _:
+return $default(_that.nome,_that.incorporadora,_that.asfalto,_that.agua,_that.energia,_that.esgoto,_that.iluminacao,_that.areasDeLazer);case _:
   return null;
 
 }
@@ -2048,25 +2055,17 @@ return $default(_that.nome,_that.incorporadora,_that.infraestrutura,_that.areasL
 @JsonSerializable()
 
 class _LoteamentoModel extends LoteamentoModel {
-  const _LoteamentoModel({this.nome, this.incorporadora,  List<String> infraestrutura = const <String>[], @JsonKey(name: 'areas_lazer')  List<String> areasLazer = const <String>[]}): _infraestrutura = infraestrutura,_areasLazer = areasLazer,super._();
+  const _LoteamentoModel({this.nome, this.incorporadora, this.asfalto, this.agua, this.energia, this.esgoto, this.iluminacao, @JsonKey(name: 'areas_de_lazer') this.areasDeLazer}): super._();
   factory _LoteamentoModel.fromJson(Map<String, dynamic> json) => _$LoteamentoModelFromJson(json);
 
 @override final  String? nome;
 @override final  String? incorporadora;
- final  List<String> _infraestrutura;
-@override@JsonKey() List<String> get infraestrutura {
-  if (_infraestrutura is EqualUnmodifiableListView) return _infraestrutura;
-  // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_infraestrutura);
-}
-
- final  List<String> _areasLazer;
-@override@JsonKey(name: 'areas_lazer') List<String> get areasLazer {
-  if (_areasLazer is EqualUnmodifiableListView) return _areasLazer;
-  // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_areasLazer);
-}
-
+@override final  bool? asfalto;
+@override final  bool? agua;
+@override final  bool? energia;
+@override final  bool? esgoto;
+@override final  bool? iluminacao;
+@override@JsonKey(name: 'areas_de_lazer') final  String? areasDeLazer;
 
 /// Create a copy of LoteamentoModel
 /// with the given fields replaced by the non-null parameter values.
@@ -2081,18 +2080,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _LoteamentoModel&&(identical(other.nome, nome) || other.nome == nome)&&(identical(other.incorporadora, incorporadora) || other.incorporadora == incorporadora)&&const DeepCollectionEquality().equals(other.infraestrutura, _infraestrutura)&&const DeepCollectionEquality().equals(other.areasLazer, _areasLazer));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _LoteamentoModel&&(identical(other.nome, nome) || other.nome == nome)&&(identical(other.incorporadora, incorporadora) || other.incorporadora == incorporadora)&&(identical(other.asfalto, asfalto) || other.asfalto == asfalto)&&(identical(other.agua, agua) || other.agua == agua)&&(identical(other.energia, energia) || other.energia == energia)&&(identical(other.esgoto, esgoto) || other.esgoto == esgoto)&&(identical(other.iluminacao, iluminacao) || other.iluminacao == iluminacao)&&(identical(other.areasDeLazer, areasDeLazer) || other.areasDeLazer == areasDeLazer));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,nome,incorporadora,const DeepCollectionEquality().hash(_infraestrutura),const DeepCollectionEquality().hash(_areasLazer));
+    return Object.hash(runtimeType,nome,incorporadora,asfalto,agua,energia,esgoto,iluminacao,areasDeLazer);
 }
 
 @override
 String toString() {
-    return 'LoteamentoModel(nome: $nome, incorporadora: $incorporadora, infraestrutura: $infraestrutura, areasLazer: $areasLazer)';
+    return 'LoteamentoModel(nome: $nome, incorporadora: $incorporadora, asfalto: $asfalto, agua: $agua, energia: $energia, esgoto: $esgoto, iluminacao: $iluminacao, areasDeLazer: $areasDeLazer)';
 }
 
 
@@ -2103,7 +2102,7 @@ abstract mixin class _$LoteamentoModelCopyWith<$Res> implements $LoteamentoModel
   factory _$LoteamentoModelCopyWith(_LoteamentoModel value, $Res Function(_LoteamentoModel) _then) = __$LoteamentoModelCopyWithImpl;
 @override @useResult
 $Res call({
- String? nome, String? incorporadora, List<String> infraestrutura,@JsonKey(name: 'areas_lazer') List<String> areasLazer
+ String? nome, String? incorporadora, bool? asfalto, bool? agua, bool? energia, bool? esgoto, bool? iluminacao,@JsonKey(name: 'areas_de_lazer') String? areasDeLazer
 });
 
 
@@ -2120,13 +2119,17 @@ class __$LoteamentoModelCopyWithImpl<$Res>
 
 /// Create a copy of LoteamentoModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? nome = freezed,Object? incorporadora = freezed,Object? infraestrutura = null,Object? areasLazer = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? nome = freezed,Object? incorporadora = freezed,Object? asfalto = freezed,Object? agua = freezed,Object? energia = freezed,Object? esgoto = freezed,Object? iluminacao = freezed,Object? areasDeLazer = freezed,}) {
   return _then(_LoteamentoModel(
 nome: freezed == nome ? _self.nome : nome // ignore: cast_nullable_to_non_nullable
 as String?,incorporadora: freezed == incorporadora ? _self.incorporadora : incorporadora // ignore: cast_nullable_to_non_nullable
-as String?,infraestrutura: null == infraestrutura ? _self._infraestrutura : infraestrutura // ignore: cast_nullable_to_non_nullable
-as List<String>,areasLazer: null == areasLazer ? _self._areasLazer : areasLazer // ignore: cast_nullable_to_non_nullable
-as List<String>,
+as String?,asfalto: freezed == asfalto ? _self.asfalto : asfalto // ignore: cast_nullable_to_non_nullable
+as bool?,agua: freezed == agua ? _self.agua : agua // ignore: cast_nullable_to_non_nullable
+as bool?,energia: freezed == energia ? _self.energia : energia // ignore: cast_nullable_to_non_nullable
+as bool?,esgoto: freezed == esgoto ? _self.esgoto : esgoto // ignore: cast_nullable_to_non_nullable
+as bool?,iluminacao: freezed == iluminacao ? _self.iluminacao : iluminacao // ignore: cast_nullable_to_non_nullable
+as bool?,areasDeLazer: freezed == areasDeLazer ? _self.areasDeLazer : areasDeLazer // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

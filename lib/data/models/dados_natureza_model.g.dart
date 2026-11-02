@@ -102,7 +102,8 @@ _LoteModel _$LoteModelFromJson(Map<String, dynamic> json) => _LoteModel(
   area: json['area'] as String?,
   frente: json['frente'] as String?,
   fundo: json['fundo'] as String?,
-  preco: json['preco'] as String?,
+  entradaMinima: json['entrada_minima'] as String?,
+  parcelasMaximas: (json['parcelas_maximas'] as num?)?.toInt(),
   condicoesParcelamento: json['condicoes_parcelamento'] as String?,
   quadra: json['quadra'] == null
       ? null
@@ -115,7 +116,8 @@ Map<String, dynamic> _$LoteModelToJson(_LoteModel instance) =>
       'area': instance.area,
       'frente': instance.frente,
       'fundo': instance.fundo,
-      'preco': instance.preco,
+      'entrada_minima': instance.entradaMinima,
+      'parcelas_maximas': instance.parcelasMaximas,
       'condicoes_parcelamento': instance.condicoesParcelamento,
       'quadra': instance.quadra,
     };
@@ -164,22 +166,22 @@ _LoteamentoModel _$LoteamentoModelFromJson(Map<String, dynamic> json) =>
     _LoteamentoModel(
       nome: json['nome'] as String?,
       incorporadora: json['incorporadora'] as String?,
-      infraestrutura:
-          (json['infraestrutura'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList() ??
-          const <String>[],
-      areasLazer:
-          (json['areas_lazer'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList() ??
-          const <String>[],
+      asfalto: json['asfalto'] as bool?,
+      agua: json['agua'] as bool?,
+      energia: json['energia'] as bool?,
+      esgoto: json['esgoto'] as bool?,
+      iluminacao: json['iluminacao'] as bool?,
+      areasDeLazer: json['areas_de_lazer'] as String?,
     );
 
 Map<String, dynamic> _$LoteamentoModelToJson(_LoteamentoModel instance) =>
     <String, dynamic>{
       'nome': instance.nome,
       'incorporadora': instance.incorporadora,
-      'infraestrutura': instance.infraestrutura,
-      'areas_lazer': instance.areasLazer,
+      'asfalto': instance.asfalto,
+      'agua': instance.agua,
+      'energia': instance.energia,
+      'esgoto': instance.esgoto,
+      'iluminacao': instance.iluminacao,
+      'areas_de_lazer': instance.areasDeLazer,
     };

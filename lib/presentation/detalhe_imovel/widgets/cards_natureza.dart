@@ -34,9 +34,9 @@ class CardPredio extends StatelessWidget {
 }
 
 /// Card da quadra e do loteamento do lote (D-13): linhas de quadra,
-/// loteamento e incorporadora, depois infraestrutura e áreas de lazer como
-/// `Chip`s. Cada lista vazia é omitida e o card inteiro some quando não há
-/// nada a mostrar (D-14).
+/// loteamento e incorporadora, depois a infraestrutura como `Chip`s e as áreas
+/// de lazer como texto corrido (A-03). O que falta é omitido e o card inteiro
+/// some quando não há nada a mostrar (D-14).
 class CardQuadraLoteamento extends StatelessWidget {
   const CardQuadraLoteamento({super.key, required this.quadra});
 
@@ -48,7 +48,7 @@ class CardQuadraLoteamento extends StatelessWidget {
 
     final linhas = linhasDaQuadra(quadra);
     final infraestrutura = quadra.loteamento?.infraestrutura ?? const [];
-    final areasLazer = quadra.loteamento?.areasLazer ?? const [];
+    final areasDeLazer = quadra.loteamento?.areasDeLazer;
 
     final textTheme = Theme.of(context).textTheme;
     return Card.outlined(
@@ -65,8 +65,12 @@ class CardQuadraLoteamento extends StatelessWidget {
             ],
             if (infraestrutura.isNotEmpty)
               _ListaDeChips(titulo: 'Infraestrutura', itens: infraestrutura),
-            if (areasLazer.isNotEmpty)
-              _ListaDeChips(titulo: 'Áreas de lazer', itens: areasLazer),
+            if (areasDeLazer != null) ...[
+              const SizedBox(height: 12),
+              Text('Áreas de lazer', style: textTheme.titleSmall),
+              const SizedBox(height: 8),
+              Text(areasDeLazer, style: textTheme.bodyMedium),
+            ],
           ],
         ),
       ),

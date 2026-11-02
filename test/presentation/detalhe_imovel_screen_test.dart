@@ -297,36 +297,44 @@ void main() {
       expect(find.text('8º'), findsOneWidget);
     });
 
-    testWidgets('lote com preço próprio mostra "Preço do lote" '
-        'formatado', (tester) async {
-      final comPreco = detalhe.copyWith(
-        dados: const DadosNatureza.lote(numero: '9', preco: '210500.50'),
+    testWidgets('lote mostra entrada mínima em moeda e parcelas máximas, sem '
+        '"Preço do lote"', (tester) async {
+      final comParcelas = detalhe.copyWith(
+        dados: const DadosNatureza.lote(
+          numero: '9',
+          entradaMinima: '23500.00',
+          parcelasMaximas: 120,
+        ),
       );
       await pumpEstado(
         tester,
-        DetalheImovelState.carregado(comPreco),
+        DetalheImovelState.carregado(comParcelas),
         altura: 2400,
       );
 
       expect(find.text('Sobre o lote'), findsOneWidget);
-      expect(find.text('Preço do lote'), findsOneWidget);
-      expect(find.text('R\$\u00A0210.500,50'), findsOneWidget);
+      expect(find.text('Entrada mínima'), findsOneWidget);
+      expect(find.text('R\$\u00A023.500'), findsOneWidget);
+      expect(find.text('Parcelas máximas'), findsOneWidget);
+      expect(find.text('120'), findsOneWidget);
+      expect(find.text('Preço do lote'), findsNothing);
     });
 
-    testWidgets('lote sem preço próprio não mostra "Preço do lote"', (
+    testWidgets('lote sem dados de parcelamento não mostra as linhas', (
       tester,
     ) async {
-      final semPreco = detalhe.copyWith(
+      final semParcelas = detalhe.copyWith(
         dados: const DadosNatureza.lote(numero: '9'),
       );
       await pumpEstado(
         tester,
-        DetalheImovelState.carregado(semPreco),
+        DetalheImovelState.carregado(semParcelas),
         altura: 2400,
       );
 
       expect(find.text('Sobre o lote'), findsOneWidget);
-      expect(find.text('Preço do lote'), findsNothing);
+      expect(find.text('Entrada mínima'), findsNothing);
+      expect(find.text('Parcelas máximas'), findsNothing);
     });
 
     testWidgets('natureza sem nenhum campo preenchido faz a seção sumir', (
@@ -413,7 +421,7 @@ void main() {
     });
 
     testWidgets('lote 103 mostra o card "Quadra e loteamento" com um Chip por '
-        'item das listas', (tester) async {
+        'item da infraestrutura e as áreas de lazer em texto', (tester) async {
       final lote = detalhe.copyWith(
         dados: const DadosNatureza.lote(
           numero: '9',
@@ -422,8 +430,8 @@ void main() {
             loteamento: DadosLoteamento(
               nome: 'Residencial Parque das Flores',
               incorporadora: 'Flores Urbanismo',
-              infraestrutura: ['Asfalto', 'Água encanada', 'Rede elétrica'],
-              areasLazer: ['Praça', 'Playground'],
+              infraestrutura: ['Asfalto', 'Água', 'Energia'],
+              areasDeLazer: 'Praça central e playground.',
             ),
           ),
         ),
@@ -440,13 +448,16 @@ void main() {
       expect(find.text('Flores Urbanismo'), findsOneWidget);
       expect(find.text('Infraestrutura'), findsOneWidget);
       expect(find.text('Áreas de lazer'), findsOneWidget);
-      expect(find.byType(Chip), findsNWidgets(5));
+      expect(find.byType(Chip), findsNWidgets(3));
       expect(find.widgetWithText(Chip, 'Asfalto'), findsOneWidget);
-      expect(find.widgetWithText(Chip, 'Playground'), findsOneWidget);
+      expect(find.widgetWithText(Chip, 'Energia'), findsOneWidget);
+      expect(find.text('Praça central e playground.'), findsOneWidget);
+      expect(find.widgetWithText(Chip, 'Praça central e playground.'),
+          findsNothing);
     });
 
-    testWidgets('loteamento com listas vazias não mostra os títulos das '
-        'listas', (tester) async {
+    testWidgets('loteamento sem infraestrutura nem áreas de lazer não mostra '
+        'os títulos', (tester) async {
       final lote = detalhe.copyWith(
         dados: const DadosNatureza.lote(
           quadra: DadosQuadra(
@@ -590,12 +601,16 @@ void main() {
       expect(find.byType(Chip), findsNothing);
     });
 
-    testWidgets('lote: o cabeçalho usa o preço da parte comum e o preço do '
-        'lote só aparece na seção da natureza (D-19 d)', (tester) async {
+    testWidgets('lote: o cabeçalho usa o preço de venda do imóvel e não há '
+        'preço próprio do lote (§11.5 d)', (tester) async {
       final lote = detalhe.copyWith(
         titulo: 'Lote em condomínio fechado',
         precoVenda: '210000.00',
-        dados: const DadosNatureza.lote(numero: '9', preco: '210500.50'),
+        dados: const DadosNatureza.lote(
+          numero: '9',
+          entradaMinima: '21000.00',
+          parcelasMaximas: 60,
+        ),
       );
       await pumpEstado(
         tester,
@@ -604,8 +619,8 @@ void main() {
       );
 
       expect(find.text('R\$\u00A0210.000'), findsOneWidget);
-      expect(find.text('Preço do lote'), findsOneWidget);
-      expect(find.text('R\$\u00A0210.500,50'), findsOneWidget);
+      expect(find.text('Preço do lote'), findsNothing);
+      expect(find.text('R\$\u00A021.000'), findsOneWidget);
       // A prévia (R$ 450.000) não vaza para o cabeçalho do detalhe.
       expect(find.text('R\$\u00A0450.000'), findsNothing);
     });

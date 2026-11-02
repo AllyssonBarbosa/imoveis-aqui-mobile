@@ -456,6 +456,8 @@ void main() {
       expect(lote.area, '275.00');
       expect(lote.frente, '11.00');
       expect(lote.fundo, '25.00');
+      expect(lote.entradaMinima, '23500.00');
+      expect(lote.parcelasMaximas, 120);
       expect(lote.condicoesParcelamento, 'Correção anual pelo IPCA.');
       expect(lote.quadra?.identificacao, 'B');
       expect(
@@ -466,6 +468,107 @@ void main() {
         lote.quadra?.loteamento?.incorporadora,
         'Incorporadora Verde Vale',
       );
+    });
+
+    group('loteamento do lote capturado (A-03)', () {
+      Map<String, Object?> comLoteamento(Map<String, Object?> alteracoes) {
+        final mapa = detalheCapturado('detalhe_lote.json');
+        final lote = Map<String, Object?>.of(
+          mapa['lote']! as Map<String, Object?>,
+        );
+        final quadra = Map<String, Object?>.of(
+          lote['quadra']! as Map<String, Object?>,
+        );
+        quadra['loteamento'] = {
+          ...(quadra['loteamento']! as Map<String, Object?>),
+          ...alteracoes,
+        };
+        lote['quadra'] = quadra;
+        mapa['lote'] = lote;
+        return mapa;
+      }
+
+      DadosLoteamento? loteamentoDe(Map<String, Object?> mapa) =>
+          (dadosDe(mapa)! as DadosLote).quadra?.loteamento;
+
+      test('os cinco booleanos verdadeiros viram rótulos na ordem fixa e '
+          'areas_de_lazer chega como a frase do servidor', () {
+        final loteamento = loteamentoDe(detalheCapturado('detalhe_lote.json'));
+
+        expect(loteamento?.infraestrutura, [
+          'Asfalto',
+          'Água',
+          'Energia',
+          'Esgoto',
+          'Iluminação pública',
+        ]);
+        expect(
+          loteamento?.areasDeLazer,
+          'Praça central, quadra poliesportiva e pista de caminhada.',
+        );
+      });
+
+      test('só os booleanos verdadeiros entram; falso e nulo são omitidos', () {
+        final loteamento = loteamentoDe(
+          comLoteamento({
+            'asfalto': false,
+            'agua': true,
+            'energia': null,
+            'esgoto': false,
+            'iluminacao': true,
+          }),
+        );
+
+        expect(loteamento?.infraestrutura, ['Água', 'Iluminação pública']);
+      });
+
+      test('nenhum booleano verdadeiro resulta em infraestrutura vazia', () {
+        final loteamento = loteamentoDe(
+          comLoteamento({
+            'asfalto': false,
+            'agua': false,
+            'energia': false,
+            'esgoto': false,
+            'iluminacao': false,
+          }),
+        );
+
+        expect(loteamento?.infraestrutura, isEmpty);
+      });
+
+      test('areas_de_lazer em branco ou nula vira null, sem dividir o texto', () {
+        expect(
+          loteamentoDe(comLoteamento({'areas_de_lazer': '   '}))?.areasDeLazer,
+          isNull,
+        );
+        expect(
+          loteamentoDe(comLoteamento({'areas_de_lazer': ''}))?.areasDeLazer,
+          isNull,
+        );
+        expect(
+          loteamentoDe(comLoteamento({'areas_de_lazer': null}))?.areasDeLazer,
+          isNull,
+        );
+        expect(
+          loteamentoDe(
+            comLoteamento({'areas_de_lazer': 'Praça, quadra'}),
+          )?.areasDeLazer,
+          'Praça, quadra',
+        );
+      });
+    });
+
+    test('entrada_minima e parcelas_maximas nulas viram null', () {
+      final mapa = detalheCapturado('detalhe_lote.json');
+      mapa['lote'] = {
+        ...(mapa['lote']! as Map<String, Object?>),
+        'entrada_minima': null,
+        'parcelas_maximas': null,
+      };
+
+      final lote = dadosDe(mapa)! as DadosLote;
+      expect(lote.entradaMinima, isNull);
+      expect(lote.parcelasMaximas, isNull);
     });
 
     test('quadra nula e loteamento nulo viram null', () {

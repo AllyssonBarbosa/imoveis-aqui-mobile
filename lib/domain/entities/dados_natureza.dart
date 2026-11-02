@@ -59,14 +59,16 @@ sealed class DadosNatureza with _$DadosNatureza {
     DadosPredio? predio,
   }) = DadosApartamento;
 
-  /// [preco] só existe quando o servidor manda; nunca é derivado do preço da
-  /// parte comum (D-19 d).
+  /// O preço do lote é o preço de venda do imóvel, mostrado no cabeçalho
+  /// (§11.5 d): o bloco do lote não tem preço próprio. [entradaMinima] é a
+  /// string decimal do servidor e [parcelasMaximas] o inteiro como veio.
   const factory DadosNatureza.lote({
     String? numero,
     String? area,
     String? frente,
     String? fundo,
-    String? preco,
+    String? entradaMinima,
+    int? parcelasMaximas,
     String? condicoesParcelamento,
 
     /// Quadra com o loteamento embutidos no detalhe (D-03).
@@ -100,14 +102,15 @@ abstract class DadosQuadra with _$DadosQuadra {
   }) = _DadosQuadra;
 }
 
-/// Loteamento da quadra; as listas ficam na ordem recebida e vazias quando o
-/// servidor não as manda.
+/// Loteamento da quadra. [infraestrutura] são os rótulos dos itens que o
+/// servidor marcou como verdadeiros (tradução feita em data/); [areasDeLazer]
+/// é o texto corrido do servidor, nunca dividido no app.
 @freezed
 abstract class DadosLoteamento with _$DadosLoteamento {
   const factory DadosLoteamento({
     String? nome,
     String? incorporadora,
     @Default(<String>[]) List<String> infraestrutura,
-    @Default(<String>[]) List<String> areasLazer,
+    String? areasDeLazer,
   }) = _DadosLoteamento;
 }

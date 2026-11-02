@@ -264,13 +264,14 @@ void main() {
   });
 
   group('lote', () {
-    test('com preço próprio: "Preço do lote" formatado e parcelamento', () {
+    test('linhas: número, entrada mínima em moeda, parcelas e condições', () {
       const lote = DadosNatureza.lote(
         numero: '12',
         area: '250.00',
         frente: '10.00',
         fundo: '25.00',
-        preco: '210500.50',
+        entradaMinima: '23500.00',
+        parcelasMaximas: 120,
         condicoesParcelamento: 'Entrada de 20% e 120 parcelas',
       );
 
@@ -281,14 +282,16 @@ void main() {
       ]);
       expect(linhasDe(lote).map((linha) => linha.rotulo), [
         'Número do lote',
-        'Preço do lote',
+        'Entrada mínima',
+        'Parcelas máximas',
         'Condições de parcelamento',
       ]);
       expect(linhasComo(lote), contains(('Número do lote', '12')));
       expect(
         linhasComo(lote),
-        contains(('Preço do lote', 'R\$\u00A0210.500,50')),
+        contains(('Entrada mínima', 'R\$\u00A023.500')),
       );
+      expect(linhasComo(lote), contains(('Parcelas máximas', '120')));
       expect(
         linhasComo(lote),
         contains((
@@ -298,13 +301,23 @@ void main() {
       );
     });
 
-    test('sem preço próprio não há "Preço do lote" nem derivado (D-19 d)', () {
-      const lote = DadosNatureza.lote(numero: '7', area: '300.00');
+    test('a linha "Preço do lote" não existe mais (§11.5 d)', () {
+      const lote = DadosNatureza.lote(
+        numero: '7',
+        area: '300.00',
+        entradaMinima: '1000.00',
+        parcelasMaximas: 12,
+      );
 
       expect(
         linhasDe(lote).where((linha) => linha.rotulo == 'Preço do lote'),
         isEmpty,
       );
+    });
+
+    test('campos de parcelamento nulos não geram linha', () {
+      const lote = DadosNatureza.lote(numero: '7', area: '300.00');
+
       expect(linhasComo(lote), [('Número do lote', '7')]);
     });
 
@@ -379,6 +392,45 @@ void main() {
         (rotulo: 'Quadra', valor: 'Quadra C'),
       ]);
       expect(linhasDaQuadra(const DadosQuadra()), isEmpty);
+    });
+  });
+
+  group('quadraTemConteudo', () {
+    test('vazio quando não há linha, infraestrutura nem áreas de lazer', () {
+      expect(quadraTemConteudo(const DadosQuadra()), isFalse);
+      expect(
+        quadraTemConteudo(const DadosQuadra(loteamento: DadosLoteamento())),
+        isFalse,
+      );
+    });
+
+    test('uma linha basta', () {
+      expect(
+        quadraTemConteudo(const DadosQuadra(identificacao: 'B')),
+        isTrue,
+      );
+    });
+
+    test('só infraestrutura basta', () {
+      expect(
+        quadraTemConteudo(
+          const DadosQuadra(
+            loteamento: DadosLoteamento(infraestrutura: ['Asfalto']),
+          ),
+        ),
+        isTrue,
+      );
+    });
+
+    test('só áreas de lazer bastam', () {
+      expect(
+        quadraTemConteudo(
+          const DadosQuadra(
+            loteamento: DadosLoteamento(areasDeLazer: 'Praça central.'),
+          ),
+        ),
+        isTrue,
+      );
     });
   });
 

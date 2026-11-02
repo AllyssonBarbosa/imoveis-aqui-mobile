@@ -82,6 +82,15 @@ void main() {
   final idTerreno = terreno['id']! as int;
   final tituloTerreno = terreno['titulo']! as String;
 
+  // O lote capturado (D-17, A-03): números e frases vêm do JSON, não escritos
+  // à mão no teste.
+  final lote = lerFixtureApi('detalhe_lote.json')! as Map<String, Object?>;
+  final idLote = lote['id']! as int;
+  final blocoLote = lote['lote']! as Map<String, Object?>;
+  final loteamentoDoLote =
+      (blocoLote['quadra']! as Map<String, Object?>)['loteamento']!
+          as Map<String, Object?>;
+
   late _CidadeSelecaoCubitFalso cidadeSelecaoCubit;
   late _SalvarCidadeUseCaseFalso salvarCidade;
   late ApiFalsa apiFalsa;
@@ -406,6 +415,75 @@ void main() {
             (uri) => uri.path.startsWith('/api/publico/corretores/'),
           ),
           isEmpty,
+        );
+      },
+    );
+  });
+
+  group('natureza no wire real (D-17, A-03)', () {
+    testWidgets(
+      'o card do lote capturado abre "Sobre o lote" com parcelamento e o card '
+      '"Quadra e loteamento" com infraestrutura em chips e áreas de lazer em '
+      'texto corrido',
+      (tester) async {
+        registrarDetalhe(
+          ImovelDetalheRemoteDataSource(
+            ApiFalsa(latencia: const Duration(milliseconds: 300)).criarDio(),
+          ),
+        );
+        await pumpVitrine(tester);
+
+        await tocarNoCard(tester, idLote);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await esperarDetalhe(tester, const Duration(milliseconds: 300));
+
+        expect(naPagina(find.text('Sobre o lote')), findsOneWidget);
+        expect(naPagina(find.text('Número do lote')), findsOneWidget);
+        expect(naPagina(find.text(blocoLote['numero']! as String)),
+            findsOneWidget);
+        expect(naPagina(find.text('Entrada mínima')), findsOneWidget);
+        expect(naPagina(find.text('R\$\u00A023.500')), findsOneWidget);
+        expect(naPagina(find.text('Parcelas máximas')), findsOneWidget);
+        expect(naPagina(find.text('120')), findsOneWidget);
+        expect(naPagina(find.text('Condições de parcelamento')),
+            findsOneWidget);
+        expect(
+          naPagina(find.text(blocoLote['condicoes_parcelamento']! as String)),
+          findsOneWidget,
+        );
+        // O lote não tem preço próprio: o cabeçalho mostra o de venda.
+        expect(naPagina(find.text('Preço do lote')), findsNothing);
+        expect(naPagina(find.textContaining('235.000')), findsOneWidget);
+
+        expect(naPagina(find.text('Quadra e loteamento')), findsOneWidget);
+        expect(naPagina(find.text('Infraestrutura')), findsOneWidget);
+        for (final rotulo in [
+          'Asfalto',
+          'Água',
+          'Energia',
+          'Esgoto',
+          'Iluminação pública',
+        ]) {
+          expect(
+            naPagina(
+              find.descendant(
+                of: find.byType(Chip),
+                matching: find.text(rotulo),
+              ),
+            ),
+            findsOneWidget,
+          );
+        }
+        // As áreas de lazer são um Text com a frase inteira, nunca chips.
+        final frase = loteamentoDoLote['areas_de_lazer']! as String;
+        expect(naPagina(find.text('Áreas de lazer')), findsOneWidget);
+        expect(naPagina(find.text(frase)), findsOneWidget);
+        expect(
+          naPagina(
+            find.descendant(of: find.byType(Chip), matching: find.text(frase)),
+          ),
+          findsNothing,
         );
       },
     );
