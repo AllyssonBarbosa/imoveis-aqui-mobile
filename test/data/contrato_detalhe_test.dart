@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -63,6 +64,95 @@ const _chavesCorretor = {
   'apresentacao',
 };
 
+/// Blocos por natureza (serializers públicos de casa, terreno, apartamento e
+/// lote, 05-02): iguais a `CHAVES_CASA` etc. de `VitrineAllowlistExataTests`.
+/// O bloco da natureza do imóvel vem preenchido e os outros três vêm `null`.
+const _chavesCasa = {
+  'area_terreno',
+  'area_construida',
+  'area_livre',
+  'quartos',
+  'suites',
+  'banheiros',
+  'salas',
+  'vagas',
+  'pavimentos',
+  'ano_construcao',
+  'piscina',
+  'quintal',
+  'churrasqueira',
+  'mobiliada',
+};
+
+const _chavesTerreno = {
+  'area_total',
+  'frente',
+  'fundo',
+  'lateral_esquerda',
+  'lateral_direita',
+  'topografia',
+  'murado',
+  'esquina',
+  'uso_permitido',
+};
+
+const _chavesApartamento = {
+  'predio',
+  'andar',
+  'area_privativa',
+  'area_total',
+  'quartos',
+  'suites',
+  'banheiros',
+  'vagas',
+  'varanda',
+  'posicao_solar',
+};
+
+const _chavesPredio = {
+  'nome',
+  'andares',
+  'ano_construcao',
+  'elevadores',
+  'portaria_24h',
+  'piscina',
+  'academia',
+  'salao_de_festas',
+  'playground',
+};
+
+const _chavesLote = {
+  'numero',
+  'area',
+  'frente',
+  'fundo',
+  'entrada_minima',
+  'parcelas_maximas',
+  'condicoes_parcelamento',
+  'quadra',
+};
+
+const _chavesQuadra = {'identificacao', 'loteamento'};
+
+const _chavesLoteamento = {
+  'nome',
+  'incorporadora',
+  'asfalto',
+  'agua',
+  'energia',
+  'esgoto',
+  'iluminacao',
+  'areas_de_lazer',
+};
+
+/// Natureza do wire -> (chave do bloco, chaves exatas do bloco).
+const _blocoPorNatureza = <String, (String, Set<String>)>{
+  'CASA': ('casa', _chavesCasa),
+  'TERRENO': ('terreno', _chavesTerreno),
+  'APARTAMENTO': ('apartamento', _chavesApartamento),
+  'LOTE': ('lote', _chavesLote),
+};
+
 /// Confere que as chaves de [objeto] são EXATAMENTE as de [esperadas];
 /// [rotulo] identifica o objeto na mensagem de falha.
 void _exigirChavesExatas(
@@ -110,6 +200,50 @@ void _exigirContrato(Map<String, Object?> detalhe, String rotulo) {
   final corretor = detalhe['corretor_responsavel'];
   if (corretor != null) {
     _exigirChavesExatas(corretor, _chavesCorretor, '$rotulo.corretor');
+  }
+  _exigirBlocosDaNatureza(detalhe, rotulo);
+}
+
+/// Exatamente o bloco da `natureza` vem preenchido, com as chaves exatas do
+/// servidor; os outros três vêm `null`. Apartamento confere o prédio e lote
+/// confere quadra e loteamento.
+void _exigirBlocosDaNatureza(Map<String, Object?> detalhe, String rotulo) {
+  final natureza = detalhe['natureza'];
+  final (chaveBloco, chavesBloco) = _blocoPorNatureza[natureza]!;
+
+  for (final chave in _blocoPorNatureza.values.map((b) => b.$1)) {
+    if (chave == chaveBloco) continue;
+    expect(
+      detalhe[chave],
+      isNull,
+      reason: '$rotulo ($natureza) deveria ter $chave nulo',
+    );
+  }
+
+  final bloco = detalhe[chaveBloco];
+  expect(bloco, isNotNull, reason: '$rotulo ($natureza) sem bloco $chaveBloco');
+  _exigirChavesExatas(bloco, chavesBloco, '$rotulo.$chaveBloco');
+
+  final mapa = bloco! as Map<String, Object?>;
+  if (natureza == 'APARTAMENTO') {
+    final predio = mapa['predio'];
+    if (predio != null) {
+      _exigirChavesExatas(predio, _chavesPredio, '$rotulo.apartamento.predio');
+    }
+  }
+  if (natureza == 'LOTE') {
+    final quadra = mapa['quadra'];
+    if (quadra != null) {
+      _exigirChavesExatas(quadra, _chavesQuadra, '$rotulo.lote.quadra');
+      final loteamento = (quadra as Map<String, Object?>)['loteamento'];
+      if (loteamento != null) {
+        _exigirChavesExatas(
+          loteamento,
+          _chavesLoteamento,
+          '$rotulo.lote.quadra.loteamento',
+        );
+      }
+    }
   }
 }
 
@@ -174,6 +308,87 @@ void main() {
     });
   });
 
+  group('exemplo do contrato == resposta capturada', () {
+    const pasta =
+        '.planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/'
+        'contrato';
+    const pares = {
+      'imovel_detalhe.example.json': 'detalhe_apartamento.json',
+      'imovel_detalhe_lote.example.json': 'detalhe_lote.json',
+    };
+
+    for (final par in pares.entries) {
+      test('${par.key} é cópia exata de ${par.value}', () {
+        final exemplo = File('$pasta/${par.key}').readAsStringSync();
+        final fixture = File(
+          'test/fixtures/api/${par.value}',
+        ).readAsStringSync();
+
+        // Byte a byte (D-02: o exemplo nunca é editado à mão) e igualdade
+        // profunda do JSON decodificado.
+        expect(exemplo, fixture);
+        expect(jsonDecode(exemplo), equals(capturados[par.value]));
+      });
+
+      test('${par.key} tem as chaves públicas e parseia pelo Model', () {
+        final exemplo =
+            jsonDecode(File('$pasta/${par.key}').readAsStringSync())!
+                as Map<String, Object?>;
+
+        _exigirContrato(exemplo, par.key);
+        final detalhe = DetalheImovelModel.fromJson(exemplo).paraEntidade();
+        expect(detalhe.id, exemplo['id']);
+      });
+    }
+  });
+
+  group('blocos de natureza: cada natureza tem o conjunto exato de chaves', () {
+    test('as quatro naturezas estão capturadas, com o bloco certo', () {
+      final porNatureza = {
+        for (final d in capturados.values) d['natureza']! as String: d,
+      };
+
+      expect(
+        porNatureza.keys,
+        containsAll(['CASA', 'APARTAMENTO', 'TERRENO', 'LOTE']),
+      );
+      for (final natureza in _blocoPorNatureza.keys) {
+        _exigirBlocosDaNatureza(porNatureza[natureza]!, natureza);
+      }
+    });
+
+    test('apartamento traz o prédio e o lote traz quadra e loteamento', () {
+      final apartamento =
+          capturados['detalhe_apartamento.json']!['apartamento']!
+              as Map<String, Object?>;
+      final lote =
+          capturados['detalhe_lote.json']!['lote']! as Map<String, Object?>;
+
+      expect(apartamento['predio'], isNotNull);
+      expect(lote['quadra'], isNotNull);
+      expect(
+        (lote['quadra']! as Map<String, Object?>)['loteamento'],
+        isNotNull,
+      );
+    });
+
+    test('lote não tem preço próprio nem unidade; apartamento não tem número', () {
+      final lote = capturados['detalhe_lote.json']!['lote']!
+          as Map<String, Object?>;
+      final apartamento =
+          capturados['detalhe_apartamento.json']!['apartamento']!
+              as Map<String, Object?>;
+
+      expect(lote.keys, isNot(contains('preco')));
+      expect(lote.keys, isNot(contains('vendido')));
+      expect(apartamento.keys, isNot(contains('numero')));
+      expect(
+        (apartamento['predio']! as Map<String, Object?>).keys,
+        isNot(contains('unidades_por_andar')),
+      );
+    });
+  });
+
   group('o Model não guarda o contato do corretor (D-16)', () {
     test('contato e empresa_id do wire não chegam à entidade', () {
       final detalhe = DetalheImovelModel.fromJson(
@@ -229,6 +444,46 @@ void main() {
       final incompleto = casa()..['endereco'] = endereco;
 
       expect(() => _exigirContrato(incompleto, 'incompleto'), throwsA(anything));
+    });
+
+    test('chave extra ou faltando no bloco da natureza é detectada', () {
+      final casaSuja = casa()
+        ..['casa'] = {
+          ...(casa()['casa']! as Map<String, Object?>),
+          'valor_venal': '1',
+        };
+      expect(() => _exigirContrato(casaSuja, 'sujo'), throwsA(anything));
+
+      final casaIncompleta = casa()
+        ..['casa'] = (Map<String, Object?>.of(
+          casa()['casa']! as Map<String, Object?>,
+        )..remove('piscina'));
+      expect(
+        () => _exigirContrato(casaIncompleta, 'incompleto'),
+        throwsA(anything),
+      );
+    });
+
+    test('bloco de outra natureza preenchido é detectado', () {
+      final dupla = casa()..['lote'] = <String, Object?>{};
+
+      expect(() => _exigirContrato(dupla, 'dupla'), throwsA(anything));
+    });
+
+    test('chave extra no loteamento é detectada', () {
+      final lote = Map<String, Object?>.of(capturados['detalhe_lote.json']!);
+      final bloco = Map<String, Object?>.of(lote['lote']! as Map<String, Object?>);
+      final quadra = Map<String, Object?>.of(
+        bloco['quadra']! as Map<String, Object?>,
+      );
+      quadra['loteamento'] = {
+        ...(quadra['loteamento']! as Map<String, Object?>),
+        'cnpj': '00',
+      };
+      bloco['quadra'] = quadra;
+      lote['lote'] = bloco;
+
+      expect(() => _exigirContrato(lote, 'sujo'), throwsA(anything));
     });
 
     test('a captura sem alteração passa', () {

@@ -1,588 +1,301 @@
-# Contrato da API Pública — `GET /cidades` e `GET /imoveis`
+# Contrato da API Pública — vitrine e página do imóvel (formato real, Fase 5)
 
-**Status:** rascunho técnico, aguardando sign-off da frente web (E2) — ver §7.
-**Fonte:** auditoria direta dos models/serializers/views do repositório irmão
-`../imoveis-aqui/Web` (Django 5.2 + DRF), lidos nesta sessão. Nenhum campo abaixo foi
-inventado sem checar o código-fonte real.
-**Versionamento:** este documento deve ser copiado para `../imoveis-aqui/Web` (D-03) e só
-é considerado "congelado" depois do E2 concordar — ver §8.
+**Status:** descreve a API que existe na branch `feat/APP05` do repositório irmão
+(`../imoveis-aqui/Web`, Django 5.2 + DRF). Os exemplos em `contrato/*.example.json` são **cópias
+exatas** de respostas capturadas dessa API semeada (D-02) e `test/data/contrato_lista_test.dart` /
+`test/data/contrato_detalhe_test.dart` falham se divergirem das fixtures de `test/fixtures/api/` ou
+se o conjunto de chaves de qualquer objeto mudar.
 
----
+**Histórico:** as propostas congeladas nas Fases 1 a 4 (paginação por cursor, `GET /api/publico/imoveis/?cidade=`,
+`ordenacao`, sufixo `_min`, `bairro`/`caracteristicas` por nome, `corretor{slug}`, `lote.preco`,
+`posicao_solar` livre etc.) foram **substituídas** na Fase 5 pelo formato real da API, que é dona
+dos dados e das regras (D-01, D-02). O texto antigo continua no histórico do git. O app não
+decide regra de negócio: tudo chega calculado e filtrado do servidor.
 
-## 1. Resumo da auditoria
+**Rotas** (todas `GET`, `AllowAny`, sem token — um token vencido no aparelho não impede a consulta):
 
-O `PROJECT.md` deste repo (app) tinha uma nota desatualizada dizendo que "o model de
-Imóvel ainda não existe". **Isso está incorreto.** A auditoria desta sessão confirma:
+| Rota | O que devolve |
+|------|---------------|
+| `/api/publico/cidades/` | array de cidades com vitrine (§2) |
+| `/api/publico/cidades/<id>/imoveis/` | lista paginada da vitrine de uma cidade (§3–§5) |
+| `/api/publico/cidades/<id>/bairros/` | bairros com imóvel na vitrine da cidade (§9) |
+| `/api/publico/caracteristicas/` | catálogo global de características (§10) |
+| `/api/publico/imoveis/<id>/` | detalhe de um imóvel da vitrine (§11) |
 
-- O model `Imovel` (`../imoveis-aqui/Web/imoveis/models.py`) **já existe**, com `codigo`,
-  `titulo`, `finalidade` (enum `VENDA`/`ALUGUEL`/`VENDA_E_ALUGUEL`), `preco_venda`,
-  `preco_aluguel`, `preco_condominio`, `preco_iptu`, `descricao`, `caracteristicas` (M2M),
-  `endereco` (FK 1:1 para `core.Endereco`), `publicado` (bool) e `criado_em`.
-- O model `Cidade` (`../imoveis-aqui/Web/localizacao/models.py`) já existe com `nome` e
-  `uf`, `unique(nome, uf)` — exatamente a chave natural que D-15 já assume.
-- Já existe um `CidadeSerializer` (`id`, `nome`, `uf`) em
-  `../imoveis-aqui/Web/empresas/api/serializers.py`, reaproveitável tal como está para o
-  futuro endpoint público de cidades.
-- Já existe o precedente de endpoint público sem token:
-  `EmpresaPublicaAPIView` (`AllowAny`, `queryset = Empresa.objects.filter(ativa=True)`)
-  em `../imoveis-aqui/Web/empresas/api/views.py` — o modelo a copiar para
-  `/api/publico/cidades/` e `/api/publico/imoveis/`.
-- Já existe um `ImovelViewSet` **autenticado e empresa-scoped**
-  (`core.mixins.EmpresaScopedQuerySetMixin`) em `../imoveis-aqui/Web/imoveis/api/views.py`,
-  usando `ImovelSerializer`, que expõe `corretor_responsavel` e `proprietario` — campos
-  que **NUNCA** podem vazar no endpoint público (ver §6).
-
-O que **realmente falta** (a lacuna real, não a lacuna suposta pelo PROJECT.md):
-
-1. A **tipologia** do imóvel — `natureza` (casa/apartamento/terreno/lote), `quartos`,
-   `suites`, `vagas`, `area` — não existe em nenhum campo do model `Imovel` hoje.
-   Dependência externa da frente web (E2). Marcado **PENDENTE E2** em todo este documento.
-2. Os **endpoints públicos** `GET /cidades` e `GET /imoveis` em si — não existem ainda,
-   nem rota nem view nem serializer dedicado.
-
-Este documento congela o contrato desses dois endpoints ainda-não-construídos, para que
-APP02/APP03 (app) e a Fase 4 (endpoint real) construam contra a mesma forma.
+Todo número monetário, área, medida e coordenada chega como **string decimal** (padrão do DRF para
+`DecimalField`); o app formata e nunca calcula.
 
 ---
 
-## 2. `GET /cidades`
+## 1. Fonte da verdade e git
 
-### 2.1 Campos (grounded em `Cidade` + `CidadeSerializer` existente)
-
-| Campo | Tipo | Origem | Observação |
-|-------|------|--------|------------|
-| `id` | inteiro | `Cidade.id` (PK) | |
-| `nome` | string | `Cidade.nome` (max 100) | |
-| `uf` | string (2 chars) | `Cidade.uf` (max 2) | Sigla, ex. `"SP"` |
-
-Forma idêntica ao `CidadeSerializer` já existente em
-`empresas/api/serializers.py` (`fields = ["id", "nome", "uf"]`) — o endpoint público pode
-reaproveitar esse serializer sem alteração.
-
-### 2.2 Envelope — `CursorPagination`
-
-```json
-{
-  "next": null,
-  "previous": null,
-  "results": [
-    { "id": 1, "nome": "Campinas", "uf": "SP" }
-  ]
-}
-```
-
-Ver §4 para a especificação completa da paginação (D-01).
-
-**Adendo Fase 2 (implementado):** o endpoint real usa `page_size = 50` fixo (sem
-`page_size_query_param`) e `ordering = ("nome", "uf")` — o mesmo `Cidade.Meta.ordering`,
-estável e não-nulo. `next`/`previous` são URLs absolutas (RESEARCH.md Pattern 5 / A2); o app
-percorre `next` até `null` para montar a lista completa de cidades atendidas.
-
-### 2.3 Regra do conjunto servido ("atendidas")
-
-`GET /cidades` **NÃO** é `Cidade.objects.all()`. Uma linha em `Cidade` pode existir sem
-nenhuma `Empresa` atuando ali (é "tabela geral mantida pelo administrador", desacoplada de
-quem realmente atua). A regra correta, auditada em
-`../imoveis-aqui/Web/empresas/models.py` (`Empresa.cidades_atuacao`, M2M,
-`related_name="empresas_atuantes"`) e espelhando o precedente
-`EmpresaPublicaAPIView.queryset = Empresa.objects.filter(ativa=True)`:
-
-```python
-Cidade.objects.filter(empresas_atuantes__ativa=True).distinct()
-```
-
-Ou seja: só entram cidades com pelo menos uma `Empresa` ativa (`ativa=True`) atuando nelas.
-Esta regra deve ser aplicada de forma **idêntica** pela `assets/cidades.json` fixa desta
-fase (D-13/D-16) e pelo endpoint real da Fase 2 — senão a lista fixa e a lista real
-divergem silenciosamente (Pitfall 4 do RESEARCH.md).
-
-**Adendo Fase 2 (D-16, implementado):** a partir desta fase o app removeu o asset local
-`assets/cidades.json` e a `CidadeLocalDataSource` — `GET /api/publico/cidades/` passa a ser a
-**única fonte da verdade** para a lista de cidades (não há mais lista fixa para divergir). O
-comando de desenvolvimento `semear_vitrine_dev` (repo irmão `../imoveis-aqui/Web`,
-`empresas/management/commands/`) semeia exatamente as mesmas 4 cidades de
-`contrato/cidades.example.json` e da fixture mock de imóveis do app — Campinas, Valinhos,
-Vinhedo, Indaiatuba (SP) — evitando o drift entre as duas fontes descrito no Pitfall 4 do
-RESEARCH.md.
+- A regra do que aparece é a `Imovel.objects.na_vitrine()` da W08: `publicado=True`,
+  `situacao=DISPONIVEL` e `empresa.ativa=True`. A lista, o detalhe, as cidades e os bairros partem da
+  mesma `imoveis_da_vitrine()`, então uma opção oferecida nunca leva a uma busca vazia.
+- As chaves de cada objeto público estão travadas por teste de **igualdade exata de conjunto**
+  (`VitrineAllowlistExataTests`, 05-02) e por uma deny-list (`proprietario`, `documento`, `empresa`, `codigo`, `publicado`, `vendido`, `situacao`,
+  `documentos`, `historico`, ...). Quem ganhar ou perder uma chave quebra o teste
+  do Django **e** o teste de contrato do app.
+- Regenerar os exemplos: ver §12.
 
 ---
 
-## 3. `GET /imoveis`
+## 2. `GET /api/publico/cidades/`
 
-### 3.1 Campos — reais hoje (grounded em `Imovel` + `Endereco` + `Cidade`)
+Array JSON simples (sem envelope e sem paginação, D-05). Só entram cidades que têm **pelo menos um
+imóvel na vitrine** (`Cidade.objects.filter(pk__in=imoveis_da_vitrine().values("cidade_anuncio"))`) —
+o visitante nunca escolhe uma cidade que não devolve nada. Ordenado por nome.
 
-| Campo | Tipo | Origem | Observação |
-|-------|------|--------|------------|
-| `id` | inteiro | `Imovel.id` (PK) | |
-| `titulo` | string | `Imovel.titulo` (max 200) | |
-| `finalidade` | enum string | `Imovel.finalidade` | `VENDA` \| `ALUGUEL` \| `VENDA_E_ALUGUEL` |
-| `preco_venda` | string decimal, nullable | `Imovel.preco_venda` | `null` quando finalidade é só `ALUGUEL` |
-| `preco_aluguel` | string decimal, nullable | `Imovel.preco_aluguel` | `null` quando finalidade é só `VENDA` |
-| `descricao` | string | `Imovel.descricao` | pode ser vazio |
-| `bairro` | string | `Imovel.endereco.bairro` (`core.Endereco`) | pode ser vazio |
-| `cidade` | objeto aninhado `{id, nome, uf}` | `Imovel.endereco.cidade` (FK `Cidade`) | mesma forma de §2.1 |
-| `foto_capa` | string URL, nullable | `FotoImovel` do imóvel com `capa=True` | `null` se nenhuma foto marcada como capa |
-| `caracteristicas` | lista de strings | `Imovel.caracteristicas` (M2M → `Caracteristica.nome`) | ex. `["Portão eletrônico", "Ar-condicionado"]` |
-| `criado_em` | string ISO 8601 datetime | `Imovel.criado_em` | |
+| Campo | Tipo | Observação |
+|-------|------|------------|
+| `id` | inteiro | usado na rota da lista e dos bairros (A-01); **não** é a identidade da cidade no app |
+| `nome` | string | |
+| `uf` | string (2) | sigla, ex. `"SP"` |
 
-Campos que existem no model (`preco_condominio`, `preco_iptu`) mas **não** foram incluídos
-na vitrine por escopo de VIT-02 — disponíveis no model real se uma fase futura precisar
-deles; não fazem parte deste contrato v1.
+A identidade da cidade no app continua sendo a chave natural `nome-uf` (preferência salva no
+aparelho); o `id` é só um atributo de roteamento (A-01).
 
-### 3.2 Campos de tipologia — **PENDENTE E2** (não existem no model hoje)
-
-| Campo | Tipo proposto | Enum/observação | Status |
-|-------|---------------|------------------|--------|
-| `natureza` | enum string | `CASA` \| `APARTAMENTO` \| `TERRENO` \| `LOTE` | **PENDENTE E2** |
-| `quartos` | inteiro | — | **PENDENTE E2** |
-| `suites` | inteiro | — | **PENDENTE E2** |
-| `vagas` | inteiro | — | **PENDENTE E2** |
-| `area` | string decimal | m² | **PENDENTE E2** |
-
-Confirmado por leitura completa de `imoveis/models.py`: **nenhum** desses campos existe no
-model `Imovel` atualmente (D-02). Congelamos a forma agora — nomes, tipos, enum de
-`natureza` — para que APP02/APP03 construam a UI/models Freezed contra a forma completa
-desde já; quando o E2 entregar o model real, o parsing já bate. Renomear estes campos
-depois é **custoso** (D-02): exige mexer em fixtures, models `freezed` do app e no
-serializer público da API ao mesmo tempo.
-
-### 3.3 Exemplo de linha completa (real + PENDENTE E2)
-
-```json
-{
-  "id": 42,
-  "titulo": "Apartamento 2 quartos no Cambuí",
-  "finalidade": "VENDA",
-  "preco_venda": "450000.00",
-  "preco_aluguel": null,
-  "descricao": "Apartamento reformado, próximo ao centro.",
-  "bairro": "Cambuí",
-  "cidade": { "id": 3, "nome": "Campinas", "uf": "SP" },
-  "foto_capa": "https://api.exemplo.com/media/imoveis/fotos/capa-42.jpg",
-  "caracteristicas": ["Portão eletrônico", "Ar-condicionado"],
-  "criado_em": "2026-08-14T10:32:00Z",
-  "natureza": "APARTAMENTO",
-  "quartos": 2,
-  "suites": 1,
-  "vagas": 1,
-  "area": "68.50"
-}
-```
+Exemplo: `contrato/cidades.example.json` (Campinas, Indaiatuba, Valinhos, Vinhedo).
 
 ---
 
-## 4. Paginação — `CursorPagination`
+## 3. `GET /api/publico/cidades/<id>/imoveis/` — item da lista
 
-Ambos os endpoints (`GET /cidades` e `GET /imoveis`) usam **DRF `CursorPagination`**
-(D-01), não `PageNumberPagination`/`LimitOffsetPagination`:
+Cidade inexistente: **404** `{"detail": ...}`. Cidade existente sem imóvel: `200` com `results: []`.
 
-- **Envelope:** `{ "next": <url|null>, "previous": <url|null>, "results": [...] }`.
-- **Sem `count`** total no envelope — trade-off aceito conscientemente (D-01). Uma "Ver N
-  imóveis" fica para v2/API-05, quando houver contagem barata.
-- **Sem pulo de página** — só "próxima"/"anterior", nunca "ir para página 5".
-- **Ordenação estável obrigatória:** o `ordering` do `CursorPagination` deve ser um campo
-  estável e não-nulo, ex. `-criado_em` para `/imoveis`, `["nome", "uf"]` para `/cidades`
-  (mesmo `ordering` já declarado em `Cidade.Meta.ordering`).
-- **Query param:** `cursor` (D-04, snake_case — coincide com o default do DRF).
-- **Racional (D-01):** cursor imuniza o scroll infinito da vitrine contra cards
-  duplicados/embaralhados quando o acervo muda durante a navegação — critério de sucesso
-  das Fases 2/3.
-- **Reversibilidade:** **one-way**. Trocar o esquema de paginação depois quebra o contrato
-  já acordado com a frente web e o parsing de toda resposta paginada no app — não mude sem
-  reabrir esta decisão com o E2.
-
----
-
-## 5. Query params de `GET /imoveis` (português snake_case, D-04)
-
-| Param | Tipo | Semântica | Status |
-|-------|------|-----------|--------|
-| `cidade` | string ou int | Filtra por cidade — **formato exato pendente, ver §7** | pendente formato |
-| `preco_min` | decimal | Preço mínimo (venda ou aluguel, conforme `finalidade`) — ver §10 (adendo Fase 3) | congelado (nome) |
-| `preco_max` | decimal | Preço máximo — ver §10 (adendo Fase 3) | congelado (nome) |
-| `quartos_min` | inteiro | Quartos — **mínimo ou exato? ver §7** — ver §10 (adendo Fase 3) | pendente semântica |
-| `suites_min` | inteiro | Suítes — **mínimo ou exato? ver §7** — ver §10 (adendo Fase 3) | pendente semântica |
-| `vagas_min` | inteiro | Vagas — **mínimo ou exato? ver §7** — ver §10 (adendo Fase 3) | pendente semântica |
-| `natureza` | string (enum) | `CASA`\|`APARTAMENTO`\|`TERRENO`\|`LOTE` — PENDENTE E2 (campo não existe ainda) — ver §10 (adendo Fase 3) | pendente E2 |
-| `finalidade` | string (enum) | `VENDA`\|`ALUGUEL`\|`VENDA_E_ALUGUEL` — ver §10 (adendo Fase 3) | congelado |
-| `bairro` | string | Filtro textual de bairro — ver §10 (adendo Fase 3) | congelado (nome) |
-| `busca` | string | Busca textual em `titulo` + `endereco__bairro` (`descricao` fica de fora), case/acento-insensível no que o backend permitir. Django: `SearchFilter` com `search_param = "busca"` | **adendo Fase 2 (D-05/D-06) — aguardando sign-off do E2** |
-| `area_min` | decimal | Área mínima em m² — PENDENTE E2 — ver §10 (adendo Fase 3) | pendente E2 |
-| `area_max` | decimal | Área máxima em m² — PENDENTE E2 — ver §10 (adendo Fase 3) | pendente E2 |
-| `caracteristicas` | lista (CSV ou múltiplos params) | Filtra por características marcadas — ver §10 (adendo Fase 3) | congelado (nome) |
-| `ordenacao` | string (enum) | **Valores exatos pendentes, ver §7** | pendente valores |
-| `cursor` | string (opaco) | Cursor de paginação (§4) | congelado |
-
-Todos os nomes acima são português snake_case, coerente com D-04 e com os models Django já
-em PT. Nenhum filtro/busca/ordenação é resolvido no app — tudo é resolvido no servidor e a
-lista chega pronta (regra de negócio do projeto: "nada é recalculado dentro do aparelho").
-
----
-
-## 6. Serializer público / segurança — allowlist obrigatória
-
-**Requisito de alto peso, não negociável para a Fase 4:**
-
-- O endpoint público de `/imoveis` **deve** usar um serializer **dedicado e público**,
-  nunca o `ImovelSerializer` autenticado existente
-  (`../imoveis-aqui/Web/imoveis/api/serializers.py`). Esse serializer autenticado expõe
-  `corretor_responsavel` e `proprietario` — dados internos de empresa/pessoa que **nunca**
-  podem aparecer numa resposta `AllowAny`.
-- A **allowlist explícita** do serializer público é exatamente a tabela de §3.1 + §3.2
-  (`id`, `titulo`, `finalidade`, `preco_venda`, `preco_aluguel`, `descricao`, `bairro`,
-  `cidade`, `foto_capa`, `caracteristicas`, `criado_em`, mais os campos PENDENTE E2 quando
-  existirem). Nenhum outro campo do model `Imovel` deve ser serializado publicamente —
-  especificamente **nunca** `corretor_responsavel`, `proprietario`, `empresa`,
-  `preco_condominio`, `preco_iptu` (fora de escopo de VIT-02, não motivo para expor).
-- **Filtragem obrigatória em nível de queryset**, não de confiança por request:
-  `Imovel.objects.filter(publicado=True)` — nunca confiar num filtro vindo do cliente para
-  decidir o que é público. Isso espelha a disciplina do
-  `EmpresaScopedQuerySetMixin` (usado pelo `ImovelViewSet` autenticado para nunca confiar
-  em manipulação de URL/ID): lá o filtro obrigatório é por `empresa`; aqui o filtro
-  obrigatório equivalente é por `publicado=True`.
-- **Isolamento multitenant preservado de outra forma:** o endpoint público de `/imoveis` é
-  propositalmente **não** escopado a uma única empresa — é uma vitrine de marketplace que
-  reúne imóveis publicados de **várias** empresas na mesma cidade. O que precisa ser
-  garantido é que nenhum imóvel **não publicado** (rascunho, de qualquer empresa) escape
-  por manipulação de `id`/`cidade`/outro parâmetro — daí o `publicado=True` obrigatório no
-  queryset, sempre, independentemente dos filtros pedidos.
-
-**Emenda da Fase 4:** a allowlist do endpoint de **detalhe** (`GET /api/publico/imoveis/{id}/`)
-é a do §11, não a desta seção. `preco_condominio` e `preco_iptu` passam a ser públicos
-**somente no detalhe** (a lista segue sem eles); `corretor` expõe apenas `id`, `nome`, `foto`
-e `slug`. Ver §11.
-
----
-
-## 7. Itens PENDENTES de sign-off da frente web
-
-Os itens abaixo são **genuinamente em aberto** — não foram chutados como congelados; cada
-um precisa de uma decisão explícita do E2 (ou do time) antes deste contrato virar
-"congelado" de fato (§8).
-
-1. **`quartos_min` / `suites_min` / `vagas_min` — mínimo (range) ou exato?**
-   O nome atual (`_min`, D-04) sugere filtro de limiar (`quartos_min=2` = "2 ou mais"), mas
-   isso não está confirmado com a frente web. Alternativa: nomes sem sufixo
-   (`quartos=2` = exatamente 2). **Apresentando os dois lados:**
-   - Opção A (limiar): `quartos_min`, `suites_min`, `vagas_min` — "2 ou mais".
-   - Opção B (exato): `quartos`, `suites`, `vagas` — "exatamente 2".
-   Requer escolha explícita do E2 antes de o app implementar FIL-03.
-   **Fase 3 (D-01):** o app adota a Opção A como proposta de trabalho — ver §10.
-
-2. **Formato do param `cidade` em `GET /imoveis` — nome+uf ou id numérico?**
-   D-15 persiste a cidade escolhida no app pela chave natural (`nome+uf`), não por `id`,
-   justamente para ficar estável entre a fixture e a API real. Recomendação (não
-   congelada): manter o mesmo formato natural no query param, ex. `?cidade=Campinas-SP`,
-   por consistência com D-15 — mas isso muda como o futuro `filter backend` do
-   `ImovelViewSet` público resolve o parâmetro (um lookup tipo slug em dois campos é um
-   pouco mais código que um filtro de FK por `id`). Requer acordo explícito do E2.
-
-3. **Qual preço a vitrine mostra no card quando `finalidade == VENDA_E_ALUGUEL`?**
-   O model permite `preco_venda` e `preco_aluguel` populados simultaneamente. `GET /imoveis`
-   sempre expõe os dois campos (já é o caso hoje); qual é mostrado/priorizado no card é uma
-   decisão de **UI da Fase 2**, não do contrato da API — sinalizado aqui para a Fase 2 não
-   ser pega de surpresa pelo dado duplo, não é um bloqueio de API-01.
-
-4. **Valores do enum `ordenacao`.**
-   Proposta de trabalho (convenção snake_case, fácil de corrigir depois por ser valor de
-   param, não forma de dado): `preco_asc`, `preco_desc`, `area_asc`, `area_desc`,
-   `mais_recentes`. **Não congelado** — precisa validação do E2, especialmente porque
-   `area_asc`/`area_desc` dependem dos campos PENDENTE E2 (§3.2) existirem.
-   **Atualização Fase 2 (D-11) — adendo Fase 2 aguardando sign-off do E2:** o app adotou estes
-   cinco valores como valores de trabalho no enum de domínio `OrdenacaoVitrine.valorApi`; os
-   rótulos em português ficam na UI e os valores (em inglês/snake_case acima) atravessam a
-   API. Continua sujeito à aprovação do E2 — ver adendo consolidado em §9.
-
-Nenhum destes quatro itens deve ser tratado como decidido pela app ou pela API antes do
-sign-off — congelar um chute aqui é exatamente o erro que este documento existe para
-evitar.
-
-### 7.5 Preço-base da ordenação e nulos (adendo Fase 2 — aguardando sign-off do E2)
-
-A ordenação por preço usa `preco_venda` como base; imóveis sem `preco_venda` (só aluguel) vão
-para o fim da lista em ambas as direções (**nulls last**), sem misturar as escalas de venda e
-aluguel (D-12). Na Fase 3, com o filtro `finalidade=ALUGUEL` aplicado, a ordenação por preço
-passa a usar `preco_aluguel`. As ordenações `area_asc`/`area_desc` com `area` nulo seguem a
-mesma regra (nulls last). Esta é uma regra do **servidor** (e do mock que o simula nesta fase)
-— nunca decidida no app.
-
-**Risco técnico aberto (RESEARCH.md Pitfall 3):** o `CursorPagination` do DRF exige que o
-campo de `ordering` seja não-nulo — a documentação oficial afirma explicitamente que deve ser
-"a non-nullable value that can be coerced to a string", e uma discussion do próprio
-repositório do DRF (`encode/django-rest-framework#9456`) confirma que sobrescrever a ordenação
-via um `OrderingFilter` customizado não resolve, porque o `CursorPagination` reaplica sua
-própria ordenação por cima. Como `preco_venda`, `preco_aluguel` e `area` são `nullable=True`
-no model `Imovel`, isso bloqueia a implementação literal de nulls-last no endpoint real de
-`/imoveis`. Opções para o E2 decidir antes da Fase 4 (nenhuma escolhida aqui):
-
-- Anotar o queryset com `Coalesce(F('preco_venda'), Value(<sentinela>))` para transformar o
-  nulo num valor real e ordenável — exige escolher uma sentinela segura, fora da faixa de
-  preços reais.
-- Trocar `CursorPagination` por `PageNumberPagination` só para as ordenações por preço/área —
-  provavelmente pior, pois quebra a garantia "sem cards duplicados/embaralhados" que o próprio
-  D-01 deste contrato exige para o scroll infinito.
-
-Nesta fase o `ImovelMockDataSource` (Dart puro) implementa nulls-last trivialmente com um
-`Comparator` — isso **não bloqueia** a Fase 2, mas **bloqueia a Fase 4** se não for resolvido
-antes.
-
----
-
-## 8. Nota de sincronização (D-03)
-
-Este documento é a fonte da verdade combinada entre os dois repositórios. Passos manuais
-de coordenação (fora do escopo automatizável deste plano):
-
-1. Copiar `01-CONTRATO-API.md` (este arquivo) para `../imoveis-aqui/Web` (ou um local
-   equivalente acessível ao E2).
-2. Obter concordância explícita do E2 sobre os itens de §7 (e sobre a forma geral dos
-   campos de §2/§3, incluindo os PENDENTE E2 de §3.2).
-3. Só depois desse sign-off o contrato é considerado **congelado** de fato — até lá, ele é
-   um rascunho técnico grounded em código real, pronto para servir de base de discussão.
-
-Enquanto o sign-off não acontece, `contrato/cidades.example.json` e
-`contrato/imoveis.example.json` (ver Task 2) servem como fixtures de mock para as Fases
-2/3 (API-04), permitindo que o app avance sem bloquear na resposta do E2.
-
----
-
-## 9. Adendos da Fase 2 (aguardando sign-off do E2)
-
-A Fase 2 (Vitrine — Lista, Busca e Ordenação) adiciona os itens abaixo a este contrato, todos
-como **propostas de trabalho do app**, ainda pendentes do sign-off do E2 — o mesmo processo de
-sincronização de §8 se aplica igualmente a eles:
-
-1. **Param `busca`** (§5) — busca textual em `titulo` + `endereco__bairro`, via `SearchFilter`
-   com `search_param = "busca"` (D-05/D-06).
-2. **Valores do enum `ordenacao`** (§7.4) — `mais_recentes` (padrão), `preco_asc`, `preco_desc`,
-   `area_asc`, `area_desc`, adotados como valores de trabalho no domínio do app (D-11).
-3. **Preço-base da ordenação com nulls last** (§7.5) — `preco_venda` (ou `preco_aluguel` na
-   Fase 3 com `finalidade=ALUGUEL`) como base, nulos sempre por último; risco técnico aberto do
-   `CursorPagination` do DRF registrado para decisão do E2 antes da Fase 4 (opções: `Coalesce`
-   com sentinela, ou `PageNumberPagination` só para essas ordenações).
-4. **Formato do param `cidade`** (§7 item 2, já pendente desde a Fase 1) — o mock desta fase usa
-   a chave natural `nome-uf` (ex. `Campinas-SP`), seguindo a recomendação provisória do próprio
-   §7.2, isolado na `ImovelMockDataSource` para trocar fácil se o E2 decidir por `id`. Ainda não
-   é uma decisão congelada.
-
-Assim como os itens de §7, nenhum destes quatro deve ser tratado como decidido pela app ou pela
-API antes do sign-off explícito do E2.
-
----
-
-## 10. Adendos da Fase 3 (aguardando sign-off do E2)
-
-A Fase 3 (Vitrine — Filtros Server-Side) adiciona os itens abaixo a este contrato, todos como
-**propostas de trabalho do app**, ainda pendentes do sign-off do E2 — o mesmo processo de
-sincronização de §8 se aplica igualmente a eles:
-
-1. **`quartos_min`/`suites_min`/`vagas_min` são limiares "N ou mais"** (resolve §7 item 1, Opção
-   A) — `quartos_min=2` traz imóveis com 2, 3, 4… quartos, nunca só exatamente 2 (a mesma regra
-   vale para `suites_min`/`vagas_min`). A UI do app oferece só 1..4 como rótulos "N+" ("Qualquer",
-   "1+", "2+", "3+", "4+"), mas qualquer inteiro não-negativo é aceito pelo servidor/mock, mesmo
-   que a UI não ofereça valores maiores que 4.
-2. **`finalidade` é inclusiva** (D-02) — `finalidade=VENDA` traz linhas `VENDA` E
-   `VENDA_E_ALUGUEL`; `finalidade=ALUGUEL` traz linhas `ALUGUEL` E `VENDA_E_ALUGUEL`.
-   `VENDA_E_ALUGUEL` é um valor de LINHA (do model `Imovel`), nunca um valor aceito para o
-   PARÂMETRO `finalidade` — mandá-lo como filtro responde 400 (item 7 abaixo).
-3. **`preco_min`/`preco_max` dependem da `finalidade`** (D-03) — com `finalidade=VENDA` comparam
-   `preco_venda`; com `finalidade=ALUGUEL` comparam `preco_aluguel`. Uma faixa de preço na mesma
-   consulta sem `finalidade` responde 400 (o app desabilita o campo no modal até a finalidade ser
-   escolhida). Com `finalidade=ALUGUEL`, a ORDENAÇÃO por preço também passa a usar
-   `preco_aluguel` (nulls last), fechando o risco técnico já registrado em §7.5.
-4. **`caracteristicas` combina por E; `natureza` e `bairro` combinam por OU** (D-04/D-05) — um
-   imóvel só aparece com `caracteristicas=Piscina,Quintal` se tiver AMBAS as características; já
-   `natureza=CASA,APARTAMENTO` traz casa OU apartamento, e `bairro=Cambuí,Taquaral` traz qualquer
-   um dos dois bairros. Parâmetros DIFERENTES entre si sempre combinam por E (ex.
-   `natureza=CASA&quartos_min=2` é casa E 2 ou mais quartos, nunca um OU o outro).
-5. **Multivalores usam CSV numa única chave** (D-06) — exemplo:
-   `?natureza=CASA,APARTAMENTO&bairro=Cambuí,Taquaral&caracteristicas=Piscina,Quintal`. **Risco
-   explícito para o E2:** uma vírgula dentro de um nome de bairro ou de característica quebraria
-   este split — antes da Fase 4, o E2 precisa decidir entre escapar a vírgula no valor ou trocar
-   `bairro`/`caracteristicas` para um identificador (id) em vez do nome cru.
-6. **Faixas (`preco_min`/`preco_max`/`area_min`/`area_max`) são inteiros não-negativos** (reais
-   inteiros / m² inteiros), com limites INCLUSIVOS. Uma linha cujo preço-base (conforme item 3)
-   ou `area` está nulo é EXCLUÍDA enquanto aquela faixa estiver ativa — nunca incluída "por
-   padrão" só porque falta o dado.
-7. **Valor malformado responde 400** (D-12) — enum desconhecido (`natureza=CHALE`), item vazio
-   no CSV (`bairro=Cambuí,`), número negativo ou não-inteiro num `_min`/`_max`
-   (`quartos_min=-1`, `preco_min=dois`), mínimo maior que o máximo, ou faixa de preço sem
-   `finalidade` (item 3). O app valida o formulário do modal inline (D-12 do CONTEXT da Fase 3)
-   mas NUNCA depende só disso — o servidor sempre revalida e é quem decide de fato.
-8. **Dois endpoints públicos novos de opções** (D-20, implementação real só na Fase 4, esta fase
-   usa uma DataSource mock a partir da fixture):
-   - `GET /api/publico/bairros/?cidade=<nome-uf>` — array JSON não-paginado de strings com os
-     valores DISTINTOS de `Endereco.bairro` que têm pelo menos um imóvel PUBLICADO naquela
-     cidade, em ordem alfabética ignorando acento/caixa. Cidade atendida sem nenhum imóvel
-     publicado devolve `[]`; `cidade` malformado responde 400.
-   - `GET /api/publico/caracteristicas/` — array JSON não-paginado de strings a partir de
-     `Caracteristica.nome`, em ordem alfabética.
-   Racional: os parâmetros de filtro (`bairro`, `caracteristicas`) carregam NOMES, não ids
-   (D-06); `bairro` nem tem id próprio no model (`Endereco.bairro` é texto solto, não FK); as
-   duas listas são pequenas o bastante para um array simples, sem paginação.
-9. **A contagem "Ver N imóveis" continua v2** (API-05) — como o `CursorPagination` (§4) não expõe
-   `count`, o botão "Ver imóveis" do modal de filtros nunca mostra uma prévia numérica nesta
-   fase.
-
-Assim como os itens de §7 e §9, nenhum destes itens deve ser tratado como decidido pela app ou
-pela API antes do sign-off explícito do E2.
-
----
-
-## 11. Adendos da Fase 4 — detalhe do imóvel (aguardando sign-off do E2)
-
-A Fase 4 (Página do Imóvel) adiciona o endpoint de **detalhe** a este contrato, como **proposta
-de trabalho do app**, ainda pendente do sign-off do E2 — o mesmo processo de sincronização do
-§8 se aplica. O app constrói sobre uma DataSource mock que serve exatamente o JSON de
-`contrato/imovel_detalhe.example.json`; a implementação real do endpoint é a API-07 (Fase 5).
-**Reversibilidade: custosa** — esta forma de wire é compartilhada com WEB 09 / API-07 (serializer
-Django, Model do app e mock); mudá-la depois mexe nos três ao mesmo tempo.
-
-### 11.1 Endpoint
-
-`GET /api/publico/imoveis/{id}/` — `AllowAny`, sem paginação, `id` inteiro (PK).
-
-- **200:** o objeto descrito em §11.2–§11.4.
-- **404:** corpo padrão do DRF (`{"detail": "..."}`) para id **inexistente** E para imóvel com
-  `publicado=False` — **a mesma resposta nos dois casos**, para que ninguém consiga enumerar
-  rascunhos (D-01).
-- **Queryset obrigatório:** `Imovel.objects.filter(publicado=True)`, sempre; nunca confiar em
-  parâmetro do cliente para decidir o que é público (mesma disciplina do §6).
-- **Serializer dedicado e público** com a allowlist deste §11 — nunca o `ImovelSerializer`
-  autenticado (que expõe `corretor_responsavel` e `proprietario`).
-- **Sugestão de performance (não é decisão do app):** `select_related("endereco__cidade",
-  "corretor_responsavel")` e `prefetch_related("fotos", "caracteristicas")`.
-- **URLs absolutas:** o serializer deve receber `context={"request": request}` para que
-  `fotos[].url` e `corretor.foto` saiam como URLs absolutas (precedente:
-  `EmpresaPublicaAPIView`, `../imoveis-aqui/Web/empresas/api/views.py`).
-
-### 11.2 Campos comuns (D-06)
-
-Nomes em snake_case; valores monetários, áreas e coordenadas como **string decimal** (mesma regra
-da Fase 2 / D-03). Nulos são sempre `null`, nunca string vazia.
+Chaves exatas do item (travadas em 05-02):
 
 | Campo | Tipo | Nulo? | Observação |
 |-------|------|-------|------------|
-| `id` | inteiro | não | igual à lista (§3.1) |
-| `titulo` | string | não | igual à lista |
-| `finalidade` | enum string | não | `VENDA` \| `ALUGUEL` \| `VENDA_E_ALUGUEL` |
+| `id` | inteiro | não | |
+| `titulo` | string | não | |
+| `natureza` | enum | não | `CASA` \| `APARTAMENTO` \| `TERRENO` \| `LOTE` |
+| `finalidade` | enum | não | `VENDA` \| `ALUGUEL` \| `VENDA_E_ALUGUEL` |
 | `preco_venda` | string decimal | sim | `null` quando só `ALUGUEL` |
 | `preco_aluguel` | string decimal | sim | `null` quando só `VENDA` |
-| `preco_condominio` | string decimal | sim | público **somente no detalhe** (emenda do §6) |
-| `preco_iptu` | string decimal | sim | público **somente no detalhe** (emenda do §6); período: ver §11.5 (c) |
-| `descricao` | string | não | pode ser vazia |
-| `bairro` | string | não | pode ser vazio |
-| `cidade` | objeto `{id, nome, uf}` | não | mesma forma do §2.1 |
-| `latitude`, `longitude` | string decimal | sim | `Endereco.latitude/longitude` são `DecimalField(9, 6)`; **sem** logradouro, número nem CEP (endereço exato não é público). Pensados para o APP 05 (mapa) |
-| `fotos` | lista `[{url, capa, ordem}]` | não (pode ser `[]`) | **já ordenada para exibição, com a capa primeiro**; `url` absoluta; `[]` quando o imóvel não tem fotos |
-| `caracteristicas` | lista de strings | não (pode ser `[]`) | igual à lista |
-| `corretor` | objeto `{id, nome, foto, slug}` | sim | `foto` e `slug` nullable; ver §11.5 (a), (g) |
-| `natureza` | enum string | sim | `CASA` \| `APARTAMENTO` \| `TERRENO` \| `LOTE` — PENDENTE E2 (o model ainda não tem natureza) |
-| `casa`, `apartamento`, `terreno`, `lote` | objeto ou `null` | sim | **exatamente um** preenchido e coerente com `natureza`; os outros três vêm `null`. O app tolera `null` **ou** chave ausente (D-02) |
+| `preco_condominio` | string decimal | sim | |
+| `bairro` | string | sim | bairro do endereço do anúncio (do prédio, no apartamento); o app trata `null` como vazio |
+| `area` | string decimal (m²) | sim | **por natureza**: casa = `area_construida`; apartamento = `area_privativa`; terreno = `area_total`; lote = `area` do lote |
+| `quartos`, `suites`, `vagas` | inteiro | sim | da casa ou do apartamento; terreno e lote vêm `null` |
+| `foto_capa` | string URL absoluta | sim | a foto marcada como capa; sem capa vale a primeira; `null` sem fotos |
 
-`fotos[]`: `url` string (absoluta), `capa` booleano, `ordem` inteiro (posição de exibição, a partir
-de 0). O app mostra as fotos na ordem recebida e **nunca reordena**.
+A lista **não** traz `descricao`, `cidade`, `caracteristicas` nem `criado_em` (a cidade está na rota).
 
-### 11.3 Natureza em bloco por tipo (D-02, D-05)
+Exemplo: `contrato/imoveis.example.json` (primeira página de Campinas, 20 de 24).
 
-Em vez de campos soltos, o detalhe traz `natureza` e **um** objeto preenchido entre `casa`,
-`apartamento`, `terreno` e `lote`. **Todo campo de bloco é nullable** — o app omite a linha cujo
-valor é `null` e esconde a seção inteira quando todos os campos são nulos (D-14).
+---
 
-**`casa`** (WEB 05)
+## 4. Paginação — `PageNumberPagination`
 
-| Campo | Tipo |
-|-------|------|
-| `area_terreno`, `area_construida`, `area_livre` | string decimal (m²) |
-| `quartos`, `suites`, `banheiros`, `salas`, `vagas`, `pavimentos`, `ano_construcao` | inteiro |
-| `piscina`, `quintal`, `churrasqueira`, `mobiliada` | booleano |
+Envelope: `{"count": <total>, "next": <url|null>, "previous": <url|null>, "results": [...]}`, com
+`page_size = 20` fixo. `next` e `previous` são **URLs absolutas** na origem do servidor.
 
-**`terreno`** (WEB 05)
+- O app segue `next` tal e qual (nunca reconstrói a URL) e **só** se tiver a mesma origem da base URL
+  configurada (T-05-09-01); `next` de outra origem vira falha.
+- O app descarta ids já listados ao anexar uma página (a ordem é estável: o `id` desempata no fim,
+  mas o acervo pode mudar entre as páginas).
+- Página fora do intervalo: **404** `{"detail": ...}` (comportamento padrão do DRF).
+- `count` existe, mas a UI não mostra prévia numérica no botão de filtros (API-05 continua v2).
 
-| Campo | Tipo |
-|-------|------|
-| `area_total`, `frente`, `fundo`, `laterais` | string decimal (m² / m) |
-| `topografia` | enum string `PLANO` \| `ACLIVE` \| `DECLIVE` |
-| `murado`, `esquina` | booleano |
-| `uso_permitido` | string |
+---
 
-**`apartamento`** (WEB 06) — com o **prédio embutido completo** (D-03)
+## 5. Parâmetros de consulta da lista (nomes da W09)
 
-| Campo | Tipo |
-|-------|------|
-| `andar` | inteiro |
-| `numero` | string |
-| `area_privativa`, `area_total` | string decimal (m²) |
-| `quartos`, `suites`, `banheiros`, `vagas` | inteiro |
-| `varanda` | booleano |
-| `posicao_solar` | string — **texto livre legível** (ex. `"Nascente"`), sem conjunto fechado; ver §11.5 (b) |
-| `predio` | objeto (abaixo) ou `null` |
+| Param | Semântica |
+|-------|-----------|
+| `busca` | texto; `icontains` em `titulo`, bairro e `descricao`. Aparado; vazio é ignorado. **Sensível a acento** (risco aceito, D-14) |
+| `ordenar` | `recentes` (padrão) \| `preco` \| `-preco` \| `area` \| `-area`; nulos sempre por último; empate desfeito por `-id` |
+| `finalidade` | `VENDA` \| `ALUGUEL`; inclusivo (`VENDA` traz também `VENDA_E_ALUGUEL`, idem `ALUGUEL`). `VENDA_E_ALUGUEL` como parâmetro dá 400 |
+| `natureza` | CSV, **OU** entre os valores (`natureza=CASA,LOTE`); valor fora do enum dá 400 |
+| `quartos`, `suites`, `vagas` | inteiro, **mínimo** ("N ou mais"); negativo ou não-inteiro dá 400 |
+| `bairro` | CSV de nomes, **OU**, sem diferenciar maiúsculas (`bairro=Cambuí,Taquaral`) |
+| `preco_min`, `preco_max` | decimal não negativo, limites inclusivos; compara `preco_venda` com `finalidade=VENDA`, `preco_aluguel` com `ALUGUEL` e o primeiro preenchido sem `finalidade` |
+| `area_min`, `area_max` | decimal não negativo, inclusivo, sobre a `area` do item (§3) |
+| `caracteristicas` | CSV de **ids** inteiros (do catálogo, §10), **E** (o imóvel precisa ter todas); nome no lugar do id dá 400 |
+| `page` | número da página (o app não monta: segue `next`) |
 
-`apartamento.predio`: `nome` (string); `andares`, `unidades_por_andar`, `ano`, `elevadores`
-(inteiro); `portaria_24h`, `piscina`, `academia`, `salao_de_festas`, `playground` (booleano).
+Parâmetros diferentes combinam por E. Um filtro numérico ativo exclui a linha cujo valor é nulo.
 
-**`lote`** (WEB 07) — com **quadra e loteamento embutidos completos** (D-03)
+**Mapeamento do app (`parametrosDaApi`)**: `OrdenacaoVitrine.maisRecentes` -> `recentes`; `precoAsc` -> `preco`;
+`precoDesc` -> `-preco`; `areaAsc` -> `area`; `areaDesc` -> `-area`. `quartosMin`/`suitesMin`/`vagasMin` do
+domínio viajam como `quartos`/`suites`/`vagas`. Naturezas saem na ordem do enum, bairros ordenados por
+texto normalizado e características por id crescente, para que a mesma escolha gere sempre a mesma URL
+(D-07).
 
-| Campo | Tipo |
-|-------|------|
-| `numero` | string |
-| `area`, `frente`, `fundo` | string decimal (m² / m) |
-| `preco` | string decimal — ver §11.5 (d) |
-| `condicoes_parcelamento` | string |
-| `quadra` | objeto `{identificacao, loteamento}` ou `null` |
+**Erros 400** (valor inválido): corpo `{"<campo>": "<mensagem em português>"}`, por exemplo
+`test/fixtures/api/erro_400_natureza.json`:
+`{"natureza": "Opções válidas: CASA, TERRENO, APARTAMENTO, LOTE."}`. O app mostra o estado de erro com
+"Tentar de novo"; nunca inventa dado.
 
-`lote.quadra`: `identificacao` (string); `loteamento` (objeto ou `null`) com `nome` (string),
-`incorporadora` (string), `infraestrutura` (lista de strings) e `areas_lazer` (lista de strings).
+---
 
-**`area_livre` (D-04):** é **calculada pelo servidor** (regra do WEB 05) e chega pronta. O app
-nunca a calcula, nunca a deriva de `area_terreno − area_construida` e nunca a corrige. Quando
-`area_terreno` ou `area_construida` for nula, `area_livre` deve vir `null` — **nunca `0`**.
+## 6. Allowlist exata — o que é (e o que nunca é) público
 
-### 11.4 Exemplo
+Chaves exatas, iguais às de `VitrineAllowlistExataTests`:
 
-`contrato/imovel_detalhe.example.json` — apartamento 42 (Cambuí, Campinas) com `apartamento.predio`
-preenchido, 3 fotos e corretor. É exatamente o JSON que o mock do app serve para o id 42, e o teste
-`test/data/contrato_detalhe_test.dart` falha se os dois divergirem ou se qualquer entrada da
-fixture sair da allowlist deste §11.
+- **item da lista:** as 13 chaves do §3.
+- **detalhe:** `id`, `titulo`, `natureza`, `finalidade`, `preco_venda`, `preco_aluguel`,
+  `preco_condominio`, `preco_iptu`, `descricao`, `caracteristicas`, `casa`, `terreno`, `apartamento`,
+  `lote`, `endereco`, `fotos`, `corretor_responsavel`.
+- **endereco:** `logradouro`, `numero`, `bairro`, `cep`, `cidade`, `latitude`, `longitude`.
+- **cidade:** `id`, `nome`, `uf`. **foto:** `imagem`, `ordem`, `capa`. **característica:** `id`, `nome`.
+- **casa, terreno, apartamento, predio, lote, quadra, loteamento e corretor_responsavel:** ver §11.3 e §11.4.
 
-### 11.5 Itens PENDENTE E2 (sign-off da frente web)
+**Nunca** aparecem: `proprietario`, `documento`, `empresa` do imóvel, `codigo`, `publicado`, `vendido`, `situacao`,
+`documentos`, `historico`, nem imóvel não publicado, reservado ou de empresa inativa. O serializer público
+é dedicado, com `fields` listados um a um — nunca o `ImovelSerializer` do painel.
 
-Todos **DEFERRED ao E2** (dono: frente web — WEB 05/06/07/09). Nenhum deve ser tratado como
-decidido pela app ou pela API antes do sign-off explícito. Ao lado de cada um, o tratamento
-**defensivo** que o app adota até lá (D-19):
+**Decisão do corretor (05-02, opcao-a):** `corretor_responsavel` usa o `CorretorPublicoSerializer` da W02
+tal como está. Os campos que **qualquer visitante recebe sem token** são exatamente:
+`id`, `empresa_id`, `nome`, `foto`, `email`, `creci`, `telefone`, `whatsapp`, `apresentacao`. O app
+declara só `id`, `nome` e `foto` (D-16) e descarta o resto; a revisão desse conjunto é **PENDENTE** da
+frente web (ver §11.5, itens g e l).
 
-- **(a) `corretor.slug` não existe em `Usuario`.** O model `Usuario` só tem `id`, `nome`, `email`,
-  `perfil`, `empresa`, `creci`, `foto`, `telefone`, `whatsapp`, `apresentacao` etc. — nenhum `slug`.
-  *App:* `slug` é nullable no Model e na entidade; a tela de perfil do corretor abre com o objeto
-  `corretor` **já carregado pelo detalhe**, nunca com uma URL montada a partir de `id` ou `slug`.
-- **(b) `posicao_solar` não tem conjunto fechado de valores.** *App:* a API manda um rótulo legível
-  (ex. `"Nascente"`) e o app mostra exatamente esse texto — sem enum e sem tabela de rótulos
-  própria; a linha é omitida quando `null`.
-- **(c) Período do `preco_iptu`** (mensal ou anual?) indefinido. *App:* mostra `IPTU R$ X` **sem**
-  `/mês` nem `/ano` até o E2 definir; já o condomínio é mostrado como `/mês`.
-- **(d) Duplicidade `lote.preco` × `preco_venda`.** *App:* o lote mostra no cabeçalho os preços da
-  parte comum (`preco_venda`/`preco_aluguel`), como qualquer imóvel, e exibe `lote.preco` como linha
-  separada **"Preço do lote"** somente quando vier preenchido — nunca deriva um do outro.
-- **(e) Regra de `area_livre`** (WEB 05) e seus nulos: `null` (não `0`) quando faltar entrada;
-  ver §11.3.
-- **(f) `fotos[].url` e `corretor.foto` absolutas** — dependem de `context={"request": request}`
-  no serializer; sem isso as imagens relativas não carregariam no app.
-- **(g) Exposição pública de `nome` e `foto` do corretor (LGPD)** — confirmar com produto antes de
-  publicar. O contrato expõe só `id`, `nome`, `foto` e `slug`; **nunca** e-mail, telefone, WhatsApp,
-  CRECI nem empresa (o WhatsApp é do APP 06, via mensagem do servidor).
-- **(h) `terreno.laterais`:** é uma medida só ou duas (esquerda/direita)? O exemplo assume uma
-  string decimal.
-- **(i) Qual área da natureza a `area` da lista (§3.2) espelha.** Fixture do app: casa →
-  `area_construida`; apartamento → `area_privativa`; terreno → `area_total`; lote → `area`. Se o E2
-  escolher outra, lista e detalhe passam a divergir.
-- **(j) Latitude/longitude como string decimal.** O DRF serializa `DecimalField` como string por
-  padrão (`COERCE_DECIMAL_TO_STRING`); se o E2 mudar isso para número, o Model do app precisa
-  acompanhar.
-- **(k) `natureza` e os blocos dependem dos cards WEB 05/06/07**, ainda não entregues (§3.2).
+---
 
-### 11.6 Sincronização
+## 7. Isolamento
 
-Vale a regra do §8: copiar este documento e o `imovel_detalhe.example.json` para
-`../imoveis-aqui/Web`, obter o sign-off do E2 sobre §11.1–§11.5 e só então tratar o detalhe como
-**congelado**. Até lá o mock do app (`ImovelDetalheMockDataSource` + `imoveis_detalhe_fixture.dart`)
-serve esta mesma forma, protegida por `test/data/contrato_detalhe_test.dart`.
+A vitrine reúne imóveis de **várias empresas** da mesma cidade (marketplace). O que o servidor garante, por
+queryset e não por confiança no cliente, é que nada fora de `na_vitrine()` escapa por manipulação de `id`,
+cidade ou qualquer parâmetro. O mesmo vale para o detalhe: 404 idêntico (§11.1).
+
+---
+
+## 8. Riscos aceitos
+
+| Risco | Tratamento |
+|-------|-----------|
+| **Vírgula dentro do nome de um bairro (A-05).** `bairro` viaja em CSV; um bairro "Jardim, Vila" seria partido em dois. | Aceito: os dados não têm vírgula nos nomes; travado por teste no Django e documentado no README da API. Se aparecer, o contrato muda para `getlist("bairro")` ou id de bairro. |
+| **Busca sensível a acento (Pitfall 3, D-14).** `busca=Cambui` não acha "Cambuí" no Postgres. | Aceito nesta fase; `unaccent` é melhoria da frente web. |
+| **`Cidade.id` como atributo de roteamento (A-01).** A identidade da cidade no app é `nome-uf`; o `id` pode divergir entre ambientes (dev x produção). | Aceito: o app pega o `id` da lista de cidades carregada; sem `id` a vitrine mostra "Tentar de novo". Fixture e servidor de captura têm ids determinísticos. |
+| **Dados de contato do corretor no payload público.** | PENDENTE, ver §11.5 (g). |
+
+---
+
+## 9. `GET /api/publico/cidades/<id>/bairros/`
+
+Array JSON de strings, sem paginação, **ordenado** e sem repetição, derivado de `imoveis_da_vitrine()`
+(apartamento pelo bairro do prédio; bairro vazio ou nulo fica de fora). Cidade sem imóvel: `[]`. Cidade
+inexistente: 404. `POST`: 405.
+
+Exemplo: `contrato/bairros.example.json`.
+
+---
+
+## 10. `GET /api/publico/caracteristicas/`
+
+Catálogo **global** (não por cidade), array `[{"id": 1, "nome": "Piscina"}, ...]` ordenado por nome, sem
+paginação, inclusive características sem uso. O filtro da lista envia os **ids** (§5), nunca o nome.
+
+Exemplo: `contrato/caracteristicas.example.json`.
+
+---
+
+## 11. `GET /api/publico/imoveis/<id>/` — detalhe
+
+### 11.1 Resposta
+
+- **200:** objeto das seções 11.2 a 11.4.
+- **404** `{"detail": "No Imovel matches the given query."}` — **idêntico** para id inexistente, rascunho,
+  reservado/vendido e empresa inativa, para que ninguém consiga enumerar o que não é público.
+- Sem paginação; consulta fixa ao banco (sem N+1). URLs de `fotos[].imagem` e `corretor_responsavel.foto`
+  saem **absolutas** (`context={"request": request}`).
+
+### 11.2 Campos comuns
+
+| Campo | Tipo | Nulo? | Observação |
+|-------|------|-------|------------|
+| `id`, `titulo`, `natureza`, `finalidade` | | não | igual à lista |
+| `preco_venda`, `preco_aluguel` | string decimal | sim | |
+| `preco_condominio`, `preco_iptu` | string decimal | sim | públicos **somente no detalhe** (e `preco_condominio` também na lista); período do IPTU: ver §11.5 (c) |
+| `descricao` | string | não | pode ser `""` |
+| `caracteristicas` | lista `[{id, nome}]` | não | pode ser `[]` |
+| `endereco` | objeto | sim | `logradouro`, `numero`, `bairro`, `cep`, `cidade{id, nome, uf}`, `latitude`, `longitude` (strings decimais ou `null`). Apartamento mostra o endereço do prédio; o lote, o do imóvel |
+| `fotos` | lista `[{imagem, ordem, capa}]` | não | **com a capa primeiro** (regra da API: `-capa, ordem, id`, 05-02); `[]` sem fotos. O app mostra a ordem recebida e **nunca reordena** |
+| `corretor_responsavel` | objeto ou `null` | sim | `null` quando o imóvel não tem corretor ou ele está inativo. Chaves: §6 |
+| `casa`, `terreno`, `apartamento`, `lote` | objeto ou `null` | sim | **exatamente um** preenchido, o da `natureza`; os outros três vêm `null` |
+
+### 11.3 Blocos por natureza (chaves exatas)
+
+Todo campo de bloco é anulável: o app omite a linha cujo valor é `null` e esconde a seção inteira quando
+todos os campos são nulos.
+
+**`casa`** (14): `area_terreno`, `area_construida`, `area_livre` (strings decimais); `quartos`, `suites`,
+`banheiros`, `salas`, `vagas`, `pavimentos`, `ano_construcao` (inteiros); `piscina`, `quintal`,
+`churrasqueira`, `mobiliada` (booleanos). `area_livre` é **calculada pelo servidor** (`area_terreno -
+area_construida`), `null` se faltar uma das duas, nunca `0`; o app nunca a calcula.
+
+**`terreno`** (9): `area_total`, `frente`, `fundo`, `lateral_esquerda`, `lateral_direita` (strings decimais);
+`topografia` (`PLANO` \| `ACLIVE` \| `DECLIVE`); `murado`, `esquina` (booleanos); `uso_permitido` (**código**
+`RESIDENCIAL` \| `COMERCIAL` \| `MISTO` \| `INDUSTRIAL` \| `RURAL`; rótulo em português no app, A-04).
+
+**`apartamento`** (10): `predio` (objeto ou `null`), `andar`, `quartos`, `suites`, `banheiros`, `vagas`
+(inteiros); `area_privativa`, `area_total` (strings decimais); `varanda` (booleano); `posicao_solar`
+(**código** `NASCENTE` \| `POENTE` \| `NORTE` \| `SUL`, pode ser `""`; rótulo no app, vazio omite a linha).
+**Não** há número da unidade (omitido de propósito).
+
+**`apartamento.predio`** (9): `nome`; `andares`, `ano_construcao`, `elevadores` (inteiros); `portaria_24h`,
+`piscina`, `academia`, `salao_de_festas`, `playground` (booleanos). **Não** há `unidades_por_andar`.
+
+**`lote`** (8): `numero` (string), `area`, `frente`, `fundo`, `entrada_minima` (strings decimais),
+`parcelas_maximas` (inteiro), `condicoes_parcelamento` (string), `quadra` (objeto ou `null`). **Não** há
+`preco` (o preço do lote é o `preco_venda` do imóvel, W07), `vendido`, ids nem cidade.
+
+**`lote.quadra`** (2): `identificacao`, `loteamento` (objeto ou `null`).
+
+**`lote.quadra.loteamento`** (8): `nome`, `incorporadora`, `areas_de_lazer` (string livre; o app a mostra em
+texto corrido e **não** a divide por vírgula) e cinco booleanos de infraestrutura `asfalto`, `agua`,
+`energia`, `esgoto`, `iluminacao` (o app traduz os verdadeiros em rótulos, em ordem fixa).
+
+### 11.4 Exemplos
+
+- `contrato/imovel_detalhe.example.json` — apartamento 22 (alugado, Taquaral, Campinas), com `predio`.
+- `contrato/imovel_detalhe_lote.example.json` — lote 24 (venda, Barão Geraldo, Campinas), com quadra e loteamento.
+
+### 11.5 Itens que a Fase 1 deixou em aberto (a–k) e os que surgiram na Fase 5 (l)
+
+**RESOLVIDO** = decidido pelo código da web (ou do app) entregue na Fase 5. **PENDENTE** = depende da
+frente web ou de produto; nenhum deve ser tratado como decidido pelo app.
+
+| Item | Situação | Resolução / pendência |
+|------|----------|----------------------|
+| **(a)** `corretor.slug` | RESOLVIDO | `Usuario` não tem `slug` e o wire não traz: o perfil abre com o `corretor_responsavel` **já carregado pelo detalhe**, nunca por URL montada (05-16). O campo agora se chama `corretor_responsavel`. |
+| **(b)** `posicao_solar` sem conjunto fechado | RESOLVIDO | É um **código** (`PosicaoSolar`: `NASCENTE`, `POENTE`, `NORTE`, `SUL`, ou `""`); o rótulo em português fica no app, com fallback para o texto cru (A-04, 05-17). |
+| **(c)** período do `preco_iptu` (mensal ou anual) | **PENDENTE** (web) | Indefinido na W06/W08. O app mostra `IPTU R$ X` sem `/mês` nem `/ano`; o condomínio é `/mês`. |
+| **(d)** `lote.preco` x `preco_venda` | RESOLVIDO | W07: o lote **não tem preço próprio**; o preço do lote é o `preco_venda` do imóvel. O bloco `lote` não tem `preco` (D-06) e o app não mostra "Preço do lote". |
+| **(e)** regra de `area_livre` | RESOLVIDO | `Casa.area_livre` (W05) é property do servidor: `area_terreno - area_construida`, `null` se faltar entrada. O app nunca calcula. |
+| **(f)** URLs absolutas | RESOLVIDO | `fotos[].imagem`, `foto_capa` e `corretor_responsavel.foto` saem absolutas via `request.build_absolute_uri` / `context={"request": request}`. |
+| **(g)** exposição de contato do corretor (LGPD) | **PENDENTE** (web/produto) | O `CorretorPublicoSerializer` da W02 expõe sem token `id`, `empresa_id`, `nome`, `foto`, `email`, `creci`, `telefone`, `whatsapp`, `apresentacao` (05-02, opcao-a). O app usa só `id`, `nome` e `foto`. A revisão da exposição é decisão da frente web/produto e foi adiada (CONTEXT, Deferred). |
+| **(h)** `terreno.laterais` | RESOLVIDO | São duas medidas: `lateral_esquerda` e `lateral_direita` (W05); duas linhas na UI (D-17). |
+| **(i)** qual área a lista espelha | RESOLVIDO | `area_anuncio` por natureza: casa `area_construida`, apartamento `area_privativa`, terreno `area_total`, lote `area` (§3). |
+| **(j)** latitude/longitude como string decimal | RESOLVIDO | `DecimalField` serializa como string (padrão do DRF); o Model do app lê string. |
+| **(k)** `natureza` e blocos dependem de W05/W06/W07 | RESOLVIDO | As quatro naturezas (inclusive `LOTE`) e seus blocos foram entregues (W05–W08, merge `feat/APP05`). |
+| **(l)** `empresa_id` no payload público do corretor | **PENDENTE** (web) | Veio da W02 e permanece (05-02, opcao-a); é um id interno que a vitrine não precisa. Sugestão à frente web: removê-lo do `CorretorPublicoSerializer` junto com a revisão LGPD de (g). O app o ignora. |
+
+---
+
+## 12. Sincronização e antidrift (substitui as notas de sincronização antigas)
+
+O contrato **não** é mais "rascunho aguardando sign-off do E2": é a descrição do que a API faz, e os
+exemplos são respostas reais. Para recapturar tudo (quando o servidor mudar):
+
+```bash
+python3 tool/capturar_fixtures_api.py http://127.0.0.1:8000 test/fixtures/api --grupo todos
+```
+
+(procedimento completo, com SQLite temporário e servidor local, no docstring de `tool/capturar_fixtures_api.py`
+e no README do app), depois copiar byte a byte para `contrato/`:
+
+| Fixture capturada | Exemplo do contrato |
+|-------------------|---------------------|
+| `cidades.json` | `cidades.example.json` |
+| `lista_campinas_p1.json` | `imoveis.example.json` |
+| `detalhe_apartamento.json` | `imovel_detalhe.example.json` |
+| `detalhe_lote.json` | `imovel_detalhe_lote.example.json` |
+| `bairros_campinas.json` | `bairros.example.json` |
+| `caracteristicas.json` | `caracteristicas.example.json` |
+
+Os testes de contrato do app (`test/data/contrato_lista_test.dart`, `test/data/contrato_detalhe_test.dart`)
+comparam cada exemplo com sua fixture e travam as chaves exatas de cidade, envelope, item, opções, detalhe e
+dos blocos de natureza; no Django, `VitrineAllowlistExataTests` trava o mesmo do lado do servidor. Não há
+mais cópia manual do documento para o repositório da API.
