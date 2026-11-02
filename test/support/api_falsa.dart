@@ -38,8 +38,10 @@ class _Falha {
 /// 2 com `page=2`; só Campinas tem imóveis capturados, as outras cidades
 /// recebem a lista vazia), bairros da cidade (`/bairros/`, só Campinas tem
 /// bairros capturados, as outras cidades recebem `[]`) e o catálogo de
-/// características. Rota ainda não servida responde 404 com um objeto JSON
-/// vazio.
+/// características. O detalhe (`/api/publico/imoveis/<id>/`) serve o
+/// `detalhe_*.json` capturado cujo `id` bate, senão 404 com
+/// `erro_404_detalhe.json`. Rota ainda não servida responde 404 com um objeto
+/// JSON vazio.
 class ApiFalsa {
   ApiFalsa({this.latencia = Duration.zero});
 
@@ -117,6 +119,13 @@ class ApiFalsa {
     if (uri.path == '/api/publico/caracteristicas/') {
       return _corpoJson(lerFixtureApi('caracteristicas.json'), 200);
     }
+    final idDoDetalhe = _idDoDetalheDeImovel(uri.path);
+    if (idDoDetalhe != null) {
+      final fixture = _fixtureDoDetalhe(idDoDetalhe);
+      return fixture == null
+          ? _corpoJson(lerFixtureApi('erro_404_detalhe.json'), 404)
+          : _corpoJson(lerFixtureApi(fixture), 200);
+    }
     final cidadeDosBairros = _idDosBairros(uri.path);
     if (cidadeDosBairros != null) {
       return _corpoJson(
@@ -149,6 +158,35 @@ class ApiFalsa {
     ).firstMatch(caminho);
     if (casamento == null) return null;
     return int.parse(casamento.group(1)!);
+  }
+
+  /// Id do imóvel de `/api/publico/imoveis/<id>/`, ou nulo se [caminho] não é
+  /// essa rota.
+  int? _idDoDetalheDeImovel(String caminho) {
+    final casamento = RegExp(
+      r'^/api/publico/imoveis/(\d+)/$',
+    ).firstMatch(caminho);
+    if (casamento == null) return null;
+    return int.parse(casamento.group(1)!);
+  }
+
+  /// Nome do `test/fixtures/api/detalhe_*.json` capturado cujo `id` é [id],
+  /// ou nulo se nenhum bate.
+  String? _fixtureDoDetalhe(int id) {
+    final arquivos = Directory('test/fixtures/api')
+        .listSync()
+        .whereType<File>()
+        .map((arquivo) => arquivo.uri.pathSegments.last)
+        .where(
+          (nome) => nome.startsWith('detalhe_') && nome.endsWith('.json'),
+        )
+        .toList()
+      ..sort();
+    for (final nome in arquivos) {
+      final corpo = lerFixtureApi(nome);
+      if (corpo is Map<String, Object?> && corpo['id'] == id) return nome;
+    }
+    return null;
   }
 
   /// Id da cidade de `/api/publico/cidades/<id>/bairros/`, ou nulo se

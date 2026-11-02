@@ -8,6 +8,8 @@ part 'detalhe_imovel.freezed.dart';
 
 /// Parte comum do detalhe de um imóvel (DET-01) — tudo que a página mostra
 /// vem pronto da camada de dados, o app nunca monta nem calcula nada aqui.
+/// [cidade] e [bairro] vêm do `endereco` da API, que pode ser nulo: sem ele
+/// o bairro é vazio e a cidade é `null`.
 ///
 /// Preços e coordenadas continuam strings decimais do servidor, nunca
 /// parseadas no domínio (mesma regra de [Imovel], D-03).
@@ -23,7 +25,7 @@ abstract class DetalheImovel with _$DetalheImovel {
     String? precoIptu,
     required String descricao,
     required String bairro,
-    required Cidade cidade,
+    Cidade? cidade,
     String? latitude,
     String? longitude,
 

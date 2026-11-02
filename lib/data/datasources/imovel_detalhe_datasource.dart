@@ -1,8 +1,7 @@
 import '../models/detalhe_imovel_model.dart';
 
 /// Caminho do endpoint público do detalhe (o `id` é sempre um inteiro, nunca
-/// texto do usuário) — reaproveitado tal e qual quando a DataSource remota
-/// substituir o mock (API-07, Fase 5).
+/// texto do usuário).
 String caminhoDetalheImovelPublico(int id) => '/api/publico/imoveis/$id/';
 
 /// Fronteira trocável mock->real do detalhe do imóvel. A troca por uma
