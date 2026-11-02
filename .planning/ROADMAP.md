@@ -191,7 +191,7 @@ Plans:
   4. O app troca as DataSources mock pelas reais via injeção de dependência; a adaptação ao formato real fica concentrada em data/ e UI, Cubits e domain/ mudam só o mínimo necessário (D-01); de ponta a ponta, o visitante vê, busca, ordena e filtra imóveis reais na vitrine.
   5. O detalhe (`GET /api/publico/imoveis/{id}/`) também passa a vir da API real, incluindo os dados de natureza, e a página do imóvel da Phase 4 funciona ponta a ponta.
 
-**Plans**: 18/18 plans executed
+**Plans**: 22 plans (18/18 executed + 4 gap closure from 05-VERIFICATION: CR-01, CR-02, WR-01, WR-02)
 Plans:
 **Wave 1**
 
@@ -252,6 +252,24 @@ Plans:
 **Wave 14** *(blocked on Wave 13 completion)*
 
 - [x] 05-18-PLAN.md — Fechamento: contrato e exemplos = respostas reais + testes de contrato, rota real e critérios 3/4 em REQUIREMENTS/ROADMAP, README, gates dos dois repos, roteiro E2E (API-03, API-07)
+
+**Gap closure** *(05-VERIFICATION gaps_found; WR-03..WR-06 e IN-01..IN-09 adiados pelo usuário)*
+
+**Wave 15**
+
+- [ ] 05-19-PLAN.md — API: número e texto hostis na lista pública viram 400 (NaN/Infinity/1e400/_ e tetos em _numero; NUL e tetos em busca/bairro) (CR-02, WR-01, WR-02) (API-03)
+
+**Wave 16** *(blocked on Wave 15 completion)*
+
+- [ ] 05-20-PLAN.md — API: características com até 20 ids positivos e "tem todas" numa única subconsulta agregada (CR-01) (API-03)
+
+**Wave 17** *(blocked on Wave 16 completion)*
+
+- [ ] 05-21-PLAN.md — API: limite de taxa anônimo (429) nas 5 rotas públicas da vitrine, sem tocar a API autenticada, NUM_PROXIES=0, suíte estável (WR-02) (API-03, API-07)
+
+**Wave 18** *(blocked on Wave 17 completion)*
+
+- [ ] 05-22-PLAN.md — Contrato (tetos, mensagens 400, 429, riscos) + README da API + guarda do app para 400/429 + gates finais; check humano de fim de fase pendente (API-03, API-07)
 
 ## Progress
 
