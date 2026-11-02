@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 05
 current_phase_name: Imóveis Real — Endpoint Público e Integração Final
 status: executing
-stopped_at: Completed 05-13-PLAN.md
-last_updated: "2026-11-02T00:05:29.808Z"
+stopped_at: Completed 05-14-PLAN.md
+last_updated: "2026-11-02T00:18:43.598Z"
 last_activity: 2026-10-30
 last_activity_desc: Phase 05 execution started
-state_head: 025369522f11353b12ac0eaf6504119638c479f0
+state_head: 38098eb3bc5eea5b87c109c919dcb942908caaa3
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 40
-  completed_plans: 35
+  completed_plans: 36
   percent: 0
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-09-21)
 ## Current Position
 
 Phase: 05 (Imóveis Real — Endpoint Público e Integração Final) — EXECUTING
-Plan: 14 of 18
+Plan: 15 of 18
 Status: Ready to execute
 Last activity: 2026-10-30 — Phase 05 execution started
 
@@ -86,6 +86,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 05 P11 | 45min | 2 tasks | 17 files |
 | Phase 05 P12 | 30min | 2 tasks | 12 files |
 | Phase 05 P13 | 25min | 2 tasks | 11 files |
+| Phase 05 P14 | 45min | 2 tasks | 18 files |
 
 ## Accumulated Context
 
@@ -125,6 +126,7 @@ Recent decisions affecting current work:
 - [Phase 05]: 05-05: seed pula imóvel já existente inteiro (fotos e situação preservadas); apartamento sem endereço próprio; guarda de DEBUG testada em banco vazio
 - [Phase 05]: 05-11: parametrosDaApi e o unico mapeamento de params (nomes W09); ImovelMockDataSource removido; FalhaSimuladaDoMock movida para o mock do detalhe ate o 05-14
 - [Phase 05]: 05-12: dominio segue com nomes de caracteristica; repositorio mapeia CaracteristicaModel -> nome ate 05-13/05-15
+- [Phase 05]: 05-14: DetalheImovel.cidade nula; Model le endereco completo mas a pagina mostra so bairro · cidade, UF; CorretorModel so id/nome/foto
 
 ### Pending Todos
 
@@ -153,6 +155,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-02T00:05:29.766Z
-Stopped at: Completed 05-13-PLAN.md
+Last session: 2026-11-02T00:18:43.560Z
+Stopped at: Completed 05-14-PLAN.md
 Resume file: None
