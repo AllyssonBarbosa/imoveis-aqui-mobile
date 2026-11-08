@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:imoveis_aqui/domain/entities/perfil_empresa.dart';
 import 'package:imoveis_aqui/presentation/perfis/apresentacao_perfil.dart';
 
 void main() {
@@ -47,6 +48,13 @@ void main() {
   group('tituloImoveisDe', () {
     test('monta "Imóveis de {nome}" com o nome como veio', () {
       expect(tituloImoveisDe('Marina Lopes'), 'Imóveis de Marina Lopes');
+    });
+  });
+
+  group('rotuloTipoEmpresa', () {
+    test('imobiliária e autônomo têm rótulos próprios (PERF-01)', () {
+      expect(rotuloTipoEmpresa(TipoEmpresa.imobiliaria), 'Imobiliária');
+      expect(rotuloTipoEmpresa(TipoEmpresa.autonomo), 'Corretor autônomo');
     });
   });
 }
