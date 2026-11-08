@@ -2,13 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../di/injection.dart';
+import '../../domain/entities/anunciante_ref.dart';
 import '../../domain/entities/perfil_empresa.dart';
 import '../comum/imagem_rede.dart';
+import '../detalhe_imovel/detalhe_imovel_screen.dart';
 import 'apresentacao_perfil.dart';
 import 'perfil_empresa_cubit.dart';
 import 'perfil_state.dart';
+import 'vitrine_anunciante_cubit.dart';
 import 'widgets/aviso_perfil.dart';
+import 'widgets/chips_cidades_atuacao.dart';
 import 'widgets/corpo_perfil_com_vitrine.dart';
+import 'widgets/secoes_perfil.dart';
+import 'widgets/sliver_imoveis_anunciante.dart';
 
 /// Contrato de quem abre a página da empresa a partir do perfil do corretor —
 /// recebe só o id (o único dado da empresa que o corretor conhece).
@@ -18,22 +24,40 @@ typedef AoAbrirEmpresa = Future<void> Function(
 );
 
 /// Abre a página da empresa por `Navigator.push` (sem pacote de rotas). É o
-/// ÚNICO ponto que resolve o [PerfilEmpresaCubit] no DI, e só no toque;
-/// [criarPerfilEmpresaCubit] existe para teste. Não há prévia: só o
-/// [empresaId] é conhecido, então a página abre com um indicador de
-/// carregamento até a API de perfis responder.
+/// ÚNICO ponto que resolve o [PerfilEmpresaCubit] e o [VitrineAnuncianteCubit]
+/// no DI, e só no toque; [criarPerfilEmpresaCubit] e [criarVitrineCubit]
+/// existem para teste. O provider da vitrine é PREGUIÇOSO: o Cubit só nasce
+/// quando o sliver da vitrine é montado, isto é, com a empresa carregada — uma
+/// empresa 404 nunca consulta imóveis. Não há prévia: só o [empresaId] é
+/// conhecido, então a página abre com um indicador de carregamento até a API
+/// de perfis responder. [aoAbrirImovel] abre o imóvel tocado na vitrine
+/// (padrão [abrirDetalheImovel]).
 Future<void> abrirPerfilEmpresa(
   BuildContext context,
   int empresaId, {
   PerfilEmpresaCubit Function()? criarPerfilEmpresaCubit,
+  VitrineAnuncianteCubit Function()? criarVitrineCubit,
+  AoAbrirImovel aoAbrirImovel = abrirDetalheImovel,
   Widget Function(String url)? construirImagemDeRede,
 }) {
-  final criar = criarPerfilEmpresaCubit ?? () => getIt<PerfilEmpresaCubit>();
+  final criarPerfil =
+      criarPerfilEmpresaCubit ?? () => getIt<PerfilEmpresaCubit>();
+  final criarVitrine =
+      criarVitrineCubit ?? () => getIt<VitrineAnuncianteCubit>();
   return Navigator.of(context).push(
     MaterialPageRoute<void>(
-      builder: (_) => BlocProvider<PerfilEmpresaCubit>(
-        create: (_) => criar()..carregar(empresaId),
+      builder: (_) => MultiBlocProvider(
+        providers: [
+          BlocProvider<PerfilEmpresaCubit>(
+            create: (_) => criarPerfil()..carregar(empresaId),
+          ),
+          BlocProvider<VitrineAnuncianteCubit>(
+            create: (_) =>
+                criarVitrine()..carregar(AnuncianteRef.empresa(empresaId)),
+          ),
+        ],
         child: PerfilEmpresaScreen(
+          aoAbrirImovel: aoAbrirImovel,
           construirImagemDeRede: construirImagemDeRede,
         ),
       ),
@@ -41,14 +65,20 @@ Future<void> abrirPerfilEmpresa(
   );
 }
 
-/// Página pública da empresa anunciante: logomarca, nome, tipo e CRECI, como
-/// a API de perfis informa. Os desfechos 404 e falha reaproveitam o aviso e o
-/// erro compartilhados com o perfil do corretor.
+/// Página pública da empresa anunciante: logomarca, nome, tipo e CRECI,
+/// seguidos de Apresentação, Contato (texto selecionável), Cidades de atuação
+/// e a vitrine de imóveis da empresa, como a API de perfis informa. Os
+/// desfechos 404 e falha reaproveitam o aviso e o erro compartilhados com o
+/// perfil do corretor.
 class PerfilEmpresaScreen extends StatelessWidget {
   const PerfilEmpresaScreen({
     super.key,
+    this.aoAbrirImovel = abrirDetalheImovel,
     @visibleForTesting this.construirImagemDeRede,
   });
+
+  /// Abre a página do imóvel tocado na vitrine da empresa.
+  final AoAbrirImovel aoAbrirImovel;
 
   /// Ponto de extensão só para teste — troca `CachedNetworkImage` por um
   /// builder determinístico (ver `ImagemRede`). Em produção fica `null`.
@@ -77,6 +107,23 @@ class PerfilEmpresaScreen extends StatelessWidget {
                   construirImagemDeRede: construirImagemDeRede,
                 ),
               ),
+              // O respiro horizontal de 16 já vem do SecaoDetalhe.
+              SliverToBoxAdapter(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SecaoApresentacao(texto: dados.descricao),
+                    SecaoContato(
+                      linhas: linhasDeContato(
+                        telefone: dados.telefone,
+                        whatsapp: dados.whatsapp,
+                        email: dados.email,
+                      ),
+                    ),
+                    ChipsCidadesAtuacao(cidades: dados.cidadesAtuacao),
+                  ],
+                ),
+              ),
             ],
             PerfilErro() => [
               SliverToBoxAdapter(
@@ -97,8 +144,16 @@ class PerfilEmpresaScreen extends StatelessWidget {
               ),
             ],
           };
-          // A vitrine de imóveis da empresa entra no plano seguinte.
-          return CorpoPerfilComVitrine(cabecalho: cabecalho);
+          // A vitrine só existe com a empresa carregada (um 404 nunca consulta
+          // imóveis).
+          final Widget? vitrine = switch (estado) {
+            PerfilCarregado(:final dados) => SliverImoveisDoAnunciante(
+              titulo: tituloImoveisDe(dados.nome),
+              aoAbrirImovel: aoAbrirImovel,
+            ),
+            PerfilCarregando() || PerfilErro() || PerfilNaoEncontrado() => null,
+          };
+          return CorpoPerfilComVitrine(cabecalho: cabecalho, vitrine: vitrine);
         },
       ),
     );

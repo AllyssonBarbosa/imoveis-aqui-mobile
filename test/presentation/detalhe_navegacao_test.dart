@@ -470,6 +470,14 @@ void main() {
         expect(naEmpresa(find.text('Imobiliária Jequitibá')), findsOneWidget);
         expect(naEmpresa(find.text('Imobiliária')), findsOneWidget);
         expect(naEmpresa(find.text('CRECI J-1234')), findsOneWidget);
+        // Só resta o spinner da vitrine da empresa, que nasce com a empresa
+        // carregada; a latência dela (300 ms) o resolve.
+        expect(
+          naEmpresa(find.byType(CircularProgressIndicator)),
+          findsOneWidget,
+        );
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pump();
         expect(naEmpresa(find.byType(CircularProgressIndicator)), findsNothing);
 
         // Voltar devolve o perfil da Marina, ainda carregado.
