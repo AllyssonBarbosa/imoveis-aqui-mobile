@@ -30,6 +30,27 @@ void main() {
     nome: 'Marina Lopes',
     creci: '12345-F',
   );
+  const marinaCompleta = PerfilCorretor(
+    id: 7,
+    empresaId: 3,
+    foto: 'https://exemplo.com/marina-perfil.jpg',
+    nome: 'Marina Lopes',
+    email: 'marina.lopes@jequitiba.exemplo.com',
+    creci: '12345-F',
+    telefone: '(19) 3333-4444',
+    whatsapp: '19999998888',
+    apresentacao: 'Corretora há 10 anos em Campinas.',
+  );
+  // Autônoma com omissões: sem telefone, apresentação e foto.
+  const camila = PerfilCorretor(
+    id: 9,
+    empresaId: 4,
+    nome: 'Camila Duarte',
+    email: 'camila.duarte@exemplo.com',
+    creci: '34567-F',
+    whatsapp: '19977776666',
+  );
+  const semContato = PerfilCorretor(id: 10, nome: 'Bruno Sales');
 
   late _PerfilCorretorCubitFalso cubit;
 
@@ -221,5 +242,102 @@ void main() {
 
     expect(find.byType(PerfilCorretorScreen), findsNothing);
     expect(find.text('Abrir'), findsOneWidget);
+  });
+
+  testWidgets('carregado completo mostra, nesta ordem, nome, Apresentação e '
+      'Contato com o contato como texto selecionável (PERF-02)', (
+    tester,
+  ) async {
+    await abrirPerfil(
+      tester,
+      marina,
+      const PerfilState.carregado(marinaCompleta),
+    );
+
+    expect(naPagina(find.text('Apresentação')), findsOneWidget);
+    expect(
+      naPagina(find.text('Corretora há 10 anos em Campinas.')),
+      findsOneWidget,
+    );
+    expect(naPagina(find.text('Contato')), findsOneWidget);
+    expect(naPagina(find.byType(SelectableText)), findsNWidgets(3));
+    for (final valor in [
+      '(19) 3333-4444',
+      '19999998888',
+      'marina.lopes@jequitiba.exemplo.com',
+    ]) {
+      expect(
+        naPagina(find.widgetWithText(SelectableText, valor)),
+        findsOneWidget,
+      );
+    }
+    expect(naPagina(find.byIcon(Icons.phone_outlined)), findsOneWidget);
+    expect(naPagina(find.byIcon(Icons.chat_outlined)), findsOneWidget);
+    expect(naPagina(find.byIcon(Icons.email_outlined)), findsOneWidget);
+
+    final yNome = tester.getTopLeft(naPagina(find.text('Marina Lopes'))).dy;
+    final yApresentacao = tester
+        .getTopLeft(naPagina(find.text('Apresentação')))
+        .dy;
+    final yContato = tester.getTopLeft(naPagina(find.text('Contato'))).dy;
+    expect(yNome, lessThan(yApresentacao));
+    expect(yApresentacao, lessThan(yContato));
+  });
+
+  testWidgets('carregado com omissões (Camila) some Apresentação e a linha '
+      'Telefone, mantém WhatsApp e o avatar padrão', (tester) async {
+    await abrirPerfil(
+      tester,
+      semFotoNemSlug,
+      const PerfilState.carregado(camila),
+    );
+
+    expect(naPagina(find.text('Apresentação')), findsNothing);
+    expect(naPagina(find.text('Telefone')), findsNothing);
+    expect(naPagina(find.text('Contato')), findsOneWidget);
+    expect(naPagina(find.text('WhatsApp')), findsOneWidget);
+    expect(
+      naPagina(find.widgetWithText(SelectableText, '19977776666')),
+      findsOneWidget,
+    );
+    expect(find.byIcon(Icons.person_outline), findsOneWidget);
+  });
+
+  testWidgets('perfil sem nenhum contato não mostra o título Contato', (
+    tester,
+  ) async {
+    await abrirPerfil(
+      tester,
+      marina,
+      const PerfilState.carregado(semContato),
+    );
+
+    expect(naPagina(find.text('Bruno Sales')), findsOneWidget);
+    expect(naPagina(find.text('Contato')), findsNothing);
+    expect(naPagina(find.text('Apresentação')), findsNothing);
+  });
+
+  testWidgets('o contato é só texto: nenhum toque ou botão na seção (D-10)', (
+    tester,
+  ) async {
+    await abrirPerfil(
+      tester,
+      marina,
+      const PerfilState.carregado(marinaCompleta),
+    );
+
+    final secao = find.ancestor(
+      of: naPagina(find.text('Contato')),
+      matching: find.byType(Column),
+    );
+    expect(secao, findsWidgets);
+    final dentro = secao.first;
+    for (final tipo in [InkWell, IconButton, TextButton, FilledButton]) {
+      expect(
+        find.descendant(of: dentro, matching: find.byType(tipo)),
+        findsNothing,
+        reason: '$tipo não pode existir na seção de contato',
+      );
+    }
   });
 }
