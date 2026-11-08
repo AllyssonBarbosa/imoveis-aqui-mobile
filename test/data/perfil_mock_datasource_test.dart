@@ -60,6 +60,54 @@ void main() {
     });
   });
 
+  group('corretor desativado (PERF-05)', () {
+    test('o id reservado 99 fica fora do acervo de perfis', () {
+      expect(idCorretorDesativadoMock, 99);
+      expect(corretoresPerfisFixture().containsKey(99), isFalse);
+    });
+
+    test('buscarCorretor(99) falha com PerfilNaoEncontradoException', () async {
+      final resultado = await construir().buscarCorretor(
+        idCorretorDesativadoMock,
+      );
+
+      expect(resultado, isA<Failure<PerfilCorretor>>());
+      expect(
+        (resultado as Failure<PerfilCorretor>).erro,
+        isA<PerfilNaoEncontradoException>(),
+      );
+    });
+
+    test('o 404 é forçado mesmo quando o mapa injetado contém o id 99', () async {
+      final corretores = corretoresPerfisFixture();
+      corretores[idCorretorDesativadoMock] = {
+        ...corretores[7]!,
+        'id': idCorretorDesativadoMock,
+        'nome': 'Paulo Teixeira',
+      };
+      final repositorio = PerfilRepositoryImpl(
+        PerfilMockDataSource.paraTeste(corretores: corretores),
+      );
+
+      final resultado = await repositorio.buscarCorretor(
+        idCorretorDesativadoMock,
+      );
+
+      expect(resultado, isA<Failure<PerfilCorretor>>());
+      expect(
+        (resultado as Failure<PerfilCorretor>).erro,
+        isA<PerfilNaoEncontradoException>(),
+      );
+    });
+
+    test('o corretor regular 7 continua devolvendo a Marina Lopes', () async {
+      final perfil = sucesso(await construir().buscarCorretor(7));
+
+      expect(perfil.nome, 'Marina Lopes');
+      expect(perfil.empresaId, 3);
+    });
+  });
+
   test('caminhoPerfilCorretor monta o endpoint público com barra final', () {
     expect(caminhoPerfilCorretor(7), '/api/publico/corretores/7/');
   });
