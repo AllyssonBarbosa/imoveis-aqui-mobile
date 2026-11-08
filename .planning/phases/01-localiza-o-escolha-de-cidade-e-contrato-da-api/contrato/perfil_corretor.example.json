@@ -1,0 +1,11 @@
+{
+  "id": 7,
+  "empresa_id": 3,
+  "foto": "https://picsum.photos/seed/corretor-7/200/200",
+  "nome": "Marina Lopes",
+  "email": "marina.lopes@jequitiba.exemplo.com",
+  "creci": "12345-F",
+  "telefone": "(19) 3333-4444",
+  "whatsapp": "19999998888",
+  "apresentacao": "Corretora há 10 anos em Campinas, especialista em apartamentos no Cambuí e no Taquaral."
+}

@@ -199,7 +199,7 @@ Plans:
 **Goal**: O visitante vê quem está anunciando para saber com quem vai negociar: a página da empresa traz logomarca, CRECI, apresentação, contato e cidades de atuação; a do corretor traz foto, CRECI, apresentação e contato; as duas mostram a vitrine dos imóveis daquele anunciante. Card APP 07 (tarefa A07).
 **Mode:** mvp
 **Depends on**: Phase 4 (cartão do corretor e tela de perfil do DET-05). Externamente: WEB 02 (feito, na main da web) para `GET /api/publico/corretores/{id}/` e `GET /api/publico/empresas/{id}/`. A vitrine do anunciante ainda não tem endpoint na web — esta fase a constrói sobre mock que segue um contrato escrito, como nas fases 2–4.
-**Requirements**: TBD (IDs PERF-xx definidos no discuss/plan)
+**Requirements**: PERF-01, PERF-02, PERF-03, PERF-04, PERF-05, PERF-06, API-08
 **Success Criteria** (what must be TRUE):
 
   1. Página da empresa com logomarca, CRECI, apresentação, contato e cidades de atuação.

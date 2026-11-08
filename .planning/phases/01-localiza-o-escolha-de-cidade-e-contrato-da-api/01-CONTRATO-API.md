@@ -586,3 +586,121 @@ Vale a regra do §8: copiar este documento e o `imovel_detalhe.example.json` par
 `../imoveis-aqui/Web`, obter o sign-off do E2 sobre §11.1–§11.5 e só então tratar o detalhe como
 **congelado**. Até lá o mock do app (`ImovelDetalheMockDataSource` + `imoveis_detalhe_fixture.dart`)
 serve esta mesma forma, protegida por `test/data/contrato_detalhe_test.dart`.
+
+---
+
+## 12. Adendos da Fase 7 — perfis públicos e vitrine do anunciante (aguardando sign-off da frente web)
+
+A Fase 7 (Perfis públicos da empresa e do corretor) acrescenta duas coisas a este contrato, ambas
+como **proposta de trabalho do app**, ainda pendentes do sign-off da frente web — o mesmo processo
+de sincronização do §8 se aplica: (1) o app passa a consumir, **como estão**, os perfis públicos que
+a WEB 02 já entregou; (2) o app pede à web uma **vitrine do anunciante**, que ainda não existe. O
+que depende da web está listado em §12.8 como PENDENTE WEB; nada fica "TBD".
+**Reversibilidade: custosa** — a forma de wire da vitrine do anunciante é compartilhada com a
+API-03 (Fase 5), o serializer Django, o Model do app e o mock; mudá-la depois mexe nos quatro ao
+mesmo tempo. A forma já foi decidida pelo dono do app (CONTEXT D-02); falta o aceite da web.
+
+### 12.1 Perfis públicos já existentes (WEB 02), consumidos como estão
+
+São dois GETs que **já existem** na `main` da web (`contas/api/urls_publico.py` e
+`empresas/api/urls_publico.py`), `AllowAny`, sem paginação, com barra final:
+
+- `GET /api/publico/corretores/{id}/` — exemplo: `contrato/perfil_corretor.example.json` (9 chaves:
+  `id`, `empresa_id`, `foto`, `nome`, `email`, `creci`, `telefone`, `whatsapp`, `apresentacao`).
+- `GET /api/publico/empresas/{id}/` — exemplo: `contrato/perfil_empresa.example.json` (11 chaves:
+  `id`, `tipo`, `razao_social_ou_nome`, `creci`, `telefone`, `whatsapp`, `email`, `descricao`,
+  `logomarca`, `cidades_atuacao`, `corretores_ativos`; cada cidade traz `id`, `nome`, `uf`).
+
+Regras que o app assume:
+
+- **404 do corretor:** corretor inexistente, que não é corretor (gestor/admin) ou com
+  `is_active=False`. **404 da empresa:** inexistente ou `ativa=False`. O app **ignora o corpo** do
+  404 (`{"detail": "..."}` do DRF) e decide só pelo status; o 404 do corretor vira o aviso "Este
+  corretor não está mais disponível".
+- **Opcionais vazios:** campos `blank=True` do Django chegam `""` (telefone, apresentação,
+  descrição, e defensivamente creci/whatsapp). O app os **normaliza para ausente na camada de
+  dados** (Model -> entidade); a tela decide só por "tem / não tem". `foto` e `logomarca` chegam
+  como URL absoluta ou `null` (nunca `""`) e o app só aceita esquema http(s) — qualquer outro vira
+  ausente (avatar padrão).
+- **Herança do autônomo é do servidor:** `Usuario.dados_perfil_publico` já completa creci, foto
+  (cai na logomarca), telefone, whatsapp e apresentação (cai na descrição da empresa). O app **não
+  completa nada**: mostra o que chegou.
+- **`corretores_ativos`** existe no wire da empresa, mas o app **não o lê** nesta fase (a lista da
+  empresa não é uma entrega da fase).
+- **Contraste com o §11.5 g:** o detalhe do imóvel **não** expõe contato do corretor; o perfil
+  público expõe e-mail, telefone, WhatsApp e CRECI **por desenho da WEB 02**. O app só mostra o que
+  a WEB 02 já expõe (ver §12.8 f).
+- **Enumeração de ids:** o 404 é uniforme (inexistente = desativado), então o app não cria canal
+  novo para descobrir ids.
+
+### 12.2 Vitrine do anunciante — endpoint
+
+O **mesmo** `GET /api/publico/imoveis/` do §3–§5, aceitando `empresa=<id>` **ou** `corretor=<id>`
+(inteiros, PK) **no lugar de `cidade`**. Sem `cidade`, a lista **não** é restrita a uma cidade (a
+vitrine do anunciante atravessa cidades). `AllowAny`, sem token.
+
+### 12.3 Resposta
+
+Idêntica ao §3/§4: envelope `CursorPagination` `{next, previous, results}` e linhas com a mesma
+allowlist do §6 — **sem** `corretor`, `empresa` nem `proprietario` nas linhas. Queryset
+obrigatório: `Imovel.objects.filter(publicado=True)` mais `empresa_id=<id>` (campo `empresa` de
+`EmpresaOwnedModel`) ou `corretor_responsavel_id=<id>`; nunca confiar em parâmetro do cliente para
+decidir o que é público (mesma disciplina do §6).
+
+### 12.4 Ordenação
+
+Padrão `mais_recentes` (`-criado_em`). O app **não** envia `ordenacao`, `busca` nem filtros nesta
+fase; eles continuam válidos se enviados (§5, §9, §10).
+
+### 12.5 Id inexistente, inativo ou anunciante sem imóveis
+
+`200` com `results: []` — **nunca 404**. O 404 é do endpoint de **perfil** (§12.1); a vitrine de um
+anunciante inexistente, inativo ou sem imóveis é apenas vazia.
+
+### 12.6 Valor não inteiro
+
+`empresa=abc` ou `corretor=abc` devolve `400`, como os demais parâmetros malformados (§10).
+
+### 12.7 `empresa` e `corretor` juntos
+
+`AND` entre os dois filtros. O app nunca envia os dois ao mesmo tempo.
+
+### 12.8 PENDENTE WEB (registrar, não resolver aqui)
+
+Todos **DEFERRED à frente web**. Nenhum deve ser tratado como decidido pelo app ou pela API antes
+do sign-off explícito.
+
+- **(a)** O **endpoint em si**: a lista pública `GET /api/publico/imoveis/` nem existe na `main` da
+  web ainda (API-03, Fase 5); sem ela a vitrine do anunciante não existe.
+- **(b)** `cidade` **opcional** quando há `empresa` ou `corretor` (hoje o §5 a trata como
+  obrigatória).
+- **(c)** Se imóveis de **empresa inativa** ou de **corretor desativado** continuam públicos na
+  vitrine (regra de negócio da web). A tela só mostra a vitrine quando o perfil responde 200.
+- **(d)** A view do corretor (WEB 02) **não confere `empresa.ativa`** (o site confere
+  `empresa__ativa=True`). Por isso o app trata o 404 da empresa, vindo de um corretor que respondeu
+  200, como **caminho normal** ("Esta página não está mais disponível" + voltar).
+- **(e)** Conciliação do `corretor {id, nome, foto, slug}` do §11 com o `corretor_responsavel` da
+  WEB 09 (Fase 5): hoje o detalhe do contrato do app e o da web divergem.
+- **(f)** Exposição pública de **e-mail, telefone, WhatsApp e CRECI** no perfil (LGPD): a WEB 02 já
+  os expõe; confirmar com produto. Se o produto vetar, o app remove a linha da tela (o campo pode
+  continuar no wire).
+
+### 12.9 Sincronização
+
+Vale a regra do §8: copiar este documento e os dois exemplos (`perfil_corretor.example.json`,
+`perfil_empresa.example.json`) para `../imoveis-aqui/Web`, obter o sign-off da frente web sobre
+§12.1–§12.8 e só então tratar a vitrine do anunciante como **congelada**. Até lá valem os mocks
+`PerfilMockDataSource` e `VitrineAnuncianteMockDataSource`, protegidos por
+`test/data/contrato_perfis_test.dart`.
+
+- O mock da vitrine do anunciante **lê as fixtures da lista e do detalhe** (`imoveis_fixture.dart`
+  e `imoveis_detalhe_fixture.dart`), que precisam ficar enquanto o endpoint não existir — **avisar a
+  Fase 5**, que pode querer apagá-las como "dev-only".
+- **Exceção dev-only declarada:** enquanto o endpoint não existir, o recorte por `empresa`/`corretor`
+  e a ordem "mais recentes" (§12.3, §12.4) rodam no **servidor simulado em `data/`**, dentro do
+  aparelho — o mesmo padrão da vitrine da cidade nas Fases 2–4 (D-03). A apresentação e o
+  repositório **nunca** filtram nem reordenam o que a camada de dados devolve. A exceção é retirada
+  com a Fase 5 / o endpoint real, quando o recorte passa ao servidor sem mudar nada acima da
+  DataSource.
+- A **DataSource real** da vitrine do anunciante só nasce quando o endpoint existir, e deve repetir
+  a validação de origem do `next` e o limite de páginas de `CidadeRemoteDataSource`.
