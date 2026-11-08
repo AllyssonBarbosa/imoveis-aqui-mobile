@@ -7,6 +7,7 @@ import '../../domain/entities/perfil_corretor.dart';
 import '../detalhe_imovel/widgets/cartao_corretor.dart';
 import 'perfil_corretor_cubit.dart';
 import 'perfil_state.dart';
+import 'widgets/aviso_perfil.dart';
 
 /// Abre o perfil do corretor por `Navigator.push` (sem pacote de rotas). Recebe
 /// o [CorretorResponsavel] já carregado pelo detalhe como PRÉVIA (foto + nome
@@ -93,16 +94,20 @@ class PerfilCorretorScreen extends StatelessWidget {
                   ),
                 ),
                 SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Text(
-                      'Não foi possível carregar este perfil.',
-                      style: Theme.of(context).textTheme.bodyLarge,
-                      textAlign: TextAlign.center,
-                    ),
+                  child: ErroPerfil(
+                    mensagem: 'Não foi possível carregar este perfil.',
+                    aoTentarDeNovo: () =>
+                        context.read<PerfilCorretorCubit>().tentarNovamente(),
                   ),
                 ),
               ],
+            ),
+            PerfilNaoEncontrado() => const SliverFillRemaining(
+              hasScrollBody: false,
+              child: AvisoPerfil(
+                icone: Icons.person_off_outlined,
+                mensagem: 'Este corretor não está mais disponível',
+              ),
             ),
           };
           return CustomScrollView(

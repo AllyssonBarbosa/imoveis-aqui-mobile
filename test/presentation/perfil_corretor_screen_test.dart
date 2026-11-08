@@ -36,6 +36,7 @@ void main() {
   setUp(() {
     cubit = _PerfilCorretorCubitFalso();
     when(() => cubit.carregar(any())).thenAnswer((_) async {});
+    when(() => cubit.tentarNovamente()).thenAnswer((_) async {});
   });
 
   /// Abre o perfil por cima de uma página-base, como o detalhe faz, para que
@@ -140,7 +141,8 @@ void main() {
     expect(posicaoCarregado, posicaoCarregando);
   });
 
-  testWidgets('erro mostra a mensagem e mantém a prévia', (tester) async {
+  testWidgets('erro mantém a prévia, mostra a mensagem e "Tentar de novo" '
+      'chama tentarNovamente uma vez', (tester) async {
     await abrirPerfil(tester, marina, const PerfilState.erro());
 
     expect(
@@ -149,6 +151,46 @@ void main() {
     );
     expect(naPagina(find.text('Marina Lopes')), findsOneWidget);
     expect(naPagina(find.byType(CircularProgressIndicator)), findsNothing);
+    expect(find.byType(BackButton), findsOneWidget);
+
+    await tester.tap(naPagina(find.text('Tentar de novo')));
+    await tester.pump();
+
+    verify(() => cubit.tentarNovamente()).called(1);
+  });
+
+  testWidgets('naoEncontrado mostra só o aviso e "Voltar", sem nome nem foto '
+      'da prévia (PERF-05)', (tester) async {
+    await abrirPerfil(tester, marina, const PerfilState.naoEncontrado());
+
+    expect(
+      naPagina(find.text('Este corretor não está mais disponível')),
+      findsOneWidget,
+    );
+    expect(naPagina(find.byIcon(Icons.person_off_outlined)), findsOneWidget);
+    expect(
+      naPagina(find.widgetWithText(FilledButton, 'Voltar')),
+      findsOneWidget,
+    );
+    expect(naPagina(find.text('Marina Lopes')), findsNothing);
+    expect(
+      find.byKey(const ValueKey('https://exemplo.com/marina.jpg')),
+      findsNothing,
+    );
+    expect(naPagina(find.text('Tentar de novo')), findsNothing);
+    expect(find.byType(BackButton), findsOneWidget);
+  });
+
+  testWidgets('"Voltar" do aviso fecha o perfil', (tester) async {
+    await abrirPerfil(tester, marina, const PerfilState.naoEncontrado());
+
+    await tester.tap(naPagina(find.widgetWithText(FilledButton, 'Voltar')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.byType(PerfilCorretorScreen), findsNothing);
+    expect(find.text('Abrir'), findsOneWidget);
   });
 
   testWidgets('prévia sem foto mostra o ícone de pessoa (D-19 a)', (
