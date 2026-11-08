@@ -2,33 +2,54 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../di/injection.dart';
+import '../../domain/entities/anunciante_ref.dart';
 import '../../domain/entities/detalhe_imovel.dart';
 import '../../domain/entities/perfil_corretor.dart';
+import '../detalhe_imovel/detalhe_imovel_screen.dart';
 import '../detalhe_imovel/widgets/cartao_corretor.dart';
 import 'perfil_corretor_cubit.dart';
 import 'apresentacao_perfil.dart';
 import 'perfil_state.dart';
+import 'vitrine_anunciante_cubit.dart';
 import 'widgets/aviso_perfil.dart';
 import 'widgets/secoes_perfil.dart';
+import 'widgets/sliver_imoveis_anunciante.dart';
 
 /// Abre o perfil do corretor por `Navigator.push` (sem pacote de rotas). Recebe
 /// o [CorretorResponsavel] já carregado pelo detalhe como PRÉVIA (foto + nome
 /// aparecem na hora) e busca o perfil completo pelo `id` dele (D-05). É o ÚNICO
-/// ponto que resolve o [PerfilCorretorCubit] no DI, e só no toque;
-/// [criarPerfilCubit] existe para teste.
+/// ponto que resolve o [PerfilCorretorCubit] e o [VitrineAnuncianteCubit] no
+/// DI, e só no toque; [criarPerfilCubit] e [criarVitrineCubit] existem para
+/// teste. O provider da vitrine é PREGUIÇOSO: o Cubit só nasce quando o
+/// sliver da vitrine é montado, isto é, com o perfil carregado — um corretor
+/// 404 nunca consulta imóveis. [aoAbrirImovel] abre o imóvel tocado na
+/// vitrine (padrão [abrirDetalheImovel]).
 Future<void> abrirPerfilCorretor(
   BuildContext context,
   CorretorResponsavel previa, {
   PerfilCorretorCubit Function()? criarPerfilCubit,
+  VitrineAnuncianteCubit Function()? criarVitrineCubit,
+  AoAbrirImovel aoAbrirImovel = abrirDetalheImovel,
   Widget Function(String url)? construirImagemDeRede,
 }) {
-  final criar = criarPerfilCubit ?? () => getIt<PerfilCorretorCubit>();
+  final criarPerfil = criarPerfilCubit ?? () => getIt<PerfilCorretorCubit>();
+  final criarVitrine =
+      criarVitrineCubit ?? () => getIt<VitrineAnuncianteCubit>();
   return Navigator.of(context).push(
     MaterialPageRoute<void>(
-      builder: (_) => BlocProvider<PerfilCorretorCubit>(
-        create: (_) => criar()..carregar(previa.id),
+      builder: (_) => MultiBlocProvider(
+        providers: [
+          BlocProvider<PerfilCorretorCubit>(
+            create: (_) => criarPerfil()..carregar(previa.id),
+          ),
+          BlocProvider<VitrineAnuncianteCubit>(
+            create: (_) =>
+                criarVitrine()..carregar(AnuncianteRef.corretor(previa.id)),
+          ),
+        ],
         child: PerfilCorretorScreen(
           previa: previa,
+          aoAbrirImovel: aoAbrirImovel,
           construirImagemDeRede: construirImagemDeRede,
         ),
       ),
@@ -44,10 +65,14 @@ class PerfilCorretorScreen extends StatelessWidget {
   const PerfilCorretorScreen({
     super.key,
     required this.previa,
+    this.aoAbrirImovel = abrirDetalheImovel,
     @visibleForTesting this.construirImagemDeRede,
   });
 
   final CorretorResponsavel previa;
+
+  /// Abre a página do imóvel tocado na vitrine do corretor.
+  final AoAbrirImovel aoAbrirImovel;
 
   /// Ponto de extensão só para teste — troca `CachedNetworkImage` por um
   /// builder determinístico (ver `ImagemRede`). Em produção fica `null`.
@@ -103,6 +128,10 @@ class PerfilCorretorScreen extends StatelessWidget {
                       ),
                     ],
                   ),
+                ),
+                SliverImoveisDoAnunciante(
+                  titulo: tituloImoveisDe(dados.nome),
+                  aoAbrirImovel: aoAbrirImovel,
                 ),
               ],
             ),

@@ -1,15 +1,24 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:imoveis_aqui/domain/entities/anunciante_ref.dart';
+import 'package:imoveis_aqui/domain/entities/cidade.dart';
 import 'package:imoveis_aqui/domain/entities/detalhe_imovel.dart';
+import 'package:imoveis_aqui/domain/entities/imovel.dart';
 import 'package:imoveis_aqui/domain/entities/perfil_corretor.dart';
 import 'package:imoveis_aqui/presentation/perfis/perfil_corretor_cubit.dart';
 import 'package:imoveis_aqui/presentation/perfis/perfil_corretor_screen.dart';
 import 'package:imoveis_aqui/presentation/perfis/perfil_state.dart';
+import 'package:imoveis_aqui/presentation/vitrine/widgets/imovel_card.dart';
+import 'package:imoveis_aqui/presentation/perfis/vitrine_anunciante_cubit.dart';
+import 'package:imoveis_aqui/presentation/perfis/vitrine_anunciante_state.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _PerfilCorretorCubitFalso extends MockCubit<PerfilState<PerfilCorretor>>
     implements PerfilCorretorCubit {}
+
+class _VitrineAnuncianteCubitFalso extends MockCubit<VitrineAnuncianteState>
+    implements VitrineAnuncianteCubit {}
 
 /// Imagem determinística: uma caixa com a chave da própria url.
 Widget _caixaDaUrl(String url) =>
@@ -53,11 +62,20 @@ void main() {
   const semContato = PerfilCorretor(id: 10, nome: 'Bruno Sales');
 
   late _PerfilCorretorCubitFalso cubit;
+  late _VitrineAnuncianteCubitFalso vitrine;
+  var vitrinesCriadas = 0;
+  final imoveisAbertos = <int>[];
 
   setUp(() {
+    registerFallbackValue(const AnuncianteRef.corretor(0));
     cubit = _PerfilCorretorCubitFalso();
     when(() => cubit.carregar(any())).thenAnswer((_) async {});
     when(() => cubit.tentarNovamente()).thenAnswer((_) async {});
+    vitrine = _VitrineAnuncianteCubitFalso();
+    vitrinesCriadas = 0;
+    imoveisAbertos.clear();
+    when(() => vitrine.carregar(any())).thenAnswer((_) async {});
+    when(() => vitrine.tentarNovamente()).thenAnswer((_) async {});
   });
 
   /// Abre o perfil por cima de uma página-base, como o detalhe faz, para que
@@ -65,12 +83,24 @@ void main() {
   Future<void> abrirPerfil(
     WidgetTester tester,
     CorretorResponsavel corretor,
-    PerfilState<PerfilCorretor> estado,
-  ) async {
+    PerfilState<PerfilCorretor> estado, {
+    // Padrão `vazia`: sem spinner da vitrine, para os testes do perfil em si.
+    VitrineAnuncianteState estadoVitrine = const VitrineAnuncianteState.vazia(),
+  }) async {
+    // Janela alta: os slivers são lazy e a vitrine cai abaixo da dobra.
+    tester.view.physicalSize = const Size(400, 4000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     whenListen(
       cubit,
       const Stream<PerfilState<PerfilCorretor>>.empty(),
       initialState: estado,
+    );
+    whenListen(
+      vitrine,
+      const Stream<VitrineAnuncianteState>.empty(),
+      initialState: estadoVitrine,
     );
     await tester.pumpWidget(
       MaterialApp(
@@ -82,6 +112,13 @@ void main() {
                   context,
                   corretor,
                   criarPerfilCubit: () => cubit,
+                  criarVitrineCubit: () {
+                    vitrinesCriadas++;
+                    return vitrine;
+                  },
+                  aoAbrirImovel: (context, imovel) async {
+                    imoveisAbertos.add(imovel.id);
+                  },
                   construirImagemDeRede: _caixaDaUrl,
                 ),
                 child: const Text('Abrir'),
@@ -306,11 +343,7 @@ void main() {
   testWidgets('perfil sem nenhum contato não mostra o título Contato', (
     tester,
   ) async {
-    await abrirPerfil(
-      tester,
-      marina,
-      const PerfilState.carregado(semContato),
-    );
+    await abrirPerfil(tester, marina, const PerfilState.carregado(semContato));
 
     expect(naPagina(find.text('Bruno Sales')), findsOneWidget);
     expect(naPagina(find.text('Contato')), findsNothing);
@@ -339,5 +372,129 @@ void main() {
         reason: '$tipo não pode existir na seção de contato',
       );
     }
+  });
+
+  group('vitrine "Imóveis de {nome}" (PERF-03, D-12)', () {
+    Imovel imovel(int id, String titulo) => Imovel(
+      id: id,
+      titulo: titulo,
+      finalidade: FinalidadeImovel.venda,
+      bairro: 'Cambuí',
+      cidade: const Cidade(nome: 'Campinas', uf: 'SP'),
+    );
+
+    testWidgets('carregada mostra os cards na ORDEM RECEBIDA (57, 101, 42), '
+        'sem filtrar nem reordenar, e o título abaixo de Contato', (
+      tester,
+    ) async {
+      await abrirPerfil(
+        tester,
+        marina,
+        const PerfilState.carregado(marinaCompleta),
+        estadoVitrine: VitrineAnuncianteState.carregada(
+          itens: [
+            imovel(57, 'Casa 57'),
+            imovel(101, 'Sobrado 101'),
+            imovel(42, 'Apartamento 42'),
+          ],
+        ),
+      );
+
+      expect(naPagina(find.text('Imóveis de Marina Lopes')), findsOneWidget);
+      final ys = [
+        for (final id in [57, 101, 42])
+          tester.getTopLeft(find.byKey(ValueKey('imovel-anunciante-$id'))).dy,
+      ];
+      expect(ys[0], lessThan(ys[1]));
+      expect(ys[1], lessThan(ys[2]));
+      expect(naPagina(find.byType(ImovelCard)), findsNWidgets(3));
+      expect(
+        tester.getTopLeft(naPagina(find.text('Contato'))).dy,
+        lessThan(
+          tester.getTopLeft(naPagina(find.text('Imóveis de Marina Lopes'))).dy,
+        ),
+      );
+
+      await tester.tap(find.byKey(const ValueKey('imovel-anunciante-101')));
+      await tester.pump();
+      expect(imoveisAbertos, [101]);
+    });
+
+    testWidgets('vazia mostra "Nenhum imóvel anunciado no momento."', (
+      tester,
+    ) async {
+      await abrirPerfil(
+        tester,
+        marina,
+        const PerfilState.carregado(marinaCompleta),
+        estadoVitrine: const VitrineAnuncianteState.vazia(),
+      );
+
+      expect(naPagina(find.text('Imóveis de Marina Lopes')), findsOneWidget);
+      expect(
+        naPagina(find.text('Nenhum imóvel anunciado no momento.')),
+        findsOneWidget,
+      );
+      expect(naPagina(find.byType(ImovelCard)), findsNothing);
+    });
+
+    testWidgets('erro mostra a mensagem e "Tentar de novo" chama '
+        'tentarNovamente uma vez', (tester) async {
+      await abrirPerfil(
+        tester,
+        marina,
+        const PerfilState.carregado(marinaCompleta),
+        estadoVitrine: const VitrineAnuncianteState.erro(),
+      );
+
+      expect(
+        naPagina(find.text('Não foi possível carregar os imóveis.')),
+        findsOneWidget,
+      );
+      await tester.ensureVisible(naPagina(find.text('Tentar de novo')));
+      await tester.tap(naPagina(find.text('Tentar de novo')));
+      await tester.pump();
+
+      verify(() => vitrine.tentarNovamente()).called(1);
+    });
+
+    testWidgets('carregando mostra o título e um spinner da vitrine', (
+      tester,
+    ) async {
+      await abrirPerfil(
+        tester,
+        marina,
+        const PerfilState.carregado(marinaCompleta),
+        estadoVitrine: const VitrineAnuncianteState.carregando(),
+      );
+
+      expect(naPagina(find.text('Imóveis de Marina Lopes')), findsOneWidget);
+      expect(naPagina(find.byType(CircularProgressIndicator)), findsOneWidget);
+    });
+
+    testWidgets('perfil carregando ou naoEncontrado: sem título e a vitrine '
+        'nunca é criada', (tester) async {
+      await abrirPerfil(tester, marina, const PerfilState.carregando());
+      expect(find.textContaining('Imóveis de'), findsNothing);
+      expect(vitrinesCriadas, 0);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await abrirPerfil(tester, marina, const PerfilState.naoEncontrado());
+      expect(find.textContaining('Imóveis de'), findsNothing);
+      expect(vitrinesCriadas, 0);
+      verifyNever(() => vitrine.carregar(any()));
+    });
+
+    testWidgets('com o perfil carregado, a vitrine é criada uma vez e '
+        'carrega o corretor da prévia', (tester) async {
+      await abrirPerfil(
+        tester,
+        marina,
+        const PerfilState.carregado(marinaCompleta),
+      );
+
+      expect(vitrinesCriadas, 1);
+      verify(() => vitrine.carregar(const AnuncianteRef.corretor(7))).called(1);
+    });
   });
 }

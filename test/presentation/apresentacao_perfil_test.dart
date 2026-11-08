@@ -43,4 +43,10 @@ void main() {
       expect(linhas.single.valor, '1933334444');
     });
   });
+
+  group('tituloImoveisDe', () {
+    test('monta "Imóveis de {nome}" com o nome como veio', () {
+      expect(tituloImoveisDe('Marina Lopes'), 'Imóveis de Marina Lopes');
+    });
+  });
 }

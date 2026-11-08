@@ -17,6 +17,9 @@ class LinhaContato {
   final IconData icone;
 }
 
+/// Título da vitrine do anunciante na página do corretor: "Imóveis de {nome}".
+String tituloImoveisDe(String nome) => 'Imóveis de $nome';
+
 /// As linhas de contato que EXISTEM, nesta ordem: Telefone, WhatsApp, E-mail.
 /// Valor nulo omite a linha; todos nulos devolve lista vazia. Os valores vão
 /// como vieram — a API mistura "(19) 3333-4444" e "19999998888", e formatar

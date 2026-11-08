@@ -95,6 +95,8 @@ import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_cubit.da
     as _i331;
 import 'package:imoveis_aqui/presentation/perfis/perfil_corretor_cubit.dart'
     as _i194;
+import 'package:imoveis_aqui/presentation/perfis/vitrine_anunciante_cubit.dart'
+    as _i325;
 import 'package:imoveis_aqui/presentation/vitrine/opcoes_filtro_cubit.dart'
     as _i1002;
 import 'package:imoveis_aqui/presentation/vitrine/sessao_filtros_vitrine.dart'
@@ -221,6 +223,11 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i1002.OpcoesFiltroCubit(
         gh<_i20.ObterBairrosUseCase>(),
         gh<_i441.ObterCaracteristicasUseCase>(),
+      ),
+    );
+    gh.factory<_i325.VitrineAnuncianteCubit>(
+      () => _i325.VitrineAnuncianteCubit(
+        gh<_i427.BuscarImoveisDoAnuncianteUseCase>(),
       ),
     );
     gh.factory<_i331.DetalheImovelCubit>(
