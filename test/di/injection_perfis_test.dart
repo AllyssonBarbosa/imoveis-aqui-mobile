@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/data/datasources/perfil_datasource.dart';
 import 'package:imoveis_aqui/data/datasources/perfil_mock_datasource.dart';
+import 'package:imoveis_aqui/data/datasources/perfil_remote_datasource.dart';
 import 'package:imoveis_aqui/di/injection.dart';
 import 'package:imoveis_aqui/domain/usecases/obter_perfil_corretor_usecase.dart';
 import 'package:imoveis_aqui/presentation/perfis/perfil_corretor_cubit.dart';
@@ -32,5 +33,12 @@ void main() {
     await configureDependencies();
 
     expect(getIt<PerfilDataSource>(), isA<PerfilMockDataSource>());
+  });
+
+  test('a PerfilRemoteDataSource está registrada, mas não é a ativa', () async {
+    await configureDependencies();
+
+    expect(getIt<PerfilRemoteDataSource>(), isA<PerfilRemoteDataSource>());
+    expect(getIt<PerfilDataSource>(), isNot(isA<PerfilRemoteDataSource>()));
   });
 }

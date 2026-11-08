@@ -30,6 +30,8 @@ import 'package:imoveis_aqui/data/datasources/opcoes_filtro_mock_datasource.dart
 import 'package:imoveis_aqui/data/datasources/perfil_datasource.dart' as _i185;
 import 'package:imoveis_aqui/data/datasources/perfil_mock_datasource.dart'
     as _i258;
+import 'package:imoveis_aqui/data/datasources/perfil_remote_datasource.dart'
+    as _i879;
 import 'package:imoveis_aqui/data/gateways/geocoding_gateway_impl.dart'
     as _i506;
 import 'package:imoveis_aqui/data/gateways/geolocator_gateway_impl.dart'
@@ -128,6 +130,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i320.CidadeRemoteDataSource>(
       () => _i320.CidadeRemoteDataSource(gh<_i361.Dio>()),
+    );
+    gh.lazySingleton<_i879.PerfilRemoteDataSource>(
+      () => _i879.PerfilRemoteDataSource(gh<_i361.Dio>()),
     );
     gh.lazySingleton<_i195.PerfilRepository>(
       () => _i890.PerfilRepositoryImpl(gh<_i185.PerfilDataSource>()),
