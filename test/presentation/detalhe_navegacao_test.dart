@@ -27,6 +27,7 @@ import 'package:imoveis_aqui/domain/usecases/obter_bairros_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/obter_caracteristicas_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/obter_detalhe_imovel_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/obter_perfil_corretor_usecase.dart';
+import 'package:imoveis_aqui/domain/usecases/obter_perfil_empresa_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/salvar_cidade_usecase.dart';
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_cubit.dart';
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_screen.dart';
@@ -35,6 +36,8 @@ import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_cubit.da
 import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_screen.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/perfil_corretor_screen.dart';
 import 'package:imoveis_aqui/presentation/perfis/perfil_corretor_cubit.dart';
+import 'package:imoveis_aqui/presentation/perfis/perfil_empresa_cubit.dart';
+import 'package:imoveis_aqui/presentation/perfis/perfil_empresa_screen.dart';
 import 'package:imoveis_aqui/presentation/perfis/vitrine_anunciante_cubit.dart';
 import 'package:imoveis_aqui/presentation/perfis/vitrine_anunciante_state.dart';
 import 'package:imoveis_aqui/presentation/vitrine/opcoes_filtro_cubit.dart';
@@ -371,6 +374,120 @@ void main() {
 
         expect(find.byType(DetalheImovelScreen), findsNothing);
         expect(find.byKey(const ValueKey('imovel-42')), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'vitrine -> detalhe 42 -> perfil da Marina Lopes -> cartão "Ver página '
+      'do anunciante" -> página da Imobiliária Jequitibá (spinner, depois '
+      'nome, tipo e CRECI) -> volta ao perfil da Marina carregado (PERF-01, '
+      'PERF-04, PERF-06, D-06, D-09)',
+      (tester) async {
+        getIt.registerFactory<DetalheImovelCubit>(
+          () => DetalheImovelCubit(
+            ObterDetalheImovelUseCase(
+              ImovelDetalheRepositoryImpl(
+                ImovelDetalheMockDataSource.paraTeste(
+                  detalhes: detalhesAcervoFixture(),
+                  latencia: const Duration(milliseconds: 300),
+                ),
+              ),
+            ),
+          ),
+        );
+        // Pilha REAL dos perfis (corretor e empresa) sobre o mesmo mock.
+        PerfilRepositoryImpl repositorioPerfis() => PerfilRepositoryImpl(
+          PerfilMockDataSource.paraTeste(
+            corretores: corretoresPerfisFixture(),
+            empresas: empresasPerfisFixture(),
+            latencia: const Duration(milliseconds: 300),
+          ),
+        );
+        getIt.registerFactory<PerfilCorretorCubit>(
+          () => PerfilCorretorCubit(
+            ObterPerfilCorretorUseCase(repositorioPerfis()),
+          ),
+        );
+        getIt.registerFactory<PerfilEmpresaCubit>(
+          () => PerfilEmpresaCubit(
+            ObterPerfilEmpresaUseCase(repositorioPerfis()),
+          ),
+        );
+        getIt.registerFactory<VitrineAnuncianteCubit>(
+          criarVitrineAnuncianteCubitReal,
+        );
+        await pumpVitrine(tester);
+
+        await tester.tap(find.byKey(const ValueKey('imovel-42')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pump();
+
+        await tester.scrollUntilVisible(
+          naPagina(find.text('Marina Lopes')),
+          200,
+          scrollable: naPagina(find.byType(Scrollable)).first,
+        );
+        await tester.tap(naPagina(find.text('Marina Lopes')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pump();
+
+        Finder noPerfil(Finder alvo) => find.descendant(
+          of: find.byType(PerfilCorretorScreen),
+          matching: alvo,
+        );
+        Finder naEmpresa(Finder alvo) => find.descendant(
+          of: find.byType(PerfilEmpresaScreen),
+          matching: alvo,
+        );
+        expect(noPerfil(find.text('CRECI 12345-F')), findsOneWidget);
+
+        // O cartão fica depois do contato, antes da vitrine do anunciante.
+        await tester.scrollUntilVisible(
+          noPerfil(find.text('Ver página do anunciante')),
+          100,
+          scrollable: noPerfil(find.byType(Scrollable)).first,
+        );
+        await tester.tap(noPerfil(find.text('Ver página do anunciante')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
+
+        // Página da empresa aberta: só o spinner, sem prévia.
+        expect(find.byType(PerfilEmpresaScreen), findsOneWidget);
+        expect(
+          naEmpresa(find.byType(CircularProgressIndicator)),
+          findsOneWidget,
+        );
+        expect(naEmpresa(find.text('Imobiliária Jequitibá')), findsNothing);
+
+        // A transição (400 ms) cobre a latência da API de perfis (300 ms).
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.pump();
+
+        expect(naEmpresa(find.text('Imobiliária Jequitibá')), findsOneWidget);
+        expect(naEmpresa(find.text('Imobiliária')), findsOneWidget);
+        expect(naEmpresa(find.text('CRECI J-1234')), findsOneWidget);
+        expect(naEmpresa(find.byType(CircularProgressIndicator)), findsNothing);
+
+        // Voltar devolve o perfil da Marina, ainda carregado.
+        await tester.tap(find.byType(BackButton));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.pump(const Duration(milliseconds: 400));
+
+        expect(find.byType(PerfilEmpresaScreen), findsNothing);
+        expect(find.byType(PerfilCorretorScreen), findsOneWidget);
+        expect(noPerfil(find.text('Ver página do anunciante')), findsOneWidget);
+        await tester.scrollUntilVisible(
+          noPerfil(find.text('CRECI 12345-F')),
+          -200,
+          scrollable: noPerfil(find.byType(Scrollable)).first,
+        );
+        expect(noPerfil(find.text('Marina Lopes')), findsOneWidget);
+        expect(noPerfil(find.text('CRECI 12345-F')), findsOneWidget);
       },
     );
   });

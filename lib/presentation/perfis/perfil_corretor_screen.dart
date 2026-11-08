@@ -9,9 +9,11 @@ import '../detalhe_imovel/detalhe_imovel_screen.dart';
 import '../detalhe_imovel/widgets/cartao_corretor.dart';
 import 'perfil_corretor_cubit.dart';
 import 'apresentacao_perfil.dart';
+import 'perfil_empresa_screen.dart';
 import 'perfil_state.dart';
 import 'vitrine_anunciante_cubit.dart';
 import 'widgets/aviso_perfil.dart';
+import 'widgets/cartao_empresa.dart';
 import 'widgets/corpo_perfil_com_vitrine.dart';
 import 'widgets/secoes_perfil.dart';
 import 'widgets/sliver_imoveis_anunciante.dart';
@@ -24,13 +26,15 @@ import 'widgets/sliver_imoveis_anunciante.dart';
 /// teste. O provider da vitrine é PREGUIÇOSO: o Cubit só nasce quando o
 /// sliver da vitrine é montado, isto é, com o perfil carregado — um corretor
 /// 404 nunca consulta imóveis. [aoAbrirImovel] abre o imóvel tocado na
-/// vitrine (padrão [abrirDetalheImovel]).
+/// vitrine (padrão [abrirDetalheImovel]); [aoAbrirEmpresa] abre a página da
+/// empresa do corretor (padrão [abrirPerfilEmpresa]).
 Future<void> abrirPerfilCorretor(
   BuildContext context,
   CorretorResponsavel previa, {
   PerfilCorretorCubit Function()? criarPerfilCubit,
   VitrineAnuncianteCubit Function()? criarVitrineCubit,
   AoAbrirImovel aoAbrirImovel = abrirDetalheImovel,
+  AoAbrirEmpresa aoAbrirEmpresa = abrirPerfilEmpresa,
   Widget Function(String url)? construirImagemDeRede,
 }) {
   final criarPerfil = criarPerfilCubit ?? () => getIt<PerfilCorretorCubit>();
@@ -51,6 +55,7 @@ Future<void> abrirPerfilCorretor(
         child: PerfilCorretorScreen(
           previa: previa,
           aoAbrirImovel: aoAbrirImovel,
+          aoAbrirEmpresa: aoAbrirEmpresa,
           construirImagemDeRede: construirImagemDeRede,
         ),
       ),
@@ -67,6 +72,7 @@ class PerfilCorretorScreen extends StatelessWidget {
     super.key,
     required this.previa,
     this.aoAbrirImovel = abrirDetalheImovel,
+    this.aoAbrirEmpresa = abrirPerfilEmpresa,
     @visibleForTesting this.construirImagemDeRede,
   });
 
@@ -74,6 +80,9 @@ class PerfilCorretorScreen extends StatelessWidget {
 
   /// Abre a página do imóvel tocado na vitrine do corretor.
   final AoAbrirImovel aoAbrirImovel;
+
+  /// Abre a página da empresa do corretor, a partir do cartão do perfil.
+  final AoAbrirEmpresa aoAbrirEmpresa;
 
   /// Ponto de extensão só para teste — troca `CachedNetworkImage` por um
   /// builder determinístico (ver `ImagemRede`). Em produção fica `null`.
@@ -126,6 +135,13 @@ class PerfilCorretorScreen extends StatelessWidget {
                         email: dados.email,
                       ),
                     ),
+                    if (dados.empresaId case final empresaId?)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+                        child: CartaoEmpresa(
+                          aoTocar: () => aoAbrirEmpresa(context, empresaId),
+                        ),
+                      ),
                   ],
                 ),
               ),

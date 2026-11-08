@@ -85,6 +85,8 @@ import 'package:imoveis_aqui/domain/usecases/obter_detalhe_imovel_usecase.dart'
     as _i990;
 import 'package:imoveis_aqui/domain/usecases/obter_perfil_corretor_usecase.dart'
     as _i741;
+import 'package:imoveis_aqui/domain/usecases/obter_perfil_empresa_usecase.dart'
+    as _i370;
 import 'package:imoveis_aqui/domain/usecases/salvar_cidade_usecase.dart'
     as _i589;
 import 'package:imoveis_aqui/domain/usecases/validar_cidade_atendida_usecase.dart'
@@ -95,6 +97,8 @@ import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_cubit.da
     as _i331;
 import 'package:imoveis_aqui/presentation/perfis/perfil_corretor_cubit.dart'
     as _i194;
+import 'package:imoveis_aqui/presentation/perfis/perfil_empresa_cubit.dart'
+    as _i723;
 import 'package:imoveis_aqui/presentation/perfis/vitrine_anunciante_cubit.dart'
     as _i325;
 import 'package:imoveis_aqui/presentation/vitrine/opcoes_filtro_cubit.dart'
@@ -160,6 +164,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i741.ObterPerfilCorretorUseCase>(
       () => _i741.ObterPerfilCorretorUseCase(gh<_i195.PerfilRepository>()),
     );
+    gh.factory<_i370.ObterPerfilEmpresaUseCase>(
+      () => _i370.ObterPerfilEmpresaUseCase(gh<_i195.PerfilRepository>()),
+    );
     gh.factory<_i213.BuscarImoveisUseCase>(
       () => _i213.BuscarImoveisUseCase(gh<_i970.ImovelRepository>()),
     );
@@ -202,6 +209,9 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i213.BuscarImoveisUseCase>(),
         gh<_i59.SessaoFiltrosVitrine>(),
       ),
+    );
+    gh.factory<_i723.PerfilEmpresaCubit>(
+      () => _i723.PerfilEmpresaCubit(gh<_i370.ObterPerfilEmpresaUseCase>()),
     );
     gh.factory<_i20.ObterBairrosUseCase>(
       () => _i20.ObterBairrosUseCase(gh<_i987.OpcoesFiltroRepository>()),
