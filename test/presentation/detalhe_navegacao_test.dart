@@ -36,6 +36,7 @@ import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_screen.d
 import 'package:imoveis_aqui/presentation/detalhe_imovel/perfil_corretor_screen.dart';
 import 'package:imoveis_aqui/presentation/perfis/perfil_corretor_cubit.dart';
 import 'package:imoveis_aqui/presentation/perfis/vitrine_anunciante_cubit.dart';
+import 'package:imoveis_aqui/presentation/perfis/vitrine_anunciante_state.dart';
 import 'package:imoveis_aqui/presentation/vitrine/opcoes_filtro_cubit.dart';
 import 'package:imoveis_aqui/presentation/vitrine/sessao_filtros_vitrine.dart';
 import 'package:imoveis_aqui/presentation/vitrine/widgets/imovel_card.dart';
@@ -370,6 +371,102 @@ void main() {
 
         expect(find.byType(DetalheImovelScreen), findsNothing);
         expect(find.byKey(const ValueKey('imovel-42')), findsOneWidget);
+      },
+    );
+  });
+
+  group('rolagem infinita da vitrine do corretor (PERF-03, D-12)', () {
+    testWidgets(
+      'Marina (corretor 7, 4 páginas): rolar até "Você chegou ao fim da '
+      'lista" acumula todos os ids do corretor, sem repetir e na ordem do '
+      'servidor',
+      (tester) async {
+        tester.view.physicalSize = const Size(400, 800);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        // Ids esperados calculados das fixtures (mais recentes primeiro), sem
+        // passar pela paginação.
+        final detalhes = detalhesAcervoFixture();
+        final linhasDaMarina =
+            linhasAcervoFixture().where((linha) {
+              final corretor =
+                  detalhes[linha['id']! as int]?['corretor']
+                      as Map<String, Object?>?;
+              return corretor?['id'] == 7;
+            }).toList()..sort((a, b) {
+              final porData = (b['criado_em']! as String).compareTo(
+                a['criado_em']! as String,
+              );
+              return porData != 0
+                  ? porData
+                  : (b['id']! as int).compareTo(a['id']! as int);
+            });
+        final idsEsperados = [
+          for (final linha in linhasDaMarina) linha['id']! as int,
+        ];
+        expect(idsEsperados.length, greaterThan(30));
+
+        late VitrineAnuncianteCubit vitrineCriada;
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: Center(
+                  child: FilledButton(
+                    onPressed: () => abrirPerfilCorretor(
+                      context,
+                      const CorretorResponsavel(id: 7, nome: 'Marina Lopes'),
+                      criarPerfilCubit: () => PerfilCorretorCubit(
+                        ObterPerfilCorretorUseCase(
+                          PerfilRepositoryImpl(
+                            PerfilMockDataSource.paraTeste(
+                              corretores: corretoresPerfisFixture(),
+                              latencia: const Duration(milliseconds: 300),
+                            ),
+                          ),
+                        ),
+                      ),
+                      criarVitrineCubit: () =>
+                          vitrineCriada = criarVitrineAnuncianteCubitReal(
+                            latencia: Duration.zero,
+                          ),
+                    ),
+                    child: const Text('Abrir 7'),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text('Abrir 7'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.pump();
+        await tester.pump();
+
+        final rolavel = find
+            .descendant(
+              of: find.byType(PerfilCorretorScreen),
+              matching: find.byType(Scrollable),
+            )
+            .first;
+        await tester.scrollUntilVisible(
+          find.text('Você chegou ao fim da lista'),
+          500,
+          scrollable: rolavel,
+          maxScrolls: 300,
+        );
+
+        final estado = vitrineCriada.state as VitrineAnuncianteCarregada;
+        final ids = estado.itens.map((imovel) => imovel.id).toList();
+        expect(estado.proximaPagina, isNull);
+        expect(estado.carregandoMais, isFalse);
+        expect(estado.erroAoCarregarMais, isFalse);
+        expect(ids.toSet().length, ids.length, reason: 'sem duplicatas');
+        expect(ids, idsEsperados);
       },
     );
   });
