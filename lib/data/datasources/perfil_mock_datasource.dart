@@ -34,6 +34,11 @@ class PerfilMockDataSource implements PerfilDataSource {
     if (_latencia > Duration.zero) {
       await Future<void>.delayed(_latencia);
     }
+    // Corretor reservado e desativado (PERF-05, D-15): sempre 404, antes de
+    // olhar o mapa — nenhum dado dele chega à tela.
+    if (id == idCorretorDesativadoMock) {
+      throw const PerfilNaoEncontradoException();
+    }
     final mapa = _corretores[id];
     if (mapa == null) {
       // 404 simulado (D-04): corretor inexistente, que não é corretor ou

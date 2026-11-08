@@ -1,5 +1,13 @@
 import 'imoveis_fixture.dart' show urlBaseFotosMock;
 
+/// Id do corretor reservado e desativado: o servidor simulado SEMPRE responde
+/// 404 para ele (D-15, PERF-05), mesmo que um mapa de teste o contenha. Fica
+/// FORA de [corretoresPerfisFixture]. É alcançável à mão pelo imóvel
+/// `idDetalheCorretorDesativadoMock` (antepenúltimo card de Vinhedo sob 'Mais
+/// recentes'), cujo detalhe carrega este corretor — o perfil abre com a prévia
+/// e troca para "Este corretor não está mais disponível".
+const int idCorretorDesativadoMock = 99;
+
 /// Perfis públicos dos corretores no wire exato da WEB 02
 /// (`GET /api/publico/corretores/{id}/`), por id. Dev-only: os ids batem com
 /// os corretores do mock do detalhe do imóvel (7, 8 e 9, D-03), então nenhum
