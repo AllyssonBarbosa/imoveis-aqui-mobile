@@ -209,10 +209,33 @@ Plans:
   5. Perfil de corretor desativado mostra um aviso, e não uma tela quebrada.
   6. Dá para chegar ao perfil a partir da página do imóvel.
 
-**Plans**: 0 plans
+**Plans**: 7 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 7 to break down)
+**Wave 1**
+
+- [ ] 07-01-PLAN.md — Tracer: tocar no corretor da página do imóvel abre o perfil buscado por id (prévia na hora -> CRECI do mock por toda a pilha) + registro de PERF-01..06/API-08 (PERF-02, PERF-04, PERF-06)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 07-02-PLAN.md — Corretor completo: apresentação e contato como texto, 404 'Este corretor não está mais disponível' + 'Tentar de novo', corretor reservado 99 via imóvel 337 (PERF-02, PERF-05)
+- [ ] 07-03-PLAN.md — Adendo §12 do contrato + exemplos de wire dos perfis + DataSource real (Dio) dos perfis com 404/JSON ruim tipados (PERF-04, PERF-05, API-08)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 07-04-PLAN.md — Vitrine do anunciante na página do corretor: §12 no mock, Cubit, sliver de ImovelCard, vazio/erro (PERF-03, API-08)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 07-05-PLAN.md — Rolagem infinita da vitrine do anunciante: carregarMais, rodapés, página curta, corpo rolável compartilhado (PERF-03)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 07-06-PLAN.md — Página da empresa a partir do perfil do corretor ('Ver página do anunciante'): logomarca, nome, tipo, CRECI, 404/erro (PERF-01, PERF-04, PERF-06)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [ ] 07-07-PLAN.md — Empresa completa (apresentação, contato, cidades, vitrine da empresa), wire/API real da empresa, fluxo completo, guardas e human-check (PERF-01, PERF-03, PERF-04, PERF-05, PERF-06, API-08)
 
 **UI hint**: yes
 
@@ -228,4 +251,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 7 (6 reservada ao
 | 3. Vitrine — Filtros Server-Side | 5/5 | In Progress|  |
 | 4. Página do Imóvel — Galeria e Dados da Natureza | 8/8 | In Progress|  |
 | 5. Imóveis Real — Endpoint Público e Integração Final | 0/TBD | Not started | - |
-| 7. Perfis Públicos da Empresa e do Corretor | 0/TBD | Not started | - |
+| 7. Perfis Públicos da Empresa e do Corretor | 0/7 | Planned | - |
