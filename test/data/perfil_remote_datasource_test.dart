@@ -9,6 +9,7 @@ import 'package:imoveis_aqui/data/datasources/perfil_remote_datasource.dart';
 import 'package:imoveis_aqui/data/mocks/perfis_fixture.dart';
 import 'package:imoveis_aqui/data/repositories/perfil_repository_impl.dart';
 import 'package:imoveis_aqui/domain/entities/perfil_corretor.dart';
+import 'package:imoveis_aqui/domain/entities/perfil_empresa.dart';
 import 'package:imoveis_aqui/domain/repositories/perfil_repository.dart';
 
 const _baseUrl = 'http://10.0.2.2:8000';
@@ -16,6 +17,10 @@ const _baseUrl = 'http://10.0.2.2:8000';
 const _caminhoExemploCorretor =
     '.planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/'
     'contrato/perfil_corretor.example.json';
+
+const _caminhoExemploEmpresa =
+    '.planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/'
+    'contrato/perfil_empresa.example.json';
 
 /// Resposta fake pronta para um dado URI — status HTTP + corpo (mapa/lista que
 /// vira JSON).
@@ -151,6 +156,84 @@ void main() {
       final resultado = await repositorio.buscarCorretor(7);
 
       expect(_falhaDe(resultado), isA<FormatException>());
+    });
+  });
+
+  group('buscarEmpresa', () {
+    late Map<String, Object?> exemploEmpresa;
+
+    setUpAll(() {
+      exemploEmpresa = jsonDecode(
+        File(_caminhoExemploEmpresa).readAsStringSync(),
+      ) as Map<String, Object?>;
+    });
+
+    Exception? falhaEmpresa(Result<PerfilEmpresa> resultado) =>
+        switch (resultado) {
+          Failure<PerfilEmpresa>(:final erro) => erro,
+          _ => null,
+        };
+
+    PerfilRepository pilhaEmpresa(_RespostaFalsa resposta) {
+      final (:dio, adaptador: _) = _criarDio((_) => resposta);
+      return PerfilRepositoryImpl(PerfilRemoteDataSource(dio));
+    }
+
+    test('chama a URL exata e parseia o corpo do exemplo', () async {
+      final (:dio, :adaptador) = _criarDio(
+        (_) => _RespostaFalsa(status: 200, corpo: exemploEmpresa),
+      );
+      final remota = PerfilRemoteDataSource(dio);
+
+      final modelo = await remota.buscarEmpresa(3);
+
+      expect(adaptador.uris, ['$_baseUrl/api/publico/empresas/3/']);
+      expect(modelo.id, 3);
+      expect(modelo.nome, 'Imobiliária Jequitibá');
+      expect(modelo.cidadesAtuacao, hasLength(3));
+    });
+
+    test('200 válido vira Success com a entidade', () async {
+      final repositorio = pilhaEmpresa(
+        _RespostaFalsa(status: 200, corpo: exemploEmpresa),
+      );
+
+      final resultado = await repositorio.buscarEmpresa(3);
+
+      expect(resultado, isA<Success<PerfilEmpresa>>());
+      expect(
+        (resultado as Success<PerfilEmpresa>).data.tipo,
+        TipoEmpresa.imobiliaria,
+      );
+    });
+
+    test('404 vira PerfilNaoEncontradoException', () async {
+      final repositorio = pilhaEmpresa(
+        const _RespostaFalsa(status: 404, corpo: {'detail': 'Não encontrado.'}),
+      );
+
+      final resultado = await repositorio.buscarEmpresa(3);
+
+      expect(falhaEmpresa(resultado), isA<PerfilNaoEncontradoException>());
+    });
+
+    test('corpo que é uma lista JSON vira FormatException', () async {
+      final repositorio = pilhaEmpresa(
+        const _RespostaFalsa(status: 200, corpo: <Object?>[]),
+      );
+
+      final resultado = await repositorio.buscarEmpresa(3);
+
+      expect(falhaEmpresa(resultado), isA<FormatException>());
+    });
+
+    test('corpo sem o nome vira FormatException', () async {
+      final semNome = {...exemploEmpresa}..remove('razao_social_ou_nome');
+      final repositorio = pilhaEmpresa(_RespostaFalsa(status: 200, corpo: semNome));
+
+      final resultado = await repositorio.buscarEmpresa(3);
+
+      expect(falhaEmpresa(resultado), isA<FormatException>());
     });
   });
 

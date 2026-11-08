@@ -7,6 +7,7 @@ import 'package:imoveis_aqui/data/mocks/perfis_fixture.dart';
 import 'package:imoveis_aqui/data/models/perfil_corretor_model.dart';
 import 'package:imoveis_aqui/data/repositories/perfil_repository_impl.dart';
 import 'package:imoveis_aqui/domain/entities/perfil_corretor.dart';
+import 'package:imoveis_aqui/domain/entities/perfil_empresa.dart';
 import 'package:imoveis_aqui/domain/repositories/perfil_repository.dart';
 
 /// Servidor simulado dos perfis (PERF-04, D-03, D-04): repositório -> mock ->
@@ -143,6 +144,71 @@ void main() {
 
   test('caminhoPerfilCorretor monta o endpoint público com barra final', () {
     expect(caminhoPerfilCorretor(7), '/api/publico/corretores/7/');
+  });
+
+  group('buscarEmpresa pela pilha repositório -> mock', () {
+    PerfilRepositoryImpl construirComEmpresas() => PerfilRepositoryImpl(
+      PerfilMockDataSource.paraTeste(
+        corretores: corretoresPerfisFixture(),
+        empresas: empresasPerfisFixture(),
+      ),
+    );
+
+    PerfilEmpresa sucessoEmpresa(Result<PerfilEmpresa> resultado) {
+      expect(resultado, isA<Success<PerfilEmpresa>>());
+      return (resultado as Success<PerfilEmpresa>).data;
+    }
+
+    test('caminhoPerfilEmpresa monta o endpoint público com barra final', () {
+      expect(caminhoPerfilEmpresa(3), '/api/publico/empresas/3/');
+    });
+
+    test('empresa 3 chega como imobiliária com 3 cidades', () async {
+      final empresa = sucessoEmpresa(await construirComEmpresas().buscarEmpresa(3));
+
+      expect(empresa.nome, 'Imobiliária Jequitibá');
+      expect(empresa.tipo, TipoEmpresa.imobiliaria);
+      expect(empresa.cidadesAtuacao, hasLength(3));
+      expect(empresa.creci, 'J-1234');
+    });
+
+    test('empresa 4 é autônoma e os vazios do wire viram ausentes', () async {
+      final empresa = sucessoEmpresa(await construirComEmpresas().buscarEmpresa(4));
+
+      expect(empresa.nome, 'Camila Duarte');
+      expect(empresa.tipo, TipoEmpresa.autonomo);
+      expect(empresa.telefone, isNull);
+      expect(empresa.descricao, isNull);
+      expect(empresa.logomarca, isNull);
+    });
+
+    test('empresa inexistente falha com PerfilNaoEncontradoException', () async {
+      final resultado = await construirComEmpresas().buscarEmpresa(999);
+
+      expect(resultado, isA<Failure<PerfilEmpresa>>());
+      expect(
+        (resultado as Failure<PerfilEmpresa>).erro,
+        isA<PerfilNaoEncontradoException>(),
+      );
+    });
+
+    test('paraTeste sem empresas (padrão vazio) não encontra a empresa 3', () async {
+      final resultado = await construir().buscarEmpresa(3);
+
+      expect(resultado, isA<Failure<PerfilEmpresa>>());
+      expect(
+        (resultado as Failure<PerfilEmpresa>).erro,
+        isA<PerfilNaoEncontradoException>(),
+      );
+    });
+
+    test('o construtor padrão do mock serve a empresa 3 da fixture', () async {
+      final repositorio = PerfilRepositoryImpl(PerfilMockDataSource());
+
+      final empresa = sucessoEmpresa(await repositorio.buscarEmpresa(3));
+
+      expect(empresa.nome, 'Imobiliária Jequitibá');
+    });
   });
 
   group('empresasPerfisFixture', () {

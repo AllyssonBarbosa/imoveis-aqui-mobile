@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
 
 import '../models/perfil_corretor_model.dart';
+import '../models/perfil_empresa_model.dart';
 import 'perfil_datasource.dart';
 
 /// DataSource real dos perfis públicos (WEB 02): lê
@@ -27,6 +28,13 @@ class PerfilRemoteDataSource implements PerfilDataSource {
   Future<PerfilCorretorModel> buscarCorretor(int id) async {
     return PerfilCorretorModel.fromJson(
       await _obterObjeto(caminhoPerfilCorretor(id)),
+    );
+  }
+
+  @override
+  Future<PerfilEmpresaModel> buscarEmpresa(int id) async {
+    return PerfilEmpresaModel.fromJson(
+      await _obterObjeto(caminhoPerfilEmpresa(id)),
     );
   }
 

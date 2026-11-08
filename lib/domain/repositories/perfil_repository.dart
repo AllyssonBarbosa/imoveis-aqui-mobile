@@ -1,5 +1,6 @@
 import '../../core/result.dart';
 import '../entities/perfil_corretor.dart';
+import '../entities/perfil_empresa.dart';
 
 /// Contrato de falha dos perfis públicos para o 404 da WEB 02 — corretor
 /// inexistente, que não é corretor ou desativado; empresa inexistente ou
@@ -12,8 +13,11 @@ class PerfilNaoEncontradoException implements Exception {
   String toString() => 'Perfil não encontrado ou desativado.';
 }
 
-/// Fronteira de domínio dos perfis públicos (PERF-04). Nesta fatia só o
-/// corretor; a empresa entra junto com o seu perfil.
+/// Fronteira de domínio dos perfis públicos (PERF-04): corretor e empresa.
 abstract class PerfilRepository {
   Future<Result<PerfilCorretor>> buscarCorretor(int id);
+
+  /// Busca o perfil público da empresa [id]; empresa inexistente ou inativa
+  /// falha com [PerfilNaoEncontradoException].
+  Future<Result<PerfilEmpresa>> buscarEmpresa(int id);
 }
