@@ -7,6 +7,7 @@ import 'package:imoveis_aqui/data/datasources/imovel_detalhe_mock_datasource.dar
 import 'package:imoveis_aqui/data/datasources/imovel_mock_datasource.dart';
 import 'package:imoveis_aqui/data/datasources/opcoes_filtro_mock_datasource.dart';
 import 'package:imoveis_aqui/data/datasources/perfil_mock_datasource.dart';
+import 'package:imoveis_aqui/data/datasources/vitrine_anunciante_mock_datasource.dart';
 import 'package:imoveis_aqui/data/mocks/imoveis_detalhe_fixture.dart';
 import 'package:imoveis_aqui/data/mocks/imoveis_fixture.dart';
 import 'package:imoveis_aqui/data/mocks/perfis_fixture.dart';
@@ -16,9 +17,11 @@ import 'package:imoveis_aqui/data/repositories/imovel_detalhe_repository_impl.da
 import 'package:imoveis_aqui/data/repositories/imovel_repository_impl.dart';
 import 'package:imoveis_aqui/data/repositories/opcoes_filtro_repository_impl.dart';
 import 'package:imoveis_aqui/data/repositories/perfil_repository_impl.dart';
+import 'package:imoveis_aqui/data/repositories/vitrine_anunciante_repository_impl.dart';
 import 'package:imoveis_aqui/di/injection.dart';
 import 'package:imoveis_aqui/domain/entities/cidade.dart';
 import 'package:imoveis_aqui/domain/entities/detalhe_imovel.dart';
+import 'package:imoveis_aqui/domain/usecases/buscar_imoveis_do_anunciante_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/buscar_imoveis_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/obter_bairros_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/obter_caracteristicas_usecase.dart';
@@ -32,8 +35,10 @@ import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_cubit.da
 import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_screen.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/perfil_corretor_screen.dart';
 import 'package:imoveis_aqui/presentation/perfis/perfil_corretor_cubit.dart';
+import 'package:imoveis_aqui/presentation/perfis/vitrine_anunciante_cubit.dart';
 import 'package:imoveis_aqui/presentation/vitrine/opcoes_filtro_cubit.dart';
 import 'package:imoveis_aqui/presentation/vitrine/sessao_filtros_vitrine.dart';
+import 'package:imoveis_aqui/presentation/vitrine/widgets/imovel_card.dart';
 import 'package:imoveis_aqui/presentation/vitrine/vitrine_cubit.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -92,6 +97,23 @@ void main() {
       ObterCaracteristicasUseCase(repositorio),
     );
   }
+
+  /// Pilha REAL da vitrine do anunciante: nada falso entre o Cubit e o mock
+  /// do §12.
+  VitrineAnuncianteCubit criarVitrineAnuncianteCubitReal({
+    Duration latencia = const Duration(milliseconds: 300),
+  }) => VitrineAnuncianteCubit(
+    BuscarImoveisDoAnuncianteUseCase(
+      VitrineAnuncianteRepositoryImpl(
+        VitrineAnuncianteMockDataSource.paraTeste(
+          linhas: linhasAcervoFixture(),
+          detalhes: detalhesAcervoFixture(),
+          corretores: corretoresPerfisFixture(),
+          latencia: latencia,
+        ),
+      ),
+    ),
+  );
 
   setUp(() {
     cidadeSelecaoCubit = _CidadeSelecaoCubitFalso();
@@ -238,6 +260,9 @@ void main() {
             ),
           ),
         );
+        getIt.registerFactory<VitrineAnuncianteCubit>(
+          criarVitrineAnuncianteCubitReal,
+        );
         await pumpVitrine(tester);
 
         await tester.tap(find.byKey(const ValueKey('imovel-42')));
@@ -292,7 +317,40 @@ void main() {
 
         expect(noPerfil(find.text('Marina Lopes')), findsOneWidget);
         expect(noPerfil(find.text('CRECI 12345-F')), findsOneWidget);
+        // A vitrine só começa a carregar com o perfil existente: spinner da
+        // vitrine de pé durante a segunda latência.
+        expect(
+          noPerfil(find.byType(CircularProgressIndicator)),
+          findsOneWidget,
+        );
+        expect(noPerfil(find.text('Imóveis de Marina Lopes')), findsOneWidget);
+
+        // A vitrine do anunciante chega pela pilha real do §12.
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pump();
         expect(noPerfil(find.byType(CircularProgressIndicator)), findsNothing);
+
+        // Rola até o card do imóvel 42 e abre a página dele.
+        await tester.scrollUntilVisible(
+          find.byKey(const ValueKey('imovel-anunciante-42')),
+          300,
+          scrollable: noPerfil(find.byType(Scrollable)).first,
+        );
+        await tester.tap(find.byKey(const ValueKey('imovel-anunciante-42')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.pump(const Duration(seconds: 1));
+        await tester.pump();
+        // A página do imóvel cobre o perfil (que fica fora de cena).
+        expect(find.byType(DetalheImovelScreen), findsOneWidget);
+        expect(find.byType(PerfilCorretorScreen), findsNothing);
+
+        // Voltar do imóvel retorna ao perfil.
+        await tester.tap(find.byTooltip('Voltar').last);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.pump(const Duration(milliseconds: 400));
+        expect(find.byType(PerfilCorretorScreen), findsOneWidget);
 
         // Volta ao detalhe, ainda carregado.
         await tester.tap(find.byType(BackButton));
@@ -346,6 +404,12 @@ void main() {
             ),
           ),
         );
+        // O perfil 404 nunca cria a vitrine: a fábrica não pode ser chamada.
+        var vitrinesCriadas = 0;
+        getIt.registerFactory<VitrineAnuncianteCubit>(() {
+          vitrinesCriadas++;
+          return criarVitrineAnuncianteCubitReal();
+        });
         tester.view.physicalSize = const Size(400, 2400);
         tester.view.devicePixelRatio = 1.0;
         addTearDown(tester.view.resetPhysicalSize);
@@ -410,6 +474,8 @@ void main() {
         );
         expect(noPerfil(find.text('Paulo Teixeira')), findsNothing);
         expect(noPerfil(find.byType(CircularProgressIndicator)), findsNothing);
+        expect(noPerfil(find.textContaining('Imóveis de')), findsNothing);
+        expect(vitrinesCriadas, 0);
 
         await tester.tap(noPerfil(find.text('Voltar')));
         await tester.pump();
@@ -419,6 +485,78 @@ void main() {
         expect(find.byType(PerfilCorretorScreen), findsNothing);
         expect(find.byType(DetalheImovelScreen), findsOneWidget);
         expect(naPagina(find.text('Descrição')), findsOneWidget);
+      },
+    );
+  });
+
+  group('anunciante sem imóveis (D-12)', () {
+    testWidgets(
+      'corretor 10 (Bruno Sales), perfil válido sem imóveis: depois das duas '
+      'latências aparecem o CRECI, "Imóveis de Bruno Sales" e o aviso de '
+      'vitrine vazia',
+      (tester) async {
+        tester.view.physicalSize = const Size(400, 2400);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: Center(
+                  child: FilledButton(
+                    onPressed: () => abrirPerfilCorretor(
+                      context,
+                      const CorretorResponsavel(id: 10, nome: 'Bruno Sales'),
+                      criarPerfilCubit: () => PerfilCorretorCubit(
+                        ObterPerfilCorretorUseCase(
+                          PerfilRepositoryImpl(
+                            PerfilMockDataSource.paraTeste(
+                              corretores: corretoresPerfisFixture(),
+                              latencia: const Duration(milliseconds: 300),
+                            ),
+                          ),
+                        ),
+                      ),
+                      criarVitrineCubit: criarVitrineAnuncianteCubitReal,
+                    ),
+                    child: const Text('Abrir 10'),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text('Abrir 10'));
+        await tester.pump();
+        // A transição (400 ms) cobre a latência do perfil (300 ms); a vitrine
+        // só nasce no frame seguinte, com o perfil carregado.
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.pump();
+
+        Finder noPerfil(Finder alvo) => find.descendant(
+          of: find.byType(PerfilCorretorScreen),
+          matching: alvo,
+        );
+        expect(noPerfil(find.text('CRECI 45678-F')), findsOneWidget);
+        expect(noPerfil(find.text('Imóveis de Bruno Sales')), findsOneWidget);
+        expect(
+          noPerfil(find.byType(CircularProgressIndicator)),
+          findsOneWidget,
+        );
+
+        // Latência da vitrine.
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pump();
+
+        expect(
+          noPerfil(find.text('Nenhum imóvel anunciado no momento.')),
+          findsOneWidget,
+        );
+        expect(noPerfil(find.byType(CircularProgressIndicator)), findsNothing);
+        expect(noPerfil(find.byType(ImovelCard)), findsNothing);
       },
     );
   });
@@ -591,6 +729,12 @@ void main() {
       },
     );
 
+    test('resolve VitrineAnuncianteCubit', () async {
+      await configureDependencies();
+
+      expect(getIt<VitrineAnuncianteCubit>(), isA<VitrineAnuncianteCubit>());
+    });
+
     testWidgets(
       'abrirPerfilCorretor sem fábrica de teste: o DI de produção serve o '
       'perfil do corretor 7 (prévia com spinner, depois CRECI 12345-F) '
@@ -598,6 +742,11 @@ void main() {
       (tester) async {
         await configureDependencies();
         addTearDown(getIt.reset);
+        // Janela alta: a vitrine cai abaixo da dobra e os slivers são lazy.
+        tester.view.physicalSize = const Size(400, 2400);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
 
         await tester.pumpWidget(
           MaterialApp(
@@ -637,7 +786,15 @@ void main() {
         await tester.pump(const Duration(milliseconds: 600));
 
         expect(noPerfil(find.text('CRECI 12345-F')), findsOneWidget);
+
+        // Vitrine do corretor 7 pela mesma latência padrão (500 ms).
+        expect(
+          noPerfil(find.byType(CircularProgressIndicator)),
+          findsOneWidget,
+        );
+        await tester.pump(const Duration(milliseconds: 600));
         expect(noPerfil(find.byType(CircularProgressIndicator)), findsNothing);
+        expect(noPerfil(find.text('Imóveis de Marina Lopes')), findsOneWidget);
       },
     );
   });
