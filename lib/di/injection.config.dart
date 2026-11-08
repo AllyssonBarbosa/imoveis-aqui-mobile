@@ -71,6 +71,8 @@ import 'package:imoveis_aqui/domain/usecases/obter_cidades_atendidas_usecase.dar
     as _i54;
 import 'package:imoveis_aqui/domain/usecases/obter_detalhe_imovel_usecase.dart'
     as _i990;
+import 'package:imoveis_aqui/domain/usecases/obter_perfil_corretor_usecase.dart'
+    as _i741;
 import 'package:imoveis_aqui/domain/usecases/salvar_cidade_usecase.dart'
     as _i589;
 import 'package:imoveis_aqui/domain/usecases/validar_cidade_atendida_usecase.dart'
@@ -79,6 +81,8 @@ import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_cubit.da
     as _i765;
 import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_cubit.dart'
     as _i331;
+import 'package:imoveis_aqui/presentation/perfis/perfil_corretor_cubit.dart'
+    as _i194;
 import 'package:imoveis_aqui/presentation/vitrine/opcoes_filtro_cubit.dart'
     as _i1002;
 import 'package:imoveis_aqui/presentation/vitrine/sessao_filtros_vitrine.dart'
@@ -128,6 +132,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i195.PerfilRepository>(
       () => _i890.PerfilRepositoryImpl(gh<_i185.PerfilDataSource>()),
     );
+    gh.factory<_i741.ObterPerfilCorretorUseCase>(
+      () => _i741.ObterPerfilCorretorUseCase(gh<_i195.PerfilRepository>()),
+    );
     gh.factory<_i213.BuscarImoveisUseCase>(
       () => _i213.BuscarImoveisUseCase(gh<_i970.ImovelRepository>()),
     );
@@ -139,6 +146,9 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i109.ImovelDetalheRepositoryImpl(
         gh<_i631.ImovelDetalheDataSource>(),
       ),
+    );
+    gh.factory<_i194.PerfilCorretorCubit>(
+      () => _i194.PerfilCorretorCubit(gh<_i741.ObterPerfilCorretorUseCase>()),
     );
     gh.factory<_i990.ObterDetalheImovelUseCase>(
       () =>
