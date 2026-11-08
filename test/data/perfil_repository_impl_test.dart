@@ -12,8 +12,7 @@ import 'package:mocktail/mocktail.dart';
 
 class _PerfilDataSourceFalso extends Mock implements PerfilDataSource {}
 
-RequestOptions _opcoes() =>
-    RequestOptions(path: '/api/publico/corretores/7/');
+RequestOptions _opcoes() => RequestOptions(path: '/api/publico/corretores/7/');
 
 DioException _erroDio({int? status}) => DioException(
   requestOptions: _opcoes(),
@@ -59,9 +58,8 @@ void main() {
   });
 
   test('PerfilNaoEncontradoException vira Failure com ela', () async {
-    when(
-      () => dataSource.buscarCorretor(7),
-    ).thenThrow(const PerfilNaoEncontradoException());
+    when(() => dataSource.buscarCorretor(7))
+        .thenThrow(const PerfilNaoEncontradoException());
 
     final resultado = await repositorio.buscarCorretor(7);
 
@@ -103,9 +101,8 @@ void main() {
   });
 
   test('qualquer outra Exception vira Failure com ela', () async {
-    when(
-      () => dataSource.buscarCorretor(7),
-    ).thenThrow(const FalhaSimuladaDoMock());
+    when(() => dataSource.buscarCorretor(7))
+        .thenThrow(const FalhaSimuladaDoMock());
 
     final resultado = await repositorio.buscarCorretor(7);
 

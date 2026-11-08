@@ -75,24 +75,27 @@ void main() {
   late Map<String, Object?> exemploCorretor;
 
   setUpAll(() {
-    exemploCorretor =
-        jsonDecode(File(_caminhoExemploCorretor).readAsStringSync())
-            as Map<String, Object?>;
+    exemploCorretor = jsonDecode(
+      File(_caminhoExemploCorretor).readAsStringSync(),
+    ) as Map<String, Object?>;
   });
 
-  test('buscarCorretor(7) chama a URL exata e devolve o model da Marina', () async {
-    final (:dio, :adaptador) = _criarDio(
-      (_) => _RespostaFalsa(status: 200, corpo: exemploCorretor),
-    );
-    final remota = PerfilRemoteDataSource(dio);
+  test(
+    'buscarCorretor(7) chama a URL exata e devolve o model da Marina',
+    () async {
+      final (:dio, :adaptador) = _criarDio(
+        (_) => _RespostaFalsa(status: 200, corpo: exemploCorretor),
+      );
+      final remota = PerfilRemoteDataSource(dio);
 
-    final modelo = await remota.buscarCorretor(7);
+      final modelo = await remota.buscarCorretor(7);
 
-    expect(adaptador.uris, ['$_baseUrl/api/publico/corretores/7/']);
-    expect(modelo.id, 7);
-    expect(modelo.nome, 'Marina Lopes');
-    expect(modelo.empresaId, 3);
-  });
+      expect(adaptador.uris, ['$_baseUrl/api/publico/corretores/7/']);
+      expect(modelo.id, 7);
+      expect(modelo.nome, 'Marina Lopes');
+      expect(modelo.empresaId, 3);
+    },
+  );
 
   group('pela pilha PerfilRepositoryImpl(PerfilRemoteDataSource(dio))', () {
     PerfilRepository pilha(_RespostaFalsa resposta) {
@@ -151,30 +154,36 @@ void main() {
     });
   });
 
-  test('duas buscas simultâneas resolvem cada uma com o próprio corpo', () async {
-    final fixture = corretoresPerfisFixture();
-    final (:dio, :adaptador) = _criarDio((uri) {
-      final id = int.parse(Uri.parse(uri).pathSegments[3]);
-      return _RespostaFalsa(status: 200, corpo: fixture[id]);
-    });
-    final repositorio = PerfilRepositoryImpl(PerfilRemoteDataSource(dio));
+  test(
+    'duas buscas simultâneas resolvem cada uma com o próprio corpo',
+    () async {
+      final fixture = corretoresPerfisFixture();
+      final (:dio, :adaptador) = _criarDio((uri) {
+        final id = int.parse(Uri.parse(uri).pathSegments[3]);
+        return _RespostaFalsa(status: 200, corpo: fixture[id]);
+      });
+      final repositorio = PerfilRepositoryImpl(PerfilRemoteDataSource(dio));
 
-    final resultados = await Future.wait([
-      repositorio.buscarCorretor(7),
-      repositorio.buscarCorretor(9),
-    ]);
+      final resultados = await Future.wait([
+        repositorio.buscarCorretor(7),
+        repositorio.buscarCorretor(9),
+      ]);
 
-    expect((resultados[0] as Success<PerfilCorretor>).data.nome, 'Marina Lopes');
-    expect(
-      (resultados[1] as Success<PerfilCorretor>).data.nome,
-      'Camila Duarte',
-    );
-    expect(
-      adaptador.uris,
-      unorderedEquals([
-        '$_baseUrl/api/publico/corretores/7/',
-        '$_baseUrl/api/publico/corretores/9/',
-      ]),
-    );
-  });
+      expect(
+        (resultados[0] as Success<PerfilCorretor>).data.nome,
+        'Marina Lopes',
+      );
+      expect(
+        (resultados[1] as Success<PerfilCorretor>).data.nome,
+        'Camila Duarte',
+      );
+      expect(
+        adaptador.uris,
+        unorderedEquals([
+          '$_baseUrl/api/publico/corretores/7/',
+          '$_baseUrl/api/publico/corretores/9/',
+        ]),
+      );
+    },
+  );
 }
