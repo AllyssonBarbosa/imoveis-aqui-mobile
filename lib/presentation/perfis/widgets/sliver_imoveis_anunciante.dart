@@ -5,6 +5,7 @@ import '../../detalhe_imovel/detalhe_imovel_screen.dart';
 import '../../vitrine/widgets/imovel_card.dart';
 import '../vitrine_anunciante_cubit.dart';
 import '../vitrine_anunciante_state.dart';
+import 'rodape_paginacao_lista.dart';
 
 /// Vitrine "Imóveis de {nome}" em slivers: título + o estado da busca
 /// (carregando, vazia, erro ou os cards na ORDEM RECEBIDA — nada é filtrado
@@ -69,17 +70,33 @@ class SliverImoveisDoAnunciante extends StatelessWidget {
               ),
             ),
           ),
-          VitrineAnuncianteCarregada(:final itens) => SliverList.builder(
-            itemCount: itens.length,
-            itemBuilder: (context, indice) {
-              final imovel = itens[indice];
-              return ImovelCard(
-                key: ValueKey('imovel-anunciante-${imovel.id}'),
-                imovel: imovel,
-                onTap: () => aoAbrirImovel(context, imovel),
-              );
-            },
-          ),
+          VitrineAnuncianteCarregada(
+            :final itens,
+            :final proximaPagina,
+            :final carregandoMais,
+            :final erroAoCarregarMais,
+          ) =>
+            SliverList.builder(
+              itemCount: itens.length + 1,
+              itemBuilder: (context, indice) {
+                if (indice == itens.length) {
+                  return RodapePaginacaoLista(
+                    carregandoMais: carregandoMais,
+                    erroAoCarregarMais: erroAoCarregarMais,
+                    temProximaPagina: proximaPagina != null,
+                    aoTentarDeNovo: () => context
+                        .read<VitrineAnuncianteCubit>()
+                        .tentarNovamente(),
+                  );
+                }
+                final imovel = itens[indice];
+                return ImovelCard(
+                  key: ValueKey('imovel-anunciante-${imovel.id}'),
+                  imovel: imovel,
+                  onTap: () => aoAbrirImovel(context, imovel),
+                );
+              },
+            ),
         };
         return SliverMainAxisGroup(
           slivers: [

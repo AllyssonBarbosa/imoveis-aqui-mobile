@@ -232,12 +232,10 @@ void main() {
       'acumulados com o novo cursor]',
       build: construir,
       setUp: () {
-        when(
-          () => buscar(any()),
-        ).thenAnswer((_) async => const Result.success(pagina));
-        when(
-          () => buscar.proximaPagina(any()),
-        ).thenAnswer((_) async => const Result.success(paginaDois));
+        when(() => buscar(any()))
+            .thenAnswer((_) async => const Result.success(pagina));
+        when(() => buscar.proximaPagina(any()))
+            .thenAnswer((_) async => const Result.success(paginaDois));
       },
       act: (cubit) async {
         await cubit.carregar(corretor7);
@@ -262,12 +260,10 @@ void main() {
       'a última página zera o cursor e o carregarMais seguinte não faz nada',
       build: construir,
       setUp: () {
-        when(
-          () => buscar(any()),
-        ).thenAnswer((_) async => const Result.success(pagina));
-        when(
-          () => buscar.proximaPagina(any()),
-        ).thenAnswer((_) async => const Result.success(paginaFinal));
+        when(() => buscar(any()))
+            .thenAnswer((_) async => const Result.success(pagina));
+        when(() => buscar.proximaPagina(any()))
+            .thenAnswer((_) async => const Result.success(paginaFinal));
       },
       act: (cubit) async {
         await cubit.carregar(corretor7);
@@ -326,9 +322,8 @@ void main() {
       'é ignorado sem próxima página',
       build: construir,
       setUp: () {
-        when(
-          () => buscar(any()),
-        ).thenAnswer((_) async => const Result.success(paginaFinal));
+        when(() => buscar(any()))
+            .thenAnswer((_) async => const Result.success(paginaFinal));
       },
       act: (cubit) async {
         await cubit.carregar(corretor7);
@@ -339,12 +334,10 @@ void main() {
 
     test('duas chamadas seguidas sem await geram uma única busca', () async {
       final resposta = Completer<Result<PaginaImoveis>>();
-      when(
-        () => buscar(any()),
-      ).thenAnswer((_) async => const Result.success(pagina));
-      when(
-        () => buscar.proximaPagina(any()),
-      ).thenAnswer((_) => resposta.future);
+      when(() => buscar(any()))
+          .thenAnswer((_) async => const Result.success(pagina));
+      when(() => buscar.proximaPagina(any()))
+          .thenAnswer((_) => resposta.future);
       final cubit = construir();
       await cubit.carregar(corretor7);
 
@@ -369,9 +362,8 @@ void main() {
       'estado não faz nada e tentarNovamente busca o MESMO cursor',
       build: construir,
       setUp: () {
-        when(
-          () => buscar(any()),
-        ).thenAnswer((_) async => const Result.success(pagina));
+        when(() => buscar(any()))
+            .thenAnswer((_) async => const Result.success(pagina));
         var chamadas = 0;
         when(() => buscar.proximaPagina(any())).thenAnswer((_) async {
           chamadas++;
@@ -422,12 +414,10 @@ void main() {
 
     test('fechar com a página em voo não emite nem lança', () async {
       final resposta = Completer<Result<PaginaImoveis>>();
-      when(
-        () => buscar(any()),
-      ).thenAnswer((_) async => const Result.success(pagina));
-      when(
-        () => buscar.proximaPagina(any()),
-      ).thenAnswer((_) => resposta.future);
+      when(() => buscar(any()))
+          .thenAnswer((_) async => const Result.success(pagina));
+      when(() => buscar.proximaPagina(any()))
+          .thenAnswer((_) => resposta.future);
       final cubit = construir();
       await cubit.carregar(corretor7);
 
@@ -490,18 +480,18 @@ void main() {
 /// calculados das fixtures — independente da paginação.
 List<int> _idsEsperadosDoCorretor7() {
   final detalhes = detalhesAcervoFixture();
-  final linhas = linhasAcervoFixture().where((linha) {
-    final corretor =
-        detalhes[linha['id']! as int]?['corretor'] as Map<String, Object?>?;
-    return corretor?['id'] == 7;
-  }).toList()
-    ..sort((a, b) {
-      final porData = (b['criado_em']! as String).compareTo(
-        a['criado_em']! as String,
-      );
-      return porData != 0
-          ? porData
-          : (b['id']! as int).compareTo(a['id']! as int);
-    });
+  final linhas =
+      linhasAcervoFixture().where((linha) {
+        final corretor =
+            detalhes[linha['id']! as int]?['corretor'] as Map<String, Object?>?;
+        return corretor?['id'] == 7;
+      }).toList()..sort((a, b) {
+        final porData = (b['criado_em']! as String).compareTo(
+          a['criado_em']! as String,
+        );
+        return porData != 0
+            ? porData
+            : (b['id']! as int).compareTo(a['id']! as int);
+      });
   return [for (final linha in linhas) linha['id']! as int];
 }

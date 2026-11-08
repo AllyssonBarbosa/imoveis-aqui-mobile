@@ -12,6 +12,7 @@ import 'apresentacao_perfil.dart';
 import 'perfil_state.dart';
 import 'vitrine_anunciante_cubit.dart';
 import 'widgets/aviso_perfil.dart';
+import 'widgets/corpo_perfil_com_vitrine.dart';
 import 'widgets/secoes_perfil.dart';
 import 'widgets/sliver_imoveis_anunciante.dart';
 
@@ -85,92 +86,84 @@ class PerfilCorretorScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Corretor')),
       body: BlocBuilder<PerfilCorretorCubit, PerfilState<PerfilCorretor>>(
         builder: (context, estado) {
-          final Widget conteudo = switch (estado) {
-            PerfilCarregando() => SliverMainAxisGroup(
-              slivers: [
-                SliverToBoxAdapter(
-                  child: _CabecalhoCorretor(
-                    foto: previa.foto,
-                    nome: previa.nome,
-                    construirImagemDeRede: construirImagemDeRede,
-                  ),
+          // Cabeçalho = slivers do estado do perfil; a vitrine só existe com
+          // o perfil carregado (um 404 nunca consulta imóveis).
+          final List<Widget> cabecalho = switch (estado) {
+            PerfilCarregando() => [
+              SliverToBoxAdapter(
+                child: _CabecalhoCorretor(
+                  foto: previa.foto,
+                  nome: previa.nome,
+                  construirImagemDeRede: construirImagemDeRede,
                 ),
-                const SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.all(32),
-                    child: Center(child: CircularProgressIndicator()),
-                  ),
-                ),
-              ],
-            ),
-            PerfilCarregado(:final dados) => SliverMainAxisGroup(
-              slivers: [
-                SliverToBoxAdapter(
-                  child: _CabecalhoCorretor(
-                    foto: dados.foto,
-                    nome: dados.nome,
-                    creci: dados.creci,
-                    construirImagemDeRede: construirImagemDeRede,
-                  ),
-                ),
-                // O respiro horizontal de 16 já vem do SecaoDetalhe.
-                SliverToBoxAdapter(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      SecaoApresentacao(texto: dados.apresentacao),
-                      SecaoContato(
-                        linhas: linhasDeContato(
-                          telefone: dados.telefone,
-                          whatsapp: dados.whatsapp,
-                          email: dados.email,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SliverImoveisDoAnunciante(
-                  titulo: tituloImoveisDe(dados.nome),
-                  aoAbrirImovel: aoAbrirImovel,
-                ),
-              ],
-            ),
-            PerfilErro() => SliverMainAxisGroup(
-              slivers: [
-                SliverToBoxAdapter(
-                  child: _CabecalhoCorretor(
-                    foto: previa.foto,
-                    nome: previa.nome,
-                    construirImagemDeRede: construirImagemDeRede,
-                  ),
-                ),
-                SliverToBoxAdapter(
-                  child: ErroPerfil(
-                    mensagem: 'Não foi possível carregar este perfil.',
-                    aoTentarDeNovo: () =>
-                        context.read<PerfilCorretorCubit>().tentarNovamente(),
-                  ),
-                ),
-              ],
-            ),
-            PerfilNaoEncontrado() => const SliverFillRemaining(
-              hasScrollBody: false,
-              child: AvisoPerfil(
-                icone: Icons.person_off_outlined,
-                mensagem: 'Este corretor não está mais disponível',
               ),
-            ),
-          };
-          return CustomScrollView(
-            slivers: [
-              conteudo,
-              SliverPadding(
-                padding: EdgeInsets.only(
-                  bottom: MediaQuery.paddingOf(context).bottom + 24,
+              const SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.all(32),
+                  child: Center(child: CircularProgressIndicator()),
                 ),
               ),
             ],
-          );
+            PerfilCarregado(:final dados) => [
+              SliverToBoxAdapter(
+                child: _CabecalhoCorretor(
+                  foto: dados.foto,
+                  nome: dados.nome,
+                  creci: dados.creci,
+                  construirImagemDeRede: construirImagemDeRede,
+                ),
+              ),
+              // O respiro horizontal de 16 já vem do SecaoDetalhe.
+              SliverToBoxAdapter(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SecaoApresentacao(texto: dados.apresentacao),
+                    SecaoContato(
+                      linhas: linhasDeContato(
+                        telefone: dados.telefone,
+                        whatsapp: dados.whatsapp,
+                        email: dados.email,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            PerfilErro() => [
+              SliverToBoxAdapter(
+                child: _CabecalhoCorretor(
+                  foto: previa.foto,
+                  nome: previa.nome,
+                  construirImagemDeRede: construirImagemDeRede,
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: ErroPerfil(
+                  mensagem: 'Não foi possível carregar este perfil.',
+                  aoTentarDeNovo: () =>
+                      context.read<PerfilCorretorCubit>().tentarNovamente(),
+                ),
+              ),
+            ],
+            PerfilNaoEncontrado() => const [
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: AvisoPerfil(
+                  icone: Icons.person_off_outlined,
+                  mensagem: 'Este corretor não está mais disponível',
+                ),
+              ),
+            ],
+          };
+          final Widget? vitrine = switch (estado) {
+            PerfilCarregado(:final dados) => SliverImoveisDoAnunciante(
+              titulo: tituloImoveisDe(dados.nome),
+              aoAbrirImovel: aoAbrirImovel,
+            ),
+            PerfilCarregando() || PerfilErro() || PerfilNaoEncontrado() => null,
+          };
+          return CorpoPerfilComVitrine(cabecalho: cabecalho, vitrine: vitrine);
         },
       ),
     );
