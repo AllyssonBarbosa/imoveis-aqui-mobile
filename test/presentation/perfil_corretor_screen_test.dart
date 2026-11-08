@@ -65,6 +65,7 @@ void main() {
   late _VitrineAnuncianteCubitFalso vitrine;
   var vitrinesCriadas = 0;
   final imoveisAbertos = <int>[];
+  final empresasAbertas = <int>[];
 
   setUp(() {
     registerFallbackValue(const AnuncianteRef.corretor(0));
@@ -74,6 +75,7 @@ void main() {
     vitrine = _VitrineAnuncianteCubitFalso();
     vitrinesCriadas = 0;
     imoveisAbertos.clear();
+    empresasAbertas.clear();
     when(() => vitrine.carregar(any())).thenAnswer((_) async {});
     when(() => vitrine.tentarNovamente()).thenAnswer((_) async {});
   });
@@ -118,6 +120,9 @@ void main() {
                   },
                   aoAbrirImovel: (context, imovel) async {
                     imoveisAbertos.add(imovel.id);
+                  },
+                  aoAbrirEmpresa: (context, empresaId) async {
+                    empresasAbertas.add(empresaId);
                   },
                   construirImagemDeRede: _caixaDaUrl,
                 ),
@@ -372,6 +377,47 @@ void main() {
         reason: '$tipo não pode existir na seção de contato',
       );
     }
+  });
+
+  group('cartão "Ver página do anunciante" (PERF-01, D-08, D-11)', () {
+    testWidgets('com empresa: fica depois de Contato e antes de "Imóveis de", '
+        'tem rótulo de semântica e o toque repassa o id 3 uma vez', (
+      tester,
+    ) async {
+      await abrirPerfil(
+        tester,
+        marina,
+        const PerfilState.carregado(marinaCompleta),
+      );
+
+      expect(naPagina(find.text('Ver página do anunciante')), findsOneWidget);
+      expect(find.bySemanticsLabel('Ver página do anunciante'), findsWidgets);
+      final yContato = tester.getTopLeft(naPagina(find.text('Contato'))).dy;
+      final yCartao = tester
+          .getTopLeft(naPagina(find.text('Ver página do anunciante')))
+          .dy;
+      final yVitrine = tester
+          .getTopLeft(naPagina(find.text('Imóveis de Marina Lopes')))
+          .dy;
+      expect(yContato, lessThan(yCartao));
+      expect(yCartao, lessThan(yVitrine));
+
+      await tester.tap(naPagina(find.text('Ver página do anunciante')));
+      await tester.pump();
+
+      expect(empresasAbertas, [3]);
+    });
+
+    testWidgets('sem empresa_id: o cartão não aparece', (tester) async {
+      await abrirPerfil(
+        tester,
+        marina,
+        const PerfilState.carregado(semContato),
+      );
+
+      expect(naPagina(find.text('Ver página do anunciante')), findsNothing);
+      expect(empresasAbertas, isEmpty);
+    });
   });
 
   group('vitrine "Imóveis de {nome}" (PERF-03, D-12)', () {

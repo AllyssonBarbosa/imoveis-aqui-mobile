@@ -492,6 +492,128 @@ void main() {
     );
   });
 
+  group('empresa indisponível (PERF-01, D-15, Pitfall 3)', () {
+    testWidgets(
+      'corretor ativo com empresa inativa (lacuna da WEB 02): Marina -> "Ver '
+      'página do anunciante" -> "Esta página não está mais disponível" sem '
+      'consultar a vitrine da empresa -> "Voltar" devolve o perfil da Marina '
+      'carregado',
+      (tester) async {
+        // Servidor sem nenhuma empresa: toda busca de empresa responde 404.
+        getIt.registerFactory<PerfilEmpresaCubit>(
+          () => PerfilEmpresaCubit(
+            ObterPerfilEmpresaUseCase(
+              PerfilRepositoryImpl(
+                PerfilMockDataSource.paraTeste(
+                  corretores: corretoresPerfisFixture(),
+                  empresas: const {},
+                  latencia: const Duration(milliseconds: 300),
+                ),
+              ),
+            ),
+          ),
+        );
+        var vitrinesCriadas = 0;
+        getIt.registerFactory<VitrineAnuncianteCubit>(() {
+          vitrinesCriadas++;
+          return criarVitrineAnuncianteCubitReal(latencia: Duration.zero);
+        });
+        tester.view.physicalSize = const Size(400, 2400);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: Center(
+                  child: FilledButton(
+                    onPressed: () => abrirPerfilCorretor(
+                      context,
+                      const CorretorResponsavel(id: 7, nome: 'Marina Lopes'),
+                      criarPerfilCubit: () => PerfilCorretorCubit(
+                        ObterPerfilCorretorUseCase(
+                          PerfilRepositoryImpl(
+                            PerfilMockDataSource.paraTeste(
+                              corretores: corretoresPerfisFixture(),
+                              latencia: const Duration(milliseconds: 300),
+                            ),
+                          ),
+                        ),
+                      ),
+                      criarVitrineCubit: () {
+                        vitrinesCriadas++;
+                        return criarVitrineAnuncianteCubitReal(
+                          latencia: Duration.zero,
+                        );
+                      },
+                    ),
+                    child: const Text('Abrir 7'),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.tap(find.text('Abrir 7'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.pump();
+        await tester.pump();
+
+        Finder noPerfil(Finder alvo) => find.descendant(
+          of: find.byType(PerfilCorretorScreen),
+          matching: alvo,
+        );
+        Finder naEmpresa(Finder alvo) => find.descendant(
+          of: find.byType(PerfilEmpresaScreen),
+          matching: alvo,
+        );
+        expect(noPerfil(find.text('CRECI 12345-F')), findsOneWidget);
+        // Só a vitrine da Marina foi criada até aqui.
+        expect(vitrinesCriadas, 1);
+
+        await tester.scrollUntilVisible(
+          noPerfil(find.text('Ver página do anunciante')),
+          100,
+          scrollable: noPerfil(find.byType(Scrollable)).first,
+        );
+        await tester.tap(noPerfil(find.text('Ver página do anunciante')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.pump();
+
+        expect(find.byType(PerfilEmpresaScreen), findsOneWidget);
+        expect(
+          naEmpresa(find.text('Esta página não está mais disponível')),
+          findsOneWidget,
+        );
+        expect(naEmpresa(find.text('Imobiliária Jequitibá')), findsNothing);
+        expect(naEmpresa(find.byType(CircularProgressIndicator)), findsNothing);
+        expect(naEmpresa(find.textContaining('Imóveis de')), findsNothing);
+        // A empresa 404 nunca consulta a vitrine dela.
+        expect(vitrinesCriadas, 1);
+
+        await tester.tap(naEmpresa(find.text('Voltar')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.pump(const Duration(milliseconds: 400));
+
+        expect(find.byType(PerfilEmpresaScreen), findsNothing);
+        expect(find.byType(PerfilCorretorScreen), findsOneWidget);
+        expect(noPerfil(find.text('Ver página do anunciante')), findsOneWidget);
+        await tester.scrollUntilVisible(
+          noPerfil(find.text('CRECI 12345-F')),
+          -200,
+          scrollable: noPerfil(find.byType(Scrollable)).first,
+        );
+        expect(noPerfil(find.text('Marina Lopes')), findsOneWidget);
+        expect(noPerfil(find.text('CRECI 12345-F')), findsOneWidget);
+      },
+    );
+  });
+
   group('rolagem infinita da vitrine do corretor (PERF-03, D-12)', () {
     testWidgets(
       'Marina (corretor 7, 4 páginas): rolar até "Você chegou ao fim da '
