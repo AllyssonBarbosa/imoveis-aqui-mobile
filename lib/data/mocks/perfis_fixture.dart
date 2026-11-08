@@ -70,3 +70,65 @@ Map<int, Map<String, Object?>> corretoresPerfisFixture() => {
         'Chegou à equipe da Jequitibá este mês; ainda sem imóveis anunciados.',
   },
 };
+
+/// Perfis públicos das empresas no wire exato da WEB 02
+/// (`GET /api/publico/empresas/{id}/`, `EmpresaPublicaSerializer`), por id.
+/// Dev-only: a empresa 3 (IMOBILIARIA) é o `perfil_empresa.example.json` do
+/// §12 do contrato e a empresa 4 (AUTONOMO) é a da corretora 9 — coerente com
+/// a herança que o servidor faz para o autônomo, em que telefone e descrição
+/// em branco chegam em branco. O app não completa nada.
+///
+/// Os `corretores_ativos` são montados a partir de [corretoresPerfisFixture]
+/// (os corretores da fixture com aquela `empresa_id`, em ordem de id), nunca
+/// copiados à mão, para não divergirem dos perfis dos corretores.
+///
+/// Devolve mapas NOVOS a cada chamada, para que nenhum teste mute os dados de
+/// outro. Toda entrada traz exatamente as onze chaves do wire.
+Map<int, Map<String, Object?>> empresasPerfisFixture() {
+  final corretores = corretoresPerfisFixture();
+  List<Map<String, Object?>> ativosDa(int empresaId) {
+    final ids = [
+      for (final entrada in corretores.entries)
+        if (entrada.value['empresa_id'] == empresaId) entrada.key,
+    ]..sort();
+    return [for (final id in ids) corretores[id]!];
+  }
+
+  return {
+    3: {
+      'id': 3,
+      'tipo': 'IMOBILIARIA',
+      'razao_social_ou_nome': 'Imobiliária Jequitibá',
+      'creci': 'J-1234',
+      'telefone': '(19) 3333-0000',
+      'whatsapp': '19988880000',
+      'email': 'contato@jequitiba.exemplo.com',
+      'descricao':
+          'Imobiliária com 20 anos de atuação em Campinas, Valinhos e Vinhedo.',
+      'logomarca': '$urlBaseFotosMock/empresa-3/300/300',
+      'cidades_atuacao': [
+        {'id': 1, 'nome': 'Campinas', 'uf': 'SP'},
+        {'id': 2, 'nome': 'Valinhos', 'uf': 'SP'},
+        {'id': 3, 'nome': 'Vinhedo', 'uf': 'SP'},
+      ],
+      'corretores_ativos': ativosDa(3),
+    },
+    // Autônoma: a empresa é a própria Camila; telefone e descrição vazios
+    // porque o perfil dela também os tem vazios (herança resolvida no servidor).
+    4: {
+      'id': 4,
+      'tipo': 'AUTONOMO',
+      'razao_social_ou_nome': 'Camila Duarte',
+      'creci': '34567-F',
+      'telefone': '',
+      'whatsapp': '19977776666',
+      'email': 'contato@camiladuarte.exemplo.com',
+      'descricao': '',
+      'logomarca': null,
+      'cidades_atuacao': [
+        {'id': 3, 'nome': 'Vinhedo', 'uf': 'SP'},
+      ],
+      'corretores_ativos': ativosDa(4),
+    },
+  };
+}

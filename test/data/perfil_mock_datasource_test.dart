@@ -145,6 +145,35 @@ void main() {
     expect(caminhoPerfilCorretor(7), '/api/publico/corretores/7/');
   });
 
+  group('empresasPerfisFixture', () {
+    test('duas chamadas são iguais e independentes', () {
+      final a = empresasPerfisFixture();
+      final b = empresasPerfisFixture();
+
+      expect(a, equals(b));
+      a[3]!['razao_social_ou_nome'] = 'Alterado';
+      (a[3]!['corretores_ativos']! as List<Object?>).clear();
+      expect(b[3]!['razao_social_ou_nome'], 'Imobiliária Jequitibá');
+      expect(
+        empresasPerfisFixture()[3]!['razao_social_ou_nome'],
+        'Imobiliária Jequitibá',
+      );
+      expect(
+        (empresasPerfisFixture()[3]!['corretores_ativos']! as List<Object?>),
+        hasLength(3),
+      );
+    });
+
+    test('os corretores ativos não compartilham mapas com a fixture dos corretores', () {
+      final empresas = empresasPerfisFixture();
+      final corretores = corretoresPerfisFixture();
+      final ativos = empresas[3]!['corretores_ativos']! as List<Object?>;
+
+      (ativos.first! as Map<String, Object?>)['nome'] = 'Alterado';
+      expect(corretores[7]!['nome'], 'Marina Lopes');
+    });
+  });
+
   group('corretoresPerfisFixture', () {
     test('duas chamadas são iguais e independentes', () {
       final a = corretoresPerfisFixture();

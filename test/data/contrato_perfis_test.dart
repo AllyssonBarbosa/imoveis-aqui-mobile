@@ -125,8 +125,7 @@ void main() {
     });
   });
 
-  group('perfil_empresa.example.json (§12.1)', () {
-    test('respeita a allowlist de 11 chaves da empresa', () {
+  group('perfil_empresa.example.json (§12.1)', () {    test('respeita a allowlist de 11 chaves da empresa', () {
       _exigirAllowlistEmpresa(exemploEmpresa, 'exemploEmpresa');
     });
 
@@ -160,6 +159,74 @@ void main() {
           'fixture[${entrada.key}]',
         );
       }
+    });
+  });
+
+  group('fixture dos perfis de empresa', () {
+    test('a empresa 3 é profundamente igual a perfil_empresa.example.json', () {
+      expect(empresasPerfisFixture()[3], equals(exemploEmpresa));
+    });
+
+    test('toda empresa tem exatamente as 11 chaves e cidades {id, nome, uf}', () {
+      final fixture = empresasPerfisFixture();
+      expect(fixture.keys, containsAll([3, 4]));
+      for (final entrada in fixture.entries) {
+        _exigirAllowlistEmpresa(entrada.value, 'empresa[${entrada.key}]');
+        expect(entrada.value['id'], entrada.key);
+      }
+    });
+
+    test('todo empresa_id dos corretores existe nas empresas', () {
+      final empresas = empresasPerfisFixture();
+      for (final corretor in corretoresPerfisFixture().values) {
+        expect(
+          empresas.containsKey(corretor['empresa_id']),
+          isTrue,
+          reason: 'corretor ${corretor['id']} aponta para empresa inexistente',
+        );
+      }
+    });
+
+    test('corretores_ativos são os corretores da fixture da empresa, por id', () {
+      final corretores = corretoresPerfisFixture();
+      final empresas = empresasPerfisFixture();
+      for (final empresa in empresas.entries) {
+        final esperados = [
+          for (final id in (corretores.keys.toList()..sort()))
+            if (corretores[id]!['empresa_id'] == empresa.key) corretores[id],
+        ];
+        expect(
+          empresa.value['corretores_ativos'],
+          equals(esperados),
+          reason: 'empresa ${empresa.key}',
+        );
+      }
+      expect(
+        [
+          for (final c
+              in empresas[3]!['corretores_ativos']! as List<Object?>)
+            (c! as Map<String, Object?>)['id'],
+        ],
+        [7, 8, 10],
+      );
+      expect(
+        [
+          for (final c
+              in empresas[4]!['corretores_ativos']! as List<Object?>)
+            (c! as Map<String, Object?>)['id'],
+        ],
+        [9],
+      );
+    });
+
+    test('a empresa 4 é autônoma, com campos em branco como o servidor manda', () {
+      final autonomo = empresasPerfisFixture()[4]!;
+
+      expect(autonomo['tipo'], 'AUTONOMO');
+      expect(autonomo['razao_social_ou_nome'], 'Camila Duarte');
+      expect(autonomo['telefone'], '');
+      expect(autonomo['descricao'], '');
+      expect(autonomo['logomarca'], isNull);
     });
   });
 
