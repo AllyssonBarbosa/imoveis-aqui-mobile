@@ -666,22 +666,49 @@ List<LinhaContato> linhasDeContato({String? telefone, String? whatsapp, String? 
 | A6 | LGPD: exposição pública de e-mail/telefone/WhatsApp/CRECI do corretor é aceita pelo produto (o card pede "contato"; WEB 02 já expõe; §11.5 g sinalizou LGPD para o detalhe) | Security | Se o produto vetar, remover a linha de e-mail na UI (campo continua no wire) |
 | A7 | Rótulo único "Ver página do anunciante" é aceitável no lugar de "Ver imobiliária" | Pitfall 2 | Texto é discrição no CONTEXT; confirmar no human-check |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Coordenação com a Phase 5 (Georginho) sobre fixtures e DI**
+Todas as perguntas abaixo foram decididas no planejamento (planos 07-01..07-12, revisão de
+2026-11-08). Cada item traz a resolução e onde ela está implementada.
+
+1. **Coordenação com a Phase 5 (Georginho) sobre fixtures e DI** — **RESOLVED**
    - Sabe-se: o mock da vitrine do anunciante depende de `imoveis_fixture.dart` e `imoveis_detalhe_fixture.dart`; `injection.config.dart` será editado pelos dois.
    - Incerto: se a Phase 5 apaga as fixtures.
    - Recomendação: avisar antes do merge; fixtures ficam enquanto o §12 não existir; conflito de gerados resolvido por regeneração.
+   - **Resolução:** as fixtures da lista/detalhe ficam e são só LIDAS pelo mock da vitrine do
+     anunciante (07-06); a única edição nelas é a mínima e aditiva do imóvel 337 em
+     `imoveis_detalhe_fixture.dart` (07-07, guarda `git diff --numstat` com no máximo 4 remoções).
+     Todo plano que toca arquivo existente ou `injection.config.dart` lista isso em "Arquivos
+     EXISTENTES tocados (avisar o colega da Phase 5)"; conflito de gerados se resolve regenerando
+     (Pitfall 8). A dependência do mock em fixtures que a Phase 5 pode apagar fica registrada no
+     §12.9 do contrato (07-03) e no plano 07-06 (Pitfall 9).
 
-2. **Id reservado do corretor desativado: 8 ou dedicado?**
-   - Recomendação: **8** (zero edição na fixture do detalhe). Alternativa documentada acima.
+2. **Id reservado do corretor desativado: 8 ou dedicado?** — **RESOLVED: dedicado (id 99), não o 8**
+   - Recomendação original: **8** (zero edição na fixture do detalhe). Alternativa documentada acima.
+   - **Resolução (decisão do orquestrador, orientação 2):** id reservado **99**
+     (`idCorretorDesativadoMock`), alcançável à mão pelo imóvel **337**
+     (`idDetalheCorretorDesativadoMock`, antepenúltimo card de Vinhedo em "Mais recentes"), com a
+     edição mínima e guardada na fixture do detalhe. O 8 foi rejeitado porque ~1/3 do acervo mock
+     abriria o aviso nas demonstrações. Implementado em 07-07 (fixture + mock + e2e) e conferido no
+     human-check de 07-12.
 
-3. **Real `VitrineAnuncianteRemoteDataSource` (Dio) agora ou depois?**
+3. **Real `VitrineAnuncianteRemoteDataSource` (Dio) agora ou depois?** — **RESOLVED: depois (adiada)**
    - Recomendação: **depois** (o endpoint não existe; sem como testar contra a realidade). Se algum dia for feita, repetir a defesa de origem do `next` de `CidadeRemoteDataSource._resolverProximaUrl` (mesmo scheme/host/port) e limite de páginas.
+   - **Resolução:** não é construída nesta fase. O §12.9 do contrato (07-03) registra que, quando o
+     endpoint existir, ela repete a validação de origem do `next` e o limite de páginas; o
+     `COVERAGE.md` da fase marca a capacidade como OPT-OUT ("not needed yet"); o threat model de
+     07-06 a trata como `transfer`. Só o mock `VitrineAnuncianteMockDataSource` (07-06) fica ativo.
 
-4. **Onde guardar os dois JSONs de exemplo?** Recomendação: dir `contrato/` da Phase 1 (consistente); o planner pode optar por `07-…/contrato/` ajustando a constante de caminho do teste.
+4. **Onde guardar os dois JSONs de exemplo?** — **RESOLVED: diretório `contrato/` da Phase 1**
+   - Recomendação: dir `contrato/` da Phase 1 (consistente); o planner pode optar por `07-…/contrato/` ajustando a constante de caminho do teste.
+   - **Resolução:** `.planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/contrato/perfil_corretor.example.json`
+     e `.../contrato/perfil_empresa.example.json`, criados e protegidos por
+     `test/data/contrato_perfis_test.dart` em 07-03; estendidos para a empresa em 07-09.
 
-5. **Conciliação `corretor` (§11) × `corretor_responsavel` (WEB 09)**: já é da Phase 5; esta fase só depende de `corretor.id`.
+5. **Conciliação `corretor` (§11) × `corretor_responsavel` (WEB 09)** — **RESOLVED: fora do escopo (Phase 5)**
+   - Já é da Phase 5; esta fase só depende de `corretor.id`.
+   - **Resolução:** registrada como PENDENTE WEB no §12.8 (e) do contrato (07-03); nenhum plano
+     desta fase lê outro campo do corretor do detalhe além de `id`, `nome` e `foto` (prévia).
 
 ## Environment Availability
 

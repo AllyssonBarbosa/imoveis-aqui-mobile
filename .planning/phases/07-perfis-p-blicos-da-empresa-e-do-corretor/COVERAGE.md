@@ -3,7 +3,7 @@
 > Full coverage by default. Opt-outs are explicit, reasoned decisions.
 
 Superfície: rotas da API Django do repo irmão (`config/urls.py`, branch `main`) que tocam corretor e
-empresa, mais a vitrine do anunciante proposta no §12 do contrato. Planos: 07-01..07-07.
+empresa, mais a vitrine do anunciante proposta no §12 do contrato. Planos: 07-01..07-12.
 
 | capability | decision | reason |
 |---|---|---|
