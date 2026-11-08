@@ -6,18 +6,23 @@ import 'package:imoveis_aqui/data/datasources/imovel_detalhe_datasource.dart';
 import 'package:imoveis_aqui/data/datasources/imovel_detalhe_mock_datasource.dart';
 import 'package:imoveis_aqui/data/datasources/imovel_mock_datasource.dart';
 import 'package:imoveis_aqui/data/datasources/opcoes_filtro_mock_datasource.dart';
+import 'package:imoveis_aqui/data/datasources/perfil_mock_datasource.dart';
 import 'package:imoveis_aqui/data/mocks/imoveis_detalhe_fixture.dart';
 import 'package:imoveis_aqui/data/mocks/imoveis_fixture.dart';
+import 'package:imoveis_aqui/data/mocks/perfis_fixture.dart';
 import 'package:imoveis_aqui/data/models/detalhe_imovel_model.dart';
 import 'package:imoveis_aqui/data/repositories/imovel_detalhe_repository_impl.dart';
 import 'package:imoveis_aqui/data/repositories/imovel_repository_impl.dart';
 import 'package:imoveis_aqui/data/repositories/opcoes_filtro_repository_impl.dart';
+import 'package:imoveis_aqui/data/repositories/perfil_repository_impl.dart';
 import 'package:imoveis_aqui/di/injection.dart';
 import 'package:imoveis_aqui/domain/entities/cidade.dart';
+import 'package:imoveis_aqui/domain/entities/detalhe_imovel.dart';
 import 'package:imoveis_aqui/domain/usecases/buscar_imoveis_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/obter_bairros_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/obter_caracteristicas_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/obter_detalhe_imovel_usecase.dart';
+import 'package:imoveis_aqui/domain/usecases/obter_perfil_corretor_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/salvar_cidade_usecase.dart';
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_cubit.dart';
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_screen.dart';
@@ -25,6 +30,7 @@ import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_state.da
 import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_cubit.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_screen.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/perfil_corretor_screen.dart';
+import 'package:imoveis_aqui/presentation/perfis/perfil_corretor_cubit.dart';
 import 'package:imoveis_aqui/presentation/vitrine/opcoes_filtro_cubit.dart';
 import 'package:imoveis_aqui/presentation/vitrine/sessao_filtros_vitrine.dart';
 import 'package:imoveis_aqui/presentation/vitrine/vitrine_cubit.dart';
@@ -202,8 +208,9 @@ void main() {
 
   group('fluxo completo (DET-01..05, D-12, D-15)', () {
     testWidgets(
-      'vitrine -> detalhe 42 completo -> perfil da Marina Lopes -> volta ao '
-      'detalhe -> volta à vitrine intacta',
+      'vitrine -> detalhe 42 completo -> perfil da Marina Lopes (prévia na '
+      'hora, CRECI buscado por id) -> volta ao detalhe -> volta à vitrine '
+      'intacta (PERF-06, D-05)',
       (tester) async {
         getIt.registerFactory<DetalheImovelCubit>(
           () => DetalheImovelCubit(
@@ -211,6 +218,19 @@ void main() {
               ImovelDetalheRepositoryImpl(
                 ImovelDetalheMockDataSource.paraTeste(
                   detalhes: detalhesAcervoFixture(),
+                  latencia: const Duration(seconds: 1),
+                ),
+              ),
+            ),
+          ),
+        );
+        // Pilha REAL do perfil: nada falso entre o toque e o Model.
+        getIt.registerFactory<PerfilCorretorCubit>(
+          () => PerfilCorretorCubit(
+            ObterPerfilCorretorUseCase(
+              PerfilRepositoryImpl(
+                PerfilMockDataSource.paraTeste(
+                  corretores: corretoresPerfisFixture(),
                   latencia: const Duration(seconds: 1),
                 ),
               ),
@@ -252,14 +272,26 @@ void main() {
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 400));
 
+        // Prévia na hora: nome do detalhe e spinner, ainda sem o CRECI.
+        Finder noPerfil(Finder alvo) => find.descendant(
+          of: find.byType(PerfilCorretorScreen),
+          matching: alvo,
+        );
         expect(find.byType(PerfilCorretorScreen), findsOneWidget);
+        expect(noPerfil(find.text('Marina Lopes')), findsOneWidget);
         expect(
-          find.descendant(
-            of: find.byType(PerfilCorretorScreen),
-            matching: find.text('Marina Lopes'),
-          ),
+          noPerfil(find.byType(CircularProgressIndicator)),
           findsOneWidget,
         );
+        expect(noPerfil(find.text('CRECI 12345-F')), findsNothing);
+
+        // O perfil chega pela pilha real, buscado pelo id do corretor.
+        await tester.pump(const Duration(seconds: 1));
+        await tester.pump();
+
+        expect(noPerfil(find.text('Marina Lopes')), findsOneWidget);
+        expect(noPerfil(find.text('CRECI 12345-F')), findsOneWidget);
+        expect(noPerfil(find.byType(CircularProgressIndicator)), findsNothing);
 
         // Volta ao detalhe, ainda carregado.
         await tester.tap(find.byType(BackButton));
@@ -448,6 +480,56 @@ void main() {
           getIt<ImovelDetalheDataSource>(),
           isA<ImovelDetalheMockDataSource>(),
         );
+      },
+    );
+
+    testWidgets(
+      'abrirPerfilCorretor sem fábrica de teste: o DI de produção serve o '
+      'perfil do corretor 7 (prévia com spinner, depois CRECI 12345-F) '
+      '(PERF-04, PERF-06, D-03)',
+      (tester) async {
+        await configureDependencies();
+        addTearDown(getIt.reset);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: Center(
+                  child: FilledButton(
+                    onPressed: () => abrirPerfilCorretor(
+                      context,
+                      const CorretorResponsavel(id: 7, nome: 'Marina Lopes'),
+                      construirImagemDeRede: (url) =>
+                          ColoredBox(key: ValueKey(url), color: Colors.blue),
+                    ),
+                    child: const Text('Abrir'),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.tap(find.text('Abrir'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
+
+        Finder noPerfil(Finder alvo) => find.descendant(
+          of: find.byType(PerfilCorretorScreen),
+          matching: alvo,
+        );
+        expect(noPerfil(find.text('Marina Lopes')), findsOneWidget);
+        expect(
+          noPerfil(find.byType(CircularProgressIndicator)),
+          findsOneWidget,
+        );
+        expect(noPerfil(find.text('CRECI 12345-F')), findsNothing);
+
+        // Latência padrão de 500 ms do servidor simulado.
+        await tester.pump(const Duration(milliseconds: 600));
+
+        expect(noPerfil(find.text('CRECI 12345-F')), findsOneWidget);
+        expect(noPerfil(find.byType(CircularProgressIndicator)), findsNothing);
       },
     );
   });
