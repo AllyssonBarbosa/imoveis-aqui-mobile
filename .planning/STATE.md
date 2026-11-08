@@ -4,12 +4,12 @@ current_phase: 04
 current_phase_name: Página do Imóvel — Galeria e Dados da Natureza
 status: verifying
 stopped_at: Completed 04-08-PLAN.md
-last_updated: "2026-10-12T14:45:37.873Z"
+last_updated: "2026-11-08T13:31:32.322Z"
 last_activity: 2026-10-12
 last_activity_desc: Phase 04 execution started
-state_head: 84099b5d19ae0aea6456f0bab14e51b41db50be3
+state_head: 6de383f06d76bceadbbc00099927df594f029bb6
 progress:
-  total_phases: 5
+  total_phases: 6
   completed_phases: 0
   total_plans: 22
   completed_plans: 22
@@ -122,6 +122,10 @@ None yet.
 | 260922-jk3 | Reescrever README com preparo do ambiente e execução do app | 2026-09-22 | e738540 | [260922-jk3-reescrever-o-readme-md-do-projeto-hoje-b](./quick/260922-jk3-reescrever-o-readme-md-do-projeto-hoje-b/) |
 | 2 | Adicionar setup de ambiente Windows ao README | 2026-09-22 | b40437b | — |
 | 3 | Corrigir compileSdk 35→36 (plugins exigem 36+); verificado com build real no emulador | 2026-09-22 | 559486a | — |
+
+### Roadmap Evolution
+
+- Phase 7 added: Perfis Públicos da Empresa e do Corretor (card APP 07); número 7 escolhido para casar com o card — fase 6 reservada ao APP 06
 
 ## Deferred Items
 

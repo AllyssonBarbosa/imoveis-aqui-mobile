@@ -25,6 +25,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 3: Vitrine — Filtros Server-Side** - Filtros completos da vitrine (finalidade, natureza, faixas, características), chips ativos e paginação sempre consistente.
 - [ ] **Phase 4: Página do Imóvel — Galeria e Dados da Natureza** - Tela de detalhe (card APP 04): galeria a partir da capa, preços, corretor e bloco por natureza (casa, terreno, apartamento, lote), sobre mock seguindo o contrato de `GET /api/publico/imoveis/{id}/`.
 - [ ] **Phase 5: Imóveis Real — Endpoint Público e Integração Final** - Endpoints públicos reais de lista e detalhe de imóveis e troca das DataSources mock pelas reais via DI.
+- [ ] **Phase 7: Perfis Públicos da Empresa e do Corretor** - Card APP 07: página da empresa e página do corretor com a vitrine do anunciante, dados da API de perfis públicos (WEB 02) e aviso para corretor desativado. (Fase 6 reservada ao card APP 06, de outro colega — fase N = card APP 0N.)
 
 ## Phase Details
 
@@ -193,10 +194,32 @@ Plans:
 
 **Plans**: TBD
 
+### Phase 7: Perfis Públicos da Empresa e do Corretor
+
+**Goal**: O visitante vê quem está anunciando para saber com quem vai negociar: a página da empresa traz logomarca, CRECI, apresentação, contato e cidades de atuação; a do corretor traz foto, CRECI, apresentação e contato; as duas mostram a vitrine dos imóveis daquele anunciante. Card APP 07 (tarefa A07).
+**Mode:** mvp
+**Depends on**: Phase 4 (cartão do corretor e tela de perfil do DET-05). Externamente: WEB 02 (feito, na main da web) para `GET /api/publico/corretores/{id}/` e `GET /api/publico/empresas/{id}/`. A vitrine do anunciante ainda não tem endpoint na web — esta fase a constrói sobre mock que segue um contrato escrito, como nas fases 2–4.
+**Requirements**: TBD (IDs PERF-xx definidos no discuss/plan)
+**Success Criteria** (what must be TRUE):
+
+  1. Página da empresa com logomarca, CRECI, apresentação, contato e cidades de atuação.
+  2. Página do corretor com foto, CRECI, apresentação e contato.
+  3. As duas páginas mostram a vitrine dos imóveis daquele anunciante.
+  4. Os dados vêm da API dos perfis públicos (nada montado ou decidido no app).
+  5. Perfil de corretor desativado mostra um aviso, e não uma tela quebrada.
+  6. Dá para chegar ao perfil a partir da página do imóvel.
+
+**Plans**: 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 7 to break down)
+
+**UI hint**: yes
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 7 (6 reservada ao APP 06)
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -205,3 +228,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 3. Vitrine — Filtros Server-Side | 5/5 | In Progress|  |
 | 4. Página do Imóvel — Galeria e Dados da Natureza | 8/8 | In Progress|  |
 | 5. Imóveis Real — Endpoint Público e Integração Final | 0/TBD | Not started | - |
+| 7. Perfis Públicos da Empresa e do Corretor | 0/TBD | Not started | - |
