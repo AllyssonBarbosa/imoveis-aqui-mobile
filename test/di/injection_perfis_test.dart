@@ -2,7 +2,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/data/datasources/perfil_datasource.dart';
 import 'package:imoveis_aqui/data/datasources/perfil_mock_datasource.dart';
 import 'package:imoveis_aqui/data/datasources/perfil_remote_datasource.dart';
+import 'package:imoveis_aqui/data/datasources/vitrine_anunciante_datasource.dart';
+import 'package:imoveis_aqui/data/datasources/vitrine_anunciante_mock_datasource.dart';
 import 'package:imoveis_aqui/di/injection.dart';
+import 'package:imoveis_aqui/domain/usecases/buscar_imoveis_do_anunciante_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/obter_perfil_corretor_usecase.dart';
 import 'package:imoveis_aqui/presentation/perfis/perfil_corretor_cubit.dart';
 
@@ -33,6 +36,24 @@ void main() {
     await configureDependencies();
 
     expect(getIt<PerfilDataSource>(), isA<PerfilMockDataSource>());
+  });
+
+  test('a VitrineAnuncianteDataSource ativa é o servidor simulado', () async {
+    await configureDependencies();
+
+    expect(
+      getIt<VitrineAnuncianteDataSource>(),
+      isA<VitrineAnuncianteMockDataSource>(),
+    );
+  });
+
+  test('resolve BuscarImoveisDoAnuncianteUseCase pelo DI de produção', () async {
+    await configureDependencies();
+
+    expect(
+      getIt<BuscarImoveisDoAnuncianteUseCase>(),
+      isA<BuscarImoveisDoAnuncianteUseCase>(),
+    );
   });
 
   test('a PerfilRemoteDataSource está registrada, mas não é a ativa', () async {
