@@ -27,6 +27,9 @@ import 'package:imoveis_aqui/data/datasources/opcoes_filtro_datasource.dart'
     as _i585;
 import 'package:imoveis_aqui/data/datasources/opcoes_filtro_mock_datasource.dart'
     as _i158;
+import 'package:imoveis_aqui/data/datasources/perfil_datasource.dart' as _i185;
+import 'package:imoveis_aqui/data/datasources/perfil_mock_datasource.dart'
+    as _i258;
 import 'package:imoveis_aqui/data/gateways/geocoding_gateway_impl.dart'
     as _i506;
 import 'package:imoveis_aqui/data/gateways/geolocator_gateway_impl.dart'
@@ -39,6 +42,8 @@ import 'package:imoveis_aqui/data/repositories/imovel_repository_impl.dart'
     as _i1051;
 import 'package:imoveis_aqui/data/repositories/opcoes_filtro_repository_impl.dart'
     as _i375;
+import 'package:imoveis_aqui/data/repositories/perfil_repository_impl.dart'
+    as _i890;
 import 'package:imoveis_aqui/di/modulo_rede.dart' as _i497;
 import 'package:imoveis_aqui/domain/gateways/geocoding_gateway.dart' as _i881;
 import 'package:imoveis_aqui/domain/gateways/geolocator_gateway.dart' as _i246;
@@ -50,6 +55,8 @@ import 'package:imoveis_aqui/domain/repositories/imovel_repository.dart'
     as _i970;
 import 'package:imoveis_aqui/domain/repositories/opcoes_filtro_repository.dart'
     as _i987;
+import 'package:imoveis_aqui/domain/repositories/perfil_repository.dart'
+    as _i195;
 import 'package:imoveis_aqui/domain/usecases/buscar_imoveis_usecase.dart'
     as _i213;
 import 'package:imoveis_aqui/domain/usecases/detectar_cidade_usecase.dart'
@@ -94,6 +101,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i59.SessaoFiltrosVitrine>(
       () => _i59.SessaoFiltrosVitrine(),
     );
+    gh.lazySingleton<_i185.PerfilDataSource>(
+      () => _i258.PerfilMockDataSource(),
+    );
     gh.lazySingleton<_i585.OpcoesFiltroDataSource>(
       () => _i158.OpcoesFiltroMockDataSource(),
     );
@@ -114,6 +124,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i320.CidadeRemoteDataSource>(
       () => _i320.CidadeRemoteDataSource(gh<_i361.Dio>()),
+    );
+    gh.lazySingleton<_i195.PerfilRepository>(
+      () => _i890.PerfilRepositoryImpl(gh<_i185.PerfilDataSource>()),
     );
     gh.factory<_i213.BuscarImoveisUseCase>(
       () => _i213.BuscarImoveisUseCase(gh<_i970.ImovelRepository>()),
