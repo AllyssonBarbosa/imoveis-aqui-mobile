@@ -17,6 +17,7 @@ import 'package:imoveis_aqui/data/repositories/opcoes_filtro_repository_impl.dar
 import 'package:imoveis_aqui/data/repositories/perfil_repository_impl.dart';
 import 'package:imoveis_aqui/di/injection.dart';
 import 'package:imoveis_aqui/domain/entities/cidade.dart';
+import 'package:imoveis_aqui/domain/entities/detalhe_imovel.dart';
 import 'package:imoveis_aqui/domain/usecases/buscar_imoveis_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/obter_bairros_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/obter_caracteristicas_usecase.dart';
@@ -278,7 +279,10 @@ void main() {
         );
         expect(find.byType(PerfilCorretorScreen), findsOneWidget);
         expect(noPerfil(find.text('Marina Lopes')), findsOneWidget);
-        expect(noPerfil(find.byType(CircularProgressIndicator)), findsOneWidget);
+        expect(
+          noPerfil(find.byType(CircularProgressIndicator)),
+          findsOneWidget,
+        );
         expect(noPerfil(find.text('CRECI 12345-F')), findsNothing);
 
         // O perfil chega pela pilha real, buscado pelo id do corretor.
@@ -476,6 +480,56 @@ void main() {
           getIt<ImovelDetalheDataSource>(),
           isA<ImovelDetalheMockDataSource>(),
         );
+      },
+    );
+
+    testWidgets(
+      'abrirPerfilCorretor sem fábrica de teste: o DI de produção serve o '
+      'perfil do corretor 7 (prévia com spinner, depois CRECI 12345-F) '
+      '(PERF-04, PERF-06, D-03)',
+      (tester) async {
+        await configureDependencies();
+        addTearDown(getIt.reset);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: Center(
+                  child: FilledButton(
+                    onPressed: () => abrirPerfilCorretor(
+                      context,
+                      const CorretorResponsavel(id: 7, nome: 'Marina Lopes'),
+                      construirImagemDeRede: (url) =>
+                          ColoredBox(key: ValueKey(url), color: Colors.blue),
+                    ),
+                    child: const Text('Abrir'),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.tap(find.text('Abrir'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
+
+        Finder noPerfil(Finder alvo) => find.descendant(
+          of: find.byType(PerfilCorretorScreen),
+          matching: alvo,
+        );
+        expect(noPerfil(find.text('Marina Lopes')), findsOneWidget);
+        expect(
+          noPerfil(find.byType(CircularProgressIndicator)),
+          findsOneWidget,
+        );
+        expect(noPerfil(find.text('CRECI 12345-F')), findsNothing);
+
+        // Latência padrão de 500 ms do servidor simulado.
+        await tester.pump(const Duration(milliseconds: 600));
+
+        expect(noPerfil(find.text('CRECI 12345-F')), findsOneWidget);
+        expect(noPerfil(find.byType(CircularProgressIndicator)), findsNothing);
       },
     );
   });

@@ -83,10 +83,12 @@ void main() {
 
     expect(find.byType(PerfilCorretorScreen), findsOneWidget);
     expect(
-      naPagina(find.descendant(
-        of: find.byType(AppBar),
-        matching: find.text('Corretor'),
-      )),
+      naPagina(
+        find.descendant(
+          of: find.byType(AppBar),
+          matching: find.text('Corretor'),
+        ),
+      ),
       findsOneWidget,
     );
     expect(
@@ -102,7 +104,11 @@ void main() {
 
   testWidgets('carregado mostra nome e foto do perfil e "CRECI 12345-F", sem '
       'spinner', (tester) async {
-    await abrirPerfil(tester, marina, const PerfilState.carregado(perfilMarina));
+    await abrirPerfil(
+      tester,
+      marina,
+      const PerfilState.carregado(perfilMarina),
+    );
 
     expect(naPagina(find.text('Marina Lopes')), findsOneWidget);
     expect(
@@ -122,7 +128,11 @@ void main() {
 
     // Desmonta o app inteiro para reabrir o perfil do zero, já carregado.
     await tester.pumpWidget(const SizedBox.shrink());
-    await abrirPerfil(tester, marina, const PerfilState.carregado(perfilMarina));
+    await abrirPerfil(
+      tester,
+      marina,
+      const PerfilState.carregado(perfilMarina),
+    );
     final posicaoCarregado = tester.getTopLeft(
       naPagina(find.text('Marina Lopes')),
     );
