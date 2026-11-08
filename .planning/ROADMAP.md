@@ -209,7 +209,7 @@ Plans:
   5. Perfil de corretor desativado mostra um aviso, e não uma tela quebrada.
   6. Dá para chegar ao perfil a partir da página do imóvel.
 
-**Plans**: 9/12 plans executed
+**Plans**: 10/12 plans executed
 
 Plans:
 **Wave 1**
@@ -232,7 +232,7 @@ Plans:
 - [x] 07-09-PLAN.md — Dados da empresa: fixture IMOBILIARIA/AUTONOMO = exemplo do §12, buscarEmpresa no mock, na remota e no repositório (PERF-01, PERF-04)
 
 **Wave 6** *(blocked on Wave 5 completion)*
-- [ ] 07-10-PLAN.md — Rolagem infinita da vitrine do anunciante: carregarMais, rodapés, página curta, corpo rolável compartilhado (PERF-03, API-08)
+- [x] 07-10-PLAN.md — Rolagem infinita da vitrine do anunciante: carregarMais, rodapés, página curta, corpo rolável compartilhado (PERF-03, API-08)
 
 **Wave 7** *(blocked on Wave 6 completion)*
 - [ ] 07-11-PLAN.md — Página da empresa a partir do perfil do corretor ('Ver página do anunciante'): logomarca, nome, tipo, CRECI pela pilha de perfis (PERF-01, PERF-06, PERF-04)
@@ -254,4 +254,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 7 (6 reservada ao
 | 3. Vitrine — Filtros Server-Side | 5/5 | In Progress|  |
 | 4. Página do Imóvel — Galeria e Dados da Natureza | 8/8 | In Progress|  |
 | 5. Imóveis Real — Endpoint Público e Integração Final | 0/TBD | Not started | - |
-| 7. Perfis Públicos da Empresa e do Corretor | 9/12 | In Progress | - |
+| 7. Perfis Públicos da Empresa e do Corretor | 10/12 | In Progress | - |
