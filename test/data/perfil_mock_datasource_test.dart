@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/core/result.dart';
 import 'package:imoveis_aqui/data/datasources/perfil_datasource.dart';
 import 'package:imoveis_aqui/data/datasources/perfil_mock_datasource.dart';
+import 'package:imoveis_aqui/data/mocks/imoveis_detalhe_fixture.dart';
 import 'package:imoveis_aqui/data/mocks/perfis_fixture.dart';
 import 'package:imoveis_aqui/data/models/perfil_corretor_model.dart';
 import 'package:imoveis_aqui/data/repositories/perfil_repository_impl.dart';
@@ -105,6 +106,38 @@ void main() {
 
       expect(perfil.nome, 'Marina Lopes');
       expect(perfil.empresaId, 3);
+    });
+
+    test('todo corretor dos detalhes tem perfil, exceto o reservado 99', () {
+      final perfis = corretoresPerfisFixture();
+      final idsNosDetalhes = <int>{
+        for (final detalhe in detalhesAcervoFixture().values)
+          if (detalhe['corretor'] case final Map<String, Object?> corretor)
+            corretor['id']! as int,
+      };
+
+      expect(idsNosDetalhes, containsAll([7, 8, 9, idCorretorDesativadoMock]));
+      for (final id in idsNosDetalhes.difference({idCorretorDesativadoMock})) {
+        expect(perfis.containsKey(id), isTrue, reason: 'corretor $id sem perfil');
+      }
+    });
+
+    test('só o detalhe 337 carrega o corretor reservado 99', () {
+      final detalhes = detalhesAcervoFixture();
+      final comOReservado = [
+        for (final detalhe in detalhes.values)
+          if (detalhe['corretor'] case final Map<String, Object?> corretor
+              when corretor['id'] == idCorretorDesativadoMock)
+            detalhe['id']! as int,
+      ];
+
+      expect(idDetalheCorretorDesativadoMock, 337);
+      expect(comOReservado, [idDetalheCorretorDesativadoMock]);
+      final corretor =
+          detalhes[idDetalheCorretorDesativadoMock]!['corretor']!
+              as Map<String, Object?>;
+      expect(corretor.keys.toSet(), {'id', 'nome', 'foto', 'slug'});
+      expect(corretor['nome'], 'Paulo Teixeira');
     });
   });
 

@@ -11,6 +11,7 @@ import 'package:imoveis_aqui/data/mocks/imoveis_detalhe_fixture.dart';
 import 'package:imoveis_aqui/data/mocks/imoveis_fixture.dart';
 import 'package:imoveis_aqui/data/mocks/perfis_fixture.dart';
 import 'package:imoveis_aqui/data/models/detalhe_imovel_model.dart';
+import 'package:imoveis_aqui/data/models/imovel_model.dart';
 import 'package:imoveis_aqui/data/repositories/imovel_detalhe_repository_impl.dart';
 import 'package:imoveis_aqui/data/repositories/imovel_repository_impl.dart';
 import 'package:imoveis_aqui/data/repositories/opcoes_filtro_repository_impl.dart';
@@ -311,6 +312,113 @@ void main() {
 
         expect(find.byType(DetalheImovelScreen), findsNothing);
         expect(find.byKey(const ValueKey('imovel-42')), findsOneWidget);
+      },
+    );
+  });
+
+  group('corretor desativado (PERF-05, D-15)', () {
+    testWidgets(
+      'imóvel 337 -> Paulo Teixeira (id 99): prévia com spinner, depois só o '
+      'aviso "Este corretor não está mais disponível"; "Voltar" devolve o '
+      'detalhe 337 ainda carregado',
+      (tester) async {
+        getIt.registerFactory<DetalheImovelCubit>(
+          () => DetalheImovelCubit(
+            ObterDetalheImovelUseCase(
+              ImovelDetalheRepositoryImpl(
+                ImovelDetalheMockDataSource.paraTeste(
+                  detalhes: detalhesAcervoFixture(),
+                  latencia: const Duration(milliseconds: 300),
+                ),
+              ),
+            ),
+          ),
+        );
+        getIt.registerFactory<PerfilCorretorCubit>(
+          () => PerfilCorretorCubit(
+            ObterPerfilCorretorUseCase(
+              PerfilRepositoryImpl(
+                PerfilMockDataSource.paraTeste(
+                  corretores: corretoresPerfisFixture(),
+                  latencia: const Duration(seconds: 1),
+                ),
+              ),
+            ),
+          ),
+        );
+        tester.view.physicalSize = const Size(400, 2400);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        final previa = ImovelModel.fromJson(
+          linhasAcervoFixture().firstWhere(
+            (linha) => linha['id'] == idDetalheCorretorDesativadoMock,
+          ),
+        ).paraEntidade();
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: Center(
+                  child: FilledButton(
+                    onPressed: () => abrirDetalheImovel(context, previa),
+                    child: const Text('Abrir 337'),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text('Abrir 337'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pump();
+
+        expect(naPagina(find.text('Descrição')), findsOneWidget);
+
+        await tester.scrollUntilVisible(
+          naPagina(find.text('Paulo Teixeira')),
+          200,
+          scrollable: naPagina(find.byType(Scrollable)).first,
+        );
+        await tester.tap(naPagina(find.text('Paulo Teixeira')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+
+        Finder noPerfil(Finder alvo) => find.descendant(
+          of: find.byType(PerfilCorretorScreen),
+          matching: alvo,
+        );
+        // Prévia na hora: nome do detalhe e spinner.
+        expect(find.byType(PerfilCorretorScreen), findsOneWidget);
+        expect(noPerfil(find.text('Paulo Teixeira')), findsOneWidget);
+        expect(
+          noPerfil(find.byType(CircularProgressIndicator)),
+          findsOneWidget,
+        );
+
+        // O servidor responde 404: some a prévia, fica só o aviso.
+        await tester.pump(const Duration(seconds: 1));
+        await tester.pump();
+
+        expect(
+          noPerfil(find.text('Este corretor não está mais disponível')),
+          findsOneWidget,
+        );
+        expect(noPerfil(find.text('Paulo Teixeira')), findsNothing);
+        expect(noPerfil(find.byType(CircularProgressIndicator)), findsNothing);
+
+        await tester.tap(noPerfil(find.text('Voltar')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.pump(const Duration(milliseconds: 400));
+
+        expect(find.byType(PerfilCorretorScreen), findsNothing);
+        expect(find.byType(DetalheImovelScreen), findsOneWidget);
+        expect(naPagina(find.text('Descrição')), findsOneWidget);
       },
     );
   });
