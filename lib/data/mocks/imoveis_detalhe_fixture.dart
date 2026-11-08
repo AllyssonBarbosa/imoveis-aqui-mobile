@@ -1,4 +1,11 @@
 import 'imoveis_fixture.dart';
+import 'perfis_fixture.dart' show idCorretorDesativadoMock;
+
+/// Id do antepenúltimo card de Vinhedo sob 'Mais recentes': o detalhe existe,
+/// mas o corretor responsável foi desativado (id reservado
+/// [idCorretorDesativadoMock]) — prova à mão o aviso "Este corretor não está
+/// mais disponível" do perfil (PERF-05, D-15).
+const int idDetalheCorretorDesativadoMock = 337;
 
 /// Id do último card de Vinhedo sob 'Mais recentes': o servidor simulado
 /// sempre responde 404 para ele (imóvel despublicado, D-17). Determinístico
@@ -157,7 +164,14 @@ Map<String, Object?> _detalheGerado(Map<String, Object?> linha) {
       ? null
       : (centro.$2 + deslocamento).toStringAsFixed(6);
 
-  final corretor = camposNulos
+  final corretor = id == idDetalheCorretorDesativadoMock
+      ? <String, Object?>{
+          'id': idCorretorDesativadoMock,
+          'nome': 'Paulo Teixeira',
+          'foto': '$urlBaseFotosMock/corretor-99/200/200',
+          'slug': null,
+        }
+      : camposNulos
       ? null
       : Map<String, Object?>.of(_corretoresMock[id % _corretoresMock.length]);
 
