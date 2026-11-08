@@ -30,12 +30,34 @@ void main() {
     nome: 'Marina Lopes',
     creci: '12345-F',
   );
+  const marinaCompleta = PerfilCorretor(
+    id: 7,
+    empresaId: 3,
+    foto: 'https://exemplo.com/marina-perfil.jpg',
+    nome: 'Marina Lopes',
+    email: 'marina.lopes@jequitiba.exemplo.com',
+    creci: '12345-F',
+    telefone: '(19) 3333-4444',
+    whatsapp: '19999998888',
+    apresentacao: 'Corretora há 10 anos em Campinas.',
+  );
+  // Autônoma com omissões: sem telefone, apresentação e foto.
+  const camila = PerfilCorretor(
+    id: 9,
+    empresaId: 4,
+    nome: 'Camila Duarte',
+    email: 'camila.duarte@exemplo.com',
+    creci: '34567-F',
+    whatsapp: '19977776666',
+  );
+  const semContato = PerfilCorretor(id: 10, nome: 'Bruno Sales');
 
   late _PerfilCorretorCubitFalso cubit;
 
   setUp(() {
     cubit = _PerfilCorretorCubitFalso();
     when(() => cubit.carregar(any())).thenAnswer((_) async {});
+    when(() => cubit.tentarNovamente()).thenAnswer((_) async {});
   });
 
   /// Abre o perfil por cima de uma página-base, como o detalhe faz, para que
@@ -140,7 +162,8 @@ void main() {
     expect(posicaoCarregado, posicaoCarregando);
   });
 
-  testWidgets('erro mostra a mensagem e mantém a prévia', (tester) async {
+  testWidgets('erro mantém a prévia, mostra a mensagem e "Tentar de novo" '
+      'chama tentarNovamente uma vez', (tester) async {
     await abrirPerfil(tester, marina, const PerfilState.erro());
 
     expect(
@@ -149,6 +172,46 @@ void main() {
     );
     expect(naPagina(find.text('Marina Lopes')), findsOneWidget);
     expect(naPagina(find.byType(CircularProgressIndicator)), findsNothing);
+    expect(find.byType(BackButton), findsOneWidget);
+
+    await tester.tap(naPagina(find.text('Tentar de novo')));
+    await tester.pump();
+
+    verify(() => cubit.tentarNovamente()).called(1);
+  });
+
+  testWidgets('naoEncontrado mostra só o aviso e "Voltar", sem nome nem foto '
+      'da prévia (PERF-05)', (tester) async {
+    await abrirPerfil(tester, marina, const PerfilState.naoEncontrado());
+
+    expect(
+      naPagina(find.text('Este corretor não está mais disponível')),
+      findsOneWidget,
+    );
+    expect(naPagina(find.byIcon(Icons.person_off_outlined)), findsOneWidget);
+    expect(
+      naPagina(find.widgetWithText(FilledButton, 'Voltar')),
+      findsOneWidget,
+    );
+    expect(naPagina(find.text('Marina Lopes')), findsNothing);
+    expect(
+      find.byKey(const ValueKey('https://exemplo.com/marina.jpg')),
+      findsNothing,
+    );
+    expect(naPagina(find.text('Tentar de novo')), findsNothing);
+    expect(find.byType(BackButton), findsOneWidget);
+  });
+
+  testWidgets('"Voltar" do aviso fecha o perfil', (tester) async {
+    await abrirPerfil(tester, marina, const PerfilState.naoEncontrado());
+
+    await tester.tap(naPagina(find.widgetWithText(FilledButton, 'Voltar')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.byType(PerfilCorretorScreen), findsNothing);
+    expect(find.text('Abrir'), findsOneWidget);
   });
 
   testWidgets('prévia sem foto mostra o ícone de pessoa (D-19 a)', (
@@ -179,5 +242,102 @@ void main() {
 
     expect(find.byType(PerfilCorretorScreen), findsNothing);
     expect(find.text('Abrir'), findsOneWidget);
+  });
+
+  testWidgets('carregado completo mostra, nesta ordem, nome, Apresentação e '
+      'Contato com o contato como texto selecionável (PERF-02)', (
+    tester,
+  ) async {
+    await abrirPerfil(
+      tester,
+      marina,
+      const PerfilState.carregado(marinaCompleta),
+    );
+
+    expect(naPagina(find.text('Apresentação')), findsOneWidget);
+    expect(
+      naPagina(find.text('Corretora há 10 anos em Campinas.')),
+      findsOneWidget,
+    );
+    expect(naPagina(find.text('Contato')), findsOneWidget);
+    expect(naPagina(find.byType(SelectableText)), findsNWidgets(3));
+    for (final valor in [
+      '(19) 3333-4444',
+      '19999998888',
+      'marina.lopes@jequitiba.exemplo.com',
+    ]) {
+      expect(
+        naPagina(find.widgetWithText(SelectableText, valor)),
+        findsOneWidget,
+      );
+    }
+    expect(naPagina(find.byIcon(Icons.phone_outlined)), findsOneWidget);
+    expect(naPagina(find.byIcon(Icons.chat_outlined)), findsOneWidget);
+    expect(naPagina(find.byIcon(Icons.email_outlined)), findsOneWidget);
+
+    final yNome = tester.getTopLeft(naPagina(find.text('Marina Lopes'))).dy;
+    final yApresentacao = tester
+        .getTopLeft(naPagina(find.text('Apresentação')))
+        .dy;
+    final yContato = tester.getTopLeft(naPagina(find.text('Contato'))).dy;
+    expect(yNome, lessThan(yApresentacao));
+    expect(yApresentacao, lessThan(yContato));
+  });
+
+  testWidgets('carregado com omissões (Camila) some Apresentação e a linha '
+      'Telefone, mantém WhatsApp e o avatar padrão', (tester) async {
+    await abrirPerfil(
+      tester,
+      semFotoNemSlug,
+      const PerfilState.carregado(camila),
+    );
+
+    expect(naPagina(find.text('Apresentação')), findsNothing);
+    expect(naPagina(find.text('Telefone')), findsNothing);
+    expect(naPagina(find.text('Contato')), findsOneWidget);
+    expect(naPagina(find.text('WhatsApp')), findsOneWidget);
+    expect(
+      naPagina(find.widgetWithText(SelectableText, '19977776666')),
+      findsOneWidget,
+    );
+    expect(find.byIcon(Icons.person_outline), findsOneWidget);
+  });
+
+  testWidgets('perfil sem nenhum contato não mostra o título Contato', (
+    tester,
+  ) async {
+    await abrirPerfil(
+      tester,
+      marina,
+      const PerfilState.carregado(semContato),
+    );
+
+    expect(naPagina(find.text('Bruno Sales')), findsOneWidget);
+    expect(naPagina(find.text('Contato')), findsNothing);
+    expect(naPagina(find.text('Apresentação')), findsNothing);
+  });
+
+  testWidgets('o contato é só texto: nenhum toque ou botão na seção (D-10)', (
+    tester,
+  ) async {
+    await abrirPerfil(
+      tester,
+      marina,
+      const PerfilState.carregado(marinaCompleta),
+    );
+
+    final secao = find.ancestor(
+      of: naPagina(find.text('Contato')),
+      matching: find.byType(Column),
+    );
+    expect(secao, findsWidgets);
+    final dentro = secao.first;
+    for (final tipo in [InkWell, IconButton, TextButton, FilledButton]) {
+      expect(
+        find.descendant(of: dentro, matching: find.byType(tipo)),
+        findsNothing,
+        reason: '$tipo não pode existir na seção de contato',
+      );
+    }
   });
 }

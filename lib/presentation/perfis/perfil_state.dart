@@ -12,5 +12,12 @@ sealed class PerfilState<T> with _$PerfilState<T> {
 
   const factory PerfilState.carregado(T dados) = PerfilCarregado<T>;
 
+  /// Falha de carregamento (rede, servidor, formato) — repetir pode resolver,
+  /// então a tela oferece "Tentar de novo".
   const factory PerfilState.erro() = PerfilErro<T>;
+
+  /// 404 da WEB 02: corretor desativado, inexistente ou que não é corretor
+  /// (ou empresa inativa) — repetir não resolve, então a tela só oferece o
+  /// caminho de volta e não mostra nenhum dado do perfil.
+  const factory PerfilState.naoEncontrado() = PerfilNaoEncontrado<T>;
 }

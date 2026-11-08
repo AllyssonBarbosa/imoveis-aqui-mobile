@@ -56,13 +56,14 @@ extension PerfilStatePatterns<T> on PerfilState<T> {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( PerfilCarregando<T> value)?  carregando,TResult Function( PerfilCarregado<T> value)?  carregado,TResult Function( PerfilErro<T> value)?  erro,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( PerfilCarregando<T> value)?  carregando,TResult Function( PerfilCarregado<T> value)?  carregado,TResult Function( PerfilErro<T> value)?  erro,TResult Function( PerfilNaoEncontrado<T> value)?  naoEncontrado,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case PerfilCarregando() when carregando != null:
 return carregando(_that);case PerfilCarregado() when carregado != null:
 return carregado(_that);case PerfilErro() when erro != null:
-return erro(_that);case _:
+return erro(_that);case PerfilNaoEncontrado() when naoEncontrado != null:
+return naoEncontrado(_that);case _:
   return orElse();
 
 }
@@ -80,13 +81,14 @@ return erro(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( PerfilCarregando<T> value)  carregando,required TResult Function( PerfilCarregado<T> value)  carregado,required TResult Function( PerfilErro<T> value)  erro,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( PerfilCarregando<T> value)  carregando,required TResult Function( PerfilCarregado<T> value)  carregado,required TResult Function( PerfilErro<T> value)  erro,required TResult Function( PerfilNaoEncontrado<T> value)  naoEncontrado,}){
 final _that = this;
 switch (_that) {
 case PerfilCarregando():
 return carregando(_that);case PerfilCarregado():
 return carregado(_that);case PerfilErro():
-return erro(_that);}
+return erro(_that);case PerfilNaoEncontrado():
+return naoEncontrado(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
 ///
@@ -100,13 +102,14 @@ return erro(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( PerfilCarregando<T> value)?  carregando,TResult? Function( PerfilCarregado<T> value)?  carregado,TResult? Function( PerfilErro<T> value)?  erro,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( PerfilCarregando<T> value)?  carregando,TResult? Function( PerfilCarregado<T> value)?  carregado,TResult? Function( PerfilErro<T> value)?  erro,TResult? Function( PerfilNaoEncontrado<T> value)?  naoEncontrado,}){
 final _that = this;
 switch (_that) {
 case PerfilCarregando() when carregando != null:
 return carregando(_that);case PerfilCarregado() when carregado != null:
 return carregado(_that);case PerfilErro() when erro != null:
-return erro(_that);case _:
+return erro(_that);case PerfilNaoEncontrado() when naoEncontrado != null:
+return naoEncontrado(_that);case _:
   return null;
 
 }
@@ -123,12 +126,13 @@ return erro(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  carregando,TResult Function( T dados)?  carregado,TResult Function()?  erro,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  carregando,TResult Function( T dados)?  carregado,TResult Function()?  erro,TResult Function()?  naoEncontrado,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case PerfilCarregando() when carregando != null:
 return carregando();case PerfilCarregado() when carregado != null:
 return carregado(_that.dados);case PerfilErro() when erro != null:
-return erro();case _:
+return erro();case PerfilNaoEncontrado() when naoEncontrado != null:
+return naoEncontrado();case _:
   return orElse();
 
 }
@@ -146,12 +150,13 @@ return erro();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  carregando,required TResult Function( T dados)  carregado,required TResult Function()  erro,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  carregando,required TResult Function( T dados)  carregado,required TResult Function()  erro,required TResult Function()  naoEncontrado,}) {final _that = this;
 switch (_that) {
 case PerfilCarregando():
 return carregando();case PerfilCarregado():
 return carregado(_that.dados);case PerfilErro():
-return erro();}
+return erro();case PerfilNaoEncontrado():
+return naoEncontrado();}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -165,12 +170,13 @@ return erro();}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  carregando,TResult? Function( T dados)?  carregado,TResult? Function()?  erro,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  carregando,TResult? Function( T dados)?  carregado,TResult? Function()?  erro,TResult? Function()?  naoEncontrado,}) {final _that = this;
 switch (_that) {
 case PerfilCarregando() when carregando != null:
 return carregando();case PerfilCarregado() when carregado != null:
 return carregado(_that.dados);case PerfilErro() when erro != null:
-return erro();case _:
+return erro();case PerfilNaoEncontrado() when naoEncontrado != null:
+return naoEncontrado();case _:
   return null;
 
 }
@@ -302,6 +308,38 @@ int get hashCode => runtimeType.hashCode;
 @override
 String toString() {
     return 'PerfilState<$T>.erro()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class PerfilNaoEncontrado<T> implements PerfilState<T> {
+  const PerfilNaoEncontrado();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is PerfilNaoEncontrado<T>);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+    return 'PerfilState<$T>.naoEncontrado()';
 }
 
 
