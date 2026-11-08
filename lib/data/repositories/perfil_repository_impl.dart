@@ -3,6 +3,7 @@ import 'package:injectable/injectable.dart';
 
 import '../../core/result.dart';
 import '../../domain/entities/perfil_corretor.dart';
+import '../../domain/entities/perfil_empresa.dart';
 import '../../domain/repositories/perfil_repository.dart';
 import '../datasources/perfil_datasource.dart';
 
@@ -24,6 +25,11 @@ class PerfilRepositoryImpl implements PerfilRepository {
   @override
   Future<Result<PerfilCorretor>> buscarCorretor(int id) => _executar(
     () async => (await _dataSource.buscarCorretor(id)).paraEntidade(),
+  );
+
+  @override
+  Future<Result<PerfilEmpresa>> buscarEmpresa(int id) => _executar(
+    () async => (await _dataSource.buscarEmpresa(id)).paraEntidade(),
   );
 
   /// Cadeia única de tradução de erros dos perfis (corretor hoje, empresa
