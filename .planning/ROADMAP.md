@@ -283,3 +283,21 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 3. Vitrine — Filtros Server-Side | 5/5 | In Progress|  |
 | 4. Página do Imóvel — Galeria e Dados da Natureza | 8/8 | In Progress|  |
 | 5. Imóveis Real — Endpoint Público e Integração Final | 22/22 | Complete    | 2026-11-16 |
+
+### Phase 6: Contato com o Corretor — WhatsApp, Telefone e E-mail (APP 06)
+
+**Goal:** O visitante fala com o corretor com um toque, sem login e sem formulário: na página do imóvel e no perfil do corretor, o botão de WhatsApp (e as alternativas telefone e e-mail) dispara `POST /api/publico/imoveis/{id}/contato/` (WEB 11), que registra o contato (imóvel, corretor, canal) e devolve o link pronto — com a mensagem padrão montada pelo servidor — que o app apenas abre. Card APP 06 (tarefa A06).
+**Success Criteria** (card APP 06, todos obrigatórios):
+  1. Botão de contato na página do imóvel e no perfil do corretor.
+  2. O botão abre o WhatsApp com a mensagem padrão já preenchida.
+  3. Telefone e e-mail como alternativas de contato.
+  4. O contato é registrado na API no momento em que o visitante o dispara.
+  5. O registro guarda o imóvel, o corretor e o canal usado.
+  6. Tudo funciona sem login.
+**Requirements**: TBD
+**Depends on:** Phase 5
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 6 to break down)

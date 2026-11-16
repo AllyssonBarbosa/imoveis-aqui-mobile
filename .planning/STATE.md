@@ -141,6 +141,10 @@ Recent decisions affecting current work:
 - [Phase 05]: 05-20: filtro caracteristicas com teto de 20 ids distintos e tem-todas por uma subconsulta agregada na tabela M2M (CR-01); risco aceito de 21+ marcadas virar erro no app, a registrar no contrato pelo 05-22
 - [Phase 05]: 05-21: ThrottleVitrinePublica (balde unico por IP, 120/min via VITRINE_TAXA_ANONIMA, NUM_PROXIES=0) so nas 5 rotas publicas da vitrine; sem throttle global
 
+### Roadmap Evolution
+
+- Phase 6 added: Contato com o Corretor — WhatsApp, Telefone e E-mail (APP 06) — card APP 06 do Kanban (2026-11-16), depende da WEB 11 (`POST /api/publico/imoveis/{id}/contato/`, branch `origin/WEB-11` da API, ainda não mergeada na main)
+
 ### Pending Todos
 
 None yet.
