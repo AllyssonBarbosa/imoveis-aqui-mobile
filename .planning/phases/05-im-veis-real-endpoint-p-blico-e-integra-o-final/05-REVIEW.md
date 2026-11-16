@@ -1,283 +1,153 @@
 ---
 phase: 05-im-veis-real-endpoint-p-blico-e-integra-o-final
-reviewed: 2026-11-01T00:00:00Z
+reviewed: 2026-11-16T00:00:00Z
 depth: standard
-files_reviewed: 79
+files_reviewed: 10
 files_reviewed_list:
-  - imovies-aqui-mobile/lib/data/datasources/cidade_prefs_datasource.dart
-  - imovies-aqui-mobile/lib/data/datasources/cidade_remote_datasource.dart
-  - imovies-aqui-mobile/lib/data/datasources/imovel_datasource.dart
-  - imovies-aqui-mobile/lib/data/datasources/imovel_detalhe_datasource.dart
-  - imovies-aqui-mobile/lib/data/datasources/imovel_detalhe_remote_datasource.dart
-  - imovies-aqui-mobile/lib/data/datasources/imovel_remote_datasource.dart
-  - imovies-aqui-mobile/lib/data/datasources/opcoes_filtro_datasource.dart
-  - imovies-aqui-mobile/lib/data/datasources/opcoes_filtro_remote_datasource.dart
-  - imovies-aqui-mobile/lib/data/datasources/parametros_consulta_imoveis.dart
-  - imovies-aqui-mobile/lib/data/models/caracteristica_model.dart
-  - imovies-aqui-mobile/lib/data/models/cidade_model.dart
-  - imovies-aqui-mobile/lib/data/models/dados_natureza_model.dart
-  - imovies-aqui-mobile/lib/data/models/detalhe_imovel_model.dart
-  - imovies-aqui-mobile/lib/data/models/imoveis_envelope_model.dart
-  - imovies-aqui-mobile/lib/data/models/imovel_model.dart
-  - imovies-aqui-mobile/lib/data/repositories/cidade_repository_impl.dart
-  - imovies-aqui-mobile/lib/data/repositories/imovel_detalhe_repository_impl.dart
-  - imovies-aqui-mobile/lib/data/repositories/imovel_repository_impl.dart
-  - imovies-aqui-mobile/lib/data/repositories/opcoes_filtro_repository_impl.dart
-  - imovies-aqui-mobile/lib/domain/entities/caracteristica.dart
-  - imovies-aqui-mobile/lib/domain/entities/cidade.dart
-  - imovies-aqui-mobile/lib/domain/entities/dados_natureza.dart
-  - imovies-aqui-mobile/lib/domain/entities/detalhe_imovel.dart
-  - imovies-aqui-mobile/lib/domain/entities/filtros_vitrine.dart
-  - imovies-aqui-mobile/lib/domain/entities/imovel.dart
-  - imovies-aqui-mobile/lib/domain/entities/ordenacao_vitrine.dart
-  - imovies-aqui-mobile/lib/domain/repositories/opcoes_filtro_repository.dart
-  - imovies-aqui-mobile/lib/domain/usecases/obter_caracteristicas_usecase.dart
-  - imovies-aqui-mobile/lib/presentation/detalhe_imovel/apresentacao_natureza.dart
-  - imovies-aqui-mobile/lib/presentation/detalhe_imovel/detalhe_imovel_screen.dart
-  - imovies-aqui-mobile/lib/presentation/detalhe_imovel/perfil_corretor_screen.dart
-  - imovies-aqui-mobile/lib/presentation/detalhe_imovel/widgets/cards_natureza.dart
-  - imovies-aqui-mobile/lib/presentation/vitrine/apresentacao_filtros.dart
-  - imovies-aqui-mobile/lib/presentation/vitrine/apresentacao_imovel.dart
-  - imovies-aqui-mobile/lib/presentation/vitrine/opcoes_filtro_state.dart
-  - imovies-aqui-mobile/lib/presentation/vitrine/rascunho_filtros_cubit.dart
-  - imovies-aqui-mobile/lib/presentation/vitrine/vitrine_cubit.dart
-  - imovies-aqui-mobile/lib/presentation/vitrine/widgets/filtros_bottom_sheet.dart
-  - imovies-aqui-mobile/lib/presentation/vitrine/widgets/ordenacao_bottom_sheet.dart
-  - imovies-aqui-mobile/test/data/cidade_prefs_datasource_test.dart
-  - imovies-aqui-mobile/test/data/cidade_remote_datasource_test.dart
-  - imovies-aqui-mobile/test/data/cidade_repository_impl_test.dart
-  - imovies-aqui-mobile/test/data/contrato_detalhe_test.dart
-  - imovies-aqui-mobile/test/data/contrato_lista_test.dart
-  - imovies-aqui-mobile/test/data/detalhe_imovel_model_test.dart
-  - imovies-aqui-mobile/test/data/imovel_detalhe_remote_datasource_test.dart
-  - imovies-aqui-mobile/test/data/imovel_detalhe_repository_impl_test.dart
-  - imovies-aqui-mobile/test/data/imovel_remote_datasource_test.dart
-  - imovies-aqui-mobile/test/data/imovel_repository_impl_test.dart
-  - imovies-aqui-mobile/test/data/opcoes_filtro_remote_datasource_test.dart
-  - imovies-aqui-mobile/test/data/opcoes_filtro_repository_impl_test.dart
-  - imovies-aqui-mobile/test/data/parametros_consulta_imoveis_test.dart
-  - imovies-aqui-mobile/test/domain/filtros_vitrine_test.dart
-  - imovies-aqui-mobile/test/presentation/apresentacao_filtros_test.dart
-  - imovies-aqui-mobile/test/presentation/apresentacao_imovel_test.dart
-  - imovies-aqui-mobile/test/presentation/apresentacao_natureza_test.dart
-  - imovies-aqui-mobile/test/presentation/cartao_corretor_test.dart
-  - imovies-aqui-mobile/test/presentation/detalhe_imovel_screen_test.dart
-  - imovies-aqui-mobile/test/presentation/detalhe_navegacao_test.dart
-  - imovies-aqui-mobile/test/presentation/filtros_bottom_sheet_test.dart
-  - imovies-aqui-mobile/test/presentation/imovel_card_test.dart
-  - imovies-aqui-mobile/test/presentation/opcoes_filtro_cubit_test.dart
-  - imovies-aqui-mobile/test/presentation/perfil_corretor_screen_test.dart
-  - imovies-aqui-mobile/test/presentation/rascunho_filtros_cubit_test.dart
-  - imovies-aqui-mobile/test/presentation/sessao_filtros_vitrine_test.dart
-  - imovies-aqui-mobile/test/presentation/vitrine_cubit_test.dart
-  - imovies-aqui-mobile/test/presentation/vitrine_fluxo_test.dart
-  - imovies-aqui-mobile/test/presentation/vitrine_screen_test.dart
-  - imovies-aqui-mobile/test/support/api_falsa.dart
-  - imovies-aqui-mobile/tool/capturar_fixtures_api.py
-  - imoveis-aqui/Web/imoveis/vitrine.py
-  - imoveis-aqui/Web/imoveis/api/serializers.py
-  - imoveis-aqui/Web/imoveis/api/views.py
-  - imoveis-aqui/Web/imoveis/api/urls_publico.py
-  - imoveis-aqui/Web/imoveis/tests.py
-  - imoveis-aqui/Web/empresas/management/commands/semear_vitrine_dev.py
-  - imoveis-aqui/Web/empresas/tests.py
-  - imoveis-aqui/Web/.env.example
-  - imoveis-aqui/README.md
+  - ../imoveis-aqui/README.md
+  - ../imoveis-aqui/Web/.env.example
+  - ../imoveis-aqui/Web/config/settings.py
+  - ../imoveis-aqui/Web/core/throttles.py
+  - ../imoveis-aqui/Web/empresas/tests.py
+  - ../imoveis-aqui/Web/imoveis/api/views.py
+  - ../imoveis-aqui/Web/imoveis/tests.py
+  - ../imoveis-aqui/Web/localizacao/api/views.py
+  - test/data/imovel_detalhe_repository_impl_test.dart
+  - test/data/imovel_remote_datasource_test.dart
 findings:
-  critical: 2
-  warning: 6
-  info: 9
-  total: 17
+  critical: 0
+  warning: 3
+  info: 5
+  total: 8
+  deferred_carried: 13
 status: issues_found
 ---
 
-# Fase 5: Relatório de Code Review
+# Fase 5: Relatório de Code Review (rodada de gap closure 05-19..05-22)
 
-**Revisado em:** 2026-11-01
+**Revisado em:** 2026-11-16
 **Profundidade:** standard
-**Arquivos revisados:** 79 (70 do app + 9 da API; 8 caminhos da lista do app não existem mais, foram os mocks removidos na fase)
+**Arquivos revisados:** 10 (8 da API, 2 testes do app)
 **Status:** issues_found
+**Revisão anterior:** preservada no git em `8e36e81` (CR-01, CR-02, WR-01..06, IN-01..09)
 
 ## Resumo
 
-Foram revisados o código de produção do app (`lib/`, `tool/`) e a superfície pública da API Django (`vitrine.py`, serializers, views, urls, seed e testes). Execução de verificação: `flutter analyze` sem avisos, `flutter test` com 585 testes passando, e `manage.py test empresas imoveis` com 274 testes passando. Os testes passam, mas **não cobrem entrada hostil nos parâmetros públicos**, que é onde estão os dois achados críticos.
+Esta é uma revisão incremental das mudanças dos planos 05-19 a 05-22, que estão sem commit na árvore de trabalho da API (`feat/APP05`, sobre o HEAD `0592176`). O foco foram os helpers `_numero`, `_texto`, `_bairros_do_filtro` e `_ids_de_caracteristicas`, a subconsulta agregada de características, o `ThrottleVitrinePublica` com as configurações dele, os testes adicionados e os 3 testes novos do app.
 
-O que está sólido (conferido, não só lido):
-- Allowlist de campos: o detalhe e a lista públicos expõem só os campos listados nos serializers públicos. Não vazam `proprietario`, `codigo`, `empresa`, `publicado`, `situacao`, `complemento`, `numero` da unidade nem documentos. `empresa_id` e contatos do corretor seguem como pendência já aceita (LGPD, time web) e não são reportados de novo.
-- Isolamento: lista, bairros e detalhe saem todos de `imoveis_da_vitrine()` (`publicado` + `DISPONIVEL` + `empresa__ativa`), sem cópia da regra. Detalhe de rascunho, imóvel reservado/vendido ou empresa inativa responde o mesmo 404 de id inexistente.
-- N+1: medido com `CaptureQueriesContext`. A lista de 5 itens faz 4 consultas; o detalhe de casa, apartamento, terreno e lote faz 3 consultas cada; os bairros fazem 2.
-- Seed: recusa com `DEBUG=False` sem criar nada, é idempotente e não altera outra empresa (testado).
+Limite desta revisão: o ambiente não tem Django instalado, e eu não li `Web/.env` nem subi servidor, como pedido. Por isso **não executei as suítes**. A avaliação vem da leitura do código e dos testes, e das contagens que os SUMMARYs registram (353 testes na API, 588 no app). Onde um achado depende de comportamento de runtime, o texto diz isso.
 
-Os dois críticos são na API pública sem autenticação: um filtro que gera um número ilimitado de JOINs (negação de serviço com uma única requisição) e valores numéricos que viram HTTP 500 em vez do 400 prometido.
+Os quatro achados anteriores que a rodada devia fechar (CR-01, CR-02, WR-01, WR-02) estão resolvidos no código, e a leitura não achou regressão nos caminhos corrigidos. Não há achado crítico novo. Os três avisos novos são casos de borda na mesma classe de falha que a rodada tratava (entrada hostil virando 500, ou limite de taxa mal calibrado) e um acoplamento da suíte com o ambiente.
 
-## Achados Críticos
+O que está sólido (conferido no código):
+- A allowlist `[0-9]` com `fullmatch` em `_numero` e `_FORMATO_ID` recusa `NaN`, `sNaN`, `Infinity`, `inf`, expoente, `_`, espaço e dígito de outro alfabeto. `fullmatch` evita o problema do `$` com `\n` final.
+- O 400 de byte NUL é decidido em Python, antes da consulta, então vale em SQLite e em Postgres. O teste cobre nove parâmetros.
+- A subconsulta de características (`views.py:520-527`) mantém a semântica "tem todas" (`Count distinct == len(ids)`), e o teste de forma do SQL compara as ocorrências da tabela M2M entre 2 e 20 ids.
+- O throttle usa `NUM_PROXIES=0`, então o `X-Forwarded-For` forjado não reinicia a contagem (teste cobre). Não há `DEFAULT_THROTTLE_CLASSES`, então a API autenticada não é limitada. As 5 rotas públicas da vitrine declaram o throttle e um teste trava isso.
+- O README descreve os tetos, as mensagens e o comportamento 429 de forma coerente com o código (conferi preço, área, inteiro, busca, bairros, características, balde único e `Retry-After`).
 
-### CR-01: `?caracteristicas=` gera um JOIN por id, sem limite (DoS com uma requisição, endpoint público)
+## Status dos achados da revisão anterior
 
-**Arquivo:** `imoveis-aqui/Web/imoveis/api/views.py:419-427`
-**Problema:** o endpoint público e sem autenticação faz `queryset.filter(caracteristicas=id)` dentro de um `for` sobre `ids`. Cada `.filter()` encadeado em relação M2M adiciona um novo JOIN, e o número de ids não tem teto nenhum (nem de quantidade, nem de tamanho da URL além do limite do servidor). Reproduzi num teste com dados mínimos (5 imóveis): uma requisição com 50, 500 e 3000 ids em sequência deixou o backend do Postgres com a consulta `SELECT COUNT(*) FROM (SELECT DISTINCT ...)` ativa por mais de 2 minutos, e precisei encerrar o processo e o backend manualmente. O catálogo real tem poucas dezenas de características, então qualquer lista maior que o catálogo já é abuso. Além disso `int()` aceita `-1` e `1_0`, que viram filtros sem sentido.
-**Correção:** validar e limitar os ids, e trocar os JOINs encadeados por uma única agregação (semântica "tem todas" mantida):
-```python
-from django.db.models import Count
-
-MAX_CARACTERISTICAS = 20  # ou o tamanho do catálogo
-
-caracteristicas = params.get("caracteristicas", "").strip()
-if caracteristicas:
-    try:
-        ids = {int(i) for i in caracteristicas.split(",") if i.strip()}
-    except ValueError:
-        raise ValidationError({"caracteristicas": "Informe os ids separados por vírgula."})
-    if any(i <= 0 for i in ids) or len(ids) > MAX_CARACTERISTICAS:
-        raise ValidationError({"caracteristicas": "Lista de ids inválida."})
-    if ids:
-        queryset = queryset.filter(
-            pk__in=Imovel.caracteristicas.through.objects
-            .filter(caracteristica_id__in=ids)
-            .values("imovel_id")
-            .annotate(n=Count("caracteristica_id", distinct=True))
-            .filter(n=len(ids))
-            .values("imovel_id")
-        )
-```
-Adicionar teste: 21+ ids devolve 400; `caracteristicas=1,2` continua exigindo as duas.
-
-### CR-02: `NaN`, `sNaN` e `Infinity` em `preco_min/max` e `area_min/max` viram HTTP 500 (contrato diz 400)
-
-**Arquivo:** `imoveis-aqui/Web/imoveis/api/views.py:315-326`
-**Problema:** `_numero` usa `Decimal(valor)`, que aceita `"NaN"`, `"sNaN"` e `"Infinity"` sem lançar `InvalidOperation`. Depois `numero < 0` com NaN levanta `decimal.InvalidOperation` fora do `try` (500), e `Infinity` chega ao ORM e levanta `django.core.exceptions.ValidationError` (500). Confirmei no teste: `preco_min=NaN` e `area_min=sNaN` dão `InvalidOperation`; `preco_min=Infinity` dá `ValidationError`. O endpoint é público, então qualquer cliente derruba a resposta com 500 (e ruído em log/monitoramento). O docstring ("valor inválido vira 400 com mensagem clara") e o `erro_400` do contrato ficam falsos para essas entradas. `"1_0"` também é aceito silenciosamente (underscore), e `1e400` passa e vira filtro sem efeito.
-**Correção:**
-```python
-def _numero(params, nome, tipo=Decimal):
-    valor = params.get(nome)
-    if valor in (None, ""):
-        return None
-    try:
-        numero = tipo(valor)
-    except (InvalidOperation, ValueError):
-        raise ValidationError({nome: "Informe um número válido."})
-    if tipo is Decimal and not numero.is_finite():
-        raise ValidationError({nome: "Informe um número válido."})
-    if numero < 0:
-        raise ValidationError({nome: "O valor não pode ser negativo."})
-    return numero
-```
-Se quiser, limitar também ao máximo do campo (`numero > Decimal("9999999999.99")` vira 400) e rejeitar `_` com `re.fullmatch(r"\d+(\.\d+)?", valor)`. Adicionar testes para `NaN`, `sNaN`, `Infinity`, `1e400` em `VitrineBuscaTests`.
+| ID | Status | Evidência |
+|----|--------|-----------|
+| CR-01 (`?caracteristicas=` com um JOIN por id) | **Resolvido** | `_ids_de_caracteristicas` (`views.py:400-420`) aceita só `[0-9]+` positivo, deduplica e recusa mais de 20 ids distintos com 400 antes de montar qualquer consulta. O filtro virou uma subconsulta única `pk__in` com `GROUP BY imovel_id HAVING COUNT(DISTINCT) = n` (`views.py:520-527`). Testes: `test_caracteristicas_demais_da_400` (inclui prova de que o 400 não consulta `imoveis_imovel`), `test_filtro_caracteristicas_usa_uma_so_subconsulta_...` (tabela M2M aparece 1 vez por consulta, sem `JOIN`), `test_paginacao_com_filtro_...` e o teste antigo "exige todas", sem edição. Ressalva em WR-07 (id com dígitos demais). |
+| CR-02 (`NaN`/`Infinity` viram 500) | **Resolvido** | `_numero` (`views.py:347-369`) valida o texto com `_FORMATO_DECIMAL`/`_FORMATO_INTEIRO` por `fullmatch` antes de converter, depois recusa negativo e acima do teto da coluna (preço 9999999999.99, área 99999999.99, inteiro 32767). `1e400`, `1_0` e `٣` também dão 400. Testes: `test_numero_nao_finito_ou_fora_do_formato_da_400` (4 campos x 11 valores), `test_numero_inteiro_fora_do_formato_da_400`, `test_numero_acima_do_teto_...`, `test_area_tem_o_teto_da_coluna`. A conversão inteira continua dentro do `try/except ValueError`, então o limite de 4300 dígitos do `int()` também vira 400 ali. |
+| WR-01 (byte NUL em `busca`/`bairro` dá 500) | **Resolvido** | `_texto` (`views.py:372-382`) e `_bairros_do_filtro` (`views.py:385-397`) recusam `\x00` com 400 em Python. Testes: `test_byte_nul_em_busca_e_bairro_da_400` e `test_byte_nul_em_qualquer_parametro_nunca_da_500` (9 parâmetros). |
+| WR-02 (sem limite de taxa e CSV sem teto) | **Resolvido para as rotas da vitrine** (resíduo em IN-12) | `ThrottleVitrinePublica` (`core/throttles.py`) com taxa em `DEFAULT_THROTTLE_RATES` (`settings.py:145-147`), aplicado nas 5 rotas (`views.py:451,546,570,581` e `localizacao/api/views.py:20`). Tetos: `busca` 200 caracteres, `bairro` 20 itens de até 100 caracteres, características 20 ids. Testes em `VitrineLimiteDeTaxaTests` (429 + `Retry-After`, balde único, XFF forjado, 5 views com o throttle). As rotas `corretores/<id>/` e `empresas/<id>/` continuam sem limite, e o README diz isso. |
+| WR-03 (bairro de `/bairros/` pode não casar com `?bairro=`) | **Adiado por escopo** | Sem mudança. Agora o filtro apara cada item do CSV, e `/bairros/` ainda devolve `bairro_anuncio` cru, então o descasamento com espaço nas pontas continua possível. |
+| WR-04 (seed grava bairro errado no apartamento) | **Adiado por escopo** | Fora desta rodada. |
+| WR-05 (guarda do seed olha só `DEBUG`) | **Adiado por escopo** | Fora desta rodada. O README ainda diz que "nenhuma outra empresa é lida ou alterada", afirmação mais forte que o comando (ver o achado original). |
+| WR-06 (testes de contrato leem `.planning/`) | **Adiado por escopo** | Fora desta rodada. |
+| IN-01 a IN-09 | **Adiados por escopo** | Carregados sem alteração. IN-06 (`SECURE_PROXY_SSL_HEADER`) ganhou um vizinho nesta rodada, em WR-08. |
 
 ## Avisos
 
-### WR-01: byte NUL (`%00`) em `busca` ou `bairro` gera HTTP 500
+### WR-07: `int(item)` sem proteção em `_ids_de_caracteristicas` ainda pode dar 500 (id com dígitos demais)
 
-**Arquivo:** `imoveis-aqui/Web/imoveis/api/views.py:365-371` e `411-417`
-**Problema:** `?busca=a%00b` e `?bairro=a%00b` chegam ao Postgres como parâmetro de texto com NUL; o driver levanta `DataError: PostgreSQL text fields cannot contain NUL (0x00) bytes`, o que dá 500. Reproduzido no teste. Mesma classe de falha do CR-02, em endpoint público.
-**Correção:** rejeitar antes de montar a consulta, num helper usado por `busca` e `bairro`:
+**Arquivo:** `../imoveis-aqui/Web/imoveis/api/views.py:341,413-415`
+**Problema:** `_FORMATO_ID = [0-9]+` não limita o tamanho. Depois do `fullmatch`, `int(item)` roda **fora** de qualquer `try`, duas vezes (linhas 413 e 415). Dois caminhos:
+1. A partir do Python 3.10.7 e 3.11, `int()` de uma string decimal com mais de 4300 dígitos levanta `ValueError`. Um `?caracteristicas=000...0` (4301+ dígitos, zeros à esquerda contam) passa pelo regex e estoura em `int()`: HTTP 500, exatamente a classe do CR-02. Em `runserver` e em servidores ASGI o limite de linha de requisição passa de 64 KB, então é alcançável. O gunicorn (4094 por padrão) mascara o caso, mas isso é acaso de deploy, não validação.
+2. Um id grande mas abaixo de 4300 dígitos (por exemplo 30 dígitos) vira parâmetro inteiro fora do range do bigint. No Postgres com psycopg 3 vira `numeric` e compara sem erro (resultado vazio). No SQLite o driver levanta `OverflowError` ao ligar o parâmetro. Não reproduzi (sem Django no ambiente), então trate este segundo caminho como risco a confirmar. O primeiro é comportamento documentado do Python.
+Nenhum teste cobre id longo: os valores hostis do teste são curtos (`0`, `-1`, `1_0`, `٣`, `1.0`, `abc`).
+**Correção:** limitar o tamanho no próprio regex (18 dígitos cabem em bigint) e converter uma vez só:
 ```python
-def _texto(params, nome, maximo=100):
-    valor = params.get(nome, "")
-    if "\x00" in valor or len(valor) > maximo:
-        raise ValidationError({nome: "Valor inválido."})
-    return valor.strip()
+_FORMATO_ID = re.compile(r"[0-9]{1,18}")
+...
+        if not _FORMATO_ID.fullmatch(item):
+            raise ValidationError({"caracteristicas": "Informe os ids separados por vírgula."})
+        numero = int(item)
+        if numero <= 0:
+            raise ValidationError({"caracteristicas": "Informe os ids separados por vírgula."})
+        ids.add(numero)
 ```
+Adicionar ao `test_id_de_caracteristica_fora_do_formato_da_400` os valores `"0" * 5000` e `"9" * 30`.
 
-### WR-02: endpoints públicos sem limite de taxa e com listas CSV sem teto
+### WR-08: `NUM_PROXIES` com padrão 0 em produção atrás de proxy junta todos os visitantes em um só balde
 
-**Arquivo:** `imoveis-aqui/Web/config/settings.py:134-142`, `imoveis-aqui/Web/imoveis/api/views.py:411-417`
-**Problema:** `REST_FRAMEWORK` não define `DEFAULT_THROTTLE_CLASSES`, e as views públicas zeram `authentication_classes`. A consulta da vitrine faz `icontains` em `titulo`, `descricao` e no `Case` de bairro, com vários JOINs. Sozinho já é custo alto por requisição anônima; junto de CR-01 é a porta aberta. Além disso `?bairro=a,b,c,...` monta um `OR` de `iexact` por item, sem teto de itens nem de tamanho de `busca`.
-**Correção:** adicionar `throttle_classes = [AnonRateThrottle]` (taxa em `DEFAULT_THROTTLE_RATES`) nas quatro views públicas, e limitar a quantidade de bairros (por exemplo 20) e o tamanho de `busca`.
-
-### WR-03: opção de bairro devolvida por `/bairros/` pode não casar com o filtro `?bairro=` (busca vazia)
-
-**Arquivo:** `imoveis-aqui/Web/imoveis/api/views.py:411-417` e `447-458`
-**Problema:** o docstring de `BairrosDaCidadeAPIView` promete que "escolher uma opção nunca leva a uma busca vazia". O filtro faz `item.strip()` e compara com `iexact`, mas `/bairros/` devolve `bairro_anuncio` cru. Se um `Endereco.bairro` tiver espaço nas pontas (o modelo não normaliza; só serializers DRF/forms fazem `strip`, a seed, o admin e importações não), a opção `"Centro "` chega ao app, o servidor corta para `"Centro"` e `iexact` não encontra o registro. O mesmo vale para variações de caixa: `Centro` e `centro` aparecem como duas opções distintas (`distinct()` é sensível à caixa) que filtram exatamente os mesmos imóveis.
-**Correção:** normalizar na origem da anotação para que lista e filtro usem o mesmo valor:
+**Arquivo:** `../imoveis-aqui/Web/config/settings.py:150`, `../imoveis-aqui/Web/.env.example:11-12`
+**Problema:** o padrão `0` é a escolha certa contra `X-Forwarded-For` forjado, mas falha de forma perigosa em produção. Atrás de um proxy reverso sem `NUM_PROXIES` configurado, `REMOTE_ADDR` é o IP do proxy para todo mundo. Como o limite é `120/min` por "IP", **o app inteiro passa a dividir 120 requisições por minuto** e um único cliente que faça 121 requisições bloqueia todos os outros com 429. O deploy continua "funcionando" em teste manual (poucas requisições) e só quebra com tráfego. O README avisa, mas um aviso em texto não protege quem copia `.env.example` com `DEBUG=True` (o próprio WR-05 anterior já nota esse padrão). O mesmo vale para `SECURE_PROXY_SSL_HEADER` (IN-06): é configuração de proxy que só aparece quando falha.
+**Correção:** exigir o valor explícito fora do desenvolvimento, para que esquecer vire erro de inicialização, não 429 em massa:
 ```python
-from django.db.models.functions import Trim
-# em vitrine.py: bairro_anuncio=Trim(_do_anuncio("bairro", "bairro"))
+'NUM_PROXIES': env.int('NUM_PROXIES', default=0) if DEBUG else env.int('NUM_PROXIES'),
 ```
-E, se quiser colapsar variações de caixa, devolver `Lower`-distinct com o primeiro valor. Teste: imóvel com bairro `" Moema "` aparece em `/bairros/` como `Moema` e `?bairro=Moema` o encontra.
+(ou, no mínimo, um `check` do Django que avise quando `DEBUG=False` e `NUM_PROXIES=0`). Registrar no checklist de deploy junto com IN-06.
 
-### WR-04: seed grava título e descrição de apartamento com o bairro errado (e isso foi congelado nas fixtures do app)
+### WR-09: a suíte da API depende da taxa configurada no ambiente (`VITRINE_TAXA_ANONIMA`)
 
-**Arquivo:** `imoveis-aqui/Web/empresas/management/commands/semear_vitrine_dev.py:295, 317, 321-323` (impacto em `imovies-aqui-mobile/test/fixtures/api/lista_campinas_p1.json`)
-**Problema:** o `bairro` do loop é o do endereço próprio do imóvel, mas apartamento usa o endereço do prédio (`_garantir_predio` escolhe `bairros[(ordem + 1) % len(bairros)]`). O título e a descrição saem com um bairro e o campo `bairro` da API com outro. Nas fixtures capturadas: o id 22 se chama "Apartamento no bairro Centro" e tem `"bairro": "Taquaral"`; o id 14 se chama "Apartamento no bairro Barão Geraldo" e o endereço do detalhe diz "Taquaral". Isso contamina `busca=Centro` (acha o apartamento que não é de Centro) e confunde qualquer conferência manual do app, além de ficar gravado nos testes do app como "resposta real".
-**Correção:** para apartamento, usar o bairro do prédio no título e na descrição:
+**Arquivo:** `../imoveis-aqui/Web/imoveis/tests.py:1047-1049` (`VitrineBase.setUp`), `:1448-1470` e `:1350-1380` (laços de requisições)
+**Problema:** os testes só chamam `cache.clear()` e usam a taxa real do settings, que vem de `env('VITRINE_TAXA_ANONIMA', default='120/min')`, lida do `.env` de quem roda. Vários testes fazem dezenas de requisições no mesmo teste (`test_numero_nao_finito_ou_fora_do_formato_da_400` faz 44, mais as do `setUp`). Se alguém deixar `VITRINE_TAXA_ANONIMA=30/min` no `.env` local (é para isso que a variável existe), esses testes passam a receber 429 no lugar do 400 esperado e falham por motivo que não é regressão. O resumo do 05-21 fala em "suíte estável em duas rodadas", mas isso só prova estabilidade com o padrão. Hoje a margem entre o maior teste e o padrão é pequena (44 contra 120), e qualquer valor hostil novo adicionado ao laço aproxima do limite.
+**Correção:** fixar uma taxa alta para toda a base e deixar os testes de throttle sobrescreverem (os `mock.patch.object` internos já sobrepõem):
 ```python
-if natureza == Imovel.Natureza.APARTAMENTO:
-    predio = self._garantir_predio(empresa, cidade, rodada)
-    bairro = predio.endereco.bairro
+def setUp(self):
+    cache.clear()
+    patcher = mock.patch.object(ThrottleVitrinePublica, "rate", "100000/min", create=True)
+    patcher.start()
+    self.addCleanup(patcher.stop)
 ```
-(antes de montar `titulo`/`descricao`, passando o prédio já obtido para `_criar_bloco_da_natureza`). Depois recapturar as fixtures.
-
-### WR-05: a guarda do seed olha só `DEBUG`, não o banco de destino; README afirma mais isolamento do que existe
-
-**Arquivo:** `imoveis-aqui/Web/empresas/management/commands/semear_vitrine_dev.py:136-141, 145, 150-165, 175, 200`; `imoveis-aqui/README.md` (seção "Seed de desenvolvimento")
-**Problema:** `.env.example` entrega `DEBUG=True` por padrão. Quem apontar `DATABASE_URL` para um banco compartilhado/de homologação com `DEBUG=True` ganha 4 cidades, 6 características, uma empresa ativa, 2 usuários e ~40 imóveis publicados e visíveis na vitrine desse ambiente. O README diz que "nenhuma outra empresa é lida ou alterada", mas o comando: cria `Cidade` e `Caracteristica` globais (sem dono de empresa), lê `Usuario` por e-mail em todas as empresas (`filter(email=...)`) e usa `get_or_create` por nome de empresa, que levanta `MultipleObjectsReturned` se houver duas com o mesmo nome. Um CNPJ fixo (`66777888000505`) que já exista em outra empresa estoura `IntegrityError` no meio da execução. O corretor já existente é devolvido sem reconciliar `is_active` com o parâmetro `ativo`, então reexecutar depois de reativar o "corretor inativo" quebra o caso de borda sem aviso.
-**Correção:** exigir confirmação explícita além do `DEBUG` (por exemplo `--confirmo` ou checar que o host do banco é local e imprimir o destino antes de gravar), tratar `MultipleObjectsReturned`/`IntegrityError` com `CommandError` claro, aplicar `is_active=ativo` ao corretor existente da empresa demo, e ajustar o texto do README para "cria também cidades e características globais".
-
-### WR-06: testes de contrato do app leem arquivos de `.planning/`
-
-**Arquivo:** `imovies-aqui-mobile/test/data/contrato_lista_test.dart:19-21, 55-58`; `imovies-aqui-mobile/test/data/contrato_detalhe_test.dart:312-314`
-**Problema:** `flutter test` só passa se `.planning/phases/01-.../contrato/*.example.json` existir exatamente nesse caminho. Quando a fase 01 for arquivada, renomeada ou o pacote for gerado por CI sem `.planning/` (ou depois de `/gsd-cleanup`), esses testes quebram por motivo que não é regressão. Os exemplos são "cópia byte a byte da fixture", ou seja, a duplicação serve só para checar que ninguém editou à mão o documento de planejamento.
-**Correção:** mover os exemplos para `test/fixtures/contrato/` (ou remover a duplicação e deixar a fixture capturada como única fonte), e o `.planning` apontar para lá.
+`test_taxa_padrao_vem_do_settings` então deve comparar a leitura do settings com a constante esperada, não com `ThrottleVitrinePublica().rate` (que passaria a devolver o valor mockado).
 
 ## Informativos
 
-### IN-01: `formatarValorCompacto` mostra "1.000 mil" perto de 1 milhão
+### IN-10: código defensivo inalcançável e regex duplicado em `_numero`
 
-**Arquivo:** `imovies-aqui-mobile/lib/presentation/vitrine/apresentacao_filtros.dart:151-159`
-**Problema:** o comentário diz que o valor dividido "nunca chega a 1000", mas `999950` a `999999` dividem para 999,95 a 999,999 e `'#,##0.#'` arredonda para `1.000`, gerando "1.000 mil" (deveria ser "1 mi"). Entrada válida: a máscara aceita até 9 dígitos.
-**Correção:** comparar após arredondar (`if (valor >= 999950)` usa a escala de milhões) e acrescentar teste para 999950 e 999999.
+**Arquivo:** `../imoveis-aqui/Web/imoveis/api/views.py:318-321,341,357-366`
+**Problema:** depois do `fullmatch`, `Decimal(valor)` não levanta `InvalidOperation` e o resultado é sempre finito, então `except (InvalidOperation, ValueError)` (para Decimal) e `if tipo is Decimal and not numero.is_finite()` não executam nunca. O único `ValueError` alcançável é o do limite de 4300 dígitos do `int()`. Além disso `_FORMATO_ID` repete `_FORMATO_INTEIRO` sem o sinal. Código morto parece defesa e esconde qual proteção realmente vale (o regex).
+**Correção:** manter o `try/except ValueError` só para o inteiro (com comentário sobre o limite do Python), remover o `is_finite()` ou deixá-lo documentado como cinto e suspensório, e reaproveitar um único padrão de dígitos.
 
-### IN-02: andar 0 (térreo) aparece como "0º"
+### IN-11: `test_api_autenticada_do_painel_nao_tem_limite` passa mesmo sem proteger nada
 
-**Arquivo:** `imovies-aqui-mobile/lib/presentation/detalhe_imovel/apresentacao_natureza.dart:130-131`
-**Problema:** o model da API documenta `andar` com `help_text="0 para o térreo."`, e o app mostra "Andar: 0º".
-**Correção:** `valor: andar == 0 ? 'Térreo' : '${andar}º'` e um teste.
+**Arquivo:** `../imoveis-aqui/Web/imoveis/tests.py:1219-1226`
+**Problema:** o `mock.patch.object(ThrottleVitrinePublica, "rate", "1/min")` não tem relação com a view `imovel-list` (ela não usa esse throttle), então as três requisições seguiriam passando com ou sem o patch. A única asserção com efeito é `DEFAULT_THROTTLE_CLASSES == []`. Se alguém adicionar `AnonRateThrottle` direto numa view autenticada, o teste não pega. O nome promete mais do que verifica.
+**Correção:** remover o patch e renomear para algo como `test_nao_ha_throttle_global_no_rest_framework`, ou testar de fato que `ImovelViewSet.throttle_classes` está vazio.
 
-### IN-03: comentários desatualizados após a remoção dos mocks
+### IN-12: rotas públicas de `contas` e `empresas` seguem sem limite, e o limite por IP tem lacunas conhecidas
 
-**Arquivo:** `imovies-aqui-mobile/lib/domain/repositories/opcoes_filtro_repository.dart:5-9`; `imovies-aqui-mobile/lib/domain/entities/imovel.dart:5-7, 49-53`; `imovies-aqui-mobile/lib/presentation/vitrine/rascunho_filtros_cubit.dart:35-38, 87-90`; `imovies-aqui-mobile/lib/presentation/vitrine/widgets/filtros_bottom_sheet.dart:36-38, 436, 477-478, 589`
-**Problema:** ainda falam em "impl concreta lê a mesma fixture", "Fase 4 troca por `dio` contra `GET /api/publico/bairros/`" (a rota real é `/cidades/<id>/bairros/`), "campo PENDENTE E2 ... `null` até o backend confirmar" (a API já manda `natureza` e `quartos`) e "servidor simulado". Quem lê o código hoje é induzido a achar que a integração ainda é mock.
-**Correção:** reescrever os comentários para o estado atual (API pública real).
+**Arquivo:** `../imoveis-aqui/Web/contas/api/views.py:39-45`, `../imoveis-aqui/Web/empresas/api/views.py:8-14`, `../imoveis-aqui/README.md` (bullet "Limite de taxa")
+**Problema:** `CorretorPublicoAPIView` e `EmpresaPublicaAPIView` são `AllowAny` sem throttle (e sem `authentication_classes = []`, então um token inválido vira 401). São buscas por chave primária, baratas, e o README já declara a exceção, por isso não é bug. Fica o registro para quem ampliar: a regra "toda rota pública declara o throttle" não é imposta por teste para essas duas. Além disso o limite é por IP exato: um cliente IPv6 com um bloco /64 troca de endereço à vontade, e CGNAT de operadora junta muita gente em um IP. O throttle reduz o abuso casual, não substitui limite na borda (proxy/WAF).
+**Correção:** decidir conscientemente (aplicar `ThrottleVitrinePublica` ou manter a exceção documentada com um teste que a trave) e tratar o limite de borda no checklist de deploy.
 
-### IN-04: código morto no modelo de dados
+### IN-13: testes 429 do app reaproveitam o corpo do 404 e o app não trata `Retry-After`
 
-**Arquivo:** `imovies-aqui-mobile/lib/data/models/detalhe_imovel_model.dart:163`; `imovies-aqui-mobile/lib/data/models/imovel_model.dart:26-30`
-**Problema:** `FotoImovelModel.paraEntidade()` nunca é chamado (o mapeamento é refeito em linha em `DetalheImovelModel.paraEntidade`, linhas 74-78). `ImovelModel` declara `suites`, `vagas` e `area` que `paraEntidade()` descarta.
-**Correção:** reutilizar `foto.paraEntidade()` no mapeamento (e filtrar a URL dentro dele), e remover os campos não usados do modelo da lista (ou levá-los à entidade se o card for usá-los).
+**Arquivo:** `test/data/imovel_remote_datasource_test.dart:183-191`, `test/data/imovel_detalhe_repository_impl_test.dart:97-122`
+**Problema:** o teste do 429 da lista usa `fixture: 'erro_404_detalhe.json'` (`"No Imovel matches the given query."`) como corpo, embora o comentário diga "o mesmo formato do Throttled do DRF". O corpo real do DRF é `{"detail": "Request was throttled. Expected available in N seconds."}` com cabeçalho `Retry-After`, que não é simulado nem capturado por `tool/capturar_fixtures_api.py`. Os testes só afirmam o status, então passam, mas o nome do arquivo induz a ler o teste como "404". Em `lib/` não há tratamento de 429: o estado de erro oferece "Tentar de novo" imediato, que reenvia a requisição dentro da janela bloqueada. O contrato da fase chama isso de comportamento aceito, então fica como informativo.
+**Correção:** criar `erro_429_throttled.json` com o corpo real do DRF e usá-lo nos dois testes; se quiser UX melhor depois, ler `Retry-After` para adiar o "Tentar de novo".
 
-### IN-05: chip de bairros mostra o primeiro por ordem de inserção, não de forma determinística
+### IN-14: `empresas/tests.py` cria diretório temporário na importação do módulo
 
-**Arquivo:** `imovies-aqui-mobile/lib/presentation/vitrine/apresentacao_filtros.dart:70, 141-145`
-**Problema:** para características o chip usa nomes ordenados ("o chip mostra sempre o mesmo primeiro nome"), mas para bairros `_rotuloMultiSelecao(filtros.bairros)` pega `.first` do `Set` na ordem em que o usuário marcou. Marcar Taquaral e depois Cambuí mostra "Taquaral +1" e a URL enviada ordena por Cambuí. Inconsistência de apresentação, não de dados.
-**Correção:** passar bairros ordenados por `normalizarTexto`, como já é feito com as características.
+**Arquivo:** `../imoveis-aqui/Web/empresas/tests.py:92,98-101`
+**Problema:** `MEDIA_DO_SEED = tempfile.mkdtemp()` roda ao importar o módulo, e o `rmtree` só acontece no `tearDownClass` de `SemearVitrineDevTests`. Importações em que essa classe não roda (filtro por tag, `--exclude-tag`, ou descoberta que importa e não executa) deixam um diretório em `/tmp` por execução. A segunda classe (`SemearVitrineDevDebugDesligadoTests`) reaproveita o caminho já apagado.
+**Correção:** criar o diretório em `setUpClass` (ou usar `tempfile.TemporaryDirectory` com `addClassCleanup`) em vez de em nível de módulo.
 
-### IN-06: `next` de paginação atrás de proxy TLS pode ser rejeitado pela guarda de mesma origem
+## Pendências carregadas (adiadas por escopo do usuário)
 
-**Arquivo:** `imovies-aqui-mobile/lib/data/datasources/imovel_remote_datasource.dart:53-66`; `imoveis-aqui/Web/config/settings.py` (sem `SECURE_PROXY_SSL_HEADER`/`USE_X_FORWARDED_HOST`)
-**Problema:** o DRF monta `next` com o esquema/host que o Django enxerga. Em produção atrás de proxy que termina TLS, sem `SECURE_PROXY_SSL_HEADER`, o `next` volta `http://` enquanto a base do app é `https://`, e a segunda página falha para sempre com `FormatException` (a guarda de origem está correta; a falha seria de configuração). Não afeta o desenvolvimento.
-**Correção:** registrar no checklist de deploy da API (`SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")`) e, se desejado, um teste do app com `next` de esquema diferente para documentar o comportamento.
+Sem reanálise nesta rodada, mantidas como na revisão `8e36e81`:
+- WR-03 (bairro cru em `/bairros/` vs `iexact` com `strip`), WR-04 (seed: bairro errado no apartamento), WR-05 (guarda do seed só olha `DEBUG`), WR-06 (testes de contrato leem `.planning/`).
+- IN-01 a IN-09 (formatação "1.000 mil", andar 0, comentários desatualizados, código morto no modelo, ordem do chip de bairros, `next` atrás de proxy TLS, ferramenta de captura, foto de capa no 404, item inválido derruba a página).
 
-### IN-07: ferramenta de captura grava fixtures parcialmente e roda contra qualquer URL
-
-**Arquivo:** `imovies-aqui-mobile/tool/capturar_fixtures_api.py:76-127, 190-216`
-**Problema:** cada `salvar()` grava no meio do fluxo; se uma validação seguinte falhar, `test/fixtures/api` fica com um conjunto misto de capturas novas e antigas, sem aviso. Nada impede apontar `URL_BASE` para um servidor real (os dados reais viram fixtures versionadas). A captura é feita em SQLite, enquanto produção é Postgres: a ordenação de `bairros` (`order_by("bairro_anuncio")`) depende do collation do banco e pode diferir da fixture.
-**Correção:** acumular tudo em memória e gravar só no fim, recusar `URL_BASE` que não seja `127.0.0.1`/`localhost` sem `--permitir-remoto`, e anotar a diferença de collation no cabeçalho do script.
-
-### IN-08: 404 do detalhe ainda mostra a foto de capa da prévia
-
-**Arquivo:** `imovies-aqui-mobile/lib/presentation/detalhe_imovel/detalhe_imovel_screen.dart:96-111, 114-115`
-**Problema:** o comentário explica que no 404 o preço da prévia não é mostrado, mas a `flexibleSpace` continua exibindo `previa.fotoCapa` do imóvel que saiu do ar, com o texto "Este imóvel não está mais disponível" logo abaixo. Inconsistente com a decisão de esconder dados do anúncio retirado.
-**Correção:** `DetalheNaoEncontrado() => const SizedBox.shrink()` (ou um fundo neutro) no `switch` do `background`.
-
-### IN-09: um item inválido derruba a página inteira da lista, ao contrário das demais fontes
-
-**Arquivo:** `imovies-aqui-mobile/lib/data/models/imovel_model.dart:55-65`; `imovies-aqui-mobile/lib/data/models/imoveis_envelope_model.dart:29-32`
-**Problema:** cidades, bairros e características descartam linhas inválidas, mas na lista de imóveis uma única `finalidade` desconhecida lança `FormatException` e a vitrine inteira cai em erro. Se o servidor ganhar uma finalidade nova, o app deixa de mostrar qualquer imóvel até ser atualizado.
-**Correção:** decidir conscientemente: descartar o item (com `try/catch` por item em `paraPagina`) ou manter a falha, e registrar a decisão num teste. Hoje é um comportamento diferente do resto sem justificativa escrita.
+Observação: `VITRINE_TAXA_ANONIMA` com formato inválido (por exemplo `120 por minuto`) só falha na primeira requisição pública, como 500 em todas as rotas, porque o DRF analisa a taxa em tempo de uso. Vale validar `<número>/<período>` no settings junto com a correção de WR-08.
 
 ---
 
-_Revisado em: 2026-11-01_
+_Revisado em: 2026-11-16_
 _Revisor: Claude (gsd-code-reviewer)_
 _Profundidade: standard_
