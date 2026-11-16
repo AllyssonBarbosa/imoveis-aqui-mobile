@@ -1,8 +1,12 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:imoveis_aqui/core/result.dart';
 import 'package:imoveis_aqui/data/datasources/imovel_remote_datasource.dart';
+import 'package:imoveis_aqui/data/repositories/imovel_repository_impl.dart';
 import 'package:imoveis_aqui/domain/entities/cidade.dart';
 import 'package:imoveis_aqui/domain/entities/consulta_imoveis.dart';
 import 'package:imoveis_aqui/domain/entities/ordenacao_vitrine.dart';
+import 'package:imoveis_aqui/domain/entities/pagina_imoveis.dart';
 
 import '../support/api_falsa.dart';
 
@@ -137,5 +141,80 @@ void main() {
         throwsFormatException,
       );
     });
+
+    test(
+      '400 {campo: mensagem} da lista vira DioException e Result.failure sem código novo',
+      () async {
+        api.responder(
+          rotaDaLista,
+          status: 400,
+          fixture: 'erro_400_natureza.json',
+        );
+        final consulta = ConsultaImoveis(cidade: campinas);
+
+        await expectLater(
+          datasource.buscar(consulta),
+          throwsA(
+            isA<DioException>().having(
+              (e) => e.response?.statusCode,
+              'status',
+              400,
+            ),
+          ),
+        );
+
+        final resultado = await ImovelRepositoryImpl(
+          datasource,
+        ).buscarImoveis(consulta);
+
+        expect(resultado, isA<Failure<PaginaImoveis>>());
+        expect(
+          (resultado as Failure<PaginaImoveis>).erro,
+          isA<DioException>().having(
+            (e) => e.response?.statusCode,
+            'status',
+            400,
+          ),
+        );
+      },
+    );
+
+    test(
+      '429 da lista (limite de taxa) vira DioException e Result.failure sem código novo',
+      () async {
+        // Corpo {detail}: o mesmo formato do Throttled do DRF.
+        api.responder(
+          rotaDaLista,
+          status: 429,
+          fixture: 'erro_404_detalhe.json',
+        );
+        final consulta = ConsultaImoveis(cidade: campinas);
+
+        await expectLater(
+          datasource.buscar(consulta),
+          throwsA(
+            isA<DioException>().having(
+              (e) => e.response?.statusCode,
+              'status',
+              429,
+            ),
+          ),
+        );
+
+        final resultado = await ImovelRepositoryImpl(
+          datasource,
+        ).buscarImoveis(consulta);
+
+        expect(resultado, isA<Failure<PaginaImoveis>>());
+        expect(
+          (resultado as Failure<PaginaImoveis>).erro,
+          isA<DioException>().having(
+            (e) => e.response?.statusCode,
+            'status',
+            429,
+          ),
+        );
+      },
+    );
   });
 }

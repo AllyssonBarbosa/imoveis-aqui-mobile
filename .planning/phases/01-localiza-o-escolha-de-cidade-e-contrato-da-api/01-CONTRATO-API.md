@@ -103,18 +103,22 @@ Envelope: `{"count": <total>, "next": <url|null>, "previous": <url|null>, "resul
 
 | Param | Semântica |
 |-------|-----------|
-| `busca` | texto; `icontains` em `titulo`, bairro e `descricao`. Aparado; vazio é ignorado. **Sensível a acento** (risco aceito, D-14) |
+| `busca` | texto; `icontains` em `titulo`, bairro e `descricao`. Aparado; vazio é ignorado; **até 200 caracteres** depois de aparado; o byte NUL (`%00`) dá 400. **Sensível a acento** (risco aceito, D-14) |
 | `ordenar` | `recentes` (padrão) \| `preco` \| `-preco` \| `area` \| `-area`; nulos sempre por último; empate desfeito por `-id` |
 | `finalidade` | `VENDA` \| `ALUGUEL`; inclusivo (`VENDA` traz também `VENDA_E_ALUGUEL`, idem `ALUGUEL`). `VENDA_E_ALUGUEL` como parâmetro dá 400 |
 | `natureza` | CSV, **OU** entre os valores (`natureza=CASA,LOTE`); valor fora do enum dá 400 |
-| `quartos`, `suites`, `vagas` | inteiro, **mínimo** ("N ou mais"); negativo ou não-inteiro dá 400 |
-| `bairro` | CSV de nomes, **OU**, sem diferenciar maiúsculas (`bairro=Cambuí,Taquaral`) |
-| `preco_min`, `preco_max` | decimal não negativo, limites inclusivos; compara `preco_venda` com `finalidade=VENDA`, `preco_aluguel` com `ALUGUEL` e o primeiro preenchido sem `finalidade` |
-| `area_min`, `area_max` | decimal não negativo, inclusivo, sobre a `area` do item (§3) |
-| `caracteristicas` | CSV de **ids** inteiros (do catálogo, §10), **E** (o imóvel precisa ter todas); nome no lugar do id dá 400 |
+| `quartos`, `suites`, `vagas` | inteiro ASCII (só dígitos `0-9`), **mínimo** ("N ou mais"), de 0 a **32767**; negativo, não-inteiro ou acima do teto dá 400 |
+| `bairro` | CSV de nomes, **OU**, sem diferenciar maiúsculas (`bairro=Cambuí,Taquaral`); **até 20 itens** de **até 100 caracteres** cada; o byte NUL dá 400 |
+| `preco_min`, `preco_max` | decimal ASCII (`123` ou `123.45`) de 0 a **9999999999.99** (o teto da coluna de preço); limites inclusivos; compara `preco_venda` com `finalidade=VENDA`, `preco_aluguel` com `ALUGUEL` e o primeiro preenchido sem `finalidade` |
+| `area_min`, `area_max` | decimal ASCII (`123` ou `123.45`) de 0 a **99999999.99** (o teto da coluna de área, que é menor que o do preço), inclusivo, sobre a `area` do item (§3) |
+| `caracteristicas` | CSV de **ids** inteiros positivos (do catálogo, §10), **E** (o imóvel precisa ter todas, numa única subconsulta); até **20 ids distintos** (repetidos contam uma vez); nome no lugar do id dá 400 |
 | `page` | número da página (o app não monta: segue `next`) |
 
 Parâmetros diferentes combinam por E. Um filtro numérico ativo exclui a linha cujo valor é nulo.
+
+**Formato numérico:** só dígitos ASCII `0-9`, com um ponto decimal opcional nos decimais. Recusados com 400:
+expoente (`1e3`), `NaN`, `Infinity`, sinal de mais, espaço, sublinhado (`1_0`) e dígito não ASCII. Nenhuma
+entrada hostil dá 500, inclusive o byte NUL em qualquer parâmetro.
 
 **Mapeamento do app (`parametrosDaApi`)**: `OrdenacaoVitrine.maisRecentes` -> `recentes`; `precoAsc` -> `preco`;
 `precoDesc` -> `-preco`; `areaAsc` -> `area`; `areaDesc` -> `-area`. `quartosMin`/`suitesMin`/`vagasMin` do
@@ -125,7 +129,39 @@ texto normalizado e características por id crescente, para que a mesma escolha 
 **Erros 400** (valor inválido): corpo `{"<campo>": "<mensagem em português>"}`, por exemplo
 `test/fixtures/api/erro_400_natureza.json`:
 `{"natureza": "Opções válidas: CASA, TERRENO, APARTAMENTO, LOTE."}`. O app mostra o estado de erro com
-"Tentar de novo"; nunca inventa dado.
+"Tentar de novo"; nunca inventa dado. Mensagens, exatamente como a view as devolve:
+
+| Campo | Quando | Mensagem |
+|-------|--------|----------|
+| `preco_min`, `preco_max`, `area_min`, `area_max`, `quartos`, `suites`, `vagas` | fora do formato numérico (expoente, NaN, Infinity, sinal, espaço, sublinhado, dígito não ASCII, decimal onde se espera inteiro) | `Informe um número válido.` |
+| os mesmos sete | valor negativo | `O valor não pode ser negativo.` |
+| os mesmos sete | acima do teto (preço 9999999999.99, área 99999999.99, inteiro 32767) | `O valor passa do máximo permitido.` |
+| `natureza`, `finalidade`, `ordenar` | valor fora do enum | `Opções válidas: ...` (lista os valores aceitos, ex. `Opções válidas: CASA, TERRENO, APARTAMENTO, LOTE.`) |
+| `busca`, `bairro` | contém o byte NUL | `O texto tem um caractere inválido.` |
+| `busca` | mais de 200 caracteres | `Use no máximo 200 caracteres.` |
+| `bairro` | mais de 20 itens | `Escolha no máximo 20 bairros.` |
+| `bairro` | item com mais de 100 caracteres | `Cada bairro tem no máximo 100 caracteres.` |
+| `caracteristicas` | item que não é inteiro positivo (nome no lugar do id, zero, negativo) | `Informe os ids separados por vírgula.` |
+| `caracteristicas` | mais de 20 ids distintos | `Escolha no máximo 20 características.` |
+
+## Erros 429 (limite de taxa)
+
+As **cinco rotas públicas** da tabela de rotas (lista, detalhe, cidades, bairros e características) dividem
+**um só balde por IP** (escopo `vitrine_publica`, `ThrottleVitrinePublica` do DRF). Quem passa da taxa recebe:
+
+- status **429**;
+- cabeçalho **`Retry-After`** (segundos até poder tentar de novo);
+- corpo `{"detail": "<texto em português>"}`, o mesmo formato `{detail}` do 404 (`test/fixtures/api/erro_404_detalhe.json`).
+
+**Taxa:** padrão `120/min` por IP, ajustável por `VITRINE_TAXA_ANONIMA` (formato do DRF: `número/periodo`).
+Navegar pelo app usa em torno de 4 requisições ao abrir a vitrine e uma por página, busca ou detalhe, bem abaixo
+do limite. **`NUM_PROXIES`** (padrão `0` = usa o IP da conexão e ignora o `X-Forwarded-For`, que o cliente
+forja; atrás de proxy reverso, o número de proxies confiáveis). A API autenticada do painel **não** é limitada.
+
+**No app (D-14):** 429 é uma falha como qualquer outra: o `ImovelRepositoryImpl` devolve `Result.failure` com a
+`DioException` e a UI mostra o estado de erro com "Tentar de novo", sem nova tentativa automática. No detalhe,
+só o 404 vira "não encontrado" (D-17); o 429 vira falha com o erro do dio. Nenhuma mudança em `lib/`; travado
+por testes (`test/data/imovel_remote_datasource_test.dart`, `test/data/imovel_detalhe_repository_impl_test.dart`).
 
 ---
 
@@ -169,6 +205,11 @@ cidade ou qualquer parâmetro. O mesmo vale para o detalhe: 404 idêntico (§11.
 | **Busca sensível a acento (Pitfall 3, D-14).** `busca=Cambui` não acha "Cambuí" no Postgres. | Aceito nesta fase; `unaccent` é melhoria da frente web. |
 | **`Cidade.id` como atributo de roteamento (A-01).** A identidade da cidade no app é `nome-uf`; o `id` pode divergir entre ambientes (dev x produção). | Aceito: o app pega o `id` da lista de cidades carregada; sem `id` a vitrine mostra "Tentar de novo". Fixture e servidor de captura têm ids determinísticos. |
 | **Dados de contato do corretor no payload público.** | PENDENTE, ver §11.5 (g). |
+| **Área de 9 dígitos no app.** O campo de área aceita 9 dígitos (`_maximoDigitos = 9` em `mascara_numerica.dart`); uma área de 100.000.000 m² ou mais passa do teto da coluna (99999999.99) e a API responde 400. | Aceito: nenhum anúncio real chega a 100 km². O app mostra o estado de erro com "Tentar de novo"; `lib/` não muda (D-01). |
+| **IP compartilhado (CGNAT, proxy sem `NUM_PROXIES`).** Muitos aparelhos atrás do mesmo IP dividem o balde de 120/min e podem receber 429. | Aceito: ajustável por `VITRINE_TAXA_ANONIMA`; atrás de proxy reverso, configurar `NUM_PROXIES`. Item de deploy. |
+| **`LocMemCache` por processo.** O contador do limite fica na memória de cada worker; com vários workers o limite efetivo multiplica. | Aceito no dev; produção deve usar cache compartilhado. Item de deploy. |
+| **O app não limita o tamanho da busca nem a quantidade de bairros/características marcados.** Busca com mais de 200 caracteres, mais de 20 bairros ou mais de 20 características dão 400. | Aceito (raro): o excesso vira o estado de erro com "Tentar de novo"; `lib/` não muda (D-01). |
+| **Rotas públicas da frente web sem limite:** `corretores/<id>/` e `empresas/<id>/`. | Fora do escopo: o app não as consome; dona: a frente web. |
 
 ---
 
@@ -294,6 +335,9 @@ e no README do app), depois copiar byte a byte para `contrato/`:
 | `detalhe_lote.json` | `imovel_detalhe_lote.example.json` |
 | `bairros_campinas.json` | `bairros.example.json` |
 | `caracteristicas.json` | `caracteristicas.example.json` |
+
+A superfície de erro (400 e 429) é travada por `VitrineBuscaTests` e `VitrineLimiteDeTaxaTests` no Django e
+pelos testes de 400/429 do app (`imovel_remote_datasource_test.dart`, `imovel_detalhe_repository_impl_test.dart`).
 
 Os testes de contrato do app (`test/data/contrato_lista_test.dart`, `test/data/contrato_detalhe_test.dart`)
 comparam cada exemplo com sua fixture e travam as chaves exatas de cidade, envelope, item, opções, detalhe e

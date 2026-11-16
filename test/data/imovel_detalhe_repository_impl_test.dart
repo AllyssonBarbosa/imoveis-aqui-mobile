@@ -94,6 +94,29 @@ void main() {
       },
     );
 
+    test(
+      '429 (limite de taxa) vira o erro do dio, nunca '
+      'ImovelNaoEncontradoException',
+      () async {
+        final erro = dioException(429);
+        when(() => dataSource.buscarDetalhe(any())).thenThrow(erro);
+
+        final resultado = await repositorio.buscarDetalhe(21);
+
+        final falha = erroDe(resultado);
+        expect(falha, same(erro));
+        expect(
+          falha,
+          isA<DioException>().having(
+            (e) => e.response?.statusCode,
+            'status',
+            429,
+          ),
+        );
+        expect(falha, isNot(isA<ImovelNaoEncontradoException>()));
+      },
+    );
+
     test('DioException sem resposta (timeout) vira Failure com ela', () async {
       final erro = dioException(null);
       when(() => dataSource.buscarDetalhe(any())).thenThrow(erro);
