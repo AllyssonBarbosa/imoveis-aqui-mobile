@@ -1,11 +1,12 @@
 ---
 phase: 05-im-veis-real-endpoint-p-blico-e-integra-o-final
-verified: 2026-11-01T00:00:00Z
-status: gaps_found
-score: 4/6 must-haves verified
+verified: 2026-11-16T00:00:00Z
+status: human_needed
+score: 6/6 must-haves verified
 covered_files:
   - .planning/REQUIREMENTS.md
   - .planning/ROADMAP.md
+  - .planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/01-CONTRATO-API.md
   - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-01-PLAN.md
   - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-01-SUMMARY.md
   - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-02-PLAN.md
@@ -42,6 +43,15 @@ covered_files:
   - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-17-SUMMARY.md
   - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-18-PLAN.md
   - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-18-SUMMARY.md
+  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-19-PLAN.md
+  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-19-SUMMARY.md
+  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-20-PLAN.md
+  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-20-SUMMARY.md
+  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-21-PLAN.md
+  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-21-SUMMARY.md
+  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-22-PLAN.md
+  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-22-SUMMARY.md
+  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-REVIEW-FIX.md
   - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-REVIEW.md
   - lib/data/datasources/cidade_remote_datasource.dart
   - lib/data/datasources/imovel_detalhe_remote_datasource.dart
@@ -49,110 +59,120 @@ covered_files:
   - lib/data/datasources/opcoes_filtro_remote_datasource.dart
   - lib/data/datasources/parametros_consulta_imoveis.dart
   - lib/di/injection.config.dart
-covered_digest: "v1:sha256:acdadf194761e0f0d71cdebefc6bace740625827aff8ba5a5584472f20917610"
+  - test/data/imovel_detalhe_repository_impl_test.dart
+  - test/data/imovel_remote_datasource_test.dart
+covered_digest: "v1:sha256:2d423385e30bb29105c5c6ea446e43a2d6ece3ca6d1d765cd3ae99c1afd135e5"
 behavior_unverified: 0
 overrides_applied: 0
-gaps:
-  - truth: "SC3 — a resposta segue o contrato do formato real, sem drift silencioso (o contrato diz: valor inválido de filtro numérico responde 400 {campo: mensagem})"
-    status: partial
-    reason: "CR-02 do 05-REVIEW, confirmado no código: `_numero` (views.py) faz `Decimal(valor)` e depois `numero < 0` fora do try. `preco_min=NaN` / `area_min=sNaN` lança decimal.InvalidOperation (reproduzido: `Decimal('NaN') < 0` -> InvalidOperation) e `Infinity` chega ao ORM e quebra com ValidationError do Django: HTTP 500 em vez do 400 prometido pelo contrato. Nenhum teste cobre essas entradas, então o drift é silencioso, exatamente o que o critério 3 proíbe."
-    artifacts:
-      - path: "../imoveis-aqui/Web/imoveis/api/views.py"
-        issue: "_numero() (linhas ~315-326) aceita NaN/sNaN/Infinity/'1_0' e não rejeita não-finitos; 500 no endpoint público"
-      - path: "../imoveis-aqui/Web/imoveis/tests.py"
-        issue: "VitrineBuscaTests não tem caso para NaN, sNaN, Infinity, 1e400"
-    missing:
-      - "Rejeitar `not numero.is_finite()` com ValidationError (400) em _numero; opcionalmente limitar ao máximo do campo e rejeitar '_'"
-      - "Testes em VitrineBuscaTests para NaN, sNaN, Infinity e 1e400 afirmando 400"
-  - truth: "O endpoint público sem token é seguro de expor (consulta limitada, sem DoS por um único pedido) — derivado do goal (endpoint público real) e do ASVS citado nos planos 05-02/05-04"
-    status: failed
-    reason: "CR-01 do 05-REVIEW, confirmado no código: o filtro `caracteristicas` (views.py ~419-427) faz `queryset.filter(caracteristicas=id)` num `for` sobre ids sem teto; cada .filter() encadeado numa M2M soma um JOIN. O revisor reproduziu uma requisição com milhares de ids deixando o backend Postgres ocupado por mais de 2 minutos. `int()` também aceita -1. Sem throttle (WR-02) e sem limite de ids/bairros/tamanho de busca. Os 331 testes não cobrem entrada hostil."
-    artifacts:
-      - path: "../imoveis-aqui/Web/imoveis/api/views.py"
-        issue: "loop de .filter(caracteristicas=...) sem limite; bairro CSV e busca também sem teto"
-    missing:
-      - "Limitar a quantidade de ids (<= tamanho do catálogo, ex. 20) e rejeitar ids <= 0 com 400"
-      - "Trocar JOINs encadeados por uma única agregação (semântica 'tem todas' preservada)"
-      - "Teste: 21+ ids devolve 400; caracteristicas=1,2 continua exigindo as duas"
-      - "Recomendado: throttle anônimo e teto para bairro/busca (WR-02)"
+re_verification:
+  previous_status: gaps_found
+  previous_score: 4/6
+  gaps_closed:
+    - "SC3 / CR-02 — valor numérico não-finito ou hostil dá 400 conforme o contrato (planos 05-19 e 05-22)"
+    - "Derivada — endpoint público seguro de expor: CR-01 (caracteristicas sem teto), WR-01 (byte NUL), WR-02 (sem limite de taxa/tetos de texto) (planos 05-19, 05-20, 05-21)"
+  gaps_remaining: []
+  regressions: []
+advisory:
+  - finding: "WR-08 foi resolvido como aviso (core.W001 em `check --deploy`), não como erro de partida: subir em produção atrás de proxy sem NUM_PROXIES continua possível e junta todos os visitantes em um balde de 120/min"
+    category: other
+    reason: "decisão de desenho documentada no 05-REVIEW-FIX (erro de partida derrubaria a suíte sem .env); entra no checklist de deploy"
+    evidence_status: "aviso testado em VerificarNumProxiesTests (4 testes); sem prova de deploy real"
 human_verification:
-  - test: "Verificação ponta a ponta no emulador (README, seção 'Verificação ponta a ponta (emulador)'; 05-18-SUMMARY): subir o runserver 0.0.0.0:8000 no banco de dev semeado, rodar o app (Android AVD Medium_Phone_API_36.0 com base URL padrão http://10.0.2.2:8000, ou iOS com --dart-define=API_BASE_URL=http://127.0.0.1:8000) e percorrer: (1) Campinas, rolar a lista inteira, duas páginas, sem card repetido; (2) buscar 'Cambuí' e depois texto sem resultado; (3) ordenar por 'Maior preço'; (4) Filtros: Casa e Lote, um bairro, 'Piscina', faixa de preço, aplicar, remover chip, 'Limpar filtros'; (5) abrir uma casa, um apartamento, um terreno e um lote (galeria começando pela capa 'N/M', blocos 'Sobre a ...', lote sem 'Preço do lote', posição solar e uso permitido em português), tocar no cartão do corretor; (6) abrir o imóvel sem fotos e o sem corretor; (7) trocar para Valinhos com filtro ativo."
-    expected: "A vitrine mostra, busca, ordena e filtra imóveis reais; fotos carregam pela rede; rolagem e latência normais; os blocos das 4 naturezas aparecem no detalhe; textos legíveis em português a 360 dp, Material 3 verde e branco. Este é o check humano de fim de fase (human_verify_mode=end-of-phase; critérios 4 e 5 do ROADMAP) e ainda NÃO foi feito."
+  - test: "Verificação ponta a ponta no emulador (README do app, seção 'Verificação ponta a ponta (emulador)'; 05-18-SUMMARY): subir o runserver 0.0.0.0:8000 no banco de dev semeado, rodar o app (Android AVD Medium_Phone_API_36.0 com base URL padrão http://10.0.2.2:8000, ou iOS com --dart-define=API_BASE_URL=http://127.0.0.1:8000) e percorrer: (1) Campinas, rolar a lista inteira, duas páginas, sem card repetido; (2) buscar 'Cambuí' e depois texto sem resultado; (3) ordenar por 'Maior preço'; (4) Filtros: Casa e Lote, um bairro, 'Piscina', faixa de preço, aplicar, remover chip, 'Limpar filtros'; (5) abrir uma casa, um apartamento, um terreno e um lote (galeria começando pela capa 'N/M', blocos 'Sobre a ...', lote sem 'Preço do lote', posição solar e uso permitido em português), tocar no cartão do corretor; (6) abrir o imóvel sem fotos e o sem corretor; (7) trocar para Valinhos com filtro ativo."
+    expected: "A vitrine mostra, busca, ordena e filtra imóveis reais; fotos carregam pela rede; rolagem e latência normais; os blocos das 4 naturezas aparecem no detalhe; textos legíveis em português a 360 dp, Material 3 verde e branco. Check humano de fim de fase (human_verify_mode=end-of-phase; critérios 4 e 5 do ROADMAP), ainda NÃO feito."
     why_human: "Rede real, carga de imagens, rolagem, latência e aparência só um emulador contra o Django prova; os testes automatizados usam JSON capturado servido por ApiFalsa, não um servidor vivo."
 ---
 
 # Fase 5: Imóveis Real — Endpoint Público e Integração Final — Relatório de Verificação
 
 **Objetivo da fase:** A API expõe o acervo real de imóveis com busca, ordenação, filtros e paginação resolvidos no servidor, sem dado interno; o app troca a DataSource mock pela real, e a vitrine com filtros passa a funcionar ponta a ponta com dados reais.
-**Verificado em:** 2026-11-01
-**Status:** gaps_found
-**Re-verificação:** Não — verificação inicial
+**Verificado em:** 2026-11-16
+**Status:** human_needed
+**Re-verificação:** Sim — após o fechamento de lacunas (planos 05-19..05-22) e a correção do code review (WR-07..09). A verificação anterior (`gaps_found`, 4/6) está no git em `425775c`.
 
 ## Resumo
 
-O objetivo funcional foi atingido no código dos dois repositórios: a API expõe lista, detalhe, bairros e catálogo de características públicos, sem token, com a regra única `na_vitrine`, allowlist exata e isolamento; o app usa as DataSources remotas via DI, sem nenhum mock em `lib/`, e a adaptação ao formato real ficou em `data/` e na UI. Os gates automáticos estão verdes (reexecutados por mim). **O status é `gaps_found`, e não `human_needed`, por causa dos dois achados críticos do code review (CR-01 e CR-02), que confirmei lendo o código e reproduzindo o comportamento do `Decimal`:** ambos estão no endpoint público novo da fase, um viola o contrato de erros 400 (critério 3) e o outro permite negação de serviço com uma única requisição. Os dois são correções pequenas e localizadas em `views.py`. O check humano de emulador (critérios 4 e 5) continua pendente e está listado em `human_verification`.
+As duas lacunas da verificação anterior estão fechadas, e eu conferi isso no código e com comportamento medido, não pelos SUMMARYs. Reexecutei os gates (API 359 testes OK, `makemigrations --check` sem mudanças, `flutter analyze` sem avisos, `flutter test` 588/588) e escrevi um script descartável no `scratchpad` que sobe o Django com SQLite em memória e dispara o test client contra a lista pública com 130+ entradas hostis (NaN, sNaN, Infinity, `1e400`, `1_0`, dígito árabe, ids gigantes, byte NUL, tetos, CSV enorme): **nenhuma devolveu 500**; todas as entradas inválidas deram 400 e a única forma válida de CSV (`1,2` e `1,1,1,...` repetido) deu 200. Com a taxa padrão, a requisição 121 no mesmo minuto dá 429 com `Retry-After: 60`. Não restou lacuna de código; o status é `human_needed` só porque o check de emulador de fim de fase (critérios 4 e 5) continua pendente e é o único item aberto.
+
+Nota de método: o ROADMAP marca a fase como `mode: mvp`, mas o objetivo não está no formato de história de usuário. Como na verificação anterior, apliquei a verificação goal-backward padrão contra os critérios de sucesso do ROADMAP.
+
+## Estado de cada lacuna anterior
+
+| Lacuna anterior | Estado | Evidência |
+|-----------------|--------|-----------|
+| 1. SC3 / CR-02: `NaN`/`sNaN`/`Infinity` em filtro numérico dava 500 em vez do 400 do contrato | FECHADA | `_numero` (`views.py:347-369`) valida o texto por `fullmatch` contra `-?[0-9]+(\.[0-9]+)?` (ou inteiro) antes de converter, depois recusa não-finito, negativo e acima do teto da coluna (preço 9999999999.99, área 99999999.99, inteiro 32767). Medido: os 7 parâmetros numéricos x 15 valores hostis (NaN, sNaN, nan, Infinity, -Infinity, inf, `1e400`, `1_0`, dígito árabe, `1e5`, `-1`, 17 noves, `0x10`, `+1`, espaço) = 105 respostas, todas 400. Testes que travam: `test_numero_nao_finito_ou_fora_do_formato_da_400`, `test_numero_acima_do_teto_da_400_e_no_teto_passa`, `test_area_tem_o_teto_da_coluna`. O contrato (`01-CONTRATO-API.md`, tabela de mensagens 400) descreve exatamente o que a view devolve. |
+| 2. Derivada: endpoint público seguro de expor (CR-01 DoS por `caracteristicas`) | FECHADA | `_ids_de_caracteristicas` (`views.py:400-420`): só `[0-9]{1,18}`, positivo, deduplicado, no máximo 20 ids distintos, tudo antes de qualquer consulta; o filtro virou uma subconsulta única `pk__in` com `GROUP BY imovel_id HAVING COUNT(DISTINCT) = n` (`views.py:520-527`), sem um JOIN por id e mantendo "tem todas". Medido: 21 ids, `-1`, `0`, 5000 zeros, 30 noves e 5000 noves dão 400; `1,2` e 5000 `1` repetidos dão 200 (repetidos contam uma vez). Testes: `test_caracteristicas_demais_da_400` (inclui prova de que o 400 não consulta `imoveis_imovel`), `test_filtro_caracteristicas_usa_uma_so_subconsulta_...` (forma do SQL), `test_filtro_caracteristicas_exige_todas`, `test_paginacao_com_filtro_de_caracteristicas_nao_duplica_linha`. |
+| WR-01 (byte NUL em `busca`/`bairro` dava 500) | FECHADA | `_texto` e `_bairros_do_filtro` recusam `\x00` com 400 em Python; medido 400 para `busca=%00` e `bairro=%00`; teste dos 9 parâmetros `test_byte_nul_em_qualquer_parametro_nunca_da_500`. |
+| WR-02 (sem limite de taxa nem teto de texto/CSV) | FECHADA para as rotas da vitrine | Tetos: `busca` 200 caracteres, `bairro` 20 itens de até 100, características 20 (medido: 400 em todos). `ThrottleVitrinePublica` (`core/throttles.py`) com escopo `vitrine_publica`, só nas 5 rotas públicas da vitrine (lista, detalhe, cidades, bairros, características); sem `DEFAULT_THROTTLE_CLASSES`, então a API autenticada do painel não é limitada. Medido com a taxa padrão: 120 respostas 200 e depois 429 com `Retry-After: 60`. Exceção documentada e fora do escopo: `corretores/<id>/` e `empresas/<id>/` (IN-12). |
+| WR-07 (id de característica com dígitos demais dava 500) | CORRIGIDO (05-REVIEW-FIX) | `_FORMATO_ID = [0-9]{1,18}` e uma só conversão; medido 400 para 5000 zeros, 5000 noves, 30 noves; id de 18 noves comum dá 200 (teste). |
+| WR-08 (`NUM_PROXIES=0` atrás de proxy junta todos num balde) | CORRIGIDO COMO AVISO | `core/checks.py` (`core.W001`, só em `check --deploy`), `NUM_PROXIES_CONFIGURADO` em `settings.py:149`, `.env.example` com a linha comentada, README e validação de `VITRINE_TAXA_ANONIMA` na partida (`settings.py:138-143`); `VerificarNumProxiesTests` com 4 testes. Não impede subir sem a variável (decisão registrada). Ver advisory. |
+| WR-09 (suíte dependia de `VITRINE_TAXA_ANONIMA` do ambiente) | CORRIGIDO | `fixar_taxa_alta` em `VitrineBase`/`VitrinePublicaTests` e `SemearVitrineDevTests`; os testes de 429 sobrepõem com taxa própria. 359 testes passam. |
+| WR-03..WR-06, IN-01..IN-14 | ADIADOS pelo usuário | Registrados nos planos/ROADMAP e no 05-REVIEW; não são lacunas. |
 
 ## Verdades Observáveis
 
 | # | Verdade (critério do ROADMAP) | Status | Evidência |
 |---|-------------------------------|--------|-----------|
-| 1 | SC1: `GET /api/publico/cidades/<id>/imoveis/?filtros` responde sem token, só com publicados, com busca/ordenação/filtros/paginação no servidor | VERIFICADO | `VitrineCidadeAPIView` (`views.py`): `AllowAny` + `authentication_classes = []`, parte de `imoveis_da_vitrine()` (`vitrine.py` -> `Imovel.objects.na_vitrine()` = publicado + DISPONÍVEL + empresa ativa). Busca em titulo/bairro/descricao, `finalidade`, `natureza` CSV, faixas de preço/área, mínimos de quartos/suítes/vagas, `bairro` CSV iexact, `caracteristicas`, `ordenar` (5 valores, desempate `-id`), `PaginacaoVitrine` (20). Rotas registradas em `urls_publico.py` e `config/urls.py:17`. Suíte Django 331 OK. (Entrada hostil: ver gaps.) |
-| 2 | SC2: serializer público com allowlist explícita, sem proprietário/documento/dado interno; sem quebrar isolamento (nenhum imóvel de outra empresa ou não publicado aparece) | VERIFICADO | `serializers.py` 422-590: `fields` listados um a um em todos os serializers públicos (`ImovelVitrineSerializer`, `ImovelVitrineDetalheSerializer`, endereço sem `complemento`, apartamento sem número, lote sem `vendido`/preço). `VitrineAllowlistExataTests` (igualdade exata de chaves), `VitrineSemTokenESemVazamentoTests` (`CHAVES_PROIBIDAS` + `VALORES_PROIBIDOS`), `VitrineSituacaoTests` (reservado/vendido/alugado somem da lista e dão o mesmo 404 do id inexistente; cidade sem vitrine some de `/cidades/`). Ressalva aceita e registrada: contatos e `empresa_id` do corretor público (checkpoint do 05-02; revisão LGPD adiada para a web, pendência c/g/l do contrato). |
-| 3 | SC3: resposta segue o contrato real (01-CONTRATO-API.md reescrito, exemplos copiados de respostas capturadas, testes de contrato nos dois repositórios), sem drift silencioso | FALHOU (parcial) | O que existe e passa: `01-CONTRATO-API.md` reescrito; 6 `contrato/*.example.json` = cópias byte a byte das 15 fixtures capturadas em `test/fixtures/api/` por `tool/capturar_fixtures_api.py`; `test/data/contrato_lista_test.dart` e `contrato_detalhe_test.dart` no app, `VitrineAllowlistExataTests` na API. O que falha: o contrato (§5 e "Erros 400") promete 400 para valor inválido, mas `preco_min/max` e `area_min/max` com `NaN`/`sNaN`/`Infinity` dão HTTP 500 (CR-02) e nenhum teste trava isso: drift silencioso no próprio endpoint novo. Ver gap 1. |
-| 4 | SC4: app troca as DataSources mock pelas reais via DI; adaptação em `data/` e UI, Cubits/domain só o mínimo (D-01); ponta a ponta o visitante vê, busca, ordena e filtra imóveis reais | VERIFICADO no código; ponta a ponta HUMANO PENDENTE | `lib/di/injection.config.dart` registra `ImovelRemoteDataSource`, `ImovelDetalheRemoteDataSource`, `OpcoesFiltroRemoteDataSource` e `CidadeRemoteDataSource` sobre o mesmo `Dio` (linhas 97-136); não há classe mock em `lib/data/datasources/` nem arquivo `*mock*` no projeto. `parametros_consulta_imoveis.dart` concentra os nomes de parâmetro da W09 (cidade no caminho pelo id, `ordenar`, `busca` com trim, CSV ordenado, ids de característica); `ImovelRemoteDataSource` segue o `next` só se tiver a mesma origem da base URL; o Cubit só dedupe ids repetidos e não refiltra/reordena (D-14). `flutter analyze` sem avisos; `flutter test` 585/585. Falta o run no emulador (human_verification). |
-| 5 | SC5: detalhe `GET /api/publico/imoveis/{id}/` vem da API real, incluindo dados de natureza; página do imóvel da Fase 4 funciona ponta a ponta | VERIFICADO no código; ponta a ponta HUMANO PENDENTE | `ImovelDetalheRemoteDataSource` (`caminhoDetalheImovelPublico`) via DI; `DetalheImovelModel`/`DadosNaturezaModel` lidos contra os 4 detalhes capturados (+ sem fotos, sem corretor, 404); testes `contrato_detalhe_test`, `detalhe_imovel_model_test`, `detalhe_imovel_screen_test`, `detalhe_navegacao_test` passam. Lote adicionado na API (`LotePublicoSerializer`, 05-02). |
-| 6 | Derivada do goal/ASVS: o endpoint público é seguro de expor (consulta limitada) | FALHOU | CR-01 confirmado em `views.py`: `for caracteristica_id in ids: queryset = queryset.filter(caracteristicas=caracteristica_id)` sem teto e sem validação de sinal; sem throttle. Ver gap 2. |
+| 1 | SC1: `GET /api/publico/cidades/<id>/imoveis/?filtros` responde sem token, só com publicados, com busca/ordenação/filtros/paginação no servidor | VERIFICADO | `VitrineCidadeAPIView` (`AllowAny`, `authentication_classes = []`, parte de `imoveis_da_vitrine()` = `na_vitrine()`); busca, `finalidade`, `natureza` CSV, faixas, mínimos, `bairro` CSV, `caracteristicas`, `ordenar` (5 valores, desempate `-id`), paginação de 20. Suíte 359 OK. Entrada hostil agora tratada (ver lacunas fechadas); a lista continua respondendo 200 nos casos válidos medidos. |
+| 2 | SC2: serializer público com allowlist, sem proprietário/documento/dado interno; isolamento preservado | VERIFICADO (regressão checada) | `VitrineAllowlistExataTests`, `VitrineSemTokenESemVazamentoTests` e `VitrineSituacaoTests` passam na suíte de 359; `serializers.py` com `fields` explícitos. Os planos 05-19..05-22 não alteram serializers (só `views.py`, `settings.py`, `core/`, testes). Ressalva aceita: contatos e `empresa_id` do corretor público (pendência LGPD c/g/l do contrato). |
+| 3 | SC3: resposta segue o contrato real, com exemplos capturados e testes de contrato nos dois repositórios, sem drift silencioso | VERIFICADO | Contrato reescrito, 6 `contrato/*.example.json` iguais às fixtures capturadas, `contrato_lista_test`/`contrato_detalhe_test` no app e `VitrineAllowlistExataTests` na API. A superfície de erro agora também está travada: 400 (mensagens do contrato idênticas às da view) e 429 em `VitrineBuscaTests`/`VitrineLimiteDeTaxaTests` e nos testes de 400/429 do app. Nenhuma entrada hostil medida quebra o contrato de 400. |
+| 4 | SC4: app troca as DataSources mock pelas reais via DI; adaptação em `data/` e UI; ponta a ponta vê, busca, ordena e filtra imóveis reais | VERIFICADO no código; ponta a ponta HUMANO PENDENTE | `injection.config.dart` registra as 4 DataSources remotas; nenhum arquivo ou classe mock em `lib/data/datasources/` (as ocorrências de "mock" em `lib/` são só comentários e gateways mockáveis). `flutter analyze` limpo, `flutter test` 588/588. Falta o emulador. |
+| 5 | SC5: detalhe `GET /api/publico/imoveis/{id}/` vem da API real, com dados de natureza; página do imóvel funciona ponta a ponta | VERIFICADO no código; ponta a ponta HUMANO PENDENTE | `ImovelDetalheRemoteDataSource` via DI; testes de contrato, modelo, tela e navegação do detalhe passam; `VitrineDetalheTests`/`VitrineLoteTests` na API. Falta o emulador. |
+| 6 | Derivada: o endpoint público é seguro de expor (consulta limitada, sem DoS por um pedido) | VERIFICADO | Ver lacuna 2: teto de 20 ids com subconsulta única, tetos de busca/bairro, 400 para NUL e formatos hostis, throttle 120/min por IP nas 5 rotas, ignorando `X-Forwarded-For` com `NUM_PROXIES=0`. Medido 0 respostas 500 em 130+ entradas. Resíduo aceito: ver Advisory e Anti-padrões. |
 
-**Pontuação:** 4/6 verdades verificadas (SC1, SC2, SC4 e SC5 no código; 2 delas dependem ainda do check humano de emulador para a parte "ponta a ponta"). 0 truths marcadas `PRESENT_BEHAVIOR_UNVERIFIED`: a parte ao vivo está coberta pelo item de `human_verification`.
+**Pontuação:** 6/6 verdades verificadas no código (0 `PRESENT_BEHAVIOR_UNVERIFIED`): os invariantes de comportamento (400 antes de consultar, "tem todas", 429 após a taxa) têm teste que passa e foram reproduzidos por mim. A parte "ponta a ponta" de SC4 e SC5 depende do item de `human_verification`.
 
 ## Artefatos Obrigatórios
 
 | Artefato | Esperado | Status | Detalhes |
 |----------|----------|--------|----------|
-| `../imoveis-aqui/Web/imoveis/vitrine.py` | `imoveis_da_vitrine()` sobre `na_vitrine()` | VERIFICADO | `Imovel.objects.na_vitrine()`, LOTE nas anotações (`lote__area`). `na_vitrine` definido em `models.py:15`. |
-| `../imoveis-aqui/Web/imoveis/api/urls_publico.py` | 4 rotas públicas | VERIFICADO | `publico-vitrine-cidade`, `publico-bairros-cidade`, `publico-caracteristicas`, `publico-imovel`; incluído uma vez em `config/urls.py`. |
-| `../imoveis-aqui/Web/imoveis/api/serializers.py` | serializers públicos com allowlist | VERIFICADO | Lote/Quadra/Loteamento públicos, galeria com capa primeiro (view usa `order_by("-capa","ordem","id")`). |
-| `../imoveis-aqui/Web/imoveis/api/views.py` | views públicas | VERIFICADO (com gaps CR-01/CR-02) | Funcional; endurecimento ausente. |
-| `../imoveis-aqui/Web/empresas/management/commands/semear_vitrine_dev.py` | seed idempotente, só `DEBUG=True` | VERIFICADO | Guarda de `DEBUG` (linha 137), `SemearVitrineDevTests` + `SemearVitrineDevDebugDesligadoTests`. Ressalvas WR-04/WR-05. |
-| `../imoveis-aqui/Web/.env.example` | `ALLOWED_HOSTS` com `10.0.2.2` | VERIFICADO | Arquivo modificado (`Web/.env` nunca lido). |
-| `test/fixtures/api/*.json` (15 arquivos) | capturas reais de lista, opções, detalhes e erros | VERIFICADO | Lista p1/p2/vazia/CASA+LOTE, bairros, características, cidades, 4 detalhes + sem fotos + sem corretor, 400 e 404. |
-| `tool/capturar_fixtures_api.py` | captura reexecutável | VERIFICADO | Ressalvas IN-07 (informativas). |
-| `lib/data/datasources/{imovel,imovel_detalhe,opcoes_filtro,cidade}_remote_datasource.dart` + `parametros_consulta_imoveis.dart` | DataSources reais | VERIFICADO | Substantivos e ligados no DI. |
-| `lib/domain/entities/imovel.dart`, `cidade.dart` | `Imovel` sem cidade; `Cidade` com `id` fora da igualdade | VERIFICADO | Testes de ida e volta no prefs. |
-| `01-CONTRATO-API.md` + `contrato/*.example.json` + testes de contrato | contrato real e antidrift | VERIFICADO (conteúdo); contrato de 400 contradito pelo comportamento (gap 1) | |
+| `../imoveis-aqui/Web/imoveis/api/views.py` | views públicas com entrada endurecida | VERIFICADO | `_numero`, `_texto`, `_bairros_do_filtro`, `_ids_de_caracteristicas`, subconsulta agregada, `throttle_classes` nas 4 views desta rota (lista, bairros, características, detalhe). |
+| `../imoveis-aqui/Web/localizacao/api/views.py` | cidades atendidas com throttle | VERIFICADO | Quinta rota pública com `ThrottleVitrinePublica` (travado por teste das 5 views). |
+| `../imoveis-aqui/Web/core/throttles.py` | `ThrottleVitrinePublica` | VERIFICADO | `AnonRateThrottle`, escopo `vitrine_publica`. |
+| `../imoveis-aqui/Web/core/checks.py` + `core/apps.py` | `core.W001` | VERIFICADO | Registrado só em `deploy=True`; 4 testes. |
+| `../imoveis-aqui/Web/config/settings.py` | taxa, `NUM_PROXIES`, validação | VERIFICADO | Taxa inválida levanta `ImproperlyConfigured` na partida. |
+| `../imoveis-aqui/Web/imoveis/tests.py` | testes de hostilidade, subconsulta, taxa | VERIFICADO | 359 testes passam. |
+| `01-CONTRATO-API.md` | tetos, mensagens 400, seção 429, riscos | VERIFICADO | Texto confere com a view e com o comportamento medido. |
+| `test/data/imovel_remote_datasource_test.dart`, `imovel_detalhe_repository_impl_test.dart` | guarda do app para 400/429 | VERIFICADO | Passam (588/588); ver IN-13 (corpo do 429 reaproveita fixture do 404). |
+| Artefatos da verificação anterior (vitrine.py, urls, serializers, seed, fixtures, DataSources, DI) | | VERIFICADO | Regressão checada: suíte e análise verdes; sem alteração do app em `lib/` desde `425775c`. |
 
 ## Verificação de Ligações-Chave
 
 | De | Para | Via | Status |
 |----|------|-----|--------|
-| `vitrine.py` | `models.py` | `imoveis_da_vitrine()` -> `na_vitrine()` | LIGADO |
-| `localizacao/api/views.py` | `vitrine.py` | cidades atendidas filtram por `imoveis_da_vitrine()` | LIGADO (conforme 05-01; suíte verde) |
-| `views.py` (Bairros) | `vitrine.py` | `imoveis_da_vitrine().filter(cidade_anuncio=...)` | LIGADO |
-| `injection.config.dart` | `ImovelRemoteDataSource` | `lazySingleton<ImovelDataSource>` | LIGADO |
-| `imovel_remote_datasource.dart` | `parametros_consulta_imoveis.dart` | `caminhoImoveisDaCidade(...)` + `parametrosDaApi(...)` | LIGADO |
-| `detalhe_imovel_screen.dart` | `apresentacao_imovel.dart` | `rotuloLocalizacao` com cidade anulável | LIGADO (05-03) |
+| `VitrineCidadeAPIView.get_queryset` | helpers de entrada | `_texto`, `_numero`, `_bairros_do_filtro`, `_ids_de_caracteristicas` chamados antes da consulta | LIGADO |
+| filtro `caracteristicas` | tabela M2M | `Imovel.caracteristicas.through` em `pk__in` agregado | LIGADO |
+| 5 rotas públicas | `ThrottleVitrinePublica` | `throttle_classes` + `DEFAULT_THROTTLE_RATES['vitrine_publica']` | LIGADO (429 medido) |
+| `settings.py` | `core/checks.py` | `NUM_PROXIES_CONFIGURADO` | LIGADO |
+| `injection.config.dart` | DataSources remotas | `lazySingleton` sobre o mesmo `Dio` | LIGADO |
 | `contrato/*.example.json` | `test/fixtures/api/*.json` | cópia byte a byte comparada em teste | LIGADO |
 
 ## Fluxo de Dados (Nível 4)
 
 | Artefato | Dado | Fonte | Dados reais? | Status |
 |----------|------|-------|--------------|--------|
-| `VitrineCidadeAPIView` | lista de imóveis | ORM (`imoveis_da_vitrine()`), 4 consultas por página de 5 itens (medido no review) | Sim | FLUINDO |
-| `ImovelRemoteDataSource` | itens da vitrine | `Dio.get` na rota real; modelos validados contra JSON capturado do Django semeado | Sim | FLUINDO (provado por fixtures reais; live pendente no emulador) |
-| `OpcoesFiltroRemoteDataSource` | bairros/características | rotas reais de opções | Sim | FLUINDO |
+| `VitrineCidadeAPIView` | lista de imóveis | ORM (`imoveis_da_vitrine()` + filtros) | Sim | FLUINDO |
+| `ImovelRemoteDataSource` | itens da vitrine | `Dio.get` na rota real; modelos validados contra JSON capturado | Sim | FLUINDO (live pendente no emulador) |
+| `OpcoesFiltroRemoteDataSource` | bairros/características | rotas reais | Sim | FLUINDO |
 | `ImovelDetalheRemoteDataSource` | detalhe + natureza | `GET /api/publico/imoveis/{id}/` | Sim | FLUINDO |
 
 ## Spot-checks Comportamentais
 
 | Comportamento | Comando | Resultado | Status |
 |---------------|---------|-----------|--------|
-| Suíte do app | `flutter test --timeout 60s` | 585/585 passam | PASSOU |
-| Análise estática | `flutter analyze` | No issues found | PASSOU |
-| Suíte Django inteira | `DATABASE_URL="sqlite://:memory:" .venv/bin/python manage.py test` | 331 testes OK | PASSOU |
+| Suíte Django inteira | `DATABASE_URL="sqlite://:memory:" .venv/bin/python manage.py test` | 359 testes OK | PASSOU |
 | Migrações em dia | `makemigrations --check --dry-run` | No changes detected | PASSOU |
-| `Decimal("NaN") < 0` (base do CR-02) | `python3 -c ...` | `InvalidOperation` (não tratado em `_numero`) | CONFIRMA O GAP |
-| Débito (TBD/FIXME/XXX) em `lib/`, `tool/`, `test/` e arquivos de API da fase | `grep -E` | nenhum marcador | PASSOU |
-| Servidor vivo / DoS real | não executado (regra: não subir servidor contra o banco de dev) | confiado no relato e no código do review | N/A |
+| Análise estática do app | `flutter analyze` | No issues found | PASSOU |
+| Suíte do app | `flutter test --timeout 60s` | 588/588 passam | PASSOU |
+| Numéricos hostis (7 parâmetros x 15 valores) | script descartável, test client, SQLite em memória | 105 respostas, todas 400 | PASSOU |
+| `caracteristicas` hostil e limite | idem | 21 ids, `-1`, `0`, 5000 zeros, 30 e 5000 noves: 400; `1,2` e 5000 repetidos: 200 | PASSOU |
+| NUL e tetos de texto | idem | `busca=%00`, `bairro=%00`, busca 201, 21 bairros, bairro de 101: 400; busca de 200: 200 | PASSOU |
+| Enums e paginação inválidos | idem | `ordenar`/`natureza`/`finalidade` inválidos 400; `page` inválida 404 (padrão DRF) | PASSOU |
+| Limite de taxa | 125 requisições sem sobrepor a taxa | 120 x 200, 5 x 429; `Retry-After: 60` | PASSOU |
+| Nenhuma resposta 500 | todas as entradas acima | 0 respostas fora de 200/400/404/429 | PASSOU |
+| Débito (TBD/FIXME/XXX) nos arquivos da fase (API e app) | `grep -E` | nenhum marcador | PASSOU |
+
+Observação: o script rodou com o `DEBUG` herdado do ambiente do projeto (impresso como True); isso não afeta nenhuma das rotas medidas. Não li `Web/.env`, não subi servidor e não toquei o banco de dev.
 
 ## Probes
 
@@ -162,39 +182,38 @@ Sem probes `probe-*.sh` declarados nos planos desta fase. Etapa pulada.
 
 | Requisito | Planos | Descrição | Status | Evidência |
 |-----------|--------|-----------|--------|-----------|
-| API-03 | 05-01, 02, 03, 04, 05, 06, 08..13, 15, 18 | `GET /api/publico/cidades/<id>/imoveis/?filtros`: público, sem token, busca/ordenação/filtros/paginação no servidor, só publicados, allowlist, isolamento | SATISFEITO no comportamento funcional; endurecimento pendente (gaps 1 e 2) | Truths 1, 2 e 4; checkbox intencionalmente não marcado (dono: ferramenta de fim de fase). |
-| API-07 | 05-01, 02, 05, 07, 14, 16, 17, 18 | `GET /api/publico/imoveis/{id}/`: público, só publicados, 404 igual para inexistente e não publicado, allowlist do §11, DataSource do detalhe por DI | SATISFEITO | `test_detalhe_fora_da_vitrine_responde_o_mesmo_404_de_id_inexistente`, `VitrineAllowlistExataTests`, `ImovelDetalheRemoteDataSource` no DI; checkbox intencionalmente não marcado. |
+| API-03 | 05-01..06, 08..13, 15, 18, 19, 20, 21, 22 | `GET /api/publico/cidades/<id>/imoveis/?filtros`: público, sem token, busca/ordenação/filtros/paginação no servidor, só publicados, allowlist, isolamento | SATISFEITO | Verdades 1, 2, 3 e 6; entrada hostil tratada e travada por testes. |
+| API-07 | 05-01, 02, 05, 07, 14, 16, 17, 18, 21, 22 | `GET /api/publico/imoveis/{id}/`: público, só publicados, 404 igual, allowlist do §11, DataSource do detalhe por DI | SATISFEITO | Verdades 2 e 5; detalhe também sob o throttle (05-21). |
 
-Todos os IDs de frontmatter dos 18 planos (API-03, API-07) constam em REQUIREMENTS.md e estão mapeados à Fase 5 (linhas 50, 53, 111, 112). Sem requisitos órfãos: nenhum outro ID de REQUIREMENTS.md aponta para a Fase 5.
+Os 22 planos declaram `requirements` (API-03 em 12, API-07 em 4, ambos em 6) e os dois IDs existem em REQUIREMENTS.md (linhas 50 e 53; tabela nas linhas 111 e 112, hoje marcados `[x]`/Complete). Sem requisitos órfãos: nenhum outro ID aponta para a Fase 5.
 
 ## Anti-padrões Encontrados
 
 | Arquivo | Padrão | Severidade | Impacto |
 |---------|--------|------------|---------|
-| `imoveis/api/views.py` ~419-427 | JOIN M2M por id, sem teto (CR-01) | BLOQUEADOR | DoS com uma requisição em endpoint público |
-| `imoveis/api/views.py` ~315-326 | `Decimal` não-finito não rejeitado (CR-02) | BLOQUEADOR | 500 no lugar de 400, contradiz o contrato |
-| `imoveis/api/views.py` 365-371, 411-417 | byte NUL em `busca`/`bairro` -> 500 (WR-01) | AVISO | mesma classe do CR-02 |
-| `config/settings.py` (REST_FRAMEWORK) | sem throttle nos endpoints anônimos (WR-02) | AVISO | agrava o CR-01 |
-| `imoveis/api/views.py` 411-417 e 447-458 | opção de `/bairros/` pode não casar com `?bairro=` (espaços/caixa) (WR-03) | AVISO | quebra a promessa "nunca leva a busca vazia" |
-| `empresas/management/commands/semear_vitrine_dev.py` | apartamento com bairro do título diferente do `bairro` da API (WR-04); guarda só olha `DEBUG` (WR-05) | AVISO | dado de dev incoerente congelado nas fixtures; README promete mais isolamento do que existe |
-| `test/data/contrato_*_test.dart` | testes leem `.planning/` (WR-06) | AVISO | quebra se a Fase 1 for arquivada |
-| IN-01..IN-09 do review | formatação "1.000 mil", andar 0 como "0º", comentários desatualizados, código morto etc. | INFO | sem impacto no objetivo |
+| `imoveis/api/views.py` (WR-03) | opção de `/bairros/` devolvida crua pode não casar com `?bairro=` (espaços nas pontas) | AVISO (adiado pelo usuário) | borda de dado sujo; não bloqueia o objetivo |
+| `empresas/management/commands/semear_vitrine_dev.py` (WR-04, WR-05) | bairro errado no apartamento do seed; guarda só olha `DEBUG` | AVISO (adiado) | só dev |
+| `test/data/contrato_*_test.dart` (WR-06) | testes leem `.planning/` | AVISO (adiado) | quebra se a Fase 1 for arquivada |
+| `config/settings.py` / deploy (WR-08) | `NUM_PROXIES` ausente em produção só gera aviso em `check --deploy` | AVISO (aceito, no checklist de deploy) | um balde único se esquecido atrás de proxy |
+| `imoveis/api/views.py` (IN-10), `imoveis/tests.py` (IN-11), `empresas/tests.py` (IN-14), testes 429 do app (IN-13), rotas `contas`/`empresas` sem throttle (IN-12), IN-01..09 | código morto defensivo, teste fraco, tmpdir na importação, fixture do 404 no teste de 429, etc. | INFO | sem impacto no objetivo |
+
+Nenhum bloqueador. Nenhum marcador de débito nos arquivos da fase.
 
 ## Verificação Humana Necessária
 
 ### 1. Verificação ponta a ponta no emulador (fim de fase)
 
-**Teste:** roteiro do README, seção "Verificação ponta a ponta (emulador)" (7 passos, resumidos no frontmatter): Campinas com rolagem completa; busca e estado sem resultado; ordenação por maior preço; Filtros (Casa+Lote, bairro, Piscina, faixa de preço, remover chip, Limpar filtros); detalhe das 4 naturezas e perfil do corretor; imóvel sem fotos e sem corretor; troca para Valinhos com filtro ativo. Ambiente: `runserver 0.0.0.0:8000` no banco de dev já migrado e semeado (05-18 provou o Host `10.0.2.2:8000`); Android com base URL padrão ou iOS com `--dart-define=API_BASE_URL=http://127.0.0.1:8000`.
-**Esperado:** cada etapa mostra o que está entre parênteses no README; textos legíveis em português a 360 dp, Material 3 verde e branco.
-**Por que humano:** rede real, imagens, rolagem e latência não são exercitadas pelos testes (usam JSON capturado via `ApiFalsa`).
+**Teste:** roteiro do README do app, seção "Verificação ponta a ponta (emulador)" (7 passos, resumidos no frontmatter): Campinas com rolagem completa; busca e estado sem resultado; ordenação por maior preço; Filtros (Casa+Lote, bairro, Piscina, faixa de preço, remover chip, Limpar filtros); detalhe das 4 naturezas e perfil do corretor; imóvel sem fotos e sem corretor; troca para Valinhos com filtro ativo. Ambiente: `runserver 0.0.0.0:8000` no banco de dev já migrado e semeado; Android com base URL padrão ou iOS com `--dart-define=API_BASE_URL=http://127.0.0.1:8000`.
+**Esperado:** cada etapa mostra o que está entre parênteses no README; textos legíveis em português a 360 dp, Material 3 verde e branco; nenhum 429 durante a navegação normal (cerca de 4 requisições ao abrir a vitrine e uma por ação, bem abaixo de 120/min).
+**Por que humano:** rede real, imagens, rolagem e latência não são exercitadas pelos testes (JSON capturado via `ApiFalsa`).
 
 ## Resumo das Lacunas
 
-O núcleo da fase está entregue e coerente entre os dois repositórios, mas o endpoint público novo ainda aceita entrada hostil que derruba ou trava a resposta. As duas correções (CR-01: limitar/validar ids de características e usar uma única agregação; CR-02: rejeitar valores não-finitos em `_numero`, com testes) são localizadas em `Web/imoveis/api/views.py` e `Web/imoveis/tests.py`, e o ideal é fazê-las junto de WR-01 e WR-02 (mesmo arquivo, mesma classe de falha) via `/gsd-plan-phase --gaps`. Depois delas, rodar o check humano de emulador. WR-03..WR-06 e os informativos não bloqueiam o objetivo e podem ser tratados na mesma rodada ou adiados conscientemente. Nenhum item foi filtrado como "adiado" para fase posterior: as Fases 6/7 tratam contato e perfil do corretor, não endurecimento da lista pública.
+Nenhuma lacuna de código aberta. As duas lacunas da verificação anterior (CR-02/SC3 e a derivada de segurança do endpoint, que reunia CR-01, WR-01 e WR-02) foram fechadas e reproduzidas por mim, e os três avisos do code review que o usuário escolheu corrigir (WR-07, WR-08, WR-09) também. WR-03..WR-06 e os informativos seguem adiados por decisão do usuário e não bloqueiam o objetivo. O único item em aberto é o check humano de emulador de fim de fase, que mantém o status em `human_needed` até ser feito.
 
-Observação sobre o git: o trabalho da API estar não commitado no working tree (mais o merge `0592176`) é a escolha `opcao-a` do usuário e não foi tratado como lacuna.
+Observação sobre o git: todo o trabalho da fase na API está sem commit no working tree (`feat/APP05`, HEAD `0592176`) por decisão do usuário (`opcao-a`); isso não foi tratado como lacuna. Isso significa que o resultado desta verificação vale para o estado atual da árvore de trabalho, não para um commit.
 
 ---
 
-_Verificado: 2026-11-01_
+_Verificado: 2026-11-16_
 _Verificador: Claude (gsd-verifier)_
