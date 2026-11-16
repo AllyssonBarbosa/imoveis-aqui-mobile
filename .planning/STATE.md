@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 05
 current_phase_name: Imóveis Real — Endpoint Público e Integração Final
 status: executing
-stopped_at: Completed 05-20-PLAN.md
-last_updated: "2026-11-16T17:29:40.866Z"
+stopped_at: Completed 05-21-PLAN.md
+last_updated: "2026-11-16T17:36:04.885Z"
 last_activity: 2026-11-16
 last_activity_desc: Phase 05 execution started
-state_head: d34794bf4d93fc4fc4f3473bd47d48439a0a3d67
+state_head: 3f92215bd8c28e6ca30fe6d14a2f2b849a98d6dd
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 44
-  completed_plans: 42
+  completed_plans: 43
   percent: 0
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-09-21)
 ## Current Position
 
 Phase: 05 (Imóveis Real — Endpoint Público e Integração Final) — EXECUTING
-Plan: 3 of 22
+Plan: 4 of 22
 Status: Ready to execute
 Last activity: 2026-11-16 — Phase 05 execution started
 
@@ -93,6 +93,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 05 P18 | 35min | 3 tasks | 12 files |
 | Phase 05 P19 | 12 min | 2 tasks | 2 files |
 | Phase 05 P20 | 10min | 2 tasks | 2 files |
+| Phase 05 P21 | 15min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -137,6 +138,7 @@ Recent decisions affecting current work:
 - [Phase 05]: 05-18: contrato reescrito para o formato real; PENDENTE web: IPTU, LGPD de contato do corretor e empresa_id
 - [Phase 05]: 05-19: preço e área têm tetos separados (9999999999.99 / 99999999.99); NUL, busca>200, bairro>20 itens ou >100 caracteres e número fora da allowlist ASCII viram 400 {campo: mensagem}
 - [Phase 05]: 05-20: filtro caracteristicas com teto de 20 ids distintos e tem-todas por uma subconsulta agregada na tabela M2M (CR-01); risco aceito de 21+ marcadas virar erro no app, a registrar no contrato pelo 05-22
+- [Phase 05]: 05-21: ThrottleVitrinePublica (balde unico por IP, 120/min via VITRINE_TAXA_ANONIMA, NUM_PROXIES=0) so nas 5 rotas publicas da vitrine; sem throttle global
 
 ### Pending Todos
 
@@ -165,6 +167,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-16T17:29:40.821Z
-Stopped at: Completed 05-20-PLAN.md
+Last session: 2026-11-16T17:36:04.841Z
+Stopped at: Completed 05-21-PLAN.md
 Resume file: None
