@@ -191,7 +191,7 @@ Plans:
   4. O app troca as DataSources mock pelas reais via injeção de dependência; a adaptação ao formato real fica concentrada em data/ e UI, Cubits e domain/ mudam só o mínimo necessário (D-01); de ponta a ponta, o visitante vê, busca, ordena e filtra imóveis reais na vitrine.
   5. O detalhe (`GET /api/publico/imoveis/{id}/`) também passa a vir da API real, incluindo os dados de natureza, e a página do imóvel da Phase 4 funciona ponta a ponta.
 
-**Plans**: 22 plans (18/18 executed + 4 gap closure from 05-VERIFICATION: CR-01, CR-02, WR-01, WR-02)
+**Plans**: 19/22 plans executed (18/18 executed + 4 gap closure from 05-VERIFICATION: CR-01, CR-02, WR-01, WR-02)
 Plans:
 **Wave 1**
 
@@ -257,7 +257,7 @@ Plans:
 
 **Wave 15**
 
-- [ ] 05-19-PLAN.md — API: número e texto hostis na lista pública viram 400 (NaN/Infinity/1e400/_ e tetos em _numero; NUL e tetos em busca/bairro) (CR-02, WR-01, WR-02) (API-03)
+- [x] 05-19-PLAN.md — API: número e texto hostis na lista pública viram 400 (NaN/Infinity/1e400/_ e tetos em _numero; NUL e tetos em busca/bairro) (CR-02, WR-01, WR-02) (API-03)
 
 **Wave 16** *(blocked on Wave 15 completion)*
 
@@ -282,4 +282,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Vitrine — Lista, Busca e Ordenação | 5/5 | In Progress|  |
 | 3. Vitrine — Filtros Server-Side | 5/5 | In Progress|  |
 | 4. Página do Imóvel — Galeria e Dados da Natureza | 8/8 | In Progress|  |
-| 5. Imóveis Real — Endpoint Público e Integração Final | 18/18 | In Progress|  |
+| 5. Imóveis Real — Endpoint Público e Integração Final | 19/22 | In Progress|  |

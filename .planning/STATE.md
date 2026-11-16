@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 05
 current_phase_name: Imóveis Real — Endpoint Público e Integração Final
 status: executing
-stopped_at: Completed 05-18-PLAN.md
-last_updated: "2026-11-16T17:18:32.372Z"
+stopped_at: Completed 05-19-PLAN.md
+last_updated: "2026-11-16T17:22:36.731Z"
 last_activity: 2026-11-16
 last_activity_desc: Phase 05 execution started
-state_head: 5f8dc698f08693fdce718e057b55ccbae041e25e
+state_head: 6b13941956b1b6c8716e149c52876333dbb66651
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 44
-  completed_plans: 40
+  completed_plans: 41
   percent: 0
 ---
 
@@ -28,8 +28,8 @@ See: .planning/PROJECT.md (updated 2026-09-21)
 ## Current Position
 
 Phase: 05 (Imóveis Real — Endpoint Público e Integração Final) — EXECUTING
-Plan: 1 of 22
-Status: Executing Phase 05
+Plan: 2 of 22
+Status: Ready to execute
 Last activity: 2026-11-16 — Phase 05 execution started
 
 Progress: [░░░░░░░░░░] 0%
@@ -91,6 +91,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 05 P16 | 25min | 2 tasks | 9 files |
 | Phase 05 P17 | 40min | 2 tasks | 8 files |
 | Phase 05 P18 | 35min | 3 tasks | 12 files |
+| Phase 05 P19 | 12 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -133,6 +134,7 @@ Recent decisions affecting current work:
 - [Phase 05]: 05-14: DetalheImovel.cidade nula; Model le endereco completo mas a pagina mostra so bairro · cidade, UF; CorretorModel so id/nome/foto
 - [Phase 05]: 05-17: infraestrutura do lote = booleanos verdadeiros traduzidos em data/ (ordem fixa); areas_de_lazer texto corrido; codigos de posicao solar/uso permitido rotulados em presentation/ (A-03, A-04)
 - [Phase 05]: 05-18: contrato reescrito para o formato real; PENDENTE web: IPTU, LGPD de contato do corretor e empresa_id
+- [Phase 05]: 05-19: preço e área têm tetos separados (9999999999.99 / 99999999.99); NUL, busca>200, bairro>20 itens ou >100 caracteres e número fora da allowlist ASCII viram 400 {campo: mensagem}
 
 ### Pending Todos
 
@@ -161,6 +163,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-02T01:37:15.079Z
-Stopped at: Completed 05-18-PLAN.md
+Last session: 2026-11-16T17:22:36.685Z
+Stopped at: Completed 05-19-PLAN.md
 Resume file: None
