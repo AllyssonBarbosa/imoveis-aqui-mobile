@@ -1,20 +1,14 @@
 ---
-status: testing
+status: complete
 phase: 05-im-veis-real-endpoint-p-blico-e-integra-o-final
 source: [05-VERIFICATION.md]
 started: 2026-11-16T00:00:00Z
-updated: 2026-11-16T00:00:00Z
+updated: 2026-11-16T20:25:00Z
 ---
 
 ## Current Test
 
-number: 1
-name: Verificação ponta a ponta no emulador (vitrine e detalhe com a API real)
-expected: |
-  A vitrine mostra, busca, ordena e filtra imóveis reais; fotos carregam pela rede; rolagem e latência
-  normais (a navegação normal não dá 429); os blocos das 4 naturezas aparecem no detalhe; textos legíveis
-  em português a 360 dp, Material 3 verde e branco.
-awaiting: user response
+[testing complete]
 
 ## Tests
 
@@ -29,15 +23,18 @@ steps: |
   (6) Abrir o imóvel sem fotos e o sem corretor.
   (7) Trocar para Valinhos com filtro ativo.
 expected: A vitrine mostra, busca, ordena e filtra imóveis reais; fotos carregam pela rede; rolagem e latência normais (sem 429 na navegação normal); os blocos das 4 naturezas aparecem no detalhe; textos legíveis em português a 360 dp, Material 3 verde e branco.
-result: [pending]
+result: pass
+note: "Fotos da semente são JPEGs de cor lisa (semear_vitrine_dev); confirmado que carregam pela rede (200 no Django, cache no aparelho, print do emulador)."
 
 ## Summary
 
 total: 1
-passed: 0
+passed: 1
 issues: 0
-pending: 1
+pending: 0
 skipped: 0
 blocked: 0
 
 ## Gaps
+
+[none]
