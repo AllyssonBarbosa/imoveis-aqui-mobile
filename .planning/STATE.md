@@ -1,19 +1,19 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 05
-current_phase_name: Imóveis Real — Endpoint Público e Integração Final
-status: executing
-stopped_at: Completed 05-22-PLAN.md
-last_updated: "2026-11-16T17:42:53.934Z"
+current_phase: 1
+current_phase_name: Localização, Escolha de Cidade e Contrato da API
+status: verifying
+stopped_at: Phase 05 complete; phases 1-4 executed but verification stale and UAT pending
+last_updated: "2026-11-16T20:34:06.212Z"
 last_activity: 2026-11-16
-last_activity_desc: Phase 05 execution started
-state_head: 2e403e8c529f305cdd845521ca3d42550eb2ff1f
+last_activity_desc: Phase 05 complete, transitioned to Phase 1
+state_head: 149cf6e30218a2d0e6a4aa89644ce0374c4feb36
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 44
   completed_plans: 44
-  percent: 0
+  percent: 20
 ---
 
 # Project State
@@ -27,18 +27,18 @@ See: .planning/PROJECT.md (updated 2026-09-21)
 
 ## Current Position
 
-Phase: 05 (Imóveis Real — Endpoint Público e Integração Final) — EXECUTING
-Plan: 5 of 22
-Status: Ready to execute
-Last activity: 2026-11-16 — Phase 05 execution started
+Phase: 1 — Localização, Escolha de Cidade e Contrato da API
+Plan: 4/4 executados
+Status: Pendente de verificação (VERIFICATION stale, UAT em andamento) — mesmo caso das fases 2–4
+Last activity: 2026-11-16 — Phase 05 complete (UAT 1/1, SECURITY threats_open 0)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██░░░░░░░░] 20%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 0
+- Total plans completed: 22
 - Average duration: - min
 - Total execution time: 0 hours
 
@@ -46,7 +46,7 @@ Progress: [░░░░░░░░░░] 0%
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 05 | 22 | - | - |
 
 **Recent Trend:**
 
@@ -168,6 +168,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-16T17:42:53.892Z
-Stopped at: Completed 05-22-PLAN.md
+Last session: 2026-11-16
+Stopped at: Phase 05 complete; phases 1-4 aguardam verificação (VERIFICATION stale, UAT pendente)
 Resume file: None

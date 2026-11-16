@@ -1,9 +1,10 @@
 ---
 phase: 05-im-veis-real-endpoint-p-blico-e-integra-o-final
 verified: 2026-11-16T00:00:00Z
-status: human_needed
+status: passed
 score: 6/6 must-haves verified
 covered_files:
+
   - .planning/REQUIREMENTS.md
   - .planning/ROADMAP.md
   - .planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/01-CONTRATO-API.md
@@ -61,6 +62,7 @@ covered_files:
   - lib/di/injection.config.dart
   - test/data/imovel_detalhe_repository_impl_test.dart
   - test/data/imovel_remote_datasource_test.dart
+
 covered_digest: "v1:sha256:2d423385e30bb29105c5c6ea446e43a2d6ece3ca6d1d765cd3ae99c1afd135e5"
 behavior_unverified: 0
 overrides_applied: 0
@@ -73,11 +75,13 @@ re_verification:
   gaps_remaining: []
   regressions: []
 advisory:
+
   - finding: "WR-08 foi resolvido como aviso (core.W001 em `check --deploy`), não como erro de partida: subir em produção atrás de proxy sem NUM_PROXIES continua possível e junta todos os visitantes em um balde de 120/min"
     category: other
     reason: "decisão de desenho documentada no 05-REVIEW-FIX (erro de partida derrubaria a suíte sem .env); entra no checklist de deploy"
     evidence_status: "aviso testado em VerificarNumProxiesTests (4 testes); sem prova de deploy real"
 human_verification:
+
   - test: "Verificação ponta a ponta no emulador (README do app, seção 'Verificação ponta a ponta (emulador)'; 05-18-SUMMARY): subir o runserver 0.0.0.0:8000 no banco de dev semeado, rodar o app (Android AVD Medium_Phone_API_36.0 com base URL padrão http://10.0.2.2:8000, ou iOS com --dart-define=API_BASE_URL=http://127.0.0.1:8000) e percorrer: (1) Campinas, rolar a lista inteira, duas páginas, sem card repetido; (2) buscar 'Cambuí' e depois texto sem resultado; (3) ordenar por 'Maior preço'; (4) Filtros: Casa e Lote, um bairro, 'Piscina', faixa de preço, aplicar, remover chip, 'Limpar filtros'; (5) abrir uma casa, um apartamento, um terreno e um lote (galeria começando pela capa 'N/M', blocos 'Sobre a ...', lote sem 'Preço do lote', posição solar e uso permitido em português), tocar no cartão do corretor; (6) abrir o imóvel sem fotos e o sem corretor; (7) trocar para Valinhos com filtro ativo."
     expected: "A vitrine mostra, busca, ordena e filtra imóveis reais; fotos carregam pela rede; rolagem e latência normais; os blocos das 4 naturezas aparecem no detalhe; textos legíveis em português a 360 dp, Material 3 verde e branco. Check humano de fim de fase (human_verify_mode=end-of-phase; critérios 4 e 5 do ROADMAP), ainda NÃO feito."
     why_human: "Rede real, carga de imagens, rolagem, latência e aparência só um emulador contra o Django prova; os testes automatizados usam JSON capturado servido por ApiFalsa, não um servidor vivo."
