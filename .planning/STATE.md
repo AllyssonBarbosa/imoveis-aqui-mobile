@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 06
 current_phase_name: Contato com o Corretor — WhatsApp, Telefone e E-mail (APP 06)
 status: executing
-stopped_at: Completed 06-02-PLAN.md
-last_updated: "2026-11-17T00:46:15.240Z"
+stopped_at: Completed 06-03-PLAN.md
+last_updated: "2026-11-17T00:54:09.160Z"
 last_activity: 2026-11-16
 last_activity_desc: Phase 06 execution started
-state_head: dbe0ab49653ce6a710224ddd915361dc16f520a8
+state_head: b742bdfc17e6afb327c3934724f2edb749282146
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 54
-  completed_plans: 46
+  completed_plans: 47
   percent: 0
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-09-21)
 ## Current Position
 
 Phase: 06 (Contato com o Corretor — WhatsApp, Telefone e E-mail (APP 06)) — EXECUTING
-Plan: 3 of 10
+Plan: 4 of 10
 Status: Ready to execute
 Last activity: 2026-11-16 — Phase 06 execution started
 
@@ -97,6 +97,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 05 P22 | 20min | 2 tasks | 4 files |
 | Phase 06 P01 | 25min | 3 tasks | 7 files |
 | Phase 06 P02 | 30min | 3 tasks | 8 files |
+| Phase 06 P03 | 25min | 2 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -146,6 +147,7 @@ Recent decisions affecting current work:
 - [Phase 06]: canais_contato in public detail exposes channel names only; server owns channel rule and company fallback
 - [Phase 06]: [Phase 06-02] POST público de contato com balde próprio (contato_publico, 10/min por IP via CONTATO_TAXA_ANONIMA); link_whatsapp com quote_via=quote (%20, '+' vira %2B) corrigido no servidor, não no app
 - [Phase 06]: [Phase 06-02] Asserção Casa+com+quintal do site trocada por Casa%20com%20quintal (única asserção pré-existente alterada); API sem commit por opcao-a
+- [Phase 06]: 06-03: canais_contato travado na allowlist exata do app e validado nos detalhe_*.json capturados; capturar_contato exige canais [WHATSAPP,TELEFONE,EMAIL] e recusa link do WhatsApp com '+'
 
 ### Roadmap Evolution
 
@@ -178,6 +180,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-17T00:46:15.018Z
-Stopped at: Completed 06-02-PLAN.md
+Last session: 2026-11-17T00:54:09.114Z
+Stopped at: Completed 06-03-PLAN.md
 Resume file: None
