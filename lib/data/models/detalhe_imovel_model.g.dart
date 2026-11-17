@@ -48,6 +48,11 @@ _DetalheImovelModel _$DetalheImovelModelFromJson(
   lote: json['lote'] == null
       ? null
       : LoteModel.fromJson(json['lote'] as Map<String, dynamic>),
+  canaisContato:
+      (json['canais_contato'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const <String>[],
 );
 
 Map<String, dynamic> _$DetalheImovelModelToJson(_DetalheImovelModel instance) =>
@@ -69,6 +74,7 @@ Map<String, dynamic> _$DetalheImovelModelToJson(_DetalheImovelModel instance) =>
       'apartamento': instance.apartamento,
       'terreno': instance.terreno,
       'lote': instance.lote,
+      'canais_contato': instance.canaisContato,
     };
 
 _EnderecoPublicoModel _$EnderecoPublicoModelFromJson(

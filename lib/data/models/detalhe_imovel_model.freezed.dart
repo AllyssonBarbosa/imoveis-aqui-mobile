@@ -19,7 +19,9 @@ mixin _$DetalheImovelModel {
  int get id; String get titulo; String get finalidade;@JsonKey(name: 'preco_venda') String? get precoVenda;@JsonKey(name: 'preco_aluguel') String? get precoAluguel;@JsonKey(name: 'preco_condominio') String? get precoCondominio;@JsonKey(name: 'preco_iptu') String? get precoIptu; String get descricao;/// Pode vir `null` (imóvel sem endereço cadastrado): tolerado.
  EnderecoPublicoModel? get endereco; List<FotoImovelModel> get fotos; List<CaracteristicaModel> get caracteristicas;@JsonKey(name: 'corretor_responsavel') CorretorModel? get corretor; String? get natureza;/// Um bloco por natureza; só o que bate com `natureza` é usado
 /// (RESEARCH Pattern 2: o discriminador é irmão do bloco).
- CasaModel? get casa; ApartamentoModel? get apartamento; TerrenoModel? get terreno; LoteModel? get lote;
+ CasaModel? get casa; ApartamentoModel? get apartamento; TerrenoModel? get terreno; LoteModel? get lote;/// Só os nomes dos canais, na ordem do servidor; nomes desconhecidos são
+/// descartados na `paraEntidade()` (D-01, D-03).
+@JsonKey(name: 'canais_contato') List<String> get canaisContato;
 /// Create a copy of DetalheImovelModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -33,20 +35,20 @@ $DetalheImovelModelCopyWith<DetalheImovelModel> get copyWith => _$DetalheImovelM
 @override
 bool operator ==(Object other) {
   final _this = this as DetalheImovelModel;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DetalheImovelModel&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.titulo, _this.titulo) || other.titulo == _this.titulo)&&(identical(other.finalidade, _this.finalidade) || other.finalidade == _this.finalidade)&&(identical(other.precoVenda, _this.precoVenda) || other.precoVenda == _this.precoVenda)&&(identical(other.precoAluguel, _this.precoAluguel) || other.precoAluguel == _this.precoAluguel)&&(identical(other.precoCondominio, _this.precoCondominio) || other.precoCondominio == _this.precoCondominio)&&(identical(other.precoIptu, _this.precoIptu) || other.precoIptu == _this.precoIptu)&&(identical(other.descricao, _this.descricao) || other.descricao == _this.descricao)&&(identical(other.endereco, _this.endereco) || other.endereco == _this.endereco)&&const DeepCollectionEquality().equals(other.fotos, _this.fotos)&&const DeepCollectionEquality().equals(other.caracteristicas, _this.caracteristicas)&&(identical(other.corretor, _this.corretor) || other.corretor == _this.corretor)&&(identical(other.natureza, _this.natureza) || other.natureza == _this.natureza)&&(identical(other.casa, _this.casa) || other.casa == _this.casa)&&(identical(other.apartamento, _this.apartamento) || other.apartamento == _this.apartamento)&&(identical(other.terreno, _this.terreno) || other.terreno == _this.terreno)&&(identical(other.lote, _this.lote) || other.lote == _this.lote));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DetalheImovelModel&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.titulo, _this.titulo) || other.titulo == _this.titulo)&&(identical(other.finalidade, _this.finalidade) || other.finalidade == _this.finalidade)&&(identical(other.precoVenda, _this.precoVenda) || other.precoVenda == _this.precoVenda)&&(identical(other.precoAluguel, _this.precoAluguel) || other.precoAluguel == _this.precoAluguel)&&(identical(other.precoCondominio, _this.precoCondominio) || other.precoCondominio == _this.precoCondominio)&&(identical(other.precoIptu, _this.precoIptu) || other.precoIptu == _this.precoIptu)&&(identical(other.descricao, _this.descricao) || other.descricao == _this.descricao)&&(identical(other.endereco, _this.endereco) || other.endereco == _this.endereco)&&const DeepCollectionEquality().equals(other.fotos, _this.fotos)&&const DeepCollectionEquality().equals(other.caracteristicas, _this.caracteristicas)&&(identical(other.corretor, _this.corretor) || other.corretor == _this.corretor)&&(identical(other.natureza, _this.natureza) || other.natureza == _this.natureza)&&(identical(other.casa, _this.casa) || other.casa == _this.casa)&&(identical(other.apartamento, _this.apartamento) || other.apartamento == _this.apartamento)&&(identical(other.terreno, _this.terreno) || other.terreno == _this.terreno)&&(identical(other.lote, _this.lote) || other.lote == _this.lote)&&const DeepCollectionEquality().equals(other.canaisContato, _this.canaisContato));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as DetalheImovelModel;
-  return Object.hash(runtimeType,_this.id,_this.titulo,_this.finalidade,_this.precoVenda,_this.precoAluguel,_this.precoCondominio,_this.precoIptu,_this.descricao,_this.endereco,const DeepCollectionEquality().hash(_this.fotos),const DeepCollectionEquality().hash(_this.caracteristicas),_this.corretor,_this.natureza,_this.casa,_this.apartamento,_this.terreno,_this.lote);
+  return Object.hash(runtimeType,_this.id,_this.titulo,_this.finalidade,_this.precoVenda,_this.precoAluguel,_this.precoCondominio,_this.precoIptu,_this.descricao,_this.endereco,const DeepCollectionEquality().hash(_this.fotos),const DeepCollectionEquality().hash(_this.caracteristicas),_this.corretor,_this.natureza,_this.casa,_this.apartamento,_this.terreno,_this.lote,const DeepCollectionEquality().hash(_this.canaisContato));
 }
 
 @override
 String toString() {
   final _this = this as DetalheImovelModel;
-  return 'DetalheImovelModel(id: ${_this.id}, titulo: ${_this.titulo}, finalidade: ${_this.finalidade}, precoVenda: ${_this.precoVenda}, precoAluguel: ${_this.precoAluguel}, precoCondominio: ${_this.precoCondominio}, precoIptu: ${_this.precoIptu}, descricao: ${_this.descricao}, endereco: ${_this.endereco}, fotos: ${_this.fotos}, caracteristicas: ${_this.caracteristicas}, corretor: ${_this.corretor}, natureza: ${_this.natureza}, casa: ${_this.casa}, apartamento: ${_this.apartamento}, terreno: ${_this.terreno}, lote: ${_this.lote})';
+  return 'DetalheImovelModel(id: ${_this.id}, titulo: ${_this.titulo}, finalidade: ${_this.finalidade}, precoVenda: ${_this.precoVenda}, precoAluguel: ${_this.precoAluguel}, precoCondominio: ${_this.precoCondominio}, precoIptu: ${_this.precoIptu}, descricao: ${_this.descricao}, endereco: ${_this.endereco}, fotos: ${_this.fotos}, caracteristicas: ${_this.caracteristicas}, corretor: ${_this.corretor}, natureza: ${_this.natureza}, casa: ${_this.casa}, apartamento: ${_this.apartamento}, terreno: ${_this.terreno}, lote: ${_this.lote}, canaisContato: ${_this.canaisContato})';
 }
 
 
@@ -57,7 +59,7 @@ abstract mixin class $DetalheImovelModelCopyWith<$Res>  {
   factory $DetalheImovelModelCopyWith(DetalheImovelModel value, $Res Function(DetalheImovelModel) _then) = _$DetalheImovelModelCopyWithImpl;
 @useResult
 $Res call({
- int id, String titulo, String finalidade,@JsonKey(name: 'preco_venda') String? precoVenda,@JsonKey(name: 'preco_aluguel') String? precoAluguel,@JsonKey(name: 'preco_condominio') String? precoCondominio,@JsonKey(name: 'preco_iptu') String? precoIptu, String descricao, EnderecoPublicoModel? endereco, List<FotoImovelModel> fotos, List<CaracteristicaModel> caracteristicas,@JsonKey(name: 'corretor_responsavel') CorretorModel? corretor, String? natureza, CasaModel? casa, ApartamentoModel? apartamento, TerrenoModel? terreno, LoteModel? lote
+ int id, String titulo, String finalidade,@JsonKey(name: 'preco_venda') String? precoVenda,@JsonKey(name: 'preco_aluguel') String? precoAluguel,@JsonKey(name: 'preco_condominio') String? precoCondominio,@JsonKey(name: 'preco_iptu') String? precoIptu, String descricao, EnderecoPublicoModel? endereco, List<FotoImovelModel> fotos, List<CaracteristicaModel> caracteristicas,@JsonKey(name: 'corretor_responsavel') CorretorModel? corretor, String? natureza, CasaModel? casa, ApartamentoModel? apartamento, TerrenoModel? terreno, LoteModel? lote,@JsonKey(name: 'canais_contato') List<String> canaisContato
 });
 
 
@@ -74,7 +76,7 @@ class _$DetalheImovelModelCopyWithImpl<$Res>
 
 /// Create a copy of DetalheImovelModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? titulo = null,Object? finalidade = null,Object? precoVenda = freezed,Object? precoAluguel = freezed,Object? precoCondominio = freezed,Object? precoIptu = freezed,Object? descricao = null,Object? endereco = freezed,Object? fotos = null,Object? caracteristicas = null,Object? corretor = freezed,Object? natureza = freezed,Object? casa = freezed,Object? apartamento = freezed,Object? terreno = freezed,Object? lote = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? titulo = null,Object? finalidade = null,Object? precoVenda = freezed,Object? precoAluguel = freezed,Object? precoCondominio = freezed,Object? precoIptu = freezed,Object? descricao = null,Object? endereco = freezed,Object? fotos = null,Object? caracteristicas = null,Object? corretor = freezed,Object? natureza = freezed,Object? casa = freezed,Object? apartamento = freezed,Object? terreno = freezed,Object? lote = freezed,Object? canaisContato = null,}) {
   return _then(DetalheImovelModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,titulo: null == titulo ? _self.titulo : titulo // ignore: cast_nullable_to_non_nullable
@@ -93,7 +95,8 @@ as String?,casa: freezed == casa ? _self.casa : casa // ignore: cast_nullable_to
 as CasaModel?,apartamento: freezed == apartamento ? _self.apartamento : apartamento // ignore: cast_nullable_to_non_nullable
 as ApartamentoModel?,terreno: freezed == terreno ? _self.terreno : terreno // ignore: cast_nullable_to_non_nullable
 as TerrenoModel?,lote: freezed == lote ? _self.lote : lote // ignore: cast_nullable_to_non_nullable
-as LoteModel?,
+as LoteModel?,canaisContato: null == canaisContato ? _self.canaisContato : canaisContato // ignore: cast_nullable_to_non_nullable
+as List<String>,
   ));
 }
 /// Create a copy of DetalheImovelModel
@@ -250,10 +253,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String titulo,  String finalidade, @JsonKey(name: 'preco_venda')  String? precoVenda, @JsonKey(name: 'preco_aluguel')  String? precoAluguel, @JsonKey(name: 'preco_condominio')  String? precoCondominio, @JsonKey(name: 'preco_iptu')  String? precoIptu,  String descricao,  EnderecoPublicoModel? endereco,  List<FotoImovelModel> fotos,  List<CaracteristicaModel> caracteristicas, @JsonKey(name: 'corretor_responsavel')  CorretorModel? corretor,  String? natureza,  CasaModel? casa,  ApartamentoModel? apartamento,  TerrenoModel? terreno,  LoteModel? lote)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String titulo,  String finalidade, @JsonKey(name: 'preco_venda')  String? precoVenda, @JsonKey(name: 'preco_aluguel')  String? precoAluguel, @JsonKey(name: 'preco_condominio')  String? precoCondominio, @JsonKey(name: 'preco_iptu')  String? precoIptu,  String descricao,  EnderecoPublicoModel? endereco,  List<FotoImovelModel> fotos,  List<CaracteristicaModel> caracteristicas, @JsonKey(name: 'corretor_responsavel')  CorretorModel? corretor,  String? natureza,  CasaModel? casa,  ApartamentoModel? apartamento,  TerrenoModel? terreno,  LoteModel? lote, @JsonKey(name: 'canais_contato')  List<String> canaisContato)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DetalheImovelModel() when $default != null:
-return $default(_that.id,_that.titulo,_that.finalidade,_that.precoVenda,_that.precoAluguel,_that.precoCondominio,_that.precoIptu,_that.descricao,_that.endereco,_that.fotos,_that.caracteristicas,_that.corretor,_that.natureza,_that.casa,_that.apartamento,_that.terreno,_that.lote);case _:
+return $default(_that.id,_that.titulo,_that.finalidade,_that.precoVenda,_that.precoAluguel,_that.precoCondominio,_that.precoIptu,_that.descricao,_that.endereco,_that.fotos,_that.caracteristicas,_that.corretor,_that.natureza,_that.casa,_that.apartamento,_that.terreno,_that.lote,_that.canaisContato);case _:
   return orElse();
 
 }
@@ -271,10 +274,10 @@ return $default(_that.id,_that.titulo,_that.finalidade,_that.precoVenda,_that.pr
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String titulo,  String finalidade, @JsonKey(name: 'preco_venda')  String? precoVenda, @JsonKey(name: 'preco_aluguel')  String? precoAluguel, @JsonKey(name: 'preco_condominio')  String? precoCondominio, @JsonKey(name: 'preco_iptu')  String? precoIptu,  String descricao,  EnderecoPublicoModel? endereco,  List<FotoImovelModel> fotos,  List<CaracteristicaModel> caracteristicas, @JsonKey(name: 'corretor_responsavel')  CorretorModel? corretor,  String? natureza,  CasaModel? casa,  ApartamentoModel? apartamento,  TerrenoModel? terreno,  LoteModel? lote)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String titulo,  String finalidade, @JsonKey(name: 'preco_venda')  String? precoVenda, @JsonKey(name: 'preco_aluguel')  String? precoAluguel, @JsonKey(name: 'preco_condominio')  String? precoCondominio, @JsonKey(name: 'preco_iptu')  String? precoIptu,  String descricao,  EnderecoPublicoModel? endereco,  List<FotoImovelModel> fotos,  List<CaracteristicaModel> caracteristicas, @JsonKey(name: 'corretor_responsavel')  CorretorModel? corretor,  String? natureza,  CasaModel? casa,  ApartamentoModel? apartamento,  TerrenoModel? terreno,  LoteModel? lote, @JsonKey(name: 'canais_contato')  List<String> canaisContato)  $default,) {final _that = this;
 switch (_that) {
 case _DetalheImovelModel():
-return $default(_that.id,_that.titulo,_that.finalidade,_that.precoVenda,_that.precoAluguel,_that.precoCondominio,_that.precoIptu,_that.descricao,_that.endereco,_that.fotos,_that.caracteristicas,_that.corretor,_that.natureza,_that.casa,_that.apartamento,_that.terreno,_that.lote);case _:
+return $default(_that.id,_that.titulo,_that.finalidade,_that.precoVenda,_that.precoAluguel,_that.precoCondominio,_that.precoIptu,_that.descricao,_that.endereco,_that.fotos,_that.caracteristicas,_that.corretor,_that.natureza,_that.casa,_that.apartamento,_that.terreno,_that.lote,_that.canaisContato);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -291,10 +294,10 @@ return $default(_that.id,_that.titulo,_that.finalidade,_that.precoVenda,_that.pr
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String titulo,  String finalidade, @JsonKey(name: 'preco_venda')  String? precoVenda, @JsonKey(name: 'preco_aluguel')  String? precoAluguel, @JsonKey(name: 'preco_condominio')  String? precoCondominio, @JsonKey(name: 'preco_iptu')  String? precoIptu,  String descricao,  EnderecoPublicoModel? endereco,  List<FotoImovelModel> fotos,  List<CaracteristicaModel> caracteristicas, @JsonKey(name: 'corretor_responsavel')  CorretorModel? corretor,  String? natureza,  CasaModel? casa,  ApartamentoModel? apartamento,  TerrenoModel? terreno,  LoteModel? lote)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String titulo,  String finalidade, @JsonKey(name: 'preco_venda')  String? precoVenda, @JsonKey(name: 'preco_aluguel')  String? precoAluguel, @JsonKey(name: 'preco_condominio')  String? precoCondominio, @JsonKey(name: 'preco_iptu')  String? precoIptu,  String descricao,  EnderecoPublicoModel? endereco,  List<FotoImovelModel> fotos,  List<CaracteristicaModel> caracteristicas, @JsonKey(name: 'corretor_responsavel')  CorretorModel? corretor,  String? natureza,  CasaModel? casa,  ApartamentoModel? apartamento,  TerrenoModel? terreno,  LoteModel? lote, @JsonKey(name: 'canais_contato')  List<String> canaisContato)?  $default,) {final _that = this;
 switch (_that) {
 case _DetalheImovelModel() when $default != null:
-return $default(_that.id,_that.titulo,_that.finalidade,_that.precoVenda,_that.precoAluguel,_that.precoCondominio,_that.precoIptu,_that.descricao,_that.endereco,_that.fotos,_that.caracteristicas,_that.corretor,_that.natureza,_that.casa,_that.apartamento,_that.terreno,_that.lote);case _:
+return $default(_that.id,_that.titulo,_that.finalidade,_that.precoVenda,_that.precoAluguel,_that.precoCondominio,_that.precoIptu,_that.descricao,_that.endereco,_that.fotos,_that.caracteristicas,_that.corretor,_that.natureza,_that.casa,_that.apartamento,_that.terreno,_that.lote,_that.canaisContato);case _:
   return null;
 
 }
@@ -306,7 +309,7 @@ return $default(_that.id,_that.titulo,_that.finalidade,_that.precoVenda,_that.pr
 @JsonSerializable()
 
 class _DetalheImovelModel extends DetalheImovelModel {
-  const _DetalheImovelModel({required this.id, required this.titulo, required this.finalidade, @JsonKey(name: 'preco_venda') this.precoVenda, @JsonKey(name: 'preco_aluguel') this.precoAluguel, @JsonKey(name: 'preco_condominio') this.precoCondominio, @JsonKey(name: 'preco_iptu') this.precoIptu, required this.descricao, this.endereco,  List<FotoImovelModel> fotos = const <FotoImovelModel>[],  List<CaracteristicaModel> caracteristicas = const <CaracteristicaModel>[], @JsonKey(name: 'corretor_responsavel') this.corretor, this.natureza, this.casa, this.apartamento, this.terreno, this.lote}): _fotos = fotos,_caracteristicas = caracteristicas,super._();
+  const _DetalheImovelModel({required this.id, required this.titulo, required this.finalidade, @JsonKey(name: 'preco_venda') this.precoVenda, @JsonKey(name: 'preco_aluguel') this.precoAluguel, @JsonKey(name: 'preco_condominio') this.precoCondominio, @JsonKey(name: 'preco_iptu') this.precoIptu, required this.descricao, this.endereco,  List<FotoImovelModel> fotos = const <FotoImovelModel>[],  List<CaracteristicaModel> caracteristicas = const <CaracteristicaModel>[], @JsonKey(name: 'corretor_responsavel') this.corretor, this.natureza, this.casa, this.apartamento, this.terreno, this.lote, @JsonKey(name: 'canais_contato')  List<String> canaisContato = const <String>[]}): _fotos = fotos,_caracteristicas = caracteristicas,_canaisContato = canaisContato,super._();
   factory _DetalheImovelModel.fromJson(Map<String, dynamic> json) => _$DetalheImovelModelFromJson(json);
 
 @override final  int id;
@@ -341,6 +344,17 @@ class _DetalheImovelModel extends DetalheImovelModel {
 @override final  ApartamentoModel? apartamento;
 @override final  TerrenoModel? terreno;
 @override final  LoteModel? lote;
+/// Só os nomes dos canais, na ordem do servidor; nomes desconhecidos são
+/// descartados na `paraEntidade()` (D-01, D-03).
+ final  List<String> _canaisContato;
+/// Só os nomes dos canais, na ordem do servidor; nomes desconhecidos são
+/// descartados na `paraEntidade()` (D-01, D-03).
+@override@JsonKey(name: 'canais_contato') List<String> get canaisContato {
+  if (_canaisContato is EqualUnmodifiableListView) return _canaisContato;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_canaisContato);
+}
+
 
 /// Create a copy of DetalheImovelModel
 /// with the given fields replaced by the non-null parameter values.
@@ -355,18 +369,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DetalheImovelModel&&(identical(other.id, id) || other.id == id)&&(identical(other.titulo, titulo) || other.titulo == titulo)&&(identical(other.finalidade, finalidade) || other.finalidade == finalidade)&&(identical(other.precoVenda, precoVenda) || other.precoVenda == precoVenda)&&(identical(other.precoAluguel, precoAluguel) || other.precoAluguel == precoAluguel)&&(identical(other.precoCondominio, precoCondominio) || other.precoCondominio == precoCondominio)&&(identical(other.precoIptu, precoIptu) || other.precoIptu == precoIptu)&&(identical(other.descricao, descricao) || other.descricao == descricao)&&(identical(other.endereco, endereco) || other.endereco == endereco)&&const DeepCollectionEquality().equals(other.fotos, _fotos)&&const DeepCollectionEquality().equals(other.caracteristicas, _caracteristicas)&&(identical(other.corretor, corretor) || other.corretor == corretor)&&(identical(other.natureza, natureza) || other.natureza == natureza)&&(identical(other.casa, casa) || other.casa == casa)&&(identical(other.apartamento, apartamento) || other.apartamento == apartamento)&&(identical(other.terreno, terreno) || other.terreno == terreno)&&(identical(other.lote, lote) || other.lote == lote));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DetalheImovelModel&&(identical(other.id, id) || other.id == id)&&(identical(other.titulo, titulo) || other.titulo == titulo)&&(identical(other.finalidade, finalidade) || other.finalidade == finalidade)&&(identical(other.precoVenda, precoVenda) || other.precoVenda == precoVenda)&&(identical(other.precoAluguel, precoAluguel) || other.precoAluguel == precoAluguel)&&(identical(other.precoCondominio, precoCondominio) || other.precoCondominio == precoCondominio)&&(identical(other.precoIptu, precoIptu) || other.precoIptu == precoIptu)&&(identical(other.descricao, descricao) || other.descricao == descricao)&&(identical(other.endereco, endereco) || other.endereco == endereco)&&const DeepCollectionEquality().equals(other.fotos, _fotos)&&const DeepCollectionEquality().equals(other.caracteristicas, _caracteristicas)&&(identical(other.corretor, corretor) || other.corretor == corretor)&&(identical(other.natureza, natureza) || other.natureza == natureza)&&(identical(other.casa, casa) || other.casa == casa)&&(identical(other.apartamento, apartamento) || other.apartamento == apartamento)&&(identical(other.terreno, terreno) || other.terreno == terreno)&&(identical(other.lote, lote) || other.lote == lote)&&const DeepCollectionEquality().equals(other.canaisContato, _canaisContato));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,titulo,finalidade,precoVenda,precoAluguel,precoCondominio,precoIptu,descricao,endereco,const DeepCollectionEquality().hash(_fotos),const DeepCollectionEquality().hash(_caracteristicas),corretor,natureza,casa,apartamento,terreno,lote);
+    return Object.hash(runtimeType,id,titulo,finalidade,precoVenda,precoAluguel,precoCondominio,precoIptu,descricao,endereco,const DeepCollectionEquality().hash(_fotos),const DeepCollectionEquality().hash(_caracteristicas),corretor,natureza,casa,apartamento,terreno,lote,const DeepCollectionEquality().hash(_canaisContato));
 }
 
 @override
 String toString() {
-    return 'DetalheImovelModel(id: $id, titulo: $titulo, finalidade: $finalidade, precoVenda: $precoVenda, precoAluguel: $precoAluguel, precoCondominio: $precoCondominio, precoIptu: $precoIptu, descricao: $descricao, endereco: $endereco, fotos: $fotos, caracteristicas: $caracteristicas, corretor: $corretor, natureza: $natureza, casa: $casa, apartamento: $apartamento, terreno: $terreno, lote: $lote)';
+    return 'DetalheImovelModel(id: $id, titulo: $titulo, finalidade: $finalidade, precoVenda: $precoVenda, precoAluguel: $precoAluguel, precoCondominio: $precoCondominio, precoIptu: $precoIptu, descricao: $descricao, endereco: $endereco, fotos: $fotos, caracteristicas: $caracteristicas, corretor: $corretor, natureza: $natureza, casa: $casa, apartamento: $apartamento, terreno: $terreno, lote: $lote, canaisContato: $canaisContato)';
 }
 
 
@@ -377,7 +391,7 @@ abstract mixin class _$DetalheImovelModelCopyWith<$Res> implements $DetalheImove
   factory _$DetalheImovelModelCopyWith(_DetalheImovelModel value, $Res Function(_DetalheImovelModel) _then) = __$DetalheImovelModelCopyWithImpl;
 @override @useResult
 $Res call({
- int id, String titulo, String finalidade,@JsonKey(name: 'preco_venda') String? precoVenda,@JsonKey(name: 'preco_aluguel') String? precoAluguel,@JsonKey(name: 'preco_condominio') String? precoCondominio,@JsonKey(name: 'preco_iptu') String? precoIptu, String descricao, EnderecoPublicoModel? endereco, List<FotoImovelModel> fotos, List<CaracteristicaModel> caracteristicas,@JsonKey(name: 'corretor_responsavel') CorretorModel? corretor, String? natureza, CasaModel? casa, ApartamentoModel? apartamento, TerrenoModel? terreno, LoteModel? lote
+ int id, String titulo, String finalidade,@JsonKey(name: 'preco_venda') String? precoVenda,@JsonKey(name: 'preco_aluguel') String? precoAluguel,@JsonKey(name: 'preco_condominio') String? precoCondominio,@JsonKey(name: 'preco_iptu') String? precoIptu, String descricao, EnderecoPublicoModel? endereco, List<FotoImovelModel> fotos, List<CaracteristicaModel> caracteristicas,@JsonKey(name: 'corretor_responsavel') CorretorModel? corretor, String? natureza, CasaModel? casa, ApartamentoModel? apartamento, TerrenoModel? terreno, LoteModel? lote,@JsonKey(name: 'canais_contato') List<String> canaisContato
 });
 
 
@@ -394,7 +408,7 @@ class __$DetalheImovelModelCopyWithImpl<$Res>
 
 /// Create a copy of DetalheImovelModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? titulo = null,Object? finalidade = null,Object? precoVenda = freezed,Object? precoAluguel = freezed,Object? precoCondominio = freezed,Object? precoIptu = freezed,Object? descricao = null,Object? endereco = freezed,Object? fotos = null,Object? caracteristicas = null,Object? corretor = freezed,Object? natureza = freezed,Object? casa = freezed,Object? apartamento = freezed,Object? terreno = freezed,Object? lote = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? titulo = null,Object? finalidade = null,Object? precoVenda = freezed,Object? precoAluguel = freezed,Object? precoCondominio = freezed,Object? precoIptu = freezed,Object? descricao = null,Object? endereco = freezed,Object? fotos = null,Object? caracteristicas = null,Object? corretor = freezed,Object? natureza = freezed,Object? casa = freezed,Object? apartamento = freezed,Object? terreno = freezed,Object? lote = freezed,Object? canaisContato = null,}) {
   return _then(_DetalheImovelModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,titulo: null == titulo ? _self.titulo : titulo // ignore: cast_nullable_to_non_nullable
@@ -413,7 +427,8 @@ as String?,casa: freezed == casa ? _self.casa : casa // ignore: cast_nullable_to
 as CasaModel?,apartamento: freezed == apartamento ? _self.apartamento : apartamento // ignore: cast_nullable_to_non_nullable
 as ApartamentoModel?,terreno: freezed == terreno ? _self.terreno : terreno // ignore: cast_nullable_to_non_nullable
 as TerrenoModel?,lote: freezed == lote ? _self.lote : lote // ignore: cast_nullable_to_non_nullable
-as LoteModel?,
+as LoteModel?,canaisContato: null == canaisContato ? _self._canaisContato : canaisContato // ignore: cast_nullable_to_non_nullable
+as List<String>,
   ));
 }
 

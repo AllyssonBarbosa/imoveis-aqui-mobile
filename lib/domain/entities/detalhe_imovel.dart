@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'canal_contato.dart';
 import 'cidade.dart';
 import 'dados_natureza.dart';
 import 'imovel.dart';
@@ -39,6 +40,11 @@ abstract class DetalheImovel with _$DetalheImovel {
     /// Dados próprios da natureza; `null` quando o servidor não manda o bloco
     /// ou a natureza é desconhecida (D-14).
     DadosNatureza? dados,
+
+    /// Canais de contato disponíveis, só os nomes, calculados pelo servidor
+    /// na ordem fixa de prioridade (D-01). Vazia esconde a área de contato
+    /// (D-03); o app nunca deduz canal dos dados do corretor (D-02).
+    @Default(<CanalContato>[]) List<CanalContato> canaisContato,
   }) = _DetalheImovel;
 }
 

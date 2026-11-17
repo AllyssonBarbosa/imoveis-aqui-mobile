@@ -1,7 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:imoveis_aqui/data/models/canal_contato_api.dart';
 import 'package:imoveis_aqui/data/models/detalhe_imovel_model.dart';
 import 'package:imoveis_aqui/data/models/imovel_model.dart';
 import 'package:imoveis_aqui/data/models/url_segura.dart';
+import 'package:imoveis_aqui/domain/entities/canal_contato.dart';
 import 'package:imoveis_aqui/domain/entities/dados_natureza.dart';
 import 'package:imoveis_aqui/domain/entities/imovel.dart';
 
@@ -20,6 +22,51 @@ void main() {
 
   Map<String, Object?> enderecoCapturado() =>
       Map<String, Object?>.of(mapaCompleto()['endereco']! as Map<String, Object?>);
+
+  group('canais_contato capturado -> entidade (D-01)', () {
+    const capturados = [
+      'detalhe_casa.json',
+      'detalhe_apartamento.json',
+      'detalhe_terreno.json',
+      'detalhe_lote.json',
+      'detalhe_sem_fotos.json',
+      'detalhe_sem_corretor.json',
+    ];
+
+    for (final nome in capturados) {
+      test('$nome: os nomes da entidade são os do JSON, na mesma ordem', () {
+        final capturado = detalheCapturado(nome);
+
+        final detalhe = DetalheImovelModel.fromJson(capturado).paraEntidade();
+
+        expect(
+          detalhe.canaisContato.map((canal) => canal.valorApi).toList(),
+          capturado['canais_contato'],
+        );
+      });
+    }
+
+    test('a casa tem WhatsApp, telefone e e-mail, nessa ordem', () {
+      final detalhe = DetalheImovelModel.fromJson(
+        detalheCapturado('detalhe_casa.json'),
+      ).paraEntidade();
+
+      expect(detalhe.canaisContato, [
+        CanalContato.whatsapp,
+        CanalContato.telefone,
+        CanalContato.email,
+      ]);
+    });
+
+    test('sem corretor: canais da empresa não vazios e corretor nulo', () {
+      final detalhe = DetalheImovelModel.fromJson(
+        detalheCapturado('detalhe_sem_corretor.json'),
+      ).paraEntidade();
+
+      expect(detalhe.corretor, isNull);
+      expect(detalhe.canaisContato, isNotEmpty);
+    });
+  });
 
   group('detalhes capturados', () {
     for (final nome in [

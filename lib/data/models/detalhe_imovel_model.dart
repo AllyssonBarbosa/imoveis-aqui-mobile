@@ -1,8 +1,10 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../domain/entities/canal_contato.dart';
 import '../../domain/entities/dados_natureza.dart';
 import '../../domain/entities/detalhe_imovel.dart';
 import '../../domain/entities/imovel.dart';
+import 'canal_contato_api.dart';
 import 'caracteristica_model.dart';
 import 'cidade_model.dart';
 import 'dados_natureza_model.dart';
@@ -17,7 +19,9 @@ part 'detalhe_imovel_model.g.dart';
 /// o endereço vem aninhado em `endereco` e o corretor em
 /// `corretor_responsavel`. Declara só o que o app usa (D-06, D-16): qualquer
 /// chave extra do JSON é ignorada pelo `json_serializable`, então os dados de
-/// contato do corretor nunca são guardados.
+/// contato do corretor nunca são guardados. Lê também `canais_contato` (só os
+/// nomes dos canais, D-01); os dados do corretor continuam só id, nome e foto
+/// (D-02).
 @freezed
 abstract class DetalheImovelModel with _$DetalheImovelModel {
   const DetalheImovelModel._();
@@ -46,6 +50,12 @@ abstract class DetalheImovelModel with _$DetalheImovelModel {
     ApartamentoModel? apartamento,
     TerrenoModel? terreno,
     LoteModel? lote,
+
+    /// Só os nomes dos canais, na ordem do servidor; nomes desconhecidos são
+    /// descartados na `paraEntidade()` (D-01, D-03).
+    @JsonKey(name: 'canais_contato')
+    @Default(<String>[])
+    List<String> canaisContato,
   }) = _DetalheImovelModel;
 
   factory DetalheImovelModel.fromJson(Map<String, Object?> json) =>
@@ -80,6 +90,10 @@ abstract class DetalheImovelModel with _$DetalheImovelModel {
       corretor: corretor?.paraEntidade(),
       natureza: _mapearNatureza(natureza),
       dados: _mapearDados(),
+      canaisContato: [
+        for (final canal in CanalContato.values)
+          if (canaisContato.contains(canal.valorApi)) canal,
+      ],
     );
   }
 
