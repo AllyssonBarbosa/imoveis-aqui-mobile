@@ -298,7 +298,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 **Requirements**: APP06-C1, APP06-C2, APP06-C3, APP06-C4, APP06-C5, APP06-C6, APP06-API-1, APP06-API-2
 **Depends on:** Phase 5
-**Plans:** 4/10 plans executed
+**Plans:** 5/10 plans executed
 
 Plans:
 
@@ -306,7 +306,7 @@ Plans:
 - [x] 06-02-PLAN.md — API: limite próprio do POST de contato (ThrottleContatoPublico, CONTATO_TAXA_ANONIMA 10/min) + link do WhatsApp com %20 (`link_whatsapp` com quote_via=quote, teste Django) + docs
 - [x] 06-03-PLAN.md — App: captura real da API — recaptura do detalhe com `canais_contato` (allowlist exata) e do POST de contato (grupo contato, link com %20)
 - [x] 06-04-PLAN.md — App: CanalContato no domínio, parse tolerante de `canais_contato`, contrato do POST no app e docs (contrato + README)
-- [ ] 06-05-PLAN.md — App: POST de contato (ApiFalsa com POST, DataSource) e ContatoRepository com falhas tipadas e link validado
+- [x] 06-05-PLAN.md — App: POST de contato (ApiFalsa com POST, DataSource) e ContatoRepository com falhas tipadas e link validado
 - [ ] 06-06-PLAN.md — App: url_launcher atrás de LinkLauncherGateway (externalApplication) e ContatarCorretorUseCase
 - [ ] 06-07-PLAN.md — App: BarraContato + ContatoCubit na página do imóvel (botão principal) — e2e vitrine → WhatsApp; Cubit travado por bloc_test
 - [ ] 06-08-PLAN.md — App: barra completa — ⋮ com bottom sheet (e2e ⋮ → Ligar), loading por botão e SnackBars por motivo
