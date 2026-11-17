@@ -1,18 +1,18 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 1
-current_phase_name: Localização, Escolha de Cidade e Contrato da API
-status: verifying
-stopped_at: Phase 6 context gathered
-last_updated: "2026-11-16T21:33:23.429Z"
+current_phase: 06
+current_phase_name: Contato com o Corretor — WhatsApp, Telefone e E-mail (APP 06)
+status: executing
+stopped_at: Completed 06-01-PLAN.md
+last_updated: "2026-11-17T00:35:09.525Z"
 last_activity: 2026-11-16
-last_activity_desc: Phase 05 complete, transitioned to Phase 1
-state_head: 08728f34101f7ad8e31461e00284dfd5b90ba3f8
+last_activity_desc: Phase 06 execution started
+state_head: 2e63ca01db516d48a54e16f92425438e0c2daa03
 progress:
   total_phases: 6
   completed_phases: 0
-  total_plans: 44
-  completed_plans: 44
+  total_plans: 54
+  completed_plans: 45
   percent: 0
 ---
 
@@ -23,14 +23,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-21)
 
 **Core value:** A vitrine do app abre na cidade do usuário e mostra imóveis reais vindos da API, com a busca e o filtro resolvidos no servidor — o mesmo dado e a mesma regra do site, nunca recalculados dentro do aparelho.
-**Current focus:** Phase 05 — Imóveis Real — Endpoint Público e Integração Final
+**Current focus:** Phase 06 — Contato com o Corretor — WhatsApp, Telefone e E-mail (APP 06)
 
 ## Current Position
 
-Phase: 1 — Localização, Escolha de Cidade e Contrato da API
-Plan: 4/4 executados
-Status: Pendente de verificação (VERIFICATION stale, UAT em andamento) — mesmo caso das fases 2–4
-Last activity: 2026-11-16 — Phase 05 complete (UAT 1/1, SECURITY threats_open 0)
+Phase: 06 (Contato com o Corretor — WhatsApp, Telefone e E-mail (APP 06)) — EXECUTING
+Plan: 2 of 10
+Status: Ready to execute
+Last activity: 2026-11-16 — Phase 06 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -95,6 +95,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 05 P20 | 10min | 2 tasks | 2 files |
 | Phase 05 P21 | 15min | 2 tasks | 7 files |
 | Phase 05 P22 | 20min | 2 tasks | 4 files |
+| Phase 06 P01 | 25min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -140,6 +141,8 @@ Recent decisions affecting current work:
 - [Phase 05]: 05-19: preço e área têm tetos separados (9999999999.99 / 99999999.99); NUL, busca>200, bairro>20 itens ou >100 caracteres e número fora da allowlist ASCII viram 400 {campo: mensagem}
 - [Phase 05]: 05-20: filtro caracteristicas com teto de 20 ids distintos e tem-todas por uma subconsulta agregada na tabela M2M (CR-01); risco aceito de 21+ marcadas virar erro no app, a registrar no contrato pelo 05-22
 - [Phase 05]: 05-21: ThrottleVitrinePublica (balde unico por IP, 120/min via VITRINE_TAXA_ANONIMA, NUM_PROXIES=0) so nas 5 rotas publicas da vitrine; sem throttle global
+- [Phase 06]: Phase 6 git policy: API opcao-a (only merge commit 7d4f5cd on feat/APP06, rest uncommitted), app app-a (one local commit per task, never push)
+- [Phase 06]: canais_contato in public detail exposes channel names only; server owns channel rule and company fallback
 
 ### Roadmap Evolution
 
@@ -172,6 +175,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-16T21:33:23.353Z
-Stopped at: Phase 6 context gathered
-Resume file: .planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-CONTEXT.md
+Last session: 2026-11-17T00:35:09.479Z
+Stopped at: Completed 06-01-PLAN.md
+Resume file: None
