@@ -16,6 +16,9 @@ import 'package:imoveis_aqui/data/datasources/cidade_prefs_datasource.dart'
     as _i94;
 import 'package:imoveis_aqui/data/datasources/cidade_remote_datasource.dart'
     as _i320;
+import 'package:imoveis_aqui/data/datasources/contato_datasource.dart' as _i568;
+import 'package:imoveis_aqui/data/datasources/contato_remote_datasource.dart'
+    as _i883;
 import 'package:imoveis_aqui/data/datasources/imovel_datasource.dart' as _i326;
 import 'package:imoveis_aqui/data/datasources/imovel_detalhe_datasource.dart'
     as _i631;
@@ -96,6 +99,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i326.ImovelDataSource>(
       () => _i877.ImovelRemoteDataSource(gh<_i361.Dio>()),
+    );
+    gh.lazySingleton<_i568.ContatoDataSource>(
+      () => _i883.ContatoRemoteDataSource(gh<_i361.Dio>()),
     );
     gh.lazySingleton<_i881.GeocodingGateway>(
       () => _i506.GeocodingGatewayImpl(),

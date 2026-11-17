@@ -24,6 +24,30 @@ class _Sobrescrita {
   final Object? corpo;
 }
 
+/// Uma chamada HTTP recebida pela [ApiFalsa]: método, URI, corpo enviado e
+/// cabeçalhos da requisição (para provar que o contato anônimo não leva
+/// credencial, C6).
+class ChamadaApiFalsa {
+  const ChamadaApiFalsa({
+    required this.metodo,
+    required this.uri,
+    required this.corpo,
+    required this.cabecalhos,
+  });
+
+  /// Método HTTP em maiúsculas (`GET`, `POST`).
+  final String metodo;
+
+  final Uri uri;
+
+  /// Corpo enviado já decodificado (o `Map` passado ao dio ou o JSON de uma
+  /// string); nulo em requisições sem corpo.
+  final Object? corpo;
+
+  /// Cabeçalhos da requisição como o dio os montou.
+  final Map<String, Object?> cabecalhos;
+}
+
 class _Falha {
   _Falha(this.caminho, this.status, this.restantes);
 
@@ -40,8 +64,11 @@ class _Falha {
 /// bairros capturados, as outras cidades recebem `[]`) e o catálogo de
 /// características. O detalhe (`/api/publico/imoveis/<id>/`) serve o
 /// `detalhe_*.json` capturado cujo `id` bate, senão 404 com
-/// `erro_404_detalhe.json`. Rota ainda não servida responde 404 com um objeto
-/// JSON vazio.
+/// `erro_404_detalhe.json`. O contato (`POST /api/publico/imoveis/<id>/contato/`)
+/// responde 201 com `contato_201_<canal>.json` quando o `canal` do corpo está em
+/// `canais_contato` do detalhe do id, 400 com `erro_400_canal_contato.json`
+/// quando não está, 404 para id fora das fixtures e 405 para outro método.
+/// Rota ainda não servida responde 404 com um objeto JSON vazio.
 class ApiFalsa {
   ApiFalsa({this.latencia = Duration.zero});
 
@@ -49,11 +76,15 @@ class ApiFalsa {
   final Duration latencia;
 
   final List<Uri> _requisicoes = [];
+  final List<ChamadaApiFalsa> _chamadas = [];
   final List<_Sobrescrita> _sobrescritas = [];
   final List<_Falha> _falhas = [];
 
   /// Todas as URIs requisitadas, na ordem.
   List<Uri> get requisicoes => List.unmodifiable(_requisicoes);
+
+  /// Todas as chamadas (método, URI, corpo e cabeçalhos), na ordem.
+  List<ChamadaApiFalsa> get chamadas => List.unmodifiable(_chamadas);
 
   /// Última requisição à lista de imóveis de uma cidade
   /// (`/api/publico/cidades/<id>/imoveis/`), ou nulo se ainda não houve.
@@ -91,8 +122,18 @@ class ApiFalsa {
     return dio;
   }
 
-  Future<ResponseBody> _atender(Uri uri) async {
+  Future<ResponseBody> _atender(RequestOptions options) async {
+    final uri = options.uri;
     _requisicoes.add(uri);
+    final corpoEnviado = options.data;
+    _chamadas.add(
+      ChamadaApiFalsa(
+        metodo: options.method.toUpperCase(),
+        uri: uri,
+        corpo: corpoEnviado is String ? jsonDecode(corpoEnviado) : corpoEnviado,
+        cabecalhos: Map<String, Object?>.of(options.headers),
+      ),
+    );
     if (latencia > Duration.zero) await Future<void>.delayed(latencia);
 
     for (final falha in _falhas) {
@@ -118,6 +159,10 @@ class ApiFalsa {
     }
     if (uri.path == '/api/publico/caracteristicas/') {
       return _corpoJson(lerFixtureApi('caracteristicas.json'), 200);
+    }
+    final idDoContato = _idDoContatoDeImovel(uri.path);
+    if (idDoContato != null) {
+      return _atenderContato(idDoContato, options);
     }
     final idDoDetalhe = _idDoDetalheDeImovel(uri.path);
     if (idDoDetalhe != null) {
@@ -150,12 +195,46 @@ class ApiFalsa {
     return _corpoJson(const <String, Object?>{}, 404);
   }
 
+  /// Atende `POST /api/publico/imoveis/<id>/contato/` com as respostas
+  /// capturadas: 405 fora do POST, 404 sem detalhe capturado, 201 quando o
+  /// canal está em `canais_contato` do detalhe e 400 nos demais casos.
+  ResponseBody _atenderContato(int id, RequestOptions options) {
+    if (options.method.toUpperCase() != 'POST') {
+      return _corpoJson(const <String, Object?>{}, 405);
+    }
+    final fixture = _fixtureDoDetalhe(id);
+    if (fixture == null) {
+      return _corpoJson(lerFixtureApi('erro_404_detalhe.json'), 404);
+    }
+    final detalhe = lerFixtureApi(fixture)! as Map<String, Object?>;
+    final canais = (detalhe['canais_contato'] as List<Object?>? ?? const [])
+        .cast<String>();
+    final dados = options.data;
+    final corpo = dados is String ? jsonDecode(dados) : dados;
+    final canal = corpo is Map<Object?, Object?> ? corpo['canal'] : null;
+    if (canal is String && canais.contains(canal)) {
+      return _corpoJson(
+        lerFixtureApi('contato_201_${canal.toLowerCase()}.json'),
+        201,
+      );
+    }
+    return _corpoJson(lerFixtureApi('erro_400_canal_contato.json'), 400);
+  }
+
+  /// Id do imóvel de `/api/publico/imoveis/<id>/contato/`, ou nulo se
+  /// [caminho] não é essa rota.
+  int? _idDoContatoDeImovel(String caminho) {
+    final casamento = RegExp(r'^/api/publico/imoveis/(\d+)/contato/$')
+        .firstMatch(caminho);
+    if (casamento == null) return null;
+    return int.parse(casamento.group(1)!);
+  }
+
   /// Id da cidade de `/api/publico/cidades/<id>/imoveis/`, ou nulo se [caminho]
   /// não é essa rota.
   int? _idDaListaDeImoveis(String caminho) {
-    final casamento = RegExp(
-      r'^/api/publico/cidades/(\d+)/imoveis/$',
-    ).firstMatch(caminho);
+    final casamento = RegExp(r'^/api/publico/cidades/(\d+)/imoveis/$')
+        .firstMatch(caminho);
     if (casamento == null) return null;
     return int.parse(casamento.group(1)!);
   }
@@ -163,9 +242,8 @@ class ApiFalsa {
   /// Id do imóvel de `/api/publico/imoveis/<id>/`, ou nulo se [caminho] não é
   /// essa rota.
   int? _idDoDetalheDeImovel(String caminho) {
-    final casamento = RegExp(
-      r'^/api/publico/imoveis/(\d+)/$',
-    ).firstMatch(caminho);
+    final casamento = RegExp(r'^/api/publico/imoveis/(\d+)/$')
+        .firstMatch(caminho);
     if (casamento == null) return null;
     return int.parse(casamento.group(1)!);
   }
@@ -173,15 +251,16 @@ class ApiFalsa {
   /// Nome do `test/fixtures/api/detalhe_*.json` capturado cujo `id` é [id],
   /// ou nulo se nenhum bate.
   String? _fixtureDoDetalhe(int id) {
-    final arquivos = Directory('test/fixtures/api')
-        .listSync()
-        .whereType<File>()
-        .map((arquivo) => arquivo.uri.pathSegments.last)
-        .where(
-          (nome) => nome.startsWith('detalhe_') && nome.endsWith('.json'),
-        )
-        .toList()
-      ..sort();
+    final arquivos =
+        Directory('test/fixtures/api')
+            .listSync()
+            .whereType<File>()
+            .map((arquivo) => arquivo.uri.pathSegments.last)
+            .where(
+              (nome) => nome.startsWith('detalhe_') && nome.endsWith('.json'),
+            )
+            .toList()
+          ..sort();
     for (final nome in arquivos) {
       final corpo = lerFixtureApi(nome);
       if (corpo is Map<String, Object?> && corpo['id'] == id) return nome;
@@ -192,9 +271,8 @@ class ApiFalsa {
   /// Id da cidade de `/api/publico/cidades/<id>/bairros/`, ou nulo se
   /// [caminho] não é essa rota.
   int? _idDosBairros(String caminho) {
-    final casamento = RegExp(
-      r'^/api/publico/cidades/(\d+)/bairros/$',
-    ).firstMatch(caminho);
+    final casamento = RegExp(r'^/api/publico/cidades/(\d+)/bairros/$')
+        .firstMatch(caminho);
     if (casamento == null) return null;
     return int.parse(casamento.group(1)!);
   }
@@ -230,7 +308,7 @@ class _AdaptadorApiFalsa implements HttpClientAdapter {
     Stream<Uint8List>? requestStream,
     Future<void>? cancelFuture,
   ) {
-    return _api._atender(options.uri);
+    return _api._atender(options);
   }
 
   @override
