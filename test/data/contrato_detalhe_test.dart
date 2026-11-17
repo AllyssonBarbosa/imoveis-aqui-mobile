@@ -33,6 +33,7 @@ const _chavesDetalhe = {
   'endereco',
   'fotos',
   'corretor_responsavel',
+  'canais_contato',
 };
 
 const _chavesEndereco = {
@@ -401,6 +402,53 @@ void main() {
       );
       expect(detalhe.corretor.toString(), isNot(contains('12345-F')));
       expect(detalhe.corretor.toString(), isNot(contains('19988887777')));
+    });
+  });
+
+  group('canais_contato capturado (D-01)', () {
+    // Ordem fixa do servidor (canais_disponiveis da W11): o app só nomeia.
+    const ordem = ['WHATSAPP', 'TELEFONE', 'EMAIL'];
+
+    test('é lista só de nomes de canal, na ordem fixa e sem repetição', () {
+      for (final entrada in capturados.entries) {
+        final canais = entrada.value['canais_contato'];
+
+        expect(canais, isA<List<Object?>>(), reason: entrada.key);
+        final nomes = (canais! as List<Object?>).cast<String>();
+        expect(nomes, everyElement(isIn(ordem)), reason: entrada.key);
+        expect(nomes.toSet().length, nomes.length, reason: entrada.key);
+        final posicoes = nomes.map(ordem.indexOf).toList();
+        expect(
+          posicoes,
+          orderedEquals([...posicoes]..sort()),
+          reason: '${entrada.key} fora da ordem fixa',
+        );
+      }
+    });
+
+    test('a captura cobre os três canais de uma vez', () {
+      expect(
+        capturados.values.any(
+          (d) => (d['canais_contato']! as List<Object?>).length == 3,
+        ),
+        isTrue,
+      );
+    });
+
+    test('sem corretor ainda tem canal (fallback da empresa, no servidor)', () {
+      final canais =
+          capturados['detalhe_sem_corretor.json']!['canais_contato']!
+              as List<Object?>;
+
+      expect(canais, isNotEmpty);
+    });
+
+    test('canais_contato faltando na raiz é detectado', () {
+      final semCanais = Map<String, Object?>.of(
+        capturados['detalhe_casa.json']!,
+      )..remove('canais_contato');
+
+      expect(() => _exigirContrato(semCanais, 'sem'), throwsA(anything));
     });
   });
 

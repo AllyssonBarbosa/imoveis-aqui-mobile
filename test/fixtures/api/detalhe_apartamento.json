@@ -58,12 +58,12 @@
   },
   "fotos": [
     {
-      "imagem": "http://127.0.0.1:8000/media/imoveis/fotos/dev-campinas-22-1_Sbjbt6x.jpg",
+      "imagem": "http://127.0.0.1:8000/media/imoveis/fotos/dev-campinas-22-1_q3hkRgM.jpg",
       "ordem": 0,
       "capa": true
     },
     {
-      "imagem": "http://127.0.0.1:8000/media/imoveis/fotos/dev-campinas-22-2_kU0WZMu.jpg",
+      "imagem": "http://127.0.0.1:8000/media/imoveis/fotos/dev-campinas-22-2_Kqy2nZB.jpg",
       "ordem": 1,
       "capa": false
     }
@@ -71,12 +71,17 @@
   "corretor_responsavel": {
     "id": 1,
     "empresa_id": 1,
-    "foto": "http://127.0.0.1:8000/media/corretores/fotos/corretor_oNKldeD.vitrine.demo.jpg",
+    "foto": "http://127.0.0.1:8000/media/corretores/fotos/corretor_vs3qFjF.vitrine.demo.jpg",
     "nome": "Corretor Vitrine Demo",
     "email": "corretor.vitrine.demo@example.com",
     "creci": "12345-F",
     "telefone": "19988887777",
     "whatsapp": "19988887777",
     "apresentacao": "Corretor de demonstração da vitrine de desenvolvimento."
-  }
+  },
+  "canais_contato": [
+    "WHATSAPP",
+    "TELEFONE",
+    "EMAIL"
+  ]
 }

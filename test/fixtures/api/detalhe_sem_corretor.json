@@ -58,15 +58,19 @@
   },
   "fotos": [
     {
-      "imagem": "http://127.0.0.1:8000/media/imoveis/fotos/dev-campinas-14-1_7iqPPfS.jpg",
+      "imagem": "http://127.0.0.1:8000/media/imoveis/fotos/dev-campinas-14-1_j6K5MWL.jpg",
       "ordem": 0,
       "capa": true
     },
     {
-      "imagem": "http://127.0.0.1:8000/media/imoveis/fotos/dev-campinas-14-2_k8e1keI.jpg",
+      "imagem": "http://127.0.0.1:8000/media/imoveis/fotos/dev-campinas-14-2_gaMPFVF.jpg",
       "ordem": 1,
       "capa": false
     }
   ],
-  "corretor_responsavel": null
+  "corretor_responsavel": null,
+  "canais_contato": [
+    "WHATSAPP",
+    "EMAIL"
+  ]
 }
