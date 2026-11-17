@@ -5,25 +5,30 @@ Nenhuma fixture de wire é escrita à mão (D-02, D-18): o JSON é salvo exatame
 devolve (ensure_ascii=False, indent=2, quebra de linha final). Só biblioteca padrão.
 
 Uso:
-    python3 tool/capturar_fixtures_api.py [URL_BASE] [PASTA_SAIDA] [--grupo lista|detalhe|todos]
+    python3 tool/capturar_fixtures_api.py [URL_BASE] [PASTA_SAIDA] [--grupo lista|detalhe|contato|todos]
 
 Padrões: URL_BASE=http://127.0.0.1:8000, PASTA_SAIDA=test/fixtures/api, --grupo=todos.
 Grupos: `lista` (cidades, listas de Campinas, bairros, características e o 400 de natureza);
 `detalhe` (um detalhe por natureza, o sem fotos, o sem corretor e o 404 fora da vitrine; lê a
-lista de Campinas ao vivo e NÃO reescreve as fixtures de lista); `todos` = `lista` e depois `detalhe`.
+lista de Campinas ao vivo e NÃO reescreve as fixtures de lista); `contato` (as respostas do POST de
+contato: 201 de WhatsApp, telefone e e-mail, e o 400 de canal inválido; recusa um link do WhatsApp com '+');
+`todos` = `lista`, `detalhe` e `contato`, nessa ordem.
+ATENÇÃO: cada POST de contato grava um Contato no banco do servidor; por isso o grupo `contato` só roda
+contra o SQLite temporário abaixo, NUNCA contra o banco do Web/.env.
 Sai com código 1 (e mensagem em português) quando alguma resposta esperada não é produzida.
 
 Procedimento de captura (NUNCA contra o banco do Web/.env; use um SQLite temporário):
 
   1. Em ../imoveis-aqui/Web:
-       CAPTURA_DB="sqlite:///${TMPDIR:-/tmp}/imoveis_captura_05.sqlite3"
-       rm -f "${TMPDIR:-/tmp}/imoveis_captura_05.sqlite3"
+       CAPTURA_DB="sqlite:///${TMPDIR:-/tmp}/imoveis_captura_06.sqlite3"
+       rm -f "${TMPDIR:-/tmp}/imoveis_captura_06.sqlite3"
        DEBUG=True DATABASE_URL="$CAPTURA_DB" .venv/bin/python manage.py migrate --noinput
        DEBUG=True DATABASE_URL="$CAPTURA_DB" .venv/bin/python manage.py semear_vitrine_dev
   2. Suba o servidor temporário em segundo plano:
-       DEBUG=True ALLOWED_HOSTS=localhost,127.0.0.1,10.0.2.2 DATABASE_URL="$CAPTURA_DB" \\
-         .venv/bin/python manage.py runserver 127.0.0.1:8000 --noreload
-     e aguarde `curl -sf http://127.0.0.1:8000/api/publico/cidades/` responder (até ~30 s).
+       DEBUG=True ALLOWED_HOSTS=localhost,127.0.0.1,10.0.2.2 CONTATO_TAXA_ANONIMA=1000/min \\
+         DATABASE_URL="$CAPTURA_DB" .venv/bin/python manage.py runserver 127.0.0.1:8000 --noreload
+     (CONTATO_TAXA_ANONIMA alto só evita o 429 ao repetir o grupo `contato` no mesmo minuto; não muda
+     nenhum corpo capturado) e aguarde `curl -sf http://127.0.0.1:8000/api/publico/cidades/` responder (até ~30 s).
   3. Na raiz do app:
        python3 tool/capturar_fixtures_api.py http://127.0.0.1:8000 test/fixtures/api --grupo <grupo>
   4. Pare o servidor temporário e apague o SQLite temporário.
@@ -62,6 +67,31 @@ def obter(url, status_esperado=200):
         return json.loads(corpo)
     except json.JSONDecodeError as erro:
         raise ErroCaptura(f"{url} não devolveu JSON válido: {erro}") from erro
+
+
+def postar(url, corpo, status_esperado=201):
+    """POST JSON de `corpo` em `url`; devolve o JSON já decodificado. Exige `status_esperado`."""
+    requisicao = urllib.request.Request(
+        url,
+        data=json.dumps(corpo).encode("utf-8"),
+        headers={"Content-Type": "application/json", "Accept": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(requisicao, timeout=30) as resposta:
+            status = resposta.status
+            texto = resposta.read().decode("utf-8")
+    except urllib.error.HTTPError as erro:
+        status = erro.code
+        texto = erro.read().decode("utf-8")
+    except urllib.error.URLError as erro:
+        raise ErroCaptura(f"Não foi possível acessar {url}: {erro.reason}") from erro
+    if status != status_esperado:
+        raise ErroCaptura(f"POST {url} respondeu {status}; esperado {status_esperado}.")
+    try:
+        return json.loads(texto)
+    except json.JSONDecodeError as erro:
+        raise ErroCaptura(f"POST {url} não devolveu JSON válido: {erro}") from erro
 
 
 def salvar(pasta, nome, dados):
@@ -184,7 +214,65 @@ def capturar_detalhe(base, pasta):
     salvar(pasta, "erro_404_detalhe", erro)
 
 
-GRUPOS = {"lista": capturar_lista, "detalhe": capturar_detalhe}
+_CANAIS_ESPERADOS = ["WHATSAPP", "TELEFONE", "EMAIL"]
+_PREFIXO_DO_LINK = {
+    "WHATSAPP": "https://wa.me/",
+    "TELEFONE": "tel:+",
+    "EMAIL": "mailto:",
+}
+
+
+def capturar_contato(base, pasta):
+    """POST de contato de uma casa de Campinas: 201 de cada canal e o 400 de canal inválido.
+
+    Cada POST grava um Contato no banco do servidor: só rode contra o SQLite temporário.
+    """
+    publico = f"{base}/api/publico"
+    _, itens_p1 = _itens_de_campinas(base)
+    item = next(
+        (i for i in itens_p1 if i["natureza"] == "CASA" and i.get("foto_capa")), None
+    )
+    if item is None:
+        raise ErroCaptura("A p1 de Campinas não tem CASA com foto_capa.")
+    detalhe = obter(f"{publico}/imoveis/{item['id']}/")
+    if detalhe.get("canais_contato") != _CANAIS_ESPERADOS:
+        raise ErroCaptura(
+            f"O detalhe {item['id']} deveria ter canais_contato {_CANAIS_ESPERADOS}; "
+            f"veio {detalhe.get('canais_contato')!r} (servidor sem a feat/APP06?)."
+        )
+    print(f"  CASA = id {item['id']}")
+
+    url = f"{publico}/imoveis/{item['id']}/contato/"
+    for canal in _CANAIS_ESPERADOS:
+        resposta = postar(url, {"canal": canal})
+        if set(resposta) != {"canal", "link"}:
+            raise ErroCaptura(f"O 201 de {canal} deveria ter só `canal` e `link`: {sorted(resposta)}.")
+        if resposta["canal"] != canal:
+            raise ErroCaptura(f"O 201 de {canal} devolveu canal {resposta['canal']!r}.")
+        link = resposta["link"]
+        if not link.startswith(_PREFIXO_DO_LINK[canal]):
+            raise ErroCaptura(f"O link de {canal} deveria começar com {_PREFIXO_DO_LINK[canal]}: {link}")
+        if canal == "WHATSAPP":
+            # Servidor sem a correção do 06-02 codifica o espaço como '+': nunca capturar.
+            if "+" in link:
+                raise ErroCaptura(
+                    f"O link do WhatsApp tem '+' (servidor sem a codificação %20 do 06-02): {link}"
+                )
+            if "%20" not in link:
+                raise ErroCaptura(f"O link do WhatsApp deveria ter %20 entre as palavras: {link}")
+        salvar(pasta, f"contato_201_{canal.lower()}", resposta)
+
+    erro = postar(url, {"canal": "SMS"}, status_esperado=400)
+    if not isinstance(erro.get("canal"), list) or not erro["canal"]:
+        raise ErroCaptura("O 400 de canal inválido deveria trazer a lista `canal`.")
+    salvar(pasta, "erro_400_canal_contato", erro)
+
+
+GRUPOS = {
+    "lista": capturar_lista,
+    "detalhe": capturar_detalhe,
+    "contato": capturar_contato,
+}
 
 
 def main():
@@ -195,9 +283,10 @@ def main():
     analisador.add_argument("pasta_saida", nargs="?", default="test/fixtures/api")
     analisador.add_argument(
         "--grupo",
-        choices=["lista", "detalhe", "todos"],
+        choices=["lista", "detalhe", "contato", "todos"],
         default="todos",
-        help="`lista` (lista e opções), `detalhe` (detalhes) ou `todos` (lista e depois detalhe).",
+        help="`lista` (lista e opções), `detalhe` (detalhes), `contato` (POST de contato) "
+        "ou `todos` (lista, detalhe e contato, nessa ordem).",
     )
     argumentos = analisador.parse_args()
 
