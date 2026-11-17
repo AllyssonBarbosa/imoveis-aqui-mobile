@@ -68,6 +68,51 @@ void main() {
     });
   });
 
+  group('canais_contato (D-01, D-03)', () {
+    List<CanalContato> canaisDe(Map<String, Object?> json) =>
+        DetalheImovelModel.fromJson(json).paraEntidade().canaisContato;
+
+    test('chave ausente: o detalhe parseia e a lista é vazia', () {
+      final mapa = mapaCompleto()..remove('canais_contato');
+
+      expect(canaisDe(mapa), isEmpty);
+    });
+
+    test('valor nulo: o detalhe parseia e a lista é vazia', () {
+      final mapa = mapaCompleto()..['canais_contato'] = null;
+
+      expect(canaisDe(mapa), isEmpty);
+    });
+
+    test('nome desconhecido é descartado e o detalhe continua parseando', () {
+      final mapa = mapaCompleto()..['canais_contato'] = ['SMS', 'EMAIL', 'FAX'];
+
+      expect(canaisDe(mapa), [CanalContato.email]);
+    });
+
+    test('repetido e fora de ordem: ordem do enum, sem duplicata', () {
+      final mapa = mapaCompleto()
+        ..['canais_contato'] = ['EMAIL', 'WHATSAPP', 'EMAIL'];
+
+      expect(canaisDe(mapa), [CanalContato.whatsapp, CanalContato.email]);
+    });
+
+    test('lista vazia: só canaisContato muda em relação à captura', () {
+      final original = DetalheImovelModel.fromJson(
+        mapaCompleto(),
+      ).paraEntidade();
+      final mapa = mapaCompleto()..['canais_contato'] = <String>[];
+
+      final vazio = DetalheImovelModel.fromJson(mapa).paraEntidade();
+
+      expect(vazio.canaisContato, isEmpty);
+      expect(
+        vazio,
+        original.copyWith(canaisContato: const <CanalContato>[]),
+      );
+    });
+  });
+
   group('detalhes capturados', () {
     for (final nome in [
       'detalhe_casa.json',
