@@ -36,6 +36,8 @@ import 'package:imoveis_aqui/data/gateways/geolocator_gateway_impl.dart'
     as _i777;
 import 'package:imoveis_aqui/data/repositories/cidade_repository_impl.dart'
     as _i912;
+import 'package:imoveis_aqui/data/repositories/contato_repository_impl.dart'
+    as _i667;
 import 'package:imoveis_aqui/data/repositories/imovel_detalhe_repository_impl.dart'
     as _i109;
 import 'package:imoveis_aqui/data/repositories/imovel_repository_impl.dart'
@@ -47,6 +49,8 @@ import 'package:imoveis_aqui/domain/gateways/geocoding_gateway.dart' as _i881;
 import 'package:imoveis_aqui/domain/gateways/geolocator_gateway.dart' as _i246;
 import 'package:imoveis_aqui/domain/repositories/cidade_repository.dart'
     as _i146;
+import 'package:imoveis_aqui/domain/repositories/contato_repository.dart'
+    as _i499;
 import 'package:imoveis_aqui/domain/repositories/imovel_detalhe_repository.dart'
     as _i977;
 import 'package:imoveis_aqui/domain/repositories/imovel_repository.dart'
@@ -127,6 +131,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i987.OpcoesFiltroRepository>(
       () =>
           _i375.OpcoesFiltroRepositoryImpl(gh<_i585.OpcoesFiltroDataSource>()),
+    );
+    gh.lazySingleton<_i499.ContatoRepository>(
+      () => _i667.ContatoRepositoryImpl(gh<_i568.ContatoDataSource>()),
     );
     gh.lazySingleton<_i977.ImovelDetalheRepository>(
       () => _i109.ImovelDetalheRepositoryImpl(
