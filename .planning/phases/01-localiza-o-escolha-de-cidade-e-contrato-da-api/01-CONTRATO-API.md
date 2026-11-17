@@ -147,7 +147,9 @@ texto normalizado e características por id crescente, para que a mesma escolha 
 ## Erros 429 (limite de taxa)
 
 As **cinco rotas públicas** da tabela de rotas (lista, detalhe, cidades, bairros e características) dividem
-**um só balde por IP** (escopo `vitrine_publica`, `ThrottleVitrinePublica` do DRF). Quem passa da taxa recebe:
+**um só balde por IP** (escopo `vitrine_publica`, `ThrottleVitrinePublica` do DRF). O **POST de contato** (§13)
+tem balde **próprio** (escopo `contato_publico`, `CONTATO_TAXA_ANONIMA`, padrão `10/min`), separado do da
+vitrine: navegar não gasta o limite do contato. Quem passa da taxa, em qualquer um dos dois, recebe:
 
 - status **429**;
 - cabeçalho **`Retry-After`** (segundos até poder tentar de novo);
@@ -172,7 +174,7 @@ Chaves exatas, iguais às de `VitrineAllowlistExataTests`:
 - **item da lista:** as 13 chaves do §3.
 - **detalhe:** `id`, `titulo`, `natureza`, `finalidade`, `preco_venda`, `preco_aluguel`,
   `preco_condominio`, `preco_iptu`, `descricao`, `caracteristicas`, `casa`, `terreno`, `apartamento`,
-  `lote`, `endereco`, `fotos`, `corretor_responsavel`.
+  `lote`, `endereco`, `fotos`, `corretor_responsavel`, `canais_contato`.
 - **endereco:** `logradouro`, `numero`, `bairro`, `cep`, `cidade`, `latitude`, `longitude`.
 - **cidade:** `id`, `nome`, `uf`. **foto:** `imagem`, `ordem`, `capa`. **característica:** `id`, `nome`.
 - **casa, terreno, apartamento, predio, lote, quadra, loteamento e corretor_responsavel:** ver §11.3 e §11.4.
@@ -255,6 +257,7 @@ Exemplo: `contrato/caracteristicas.example.json`.
 | `fotos` | lista `[{imagem, ordem, capa}]` | não | **com a capa primeiro** (regra da API: `-capa, ordem, id`, 05-02); `[]` sem fotos. O app mostra a ordem recebida e **nunca reordena** |
 | `corretor_responsavel` | objeto ou `null` | sim | `null` quando o imóvel não tem corretor ou ele está inativo. Chaves: §6 |
 | `casa`, `terreno`, `apartamento`, `lote` | objeto ou `null` | sim | **exatamente um** preenchido, o da `natureza`; os outros três vêm `null` |
+| `canais_contato` | lista de strings | não | subconjunto de `WHATSAPP`, `TELEFONE`, `EMAIL`, **na ordem fixa** nessa sequência e sem repetição; **só nomes**, nunca número, e-mail nem link (o link só vem do POST, §13). `[]` esconde a área de contato no app (D-03). Só existe no detalhe, não na lista (D-04) |
 
 ### 11.3 Blocos por natureza (chaves exatas)
 
@@ -336,6 +339,11 @@ e no README do app), depois copiar byte a byte para `contrato/`:
 | `bairros_campinas.json` | `bairros.example.json` |
 | `caracteristicas.json` | `caracteristicas.example.json` |
 
+As fixtures do contato (grupo `--grupo contato`, parte do `todos`) são `contato_201_whatsapp.json`,
+`contato_201_telefone.json`, `contato_201_email.json` e `erro_400_canal_contato.json`; o detalhe capturado
+agora traz `canais_contato`. Elas gravam contatos só no SQLite temporário da captura, nunca no banco do `Web/.env`,
+e `test/data/contrato_contato_test.dart` as trava (chaves `{canal, link}`, esquema de cada link, round-trip).
+
 A superfície de erro (400 e 429) é travada por `VitrineBuscaTests` e `VitrineLimiteDeTaxaTests` no Django e
 pelos testes de 400/429 do app (`imovel_remote_datasource_test.dart`, `imovel_detalhe_repository_impl_test.dart`).
 
@@ -343,3 +351,30 @@ Os testes de contrato do app (`test/data/contrato_lista_test.dart`, `test/data/c
 comparam cada exemplo com sua fixture e travam as chaves exatas de cidade, envelope, item, opções, detalhe e
 dos blocos de natureza; no Django, `VitrineAllowlistExataTests` trava o mesmo do lado do servidor. Não há
 mais cópia manual do documento para o repositório da API.
+
+
+---
+
+## 13. `POST /api/publico/imoveis/<id>/contato/` — contato (W11, APP 06)
+
+O visitante escolhe um canal e o servidor registra o contato e devolve o link pronto para o app abrir.
+
+- **Requisição:** corpo JSON `{"canal": "WHATSAPP" | "TELEFONE" | "EMAIL"}`. **Sem token e sem CSRF** (sem login;
+  nenhuma sessão envolvida). POST, e não GET, para que robôs e pré-carregamento não gerem contatos falsos.
+- **201** `{"canal": "<canal>", "link": "<link>"}` (`contato_201_whatsapp.json`, `contato_201_telefone.json`,
+  `contato_201_email.json`). O servidor monta a mensagem e o link:
+  - WhatsApp: `https://wa.me/<número>?text=<mensagem>`; o texto usa **`%20`** para espaços, **nunca `+`** (06-02).
+  - Telefone: `tel:+<número>`.
+  - E-mail: `mailto:<endereço>?subject=<assunto>&body=<mensagem>`, também com `%20`.
+  O app **só abre o link como recebido**: nunca o altera, reconstrói nem reencoda (a codificação é do Django).
+- **400** `{"canal": ["<mensagem>"]}` — canal fora da lista ou indisponível para o imóvel
+  (`erro_400_canal_contato.json`).
+- **404** `{"detail": "No Imovel matches the given query."}` — **idêntico** ao do detalhe (§11.1): id inexistente,
+  rascunho, reservado/vendido ou empresa inativa.
+- **405** em `GET` (e demais métodos).
+- **429** com `Retry-After` e `{detail}` do balde **`contato_publico`** (`CONTATO_TAXA_ANONIMA`, padrão `10/min` por
+  IP), **separado** do balde `vitrine_publica`.
+
+**No app (D-13, D-14, D-15):** o app lê `canais_contato` do detalhe (§11.2) e só mostra os canais que o servidor
+mandou; ao tocar, faz este POST, e abre o `link` recebido. Qualquer falha (400, 404, 429, rede) é um estado de
+erro com "Tentar de novo", sem nova tentativa automática e sem montar link no aparelho.

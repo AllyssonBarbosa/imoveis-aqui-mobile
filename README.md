@@ -114,7 +114,7 @@ cp .env.example .env               # preencha DATABASE_URL (Postgres) e confira 
 
 Os testes do app não usam JSON escrito à mão: `test/fixtures/api/` guarda respostas **capturadas** da
 API semeada (cidades, listas de Campinas, bairros, características, os quatro detalhes, os casos sem
-foto e sem corretor e os erros 400 e 404). Os exemplos do contrato
+foto e sem corretor, os erros 400 e 404 e as respostas do POST de contato). Os exemplos do contrato
 (`.planning/phases/01-.../contrato/*.example.json`) são cópias exatas delas, e
 `test/data/contrato_lista_test.dart` / `test/data/contrato_detalhe_test.dart` falham se divergirem.
 Para recapturar tudo (por exemplo, depois que a API mudar):
@@ -136,7 +136,11 @@ python3 tool/capturar_fixtures_api.py http://127.0.0.1:8000 test/fixtures/api --
 # 4. pare o servidor temporário e apague o SQLite temporário
 ```
 
-`--grupo todos` recaptura as 15 fixtures de uma vez (`lista` e `detalhe` capturam só o seu grupo).
+`--grupo todos` recaptura as 19 fixtures de uma vez (`lista`, `detalhe` e `contato` capturam só o seu grupo).
+Para capturar só o contato use `--grupo contato`. Esse grupo faz o POST de contato de verdade (`contato_201_whatsapp.json`, `contato_201_telefone.json`,
+`contato_201_email.json` e `erro_400_canal_contato.json`): cada POST grava um contato **só no SQLite temporário**
+do passo 1, nunca no banco do `Web/.env`. Suba o servidor temporário com `CONTATO_TAXA_ANONIMA=1000/min` para
+não esbarrar no limite de 10/min ao repetir a captura.
 Depois, copie as fixtures para os exemplos do contrato (tabela no §12 do `01-CONTRATO-API.md`) e rode
 `flutter test`.
 
