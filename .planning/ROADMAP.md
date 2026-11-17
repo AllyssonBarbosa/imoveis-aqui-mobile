@@ -294,10 +294,19 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
   4. O contato é registrado na API no momento em que o visitante o dispara.
   5. O registro guarda o imóvel, o corretor e o canal usado.
   6. Tudo funciona sem login.
-**Requirements**: TBD
+**Requirements**: APP06-C1, APP06-C2, APP06-C3, APP06-C4, APP06-C5, APP06-C6, APP06-API-1, APP06-API-2
 **Depends on:** Phase 5
-**Plans:** 0 plans
+**Plans:** 10 plans
 
 Plans:
 
-- [ ] TBD (run /gsd-plan-phase 6 to break down)
+- [ ] 06-01-PLAN.md — API: autorização git (checkpoint), feat/APP06 = main + merge WEB-11 (POST de contato provado) e `canais_contato` no detalhe público
+- [ ] 06-02-PLAN.md — API: limite próprio do POST de contato (ThrottleContatoPublico, CONTATO_TAXA_ANONIMA 10/min) + link do WhatsApp com %20 (`link_whatsapp` com quote_via=quote, teste Django) + docs
+- [ ] 06-03-PLAN.md — App: captura real da API — recaptura do detalhe com `canais_contato` (allowlist exata) e do POST de contato (grupo contato, link com %20)
+- [ ] 06-04-PLAN.md — App: CanalContato no domínio, parse tolerante de `canais_contato`, contrato do POST no app e docs (contrato + README)
+- [ ] 06-05-PLAN.md — App: POST de contato (ApiFalsa com POST, DataSource) e ContatoRepository com falhas tipadas e link validado
+- [ ] 06-06-PLAN.md — App: url_launcher atrás de LinkLauncherGateway (externalApplication) e ContatarCorretorUseCase
+- [ ] 06-07-PLAN.md — App: BarraContato + ContatoCubit na página do imóvel (botão principal) — e2e vitrine → WhatsApp; Cubit travado por bloc_test
+- [ ] 06-08-PLAN.md — App: barra completa — ⋮ com bottom sheet (e2e ⋮ → Ligar), loading por botão e SnackBars por motivo
+- [ ] 06-09-PLAN.md — App: contato no perfil do corretor aberto do imóvel ("Sobre: título") + testes de widget das duas telas
+- [ ] 06-10-PLAN.md — Portões finais, README e verificação no aparelho com WhatsApp (checkpoint; confirma %20 e ícone)

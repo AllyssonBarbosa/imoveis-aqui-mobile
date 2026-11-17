@@ -52,13 +52,26 @@ Requisitos da primeira entrega (tarefas APP01, APP02, APP03, APP04 + os endpoint
 - [x] **API-06**: O contrato de `GET /api/publico/imoveis/{id}/` fica congelado por escrito no §11 do contrato da API + `imovel_detalhe.example.json`, e o app o consome por DataSource trocável (mock honrando o contrato).
 - [x] **API-07**: Endpoint real `GET /api/publico/imoveis/{id}/` público, só imóveis publicados, 404 igual para inexistente e não publicado, serializer com a allowlist do §11, e troca da DataSource do detalhe por DI.
 
+### Contato com o corretor (APP06)
+
+Card APP 06 (tarefa A06), promovido do v2 `CON-01` para a Phase 6. C1–C6 são os critérios de aceite do card (todos obrigatórios); API-1/API-2 são as mudanças no repo da API (`../imoveis-aqui`, branch local `feat/APP06`).
+
+- [ ] **APP06-C1**: Botão de contato na página do imóvel e no perfil do corretor.
+- [ ] **APP06-C2**: O botão abre o WhatsApp com a mensagem padrão já preenchida.
+- [ ] **APP06-C3**: Telefone e e-mail como alternativas de contato.
+- [ ] **APP06-C4**: O contato é registrado na API no momento em que o visitante o dispara.
+- [ ] **APP06-C5**: O registro guarda o imóvel, o corretor e o canal usado.
+- [ ] **APP06-C6**: Tudo funciona sem login.
+- [ ] **APP06-API-1**: O detalhe público `GET /api/publico/imoveis/{id}/` expõe `canais_contato` (subconjunto de `WHATSAPP`/`TELEFONE`/`EMAIL` na ordem fixa, calculado no servidor por `canais_disponiveis`), só com os nomes dos canais — nunca número, e-mail ou link — e coberto pelo teste de allowlist do público.
+- [ ] **APP06-API-2**: O `POST /api/publico/imoveis/{id}/contato/` (sem login) tem throttle próprio (`ThrottleContatoPublico`, escopo `contato_publico`, `CONTATO_TAXA_ANONIMA` padrão 10/min por IP), separado do balde da vitrine, e responde 429 ao exceder.
+
 ## v2 Requirements
 
 Reconhecidos, mas fora desta entrega (outras tarefas do app, feitas depois / por outros colegas).
 
 ### App — próximas tarefas
 
-- **CON-01**: Contato com o corretor por WhatsApp com mensagem montada pelo servidor e gravação do contato (card 9).
+- **CON-01**: Contato com o corretor por WhatsApp com mensagem montada pelo servidor e gravação do contato (card 9). → Promovido para a Phase 6 como APP06-C1..C6 e APP06-API-1/2 (seção "Contato com o corretor (APP06)").
 - **FAV-01**: Favoritos guardados no aparelho.
 - **LOG-01**: Áreas logadas do app — área do corretor e área do gestor (cards 10–11).
 - **API-05**: Endpoint de result-count para prévia "Ver N imóveis" no botão aplicar (diferencial, depende de custo de contagem barato).
@@ -110,13 +123,23 @@ Excluídos de propósito. Documentados para evitar scope creep.
 | API-06 | Phase 4 | Complete |
 | API-03 | Phase 5 | Complete |
 | API-07 | Phase 5 | Complete |
+| APP06-C1 | Phase 6 | Pending |
+| APP06-C2 | Phase 6 | Pending |
+| APP06-C3 | Phase 6 | Pending |
+| APP06-C4 | Phase 6 | Pending |
+| APP06-C5 | Phase 6 | Pending |
+| APP06-C6 | Phase 6 | Pending |
+| APP06-API-1 | Phase 6 | Pending |
+| APP06-API-2 | Phase 6 | Pending |
+
+Planos da Phase 6 que cobrem cada ID (frontmatter `requirements` dos `06-NN-PLAN.md`): APP06-C1 → 06-07, 06-09, 06-10; APP06-C2 → 06-02, 06-03, 06-04, 06-05, 06-06, 06-07, 06-10; APP06-C3 → 06-03, 06-04, 06-05, 06-06, 06-08, 06-09, 06-10; APP06-C4 → 06-01, 06-03, 06-05, 06-06, 06-07, 06-08, 06-10; APP06-C5 → 06-01, 06-09, 06-10; APP06-C6 → 06-01, 06-02, 06-05, 06-07, 06-09, 06-10; APP06-API-1 → 06-01, 06-03, 06-04, 06-10; APP06-API-2 → 06-02, 06-10.
 
 **Coverage:**
 
-- v1 requirements: 30 total
-- Mapped to phases: 30 (roadmap complete)
+- v1 requirements: 38 total
+- Mapped to phases: 38 (roadmap complete)
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-09-21*
-*Last updated: 2026-10-12 after adding Phase 4 requirement IDs (DET-01..06, API-06, API-07)*
+*Last updated: 2026-11-16 after adding Phase 6 requirement IDs (APP06-C1..C6, APP06-API-1/2)*
