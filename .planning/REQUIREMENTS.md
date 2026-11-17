@@ -57,13 +57,13 @@ Requisitos da primeira entrega (tarefas APP01, APP02, APP03, APP04 + os endpoint
 Card APP 06 (tarefa A06), promovido do v2 `CON-01` para a Phase 6. C1–C6 são os critérios de aceite do card (todos obrigatórios); API-1/API-2 são as mudanças no repo da API (`../imoveis-aqui`, branch local `feat/APP06`).
 
 - [ ] **APP06-C1**: Botão de contato na página do imóvel e no perfil do corretor.
-- [ ] **APP06-C2**: O botão abre o WhatsApp com a mensagem padrão já preenchida.
+- [x] **APP06-C2**: O botão abre o WhatsApp com a mensagem padrão já preenchida.
 - [ ] **APP06-C3**: Telefone e e-mail como alternativas de contato.
 - [x] **APP06-C4**: O contato é registrado na API no momento em que o visitante o dispara.
 - [x] **APP06-C5**: O registro guarda o imóvel, o corretor e o canal usado.
 - [x] **APP06-C6**: Tudo funciona sem login.
 - [x] **APP06-API-1**: O detalhe público `GET /api/publico/imoveis/{id}/` expõe `canais_contato` (subconjunto de `WHATSAPP`/`TELEFONE`/`EMAIL` na ordem fixa, calculado no servidor por `canais_disponiveis`), só com os nomes dos canais — nunca número, e-mail ou link — e coberto pelo teste de allowlist do público.
-- [ ] **APP06-API-2**: O `POST /api/publico/imoveis/{id}/contato/` (sem login) tem throttle próprio (`ThrottleContatoPublico`, escopo `contato_publico`, `CONTATO_TAXA_ANONIMA` padrão 10/min por IP), separado do balde da vitrine, e responde 429 ao exceder.
+- [x] **APP06-API-2**: O `POST /api/publico/imoveis/{id}/contato/` (sem login) tem throttle próprio (`ThrottleContatoPublico`, escopo `contato_publico`, `CONTATO_TAXA_ANONIMA` padrão 10/min por IP), separado do balde da vitrine, e responde 429 ao exceder.
 
 ## v2 Requirements
 
@@ -124,13 +124,13 @@ Excluídos de propósito. Documentados para evitar scope creep.
 | API-03 | Phase 5 | Complete |
 | API-07 | Phase 5 | Complete |
 | APP06-C1 | Phase 6 | Pending |
-| APP06-C2 | Phase 6 | Pending |
+| APP06-C2 | Phase 6 | Complete |
 | APP06-C3 | Phase 6 | Pending |
 | APP06-C4 | Phase 6 | Complete |
 | APP06-C5 | Phase 6 | Complete |
 | APP06-C6 | Phase 6 | Complete |
 | APP06-API-1 | Phase 6 | Complete |
-| APP06-API-2 | Phase 6 | Pending |
+| APP06-API-2 | Phase 6 | Complete |
 
 Planos da Phase 6 que cobrem cada ID (frontmatter `requirements` dos `06-NN-PLAN.md`): APP06-C1 → 06-07, 06-09, 06-10; APP06-C2 → 06-02, 06-03, 06-04, 06-05, 06-06, 06-07, 06-10; APP06-C3 → 06-03, 06-04, 06-05, 06-06, 06-08, 06-09, 06-10; APP06-C4 → 06-01, 06-03, 06-05, 06-06, 06-07, 06-08, 06-10; APP06-C5 → 06-01, 06-09, 06-10; APP06-C6 → 06-01, 06-02, 06-05, 06-07, 06-09, 06-10; APP06-API-1 → 06-01, 06-03, 06-04, 06-10; APP06-API-2 → 06-02, 06-10.
 
