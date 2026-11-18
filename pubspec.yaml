@@ -47,6 +47,7 @@ dependencies:
   geocoding: ^5.0.0
   intl: ^0.20.3
   cached_network_image: ^4.0.2
+  url_launcher: ^6.3.3
 
 dev_dependencies:
   flutter_test:
@@ -71,6 +72,10 @@ dev_dependencies:
   # shared_preferences; declared explicitly since imported directly).
   shared_preferences_platform_interface: ^2.4.2
   fake_async: ^1.3.3
+  # Usados direto em test/data/url_launcher_gateway_impl_test.dart e no teste
+  # ponta a ponta do ContatarCorretorUseCase (já transitivos de url_launcher).
+  url_launcher_platform_interface: ^2.3.2
+  plugin_platform_interface: ^2.1.8
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

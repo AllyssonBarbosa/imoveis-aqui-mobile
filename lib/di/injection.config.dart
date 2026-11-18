@@ -34,6 +34,8 @@ import 'package:imoveis_aqui/data/gateways/geocoding_gateway_impl.dart'
     as _i506;
 import 'package:imoveis_aqui/data/gateways/geolocator_gateway_impl.dart'
     as _i777;
+import 'package:imoveis_aqui/data/gateways/url_launcher_gateway_impl.dart'
+    as _i828;
 import 'package:imoveis_aqui/data/repositories/cidade_repository_impl.dart'
     as _i912;
 import 'package:imoveis_aqui/data/repositories/contato_repository_impl.dart'
@@ -47,6 +49,8 @@ import 'package:imoveis_aqui/data/repositories/opcoes_filtro_repository_impl.dar
 import 'package:imoveis_aqui/di/modulo_rede.dart' as _i497;
 import 'package:imoveis_aqui/domain/gateways/geocoding_gateway.dart' as _i881;
 import 'package:imoveis_aqui/domain/gateways/geolocator_gateway.dart' as _i246;
+import 'package:imoveis_aqui/domain/gateways/link_launcher_gateway.dart'
+    as _i325;
 import 'package:imoveis_aqui/domain/repositories/cidade_repository.dart'
     as _i146;
 import 'package:imoveis_aqui/domain/repositories/contato_repository.dart'
@@ -59,6 +63,8 @@ import 'package:imoveis_aqui/domain/repositories/opcoes_filtro_repository.dart'
     as _i987;
 import 'package:imoveis_aqui/domain/usecases/buscar_imoveis_usecase.dart'
     as _i213;
+import 'package:imoveis_aqui/domain/usecases/contatar_corretor_usecase.dart'
+    as _i762;
 import 'package:imoveis_aqui/domain/usecases/detectar_cidade_usecase.dart'
     as _i502;
 import 'package:imoveis_aqui/domain/usecases/obter_bairros_usecase.dart'
@@ -110,6 +116,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i881.GeocodingGateway>(
       () => _i506.GeocodingGatewayImpl(),
     );
+    gh.lazySingleton<_i325.LinkLauncherGateway>(
+      () => _i828.UrlLauncherGatewayImpl(),
+    );
     gh.lazySingleton<_i246.GeolocatorGateway>(
       () => _i777.GeolocatorGatewayImpl(),
     );
@@ -138,6 +147,12 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i977.ImovelDetalheRepository>(
       () => _i109.ImovelDetalheRepositoryImpl(
         gh<_i631.ImovelDetalheDataSource>(),
+      ),
+    );
+    gh.factory<_i762.ContatarCorretorUseCase>(
+      () => _i762.ContatarCorretorUseCase(
+        gh<_i499.ContatoRepository>(),
+        gh<_i325.LinkLauncherGateway>(),
       ),
     );
     gh.factory<_i990.ObterDetalheImovelUseCase>(
