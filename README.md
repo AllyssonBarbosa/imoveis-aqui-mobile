@@ -67,8 +67,8 @@ flutter run
 
 As cidades, a vitrine (lista, busca, ordenação, filtros e as opções de bairro e característica) e a
 página do imóvel vêm da API real do repositório irmão (`../imoveis-aqui/Web`), na branch
-`feat/APP05`: `GET /api/publico/cidades/`, `/api/publico/cidades/<id>/imoveis/`,
-`/api/publico/cidades/<id>/bairros/`, `/api/publico/caracteristicas/` e `/api/publico/imoveis/<id>/`.
+`feat/APP06`: `GET /api/publico/cidades/`, `/api/publico/cidades/<id>/imoveis/`,
+`/api/publico/cidades/<id>/bairros/`, `/api/publico/caracteristicas/`, `/api/publico/imoveis/<id>/` e `POST /api/publico/imoveis/<id>/contato/`.
 O app não tem mock de acervo: se a API falhar, a tela mostra o estado de erro com "Tentar de novo".
 O formato das respostas está em
 `.planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/01-CONTRATO-API.md`.
@@ -91,12 +91,13 @@ o emulador Android:
 
 ### Subir o Django (`../imoveis-aqui/Web`)
 
-Na branch `feat/APP05` do repositório da API (ela traz a vitrine pública da W09 e as migrações
-`imoveis.0003` a `0006`):
+Na branch `feat/APP06` do repositório da API (ela traz a vitrine pública da W09, as migrações
+`imoveis.0003` a `0006` e a caixa de contatos da W11: o `migrate` também cria a tabela `contatos`,
+migração `contatos.0001`):
 
 ```bash
 # a partir de ../imoveis-aqui/Web
-git switch feat/APP05
+git switch feat/APP06
 cp .env.example .env               # preencha DATABASE_URL (Postgres) e confira DEBUG=True
 .venv/bin/python manage.py migrate
 .venv/bin/python manage.py semear_vitrine_dev
@@ -186,11 +187,18 @@ rolagem, latência). Desktop e web **não** servem: o projeto não tem a pasta `
       construção"; "Sobre o terreno" com "Lateral esquerda" e "Lateral direita" e "Uso permitido" em
       português; "Sobre o lote" com "Entrada mínima", "Parcelas máximas" e o cartão "Quadra e loteamento",
       sem "Preço do lote"; posição solar em português). No lote, toque no cartão do corretor e volte (o
-      perfil mostra só nome e foto).
+      perfil aberto a partir do imóvel mostra nome, foto e a barra de contato "Sobre: <título>").
    6. Abra o imóvel sem fotos e o sem corretor (placeholder sem contador; sem a seção "Corretor
       responsável").
    7. Troque para Valinhos com um filtro ativo (a lista de Valinhos mantém o filtro e os bairros
       escolhidos são limpos).
+   8. Contato (APP 06): abra um imóvel de Campinas (no rodapé, a barra com o preço, o ⋮ e o botão
+      "WhatsApp"). Toque em "WhatsApp" (abre o **app do WhatsApp** com a mensagem padrão do servidor já
+      preenchida, com espaços entre as palavras). Toque no ⋮ (o bottom sheet oferece "Ligar", que abre o
+      discador com +55, e "Enviar e-mail", que abre o e-mail com assunto e corpo). Abra o imóvel cujo corretor
+      está desativado (a barra aparece e o ⋮ oferece só os canais da empresa, sem "Ligar"). Cada toque
+      bem-sucedido grava um Contato no servidor (imóvel, corretor e canal), sem login. Conferir o WhatsApp
+      exige um aparelho ou emulador com Play Store e o WhatsApp instalado e logado (desktop e web não valem).
 
    Textos e layout devem ler naturalmente em português a 360 dp, em Material 3 verde e branco.
 
