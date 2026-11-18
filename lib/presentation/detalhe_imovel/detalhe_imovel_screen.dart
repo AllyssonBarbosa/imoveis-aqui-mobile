@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../di/injection.dart';
+import '../../domain/entities/contato_do_imovel.dart';
 import '../../domain/entities/imovel.dart';
 import '../vitrine/apresentacao_imovel.dart';
 import '../comum/imagem_rede.dart';
@@ -193,6 +194,13 @@ class DetalheImovelScreen extends StatelessWidget {
                             aoTocar: () => abrirPerfilCorretor(
                               context,
                               corretor,
+                              contato: detalhe.canaisContato.isEmpty
+                                  ? null
+                                  : ContatoDoImovel(
+                                      imovelId: detalhe.id,
+                                      titulo: detalhe.titulo,
+                                      canais: detalhe.canaisContato,
+                                    ),
                               construirImagemDeRede: construirImagemDeRede,
                             ),
                             construirImagemDeRede: construirImagemDeRede,

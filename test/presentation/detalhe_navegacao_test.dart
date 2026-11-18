@@ -347,7 +347,8 @@ void main() {
         expect(scaffold.bottomNavigationBar, isA<BarraContato>());
         expect(scaffold.persistentFooterButtons, isNull);
 
-        // Rola até o corretor e abre o perfil; só nome e foto (D-16).
+        // Rola até o corretor e abre o perfil: nome, foto e a barra de
+        // contato do imóvel (D-09); nenhum e-mail/CRECI aparece (D-16).
         await tester.scrollUntilVisible(
           naPagina(find.text(nomeCorretor)),
           200,
@@ -490,6 +491,70 @@ void main() {
 
         final capturado =
             lerFixtureApi('contato_201_telefone.json')! as Map<String, Object?>;
+        expect(lancador.abertos, hasLength(1));
+        expect(lancador.abertos.single.toString(), capturado['link']);
+        expect(find.byType(SnackBar), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'perfil aberto a partir do imóvel mostra "Sobre: <título>" e o contato '
+      'vai para o mesmo imóvel (C1, C5, D-09, D-10)',
+      (tester) async {
+        registrarDetalhe(
+          ImovelDetalheRemoteDataSource(
+            ApiFalsa(latencia: const Duration(milliseconds: 300)).criarDio(),
+          ),
+        );
+        await pumpVitrine(tester);
+
+        await tester.tap(find.byKey(ValueKey('imovel-$idCasa')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await esperarDetalhe(tester, const Duration(milliseconds: 300));
+
+        await tester.scrollUntilVisible(
+          naPagina(find.text(nomeCorretor)),
+          200,
+          scrollable: naPagina(find.byType(Scrollable)).first,
+        );
+        await tester.tap(naPagina(find.text(nomeCorretor)));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.pump(const Duration(milliseconds: 50));
+
+        final noPerfil = find.byType(PerfilCorretorScreen);
+        expect(noPerfil, findsOneWidget);
+        final barra = find.descendant(
+          of: noPerfil,
+          matching: find.byType(BarraContato),
+        );
+        expect(barra, findsOneWidget);
+        expect(
+          find.descendant(of: barra, matching: find.text('Sobre: $tituloCasa')),
+          findsOneWidget,
+        );
+
+        await tester.tap(
+          find.descendant(
+            of: barra,
+            matching: find.widgetWithText(FilledButton, 'WhatsApp'),
+          ),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 50));
+
+        final chamada = apiFalsa.chamadas.last;
+        expect(chamada.metodo, 'POST');
+        expect(chamada.uri.path, '/api/publico/imoveis/$idCasa/contato/');
+        expect(chamada.corpo, {'canal': 'WHATSAPP'});
+        expect(
+          chamada.cabecalhos.keys.map((nome) => nome.toLowerCase()),
+          isNot(anyOf(contains('authorization'), contains('cookie'))),
+        );
+
+        final capturado =
+            lerFixtureApi('contato_201_whatsapp.json')! as Map<String, Object?>;
         expect(lancador.abertos, hasLength(1));
         expect(lancador.abertos.single.toString(), capturado['link']);
         expect(find.byType(SnackBar), findsNothing);
