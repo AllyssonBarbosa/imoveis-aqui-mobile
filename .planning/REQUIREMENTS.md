@@ -56,7 +56,7 @@ Requisitos da primeira entrega (tarefas APP01, APP02, APP03, APP04 + os endpoint
 
 Card APP 06 (tarefa A06), promovido do v2 `CON-01` para a Phase 6. C1–C6 são os critérios de aceite do card (todos obrigatórios); API-1/API-2 são as mudanças no repo da API (`../imoveis-aqui`, branch local `feat/APP06`).
 
-- [ ] **APP06-C1**: Botão de contato na página do imóvel e no perfil do corretor.
+- [x] **APP06-C1**: Botão de contato na página do imóvel e no perfil do corretor.
 - [x] **APP06-C2**: O botão abre o WhatsApp com a mensagem padrão já preenchida.
 - [x] **APP06-C3**: Telefone e e-mail como alternativas de contato.
 - [x] **APP06-C4**: O contato é registrado na API no momento em que o visitante o dispara.
@@ -123,7 +123,7 @@ Excluídos de propósito. Documentados para evitar scope creep.
 | API-06 | Phase 4 | Complete |
 | API-03 | Phase 5 | Complete |
 | API-07 | Phase 5 | Complete |
-| APP06-C1 | Phase 6 | Pending |
+| APP06-C1 | Phase 6 | Complete |
 | APP06-C2 | Phase 6 | Complete |
 | APP06-C3 | Phase 6 | Complete |
 | APP06-C4 | Phase 6 | Complete |
