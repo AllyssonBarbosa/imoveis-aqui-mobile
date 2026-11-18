@@ -44,15 +44,34 @@ class BarraContato extends StatelessWidget {
           children: [
             Expanded(child: legenda),
             const SizedBox(width: 16),
-            BlocBuilder<ContatoCubit, ContatoState>(
+            BlocConsumer<ContatoCubit, ContatoState>(
+              // Só falhas viram SnackBar; cada falha nova (com `enviando` no
+              // meio) é uma emissão nova, então aparece de novo (Pitfall 3).
+              listenWhen: (_, atual) => atual is ContatoFalhou,
+              listener: (context, state) {
+                if (state is! ContatoFalhou) return;
+                ScaffoldMessenger.of(context)
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(
+                    SnackBar(content: Text(state.motivo.mensagem)),
+                  );
+              },
               builder: (context, state) {
-                final enviando = state is ContatoEnviando;
+                // D-13: enquanto um contato está em andamento, tudo desabilita
+                // e o botão do canal em curso mostra o spinner.
+                final emCurso = switch (state) {
+                  ContatoEnviando(:final canal) => canal,
+                  _ => null,
+                };
+                final enviando = emCurso != null;
                 return Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     if (secundarios.isNotEmpty) ...[
                       IconButton(
-                        icon: const Icon(Icons.more_vert),
+                        icon: emCurso != null && emCurso != principal
+                            ? const _IndicadorDeEnvio()
+                            : const Icon(Icons.more_vert),
                         tooltip: 'Mais formas de contato',
                         onPressed: enviando
                             ? null
@@ -67,7 +86,9 @@ class BarraContato extends StatelessWidget {
                               imovelId,
                               principal,
                             ),
-                      icon: Icon(principal.icone),
+                      icon: emCurso == principal
+                          ? const _IndicadorDeEnvio()
+                          : Icon(principal.icone),
                       label: Text(principal.rotulo),
                     ),
                   ],
@@ -92,6 +113,19 @@ class BarraContato extends StatelessWidget {
       context,
       canais: secundarios,
       aoEscolher: (canal) => cubit.contatar(imovelId, canal),
+    );
+  }
+}
+
+/// Spinner de 18 px do canal em andamento (D-13) — ocupa o lugar do ícone.
+class _IndicadorDeEnvio extends StatelessWidget {
+  const _IndicadorDeEnvio();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox.square(
+      dimension: 18,
+      child: CircularProgressIndicator(strokeWidth: 2),
     );
   }
 }
