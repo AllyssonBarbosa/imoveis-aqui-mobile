@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 06
 current_phase_name: Contato com o Corretor — WhatsApp, Telefone e E-mail (APP 06)
 status: executing
-stopped_at: Completed 06-07-PLAN.md
-last_updated: "2026-11-18T17:22:52.904Z"
+stopped_at: Completed 06-08-PLAN.md
+last_updated: "2026-11-18T17:26:27.082Z"
 last_activity: 2026-11-16
 last_activity_desc: Phase 06 execution started
-state_head: a1a57f594d65e991e5d27d38eb079a3b3fd2c9e7
+state_head: cc245a8452dbeb59d014a0940740ae5d1debf3f3
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 54
-  completed_plans: 51
+  completed_plans: 52
   percent: 0
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-09-21)
 ## Current Position
 
 Phase: 06 (Contato com o Corretor — WhatsApp, Telefone e E-mail (APP 06)) — EXECUTING
-Plan: 8 of 10
+Plan: 9 of 10
 Status: Ready to execute
 Last activity: 2026-11-16 — Phase 06 execution started
 
@@ -102,6 +102,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 06 P05 | 25min | 2 tasks | 11 files |
 | Phase 06 P06 | 20 min | 2 tasks | 8 files |
 | Phase 06 P07 | 25min | 2 tasks | 9 files |
+| Phase 06 P08 | 20min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -156,6 +157,7 @@ Recent decisions affecting current work:
 - [Phase 06]: [Phase 06-05] link do contato validado por canal em data/ (https+wa.me, tel, mailto) e usado como recebido; ContatoRegistradoModel.toString nao inclui o link
 - [Phase 06]: [06-06] Link sempre aberto com LaunchMode.externalApplication; falhas da plataforma viram false; contato registrado antes de abrir e nunca desfeito (D-15); sem canLaunchUrl nem mudanca em android/ios
 - [Phase 06]: [Phase 06] [06-07] BarraContato reutilizavel com ContatoCubit sem imovelId no construtor; bottomNavigationBar null fora de DetalheCarregado com canais; legenda D-07 mede linhas com TextPainter
+- [Phase 06]: 06-08: ⋮ so com canal secundario; spinner substitui o icone do canal em curso; falha nova substitui a SnackBar anterior
 
 ### Roadmap Evolution
 
@@ -188,6 +190,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-18T17:22:52.857Z
-Stopped at: Completed 06-07-PLAN.md
+Last session: 2026-11-18T17:26:27.035Z
+Stopped at: Completed 06-08-PLAN.md
 Resume file: None
