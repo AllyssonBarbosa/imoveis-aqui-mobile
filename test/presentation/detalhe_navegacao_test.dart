@@ -2,16 +2,23 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:imoveis_aqui/data/datasources/contato_datasource.dart';
+import 'package:imoveis_aqui/data/datasources/contato_remote_datasource.dart';
 import 'package:imoveis_aqui/data/datasources/imovel_detalhe_datasource.dart';
 import 'package:imoveis_aqui/data/datasources/imovel_detalhe_remote_datasource.dart';
 import 'package:imoveis_aqui/data/datasources/imovel_remote_datasource.dart';
 import 'package:imoveis_aqui/data/datasources/opcoes_filtro_remote_datasource.dart';
+import 'package:imoveis_aqui/data/gateways/url_launcher_gateway_impl.dart';
+import 'package:imoveis_aqui/data/repositories/contato_repository_impl.dart';
 import 'package:imoveis_aqui/data/repositories/imovel_detalhe_repository_impl.dart';
 import 'package:imoveis_aqui/data/repositories/imovel_repository_impl.dart';
 import 'package:imoveis_aqui/data/repositories/opcoes_filtro_repository_impl.dart';
 import 'package:imoveis_aqui/di/injection.dart';
 import 'package:imoveis_aqui/domain/entities/cidade.dart';
+import 'package:imoveis_aqui/domain/gateways/link_launcher_gateway.dart';
+import 'package:imoveis_aqui/domain/repositories/contato_repository.dart';
 import 'package:imoveis_aqui/domain/usecases/buscar_imoveis_usecase.dart';
+import 'package:imoveis_aqui/domain/usecases/contatar_corretor_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/obter_bairros_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/obter_caracteristicas_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/obter_detalhe_imovel_usecase.dart';
@@ -20,6 +27,8 @@ import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_cubit.da
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_screen.dart';
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_state.dart';
 import 'package:imoveis_aqui/presentation/comum/imagem_rede.dart';
+import 'package:imoveis_aqui/presentation/contato/contato_cubit.dart';
+import 'package:imoveis_aqui/presentation/contato/widgets/barra_contato.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_cubit.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_screen.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/perfil_corretor_screen.dart';
@@ -45,6 +54,18 @@ class _CidadeSelecaoCubitFalso extends MockCubit<CidadeSelecaoState>
     implements CidadeSelecaoCubit {}
 
 class _SalvarCidadeUseCaseFalso extends Mock implements SalvarCidadeUseCase {}
+
+/// Lançador de links escrito à mão: grava cada [Uri] recebida e responde que
+/// abriu (nenhum aplicativo externo é tocado nos testes).
+class _LinkLauncherFalso implements LinkLauncherGateway {
+  final List<Uri> abertos = [];
+
+  @override
+  Future<bool> abrir(Uri link) async {
+    abertos.add(link);
+    return true;
+  }
+}
 
 void main() {
   // Campinas como a API devolve (com id), lida da fixture capturada.
@@ -78,7 +99,8 @@ void main() {
 
   // Um segundo detalhe capturado, de outro imóvel, para provar que cada card
   // abre o próprio detalhe.
-  final terreno = lerFixtureApi('detalhe_terreno.json')! as Map<String, Object?>;
+  final terreno =
+      lerFixtureApi('detalhe_terreno.json')! as Map<String, Object?>;
   final idTerreno = terreno['id']! as int;
   final tituloTerreno = terreno['titulo']! as String;
 
@@ -98,6 +120,7 @@ void main() {
   late _CidadeSelecaoCubitFalso cidadeSelecaoCubit;
   late _SalvarCidadeUseCaseFalso salvarCidade;
   late ApiFalsa apiFalsa;
+  late _LinkLauncherFalso lancador;
 
   VitrineCubit criarVitrineCubitReal() => VitrineCubit(
     BuscarImoveisUseCase(
@@ -116,12 +139,22 @@ void main() {
     );
   }
 
-  /// Registra o Cubit do detalhe sobre [dataSource]. O detalhe usa a própria
-  /// `ApiFalsa` (com [latencia]) para a prévia ficar de pé o tempo de testar.
+  /// Registra o Cubit do detalhe sobre [dataSource] e o `ContatoCubit` sobre a
+  /// `ApiFalsa` do teste (contato real + [lancador] falso). O detalhe usa a
+  /// própria `ApiFalsa` (com latência) para a prévia ficar de pé o tempo de
+  /// testar.
   void registrarDetalhe(ImovelDetalheDataSource dataSource) {
     getIt.registerFactory<DetalheImovelCubit>(
       () => DetalheImovelCubit(
         ObterDetalheImovelUseCase(ImovelDetalheRepositoryImpl(dataSource)),
+      ),
+    );
+    getIt.registerFactory<ContatoCubit>(
+      () => ContatoCubit(
+        ContatarCorretorUseCase(
+          ContatoRepositoryImpl(ContatoRemoteDataSource(apiFalsa.criarDio())),
+          lancador,
+        ),
       ),
     );
   }
@@ -130,6 +163,7 @@ void main() {
     cidadeSelecaoCubit = _CidadeSelecaoCubitFalso();
     salvarCidade = _SalvarCidadeUseCaseFalso();
     apiFalsa = ApiFalsa();
+    lancador = _LinkLauncherFalso();
   });
 
   tearDown(() async {
@@ -275,7 +309,26 @@ void main() {
         await esperarDetalhe(tester, const Duration(seconds: 1));
 
         // Cabeçalho alimentado pelo detalhe, com as características pelo nome.
-        expect(naPagina(find.textContaining('495.000')), findsOneWidget);
+        // O preço aparece no cabeçalho e, de novo, na legenda da barra de
+        // contato (D-05, D-07) — o mesmo texto nos dois lugares.
+        expect(
+          naPagina(
+            find.descendant(
+              of: find.byType(CustomScrollView),
+              matching: find.textContaining('495.000'),
+            ),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          naPagina(
+            find.descendant(
+              of: find.byType(BarraContato),
+              matching: find.textContaining('495.000'),
+            ),
+          ),
+          findsOneWidget,
+        );
         expect(naPagina(find.text('Características')), findsOneWidget);
         expect(naPagina(find.byType(Chip)), findsNWidgets(2));
         for (final nome in ['Churrasqueira', 'Varanda gourmet']) {
@@ -287,11 +340,11 @@ void main() {
           );
         }
 
-        // Sem barra inferior fixa (D-12).
+        // Barra de contato do APP 06 (D-05); sem botões de rodapé persistentes.
         final scaffold = tester.widget<Scaffold>(
           naPagina(find.byType(Scaffold)),
         );
-        expect(scaffold.bottomNavigationBar, isNull);
+        expect(scaffold.bottomNavigationBar, isA<BarraContato>());
         expect(scaffold.persistentFooterButtons, isNull);
 
         // Rola até o corretor e abre o perfil; só nome e foto (D-16).
@@ -337,6 +390,50 @@ void main() {
     );
   });
 
+  group('contato pela página (C1, C2, C4, C6)', () {
+    testWidgets(
+      'tocar em WhatsApp na página registra o contato sem login e abre o link '
+      'do servidor (C1, C2, C4, C6)',
+      (tester) async {
+        registrarDetalhe(
+          ImovelDetalheRemoteDataSource(
+            ApiFalsa(latencia: const Duration(milliseconds: 300)).criarDio(),
+          ),
+        );
+        await pumpVitrine(tester);
+
+        await tester.tap(find.byKey(ValueKey('imovel-$idCasa')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await esperarDetalhe(tester, const Duration(milliseconds: 300));
+
+        final botao = find.descendant(
+          of: find.byType(BarraContato),
+          matching: find.widgetWithText(FilledButton, 'WhatsApp'),
+        );
+        expect(botao, findsOneWidget);
+        await tester.tap(botao);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 50));
+
+        final chamada = apiFalsa.chamadas.last;
+        expect(chamada.metodo, 'POST');
+        expect(chamada.uri.path, '/api/publico/imoveis/$idCasa/contato/');
+        expect(chamada.corpo, {'canal': 'WHATSAPP'});
+        expect(
+          chamada.cabecalhos.keys.map((nome) => nome.toLowerCase()),
+          isNot(anyOf(contains('authorization'), contains('cookie'))),
+        );
+
+        final capturado =
+            lerFixtureApi('contato_201_whatsapp.json')! as Map<String, Object?>;
+        expect(lancador.abertos, hasLength(1));
+        expect(lancador.abertos.single.toString(), capturado['link']);
+        expect(find.byType(SnackBar), findsNothing);
+      },
+    );
+  });
+
   group('corretor ausente e perfil em memória (D-16, D-17)', () {
     final semCorretor =
         lerFixtureApi('detalhe_sem_corretor.json')! as Map<String, Object?>;
@@ -349,7 +446,9 @@ void main() {
         final apiDoDetalhe = ApiFalsa(
           latencia: const Duration(milliseconds: 300),
         );
-        registrarDetalhe(ImovelDetalheRemoteDataSource(apiDoDetalhe.criarDio()));
+        registrarDetalhe(
+          ImovelDetalheRemoteDataSource(apiDoDetalhe.criarDio()),
+        );
         await pumpVitrine(tester);
 
         await tocarNoCard(tester, idSemCorretor);
@@ -380,7 +479,9 @@ void main() {
         final apiDoDetalhe = ApiFalsa(
           latencia: const Duration(milliseconds: 300),
         );
-        registrarDetalhe(ImovelDetalheRemoteDataSource(apiDoDetalhe.criarDio()));
+        registrarDetalhe(
+          ImovelDetalheRemoteDataSource(apiDoDetalhe.criarDio()),
+        );
         await pumpVitrine(tester);
 
         await tester.tap(find.byKey(ValueKey('imovel-$idCasa')));
@@ -444,21 +545,43 @@ void main() {
 
         expect(naPagina(find.text('Sobre o lote')), findsOneWidget);
         expect(naPagina(find.text('Número do lote')), findsOneWidget);
-        expect(naPagina(find.text(blocoLote['numero']! as String)),
-            findsOneWidget);
+        expect(
+          naPagina(find.text(blocoLote['numero']! as String)),
+          findsOneWidget,
+        );
         expect(naPagina(find.text('Entrada mínima')), findsOneWidget);
         expect(naPagina(find.text('R\$\u00A023.500')), findsOneWidget);
         expect(naPagina(find.text('Parcelas máximas')), findsOneWidget);
         expect(naPagina(find.text('120')), findsOneWidget);
-        expect(naPagina(find.text('Condições de parcelamento')),
-            findsOneWidget);
+        expect(
+          naPagina(find.text('Condições de parcelamento')),
+          findsOneWidget,
+        );
         expect(
           naPagina(find.text(blocoLote['condicoes_parcelamento']! as String)),
           findsOneWidget,
         );
         // O lote não tem preço próprio: o cabeçalho mostra o de venda.
         expect(naPagina(find.text('Preço do lote')), findsNothing);
-        expect(naPagina(find.textContaining('235.000')), findsOneWidget);
+        // O mesmo preço aparece no cabeçalho e na legenda da barra de contato.
+        expect(
+          naPagina(
+            find.descendant(
+              of: find.byType(CustomScrollView),
+              matching: find.textContaining('235.000'),
+            ),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          naPagina(
+            find.descendant(
+              of: find.byType(BarraContato),
+              matching: find.textContaining('235.000'),
+            ),
+          ),
+          findsOneWidget,
+        );
 
         expect(naPagina(find.text('Quadra e loteamento')), findsOneWidget);
         expect(naPagina(find.text('Infraestrutura')), findsOneWidget);
@@ -544,7 +667,10 @@ void main() {
       expect(naPagina(find.text('Prédio')), findsOneWidget);
       expect(naPagina(find.text(predio['nome']! as String)), findsOneWidget);
       expect(naPagina(find.text('Ano de construção')), findsOneWidget);
-      expect(naPagina(find.text('${predio['ano_construcao']}')), findsOneWidget);
+      expect(
+        naPagina(find.text('${predio['ano_construcao']}')),
+        findsOneWidget,
+      );
       expect(naPagina(find.text('Unidades por andar')), findsNothing);
     });
 
@@ -588,7 +714,10 @@ void main() {
         await esperarDetalhe(tester, const Duration(milliseconds: 300));
 
         expect(naPagina(find.text('Descrição')), findsOneWidget);
-        expect(naPagina(find.text(terreno['descricao']! as String)), findsOneWidget);
+        expect(
+          naPagina(find.text(terreno['descricao']! as String)),
+          findsOneWidget,
+        );
         expect(naPagina(find.text(descricaoCasa)), findsNothing);
       },
     );
@@ -597,13 +726,15 @@ void main() {
       'servidor sem o imóvel (404): termina em "Este imóvel não está mais '
       'disponível" e "Voltar à vitrine" devolve a vitrine (D-17)',
       (tester) async {
-        final apiDoDetalhe = ApiFalsa(latencia: const Duration(milliseconds: 300))
-          ..responder(
-            (uri) => uri.path == '/api/publico/imoveis/$idCasa/',
-            status: 404,
-            fixture: 'erro_404_detalhe.json',
-          );
-        registrarDetalhe(ImovelDetalheRemoteDataSource(apiDoDetalhe.criarDio()));
+        final apiDoDetalhe =
+            ApiFalsa(latencia: const Duration(milliseconds: 300))..responder(
+              (uri) => uri.path == '/api/publico/imoveis/$idCasa/',
+              status: 404,
+              fixture: 'erro_404_detalhe.json',
+            );
+        registrarDetalhe(
+          ImovelDetalheRemoteDataSource(apiDoDetalhe.criarDio()),
+        );
         await pumpVitrine(tester);
 
         await tester.tap(find.byKey(ValueKey('imovel-$idCasa')));
@@ -650,7 +781,10 @@ void main() {
         expect(naPagina(find.text('Descrição')), findsOneWidget);
         expect(naPagina(find.byType(ImagemPadraoImovel)), findsOneWidget);
         expect(naPagina(find.byType(GaleriaImovel)), findsOneWidget);
-        expect(naPagina(find.byKey(const ValueKey('contador-fotos'))), findsNothing);
+        expect(
+          naPagina(find.byKey(const ValueKey('contador-fotos'))),
+          findsNothing,
+        );
         expect(naPagina(find.byType(PageView)), findsNothing);
       },
     );
@@ -659,13 +793,15 @@ void main() {
       'imóvel que saiu da vitrine entre a lista e o toque (404 no detalhe): '
       'mostra "Este imóvel não está mais disponível" e nunca o dado velho',
       (tester) async {
-        final apiDoDetalhe = ApiFalsa(latencia: const Duration(milliseconds: 300))
-          ..responder(
-            (uri) => uri.path == '/api/publico/imoveis/$idCasa/',
-            status: 404,
-            fixture: 'erro_404_detalhe.json',
-          );
-        registrarDetalhe(ImovelDetalheRemoteDataSource(apiDoDetalhe.criarDio()));
+        final apiDoDetalhe =
+            ApiFalsa(latencia: const Duration(milliseconds: 300))..responder(
+              (uri) => uri.path == '/api/publico/imoveis/$idCasa/',
+              status: 404,
+              fixture: 'erro_404_detalhe.json',
+            );
+        registrarDetalhe(
+          ImovelDetalheRemoteDataSource(apiDoDetalhe.criarDio()),
+        );
         await pumpVitrine(tester);
 
         await tester.tap(find.byKey(ValueKey('imovel-$idCasa')));
@@ -688,7 +824,9 @@ void main() {
       'nada depois (guarda isClosed, sem exceção)',
       (tester) async {
         final apiDoDetalhe = ApiFalsa(latencia: const Duration(seconds: 2));
-        registrarDetalhe(ImovelDetalheRemoteDataSource(apiDoDetalhe.criarDio()));
+        registrarDetalhe(
+          ImovelDetalheRemoteDataSource(apiDoDetalhe.criarDio()),
+        );
         await pumpVitrine(tester);
 
         await tester.tap(find.byKey(ValueKey('imovel-$idCasa')));
@@ -721,9 +859,12 @@ void main() {
       'erro 500 ao abrir mostra a mensagem com "Tentar de novo"; tocar repete '
       'a busca (spinner) e mostra a Descrição quando dá certo (D-17)',
       (tester) async {
-        final apiDoDetalhe = ApiFalsa(latencia: const Duration(milliseconds: 300))
-          ..falharProximas('/api/publico/imoveis/', status: 500);
-        registrarDetalhe(ImovelDetalheRemoteDataSource(apiDoDetalhe.criarDio()));
+        final apiDoDetalhe = ApiFalsa(
+          latencia: const Duration(milliseconds: 300),
+        )..falharProximas('/api/publico/imoveis/', status: 500);
+        registrarDetalhe(
+          ImovelDetalheRemoteDataSource(apiDoDetalhe.criarDio()),
+        );
         await pumpVitrine(tester);
 
         await tester.tap(find.byKey(ValueKey('imovel-$idCasa')));
@@ -775,6 +916,10 @@ void main() {
           getIt<ImovelDetalheDataSource>(),
           isA<ImovelDetalheRemoteDataSource>(),
         );
+        expect(getIt<ContatoCubit>(), isA<ContatoCubit>());
+        expect(getIt<LinkLauncherGateway>(), isA<UrlLauncherGatewayImpl>());
+        expect(getIt<ContatoRepository>(), isA<ContatoRepositoryImpl>());
+        expect(getIt<ContatoDataSource>(), isA<ContatoRemoteDataSource>());
       },
     );
   });

@@ -83,6 +83,7 @@ import 'package:imoveis_aqui/domain/usecases/validar_cidade_atendida_usecase.dar
     as _i14;
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_cubit.dart'
     as _i765;
+import 'package:imoveis_aqui/presentation/contato/contato_cubit.dart' as _i959;
 import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_cubit.dart'
     as _i331;
 import 'package:imoveis_aqui/presentation/vitrine/opcoes_filtro_cubit.dart'
@@ -199,6 +200,9 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i20.ObterBairrosUseCase>(),
         gh<_i441.ObterCaracteristicasUseCase>(),
       ),
+    );
+    gh.factory<_i959.ContatoCubit>(
+      () => _i959.ContatoCubit(gh<_i762.ContatarCorretorUseCase>()),
     );
     gh.factory<_i331.DetalheImovelCubit>(
       () => _i331.DetalheImovelCubit(gh<_i990.ObterDetalheImovelUseCase>()),
