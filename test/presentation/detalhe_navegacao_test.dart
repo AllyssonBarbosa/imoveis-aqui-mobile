@@ -432,6 +432,69 @@ void main() {
         expect(find.byType(SnackBar), findsNothing);
       },
     );
+
+    testWidgets(
+      'tocar em Ligar no menu de mais formas registra o contato por telefone '
+      'e abre o link do servidor (C3, C4)',
+      (tester) async {
+        registrarDetalhe(
+          ImovelDetalheRemoteDataSource(
+            ApiFalsa(latencia: const Duration(milliseconds: 300)).criarDio(),
+          ),
+        );
+        await pumpVitrine(tester);
+
+        await tester.tap(find.byKey(ValueKey('imovel-$idCasa')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await esperarDetalhe(tester, const Duration(milliseconds: 300));
+
+        final maisFormas = find.descendant(
+          of: find.byType(BarraContato),
+          matching: find.byTooltip('Mais formas de contato'),
+        );
+        expect(maisFormas, findsOneWidget);
+        await tester.tap(maisFormas);
+        await tester.pumpAndSettle();
+
+        // O sheet lista exatamente os canais além do principal (WhatsApp).
+        expect(find.text('Outras formas de contato'), findsOneWidget);
+        final itens = find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.byType(ListTile),
+        );
+        expect(itens, findsNWidgets(2));
+        expect(
+          find.descendant(of: itens, matching: find.text('Ligar')),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(of: itens, matching: find.text('Enviar e-mail')),
+          findsOneWidget,
+        );
+
+        await tester.tap(
+          find.descendant(of: itens, matching: find.text('Ligar')),
+        );
+        await tester.pumpAndSettle();
+        expect(find.byType(BottomSheet), findsNothing);
+
+        final chamada = apiFalsa.chamadas.last;
+        expect(chamada.metodo, 'POST');
+        expect(chamada.uri.path, '/api/publico/imoveis/$idCasa/contato/');
+        expect(chamada.corpo, {'canal': 'TELEFONE'});
+        expect(
+          chamada.cabecalhos.keys.map((nome) => nome.toLowerCase()),
+          isNot(anyOf(contains('authorization'), contains('cookie'))),
+        );
+
+        final capturado =
+            lerFixtureApi('contato_201_telefone.json')! as Map<String, Object?>;
+        expect(lancador.abertos, hasLength(1));
+        expect(lancador.abertos.single.toString(), capturado['link']);
+        expect(find.byType(SnackBar), findsNothing);
+      },
+    );
   });
 
   group('corretor ausente e perfil em memória (D-16, D-17)', () {

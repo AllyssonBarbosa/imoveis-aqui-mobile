@@ -5,6 +5,7 @@ import '../../../domain/entities/canal_contato.dart';
 import '../contato_cubit.dart';
 import '../contato_state.dart';
 import '../rotulos_contato.dart';
+import 'contato_bottom_sheet.dart';
 
 /// Barra de contato — [legenda] à esquerda e o botão do canal principal à
 /// direita (D-05). Reutilizável na página do imóvel e no perfil do corretor
@@ -31,6 +32,7 @@ class BarraContato extends StatelessWidget {
     final ordenados = CanalContato.values.where(canais.contains).toList();
     if (ordenados.isEmpty) return const SizedBox.shrink();
     final principal = ordenados.first;
+    final secundarios = ordenados.skip(1).toList();
 
     return Material(
       color: Theme.of(context).colorScheme.surfaceContainer,
@@ -44,21 +46,52 @@ class BarraContato extends StatelessWidget {
             const SizedBox(width: 16),
             BlocBuilder<ContatoCubit, ContatoState>(
               builder: (context, state) {
-                return FilledButton.icon(
-                  onPressed: state is ContatoEnviando
-                      ? null
-                      : () => context.read<ContatoCubit>().contatar(
-                          imovelId,
-                          principal,
-                        ),
-                  icon: Icon(principal.icone),
-                  label: Text(principal.rotulo),
+                final enviando = state is ContatoEnviando;
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (secundarios.isNotEmpty) ...[
+                      IconButton(
+                        icon: const Icon(Icons.more_vert),
+                        tooltip: 'Mais formas de contato',
+                        onPressed: enviando
+                            ? null
+                            : () => _abrirOutrasFormas(context, secundarios),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                    FilledButton.icon(
+                      onPressed: enviando
+                          ? null
+                          : () => context.read<ContatoCubit>().contatar(
+                              imovelId,
+                              principal,
+                            ),
+                      icon: Icon(principal.icone),
+                      label: Text(principal.rotulo),
+                    ),
+                  ],
                 );
               },
             ),
           ],
         ),
       ),
+    );
+  }
+
+  /// O Cubit é lido aqui, do contexto da barra (dentro do `BlocProvider` da
+  /// tela), antes de abrir o sheet: a rota do modal fica fora do provider
+  /// (mesmo cuidado de `mostrarOrdenacaoBottomSheet`).
+  void _abrirOutrasFormas(
+    BuildContext context,
+    List<CanalContato> secundarios,
+  ) {
+    final cubit = context.read<ContatoCubit>();
+    mostrarContatoBottomSheet(
+      context,
+      canais: secundarios,
+      aoEscolher: (canal) => cubit.contatar(imovelId, canal),
     );
   }
 }
