@@ -4,15 +4,15 @@ current_phase: 07
 current_phase_name: Perfis Públicos da Empresa e do Corretor
 status: executing
 stopped_at: Completed 04-08-PLAN.md
-last_updated: "2026-11-08T18:00:38.132Z"
+last_updated: "2026-11-18T01:38:31.480Z"
 last_activity: 2026-11-08
 last_activity_desc: Phase 07 execution started
-state_head: 76c463db6d0d9e627b2c0dc646d44a1e0915e834
+state_head: 5d6ba3d3bffdd8d17a4941000bd3cec141c28804
 progress:
-  total_phases: 6
+  total_phases: 7
   completed_phases: 0
   total_plans: 34
-  completed_plans: 22
+  completed_plans: 34
   percent: 0
 ---
 
@@ -126,6 +126,7 @@ None yet.
 ### Roadmap Evolution
 
 - Phase 7 added: Perfis Públicos da Empresa e do Corretor (card APP 07); número 7 escolhido para casar com o card — fase 6 reservada ao APP 06
+- Phase 07.1 inserted after Phase 7: Integração da APP-07 com a API real (merge da APP-05, perfis na API real, endpoint da vitrine do anunciante no Django) (URGENT)
 
 ## Deferred Items
 

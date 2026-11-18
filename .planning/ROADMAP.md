@@ -26,6 +26,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 4: Página do Imóvel — Galeria e Dados da Natureza** - Tela de detalhe (card APP 04): galeria a partir da capa, preços, corretor e bloco por natureza (casa, terreno, apartamento, lote), sobre mock seguindo o contrato de `GET /api/publico/imoveis/{id}/`.
 - [ ] **Phase 5: Imóveis Real — Endpoint Público e Integração Final** - Endpoints públicos reais de lista e detalhe de imóveis e troca das DataSources mock pelas reais via DI.
 - [ ] **Phase 7: Perfis Públicos da Empresa e do Corretor** - Card APP 07: página da empresa e página do corretor com a vitrine do anunciante, dados da API de perfis públicos (WEB 02) e aviso para corretor desativado. (Fase 6 reservada ao card APP 06, de outro colega — fase N = card APP 0N.)
+- [ ] **Phase 07.1: Integração da APP-07 com a API real**
 
 ## Phase Details
 
@@ -255,3 +256,19 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 7 (6 reservada ao
 | 4. Página do Imóvel — Galeria e Dados da Natureza | 8/8 | In Progress|  |
 | 5. Imóveis Real — Endpoint Público e Integração Final | 0/TBD | Not started | - |
 | 7. Perfis Públicos da Empresa e do Corretor | 12/12 | In Progress | - |
+
+### Phase 07.1: Integração da APP-07 com a API real (INSERTED)
+
+**Goal:** Os perfis do corretor e da empresa e a vitrine do anunciante funcionam ponta a ponta com dados reais, sobre a `main` que já tem a APP-05: a branch `feat/APP07` recebe a `main` com os conflitos resolvidos, os perfis passam a usar a API real da WEB 02, e a vitrine do anunciante passa a vir de um endpoint novo no Django (imóveis por corretor e por empresa), no padrão da API pública da APP-05.
+**Requirements**: PERF-03, PERF-04, API-08
+**Success Criteria**:
+  1. `feat/APP07` contém a `main` atual (APP-05) com todos os conflitos resolvidos; `flutter analyze` limpo e `flutter test` verde.
+  2. O DI registra a DataSource real dos perfis (`GET /api/publico/corretores/{id}/` e `/empresas/{id}/`); nenhum mock de perfil ou de imóvel ativo no app.
+  3. O Django expõe a vitrine do anunciante (imóveis publicados de um corretor e de uma empresa) com a mesma paginação, allowlist e limite de taxa da API pública da APP-05, com testes no repositório web.
+  4. O app consome esse endpoint com a paginação nova; o adendo do contrato da vitrine do anunciante fica renumerado (o §12 da `main` passou a ser outro assunto) e alinhado ao que o Django entrega.
+  5. Com o Django rodando e `semear_vitrine_dev`, dá para ir de um imóvel real até o corretor, a empresa e a vitrine deles, e de volta a um imóvel.
+**Depends on:** Phase 7
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 07.1 to break down)
