@@ -4,11 +4,16 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:imoveis_aqui/di/injection.dart';
+import 'package:imoveis_aqui/domain/entities/canal_contato.dart';
 import 'package:imoveis_aqui/domain/entities/cidade.dart';
 import 'package:imoveis_aqui/domain/entities/dados_natureza.dart';
 import 'package:imoveis_aqui/domain/entities/detalhe_imovel.dart';
 import 'package:imoveis_aqui/domain/entities/imovel.dart';
 import 'package:imoveis_aqui/presentation/comum/imagem_rede.dart';
+import 'package:imoveis_aqui/presentation/contato/contato_cubit.dart';
+import 'package:imoveis_aqui/presentation/contato/contato_state.dart';
+import 'package:imoveis_aqui/presentation/contato/widgets/barra_contato.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_cubit.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_screen.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_state.dart';
@@ -16,10 +21,25 @@ import 'package:imoveis_aqui/presentation/detalhe_imovel/perfil_corretor_screen.
 import 'package:imoveis_aqui/presentation/detalhe_imovel/widgets/cartao_corretor.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/widgets/galeria_imovel.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/widgets/visualizador_fotos.dart';
+import 'package:imoveis_aqui/presentation/vitrine/apresentacao_imovel.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _DetalheImovelCubitFalso extends MockCubit<DetalheImovelState>
     implements DetalheImovelCubit {}
+
+class _ContatoCubitFalso extends MockCubit<ContatoState>
+    implements ContatoCubit {}
+
+/// Cubit de contato falso já parado em `ocioso`, pronto para uso.
+_ContatoCubitFalso _novoContatoCubitFalso() {
+  final falso = _ContatoCubitFalso();
+  whenListen(
+    falso,
+    const Stream<ContatoState>.empty(),
+    initialState: const ContatoState.ocioso(),
+  );
+  return falso;
+}
 
 /// Imagem determinística: uma caixa com a chave da própria url.
 Widget _caixaDaUrl(String url) =>
@@ -45,10 +65,16 @@ void main() {
   );
 
   late _DetalheImovelCubitFalso cubit;
+  late _ContatoCubitFalso contatoCubit;
 
   setUp(() {
     cubit = _DetalheImovelCubitFalso();
     when(() => cubit.tentarNovamente()).thenAnswer((_) async {});
+    contatoCubit = _novoContatoCubitFalso();
+  });
+
+  tearDown(() async {
+    await getIt.reset();
   });
 
   /// Empurra a página por cima de uma página-base, como a vitrine faz, para
@@ -57,10 +83,11 @@ void main() {
     WidgetTester tester,
     DetalheImovelState estado, {
     double altura = 1200,
+    double largura = 400,
     Imovel previaUsada = previa,
     Stream<DetalheImovelState> fluxo = const Stream<DetalheImovelState>.empty(),
   }) async {
-    tester.view.physicalSize = Size(400, altura);
+    tester.view.physicalSize = Size(largura, altura);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -73,8 +100,11 @@ void main() {
               child: FilledButton(
                 onPressed: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(
-                    builder: (_) => BlocProvider<DetalheImovelCubit>.value(
-                      value: cubit,
+                    builder: (_) => MultiBlocProvider(
+                      providers: [
+                        BlocProvider<DetalheImovelCubit>.value(value: cubit),
+                        BlocProvider<ContatoCubit>.value(value: contatoCubit),
+                      ],
                       child: DetalheImovelScreen(
                         previa: previaUsada,
                         construirImagemDeRede: _caixaDaUrl,
@@ -494,8 +524,10 @@ void main() {
       expect(find.widgetWithText(Chip, 'Asfalto'), findsOneWidget);
       expect(find.widgetWithText(Chip, 'Energia'), findsOneWidget);
       expect(find.text('Praça central e playground.'), findsOneWidget);
-      expect(find.widgetWithText(Chip, 'Praça central e playground.'),
-          findsNothing);
+      expect(
+        find.widgetWithText(Chip, 'Praça central e playground.'),
+        findsNothing,
+      );
     });
 
     testWidgets('loteamento sem infraestrutura nem áreas de lazer não mostra '
@@ -748,22 +780,243 @@ void main() {
       );
     });
 
-    testWidgets('a página não tem barra inferior fixa (D-12)', (tester) async {
+    testWidgets(
+      'sem canais de contato a página não tem barra inferior (D-03)',
+      (tester) async {
+        await pumpEstado(
+          tester,
+          DetalheImovelState.carregado(comCorretor),
+          altura: 2400,
+        );
+
+        final scaffold = tester.widget<Scaffold>(
+          find.descendant(
+            of: find.byType(DetalheImovelScreen),
+            matching: find.byType(Scaffold),
+          ),
+        );
+        expect(scaffold.bottomNavigationBar, isNull);
+        expect(scaffold.persistentFooterButtons, isNull);
+        expect(scaffold.bottomSheet, isNull);
+      },
+    );
+  });
+
+  group('barra de contato (APP 06)', () {
+    const marina = CorretorResponsavel(id: 7, nome: 'Marina Lopes');
+    const tresCanais = [
+      CanalContato.whatsapp,
+      CanalContato.telefone,
+      CanalContato.email,
+    ];
+    final comCanais = detalhe.copyWith(canaisContato: tresCanais);
+
+    Finder daBarra(Finder alvo) =>
+        find.descendant(of: find.byType(BarraContato), matching: alvo);
+    Finder doCabecalho(Finder alvo) =>
+        find.descendant(of: find.byType(CustomScrollView), matching: alvo);
+    Finder daPagina(Finder alvo) =>
+        find.descendant(of: find.byType(DetalheImovelScreen), matching: alvo);
+
+    Scaffold scaffoldDaPagina(WidgetTester tester) =>
+        tester.widget<Scaffold>(daPagina(find.byType(Scaffold)).first);
+
+    testWidgets('carregado com canais mostra a barra e a legenda com o mesmo '
+        'texto de preço do cabeçalho (D-05, D-07)', (tester) async {
+      await pumpEstado(tester, DetalheImovelState.carregado(comCanais));
+
+      expect(find.byType(BarraContato), findsOneWidget);
+      expect(scaffoldDaPagina(tester).bottomNavigationBar, isA<BarraContato>());
+      final linhas = linhasDePrecoPorFinalidade(
+        finalidade: comCanais.finalidade,
+        precoVenda: comCanais.precoVenda,
+        precoAluguel: comCanais.precoAluguel,
+      );
+      expect(linhas, hasLength(1));
+      for (final linha in linhas) {
+        expect(daBarra(find.text(linha)), findsOneWidget);
+        expect(doCabecalho(find.text(linha)), findsOneWidget);
+      }
+      // A legenda mostra exatamente as linhas de preço, nada além delas.
+      expect(daBarra(find.textContaining('R\$')), findsNWidgets(linhas.length));
+      expect(daBarra(find.widgetWithText(FilledButton, 'WhatsApp')), findsOne);
+    });
+
+    testWidgets('VENDA_E_ALUGUEL com preços curtos e largura folgada mostra as '
+        'duas linhas na barra, na ordem, e também no cabeçalho (D-07)', (
+      tester,
+    ) async {
+      final ambos = comCanais.copyWith(
+        finalidade: FinalidadeImovel.vendaEAluguel,
+        precoVenda: '220000.00',
+        precoAluguel: '1500.00',
+      );
       await pumpEstado(
         tester,
-        DetalheImovelState.carregado(comCorretor),
+        DetalheImovelState.carregado(ambos),
+        altura: 2400,
+        largura: 1400,
+      );
+
+      final linhas = linhasDePrecoPorFinalidade(
+        finalidade: ambos.finalidade,
+        precoVenda: ambos.precoVenda,
+        precoAluguel: ambos.precoAluguel,
+      );
+      expect(linhas, hasLength(2));
+      for (final linha in linhas) {
+        expect(daBarra(find.text(linha)), findsOneWidget);
+        expect(doCabecalho(find.text(linha)), findsOneWidget);
+      }
+      expect(
+        tester.getTopLeft(daBarra(find.text(linhas[0]))).dy,
+        lessThan(tester.getTopLeft(daBarra(find.text(linhas[1]))).dy),
+      );
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('VENDA_E_ALUGUEL com aluguel longo demais para a legenda '
+        'mostra só a principal na barra; a outra fica só no cabeçalho (D-07)', (
+      tester,
+    ) async {
+      final ambos = comCanais.copyWith(
+        finalidade: FinalidadeImovel.vendaEAluguel,
+        precoVenda: '90000.00',
+        precoAluguel: '1234567890.00',
+      );
+      await pumpEstado(
+        tester,
+        DetalheImovelState.carregado(ambos),
         altura: 2400,
       );
 
-      final scaffold = tester.widget<Scaffold>(
-        find.descendant(
-          of: find.byType(DetalheImovelScreen),
-          matching: find.byType(Scaffold),
-        ),
+      final linhas = linhasDePrecoPorFinalidade(
+        finalidade: ambos.finalidade,
+        precoVenda: ambos.precoVenda,
+        precoAluguel: ambos.precoAluguel,
       );
-      expect(scaffold.bottomNavigationBar, isNull);
-      expect(scaffold.persistentFooterButtons, isNull);
-      expect(scaffold.bottomSheet, isNull);
+      expect(linhas, hasLength(2));
+      expect(daBarra(find.text(linhas[0])), findsOneWidget);
+      expect(daBarra(find.text(linhas[1])), findsNothing);
+      expect(doCabecalho(find.text(linhas[0])), findsOneWidget);
+      expect(doCabecalho(find.text(linhas[1])), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('sem canais não há barra de contato (D-03)', (tester) async {
+      await pumpEstado(tester, const DetalheImovelState.carregado(detalhe));
+
+      expect(find.byType(BarraContato), findsNothing);
+      expect(scaffoldDaPagina(tester).bottomNavigationBar, isNull);
+    });
+
+    testWidgets('carregando não tem barra de contato (D-08)', (tester) async {
+      await pumpEstado(tester, const DetalheImovelState.carregando());
+
+      expect(find.byType(BarraContato), findsNothing);
+      expect(scaffoldDaPagina(tester).bottomNavigationBar, isNull);
+    });
+
+    testWidgets('erro não tem barra de contato (D-08)', (tester) async {
+      await pumpEstado(tester, const DetalheImovelState.erro());
+
+      expect(find.byType(BarraContato), findsNothing);
+      expect(scaffoldDaPagina(tester).bottomNavigationBar, isNull);
+    });
+
+    testWidgets('não encontrado não tem barra de contato (D-08)', (
+      tester,
+    ) async {
+      await pumpEstado(tester, const DetalheImovelState.naoEncontrado());
+
+      expect(find.byType(BarraContato), findsNothing);
+      expect(scaffoldDaPagina(tester).bottomNavigationBar, isNull);
+    });
+
+    testWidgets('sem corretor mas com canais a barra aparece (D-03)', (
+      tester,
+    ) async {
+      expect(comCanais.corretor, isNull);
+      await pumpEstado(tester, DetalheImovelState.carregado(comCanais));
+
+      expect(find.byType(CartaoCorretor), findsNothing);
+      expect(find.byType(BarraContato), findsOneWidget);
+    });
+
+    testWidgets('em tela baixa a última seção não fica escondida sob a barra '
+        '(Pitfall 9)', (tester) async {
+      final longo = comCanais.copyWith(
+        caracteristicas: const ['Portão eletrônico', 'Ar-condicionado'],
+        corretor: marina,
+      );
+      await pumpEstado(
+        tester,
+        DetalheImovelState.carregado(longo),
+        altura: 640,
+      );
+
+      final lista = find.byType(CustomScrollView);
+      for (var i = 0; i < 5; i++) {
+        await tester.drag(lista, const Offset(0, -1500));
+        await tester.pumpAndSettle();
+      }
+
+      expect(find.byType(CartaoCorretor), findsOneWidget);
+      expect(
+        tester.getBottomLeft(find.byType(CartaoCorretor)).dy,
+        lessThanOrEqualTo(tester.getTopLeft(find.byType(BarraContato)).dy),
+      );
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('tocar no cartão do corretor abre o perfil com "Sobre: '
+        '<título>" quando o detalhe tem canais', (tester) async {
+      getIt.registerFactory<ContatoCubit>(_novoContatoCubitFalso);
+      final comCorretorECanais = comCanais.copyWith(corretor: marina);
+      await pumpEstado(
+        tester,
+        DetalheImovelState.carregado(comCorretorECanais),
+        altura: 2400,
+      );
+
+      await tester.tap(find.byType(CartaoCorretor));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      final noPerfil = find.byType(PerfilCorretorScreen);
+      expect(noPerfil, findsOneWidget);
+      expect(
+        find.descendant(of: noPerfil, matching: find.byType(BarraContato)),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: noPerfil,
+          matching: find.text('Sobre: ${comCanais.titulo}'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('tocar no cartão do corretor num detalhe sem canais abre o '
+        'perfil sem barra de contato', (tester) async {
+      final semCanais = detalhe.copyWith(corretor: marina);
+      await pumpEstado(
+        tester,
+        DetalheImovelState.carregado(semCanais),
+        altura: 2400,
+      );
+
+      await tester.tap(find.byType(CartaoCorretor));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      final noPerfil = find.byType(PerfilCorretorScreen);
+      expect(noPerfil, findsOneWidget);
+      expect(
+        find.descendant(of: noPerfil, matching: find.byType(BarraContato)),
+        findsNothing,
+      );
     });
   });
 
