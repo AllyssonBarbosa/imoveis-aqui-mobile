@@ -1,49 +1,26 @@
 import '../../domain/entities/anunciante_ref.dart';
 import '../models/imoveis_envelope_model.dart';
 
-/// Mapeia [AnuncianteRef] para os query params da vitrine do anunciante
-/// (contrato §12.2): `corretor=<id>` ou `empresa=<id>` — exatamente um deles,
-/// e nunca cidade, ordenação, busca nem filtros: o recorte e a ordem são do
-/// servidor. Simétrica a [anuncianteDosParametros] (o inverso exato).
-Map<String, String> parametrosDoAnunciante(AnuncianteRef anunciante) =>
+/// Caminho do endpoint público da vitrine do anunciante (API-08, §13 do
+/// contrato): `GET /api/publico/corretores/<id>/imoveis/` ou
+/// `GET /api/publico/empresas/<id>/imoveis/`. Só um `int` entra no caminho,
+/// nunca texto do usuário, e ele termina em barra — a mesma disciplina de
+/// `caminhoPerfilCorretor`. Não há query string: o recorte (imóveis
+/// publicados do anunciante) e a ordem ("mais recentes") são do servidor.
+String caminhoVitrineDoAnunciante(AnuncianteRef anunciante) =>
     switch (anunciante) {
-      AnuncianteCorretor(:final id) => {'corretor': '$id'},
-      AnuncianteEmpresa(:final id) => {'empresa': '$id'},
+      AnuncianteCorretor(:final id) => '/api/publico/corretores/$id/imoveis/',
+      AnuncianteEmpresa(:final id) => '/api/publico/empresas/$id/imoveis/',
     };
 
-/// Inverso de [parametrosDoAnunciante]: exige exatamente uma das chaves
-/// `corretor` ou `empresa`, com valor inteiro. Qualquer outra forma lança
-/// [FormatException] — o equivalente do 400 do contrato (§12.6).
-AnuncianteRef anuncianteDosParametros(Map<String, String> parametros) {
-  final corretor = parametros['corretor'];
-  final empresa = parametros['empresa'];
-  if ((corretor == null) == (empresa == null)) {
-    throw const FormatException(
-      'a vitrine do anunciante exige exatamente um de corretor/empresa',
-    );
-  }
-  if (corretor != null) {
-    final id = int.tryParse(corretor);
-    if (id == null) {
-      throw FormatException('corretor inválido: "$corretor"');
-    }
-    return AnuncianteRef.corretor(id);
-  }
-  final id = int.tryParse(empresa!);
-  if (id == null) {
-    throw FormatException('empresa inválida: "$empresa"');
-  }
-  return AnuncianteRef.empresa(id);
-}
-
-/// Fronteira trocável mock->real da vitrine do anunciante (§12, API-08).
-/// Hoje quem a implementa é um servidor simulado (dev-only); quando a web
-/// tiver o endpoint (PENDENTE WEB, §12.8 a), uma DataSource `dio` a substitui
-/// sem tocar `domain/`/`presentation/` — só a anotação de DI muda.
+/// Fronteira da vitrine do anunciante (§13 do contrato, API-08), implementada
+/// pela `VitrineAnuncianteRemoteDataSource` (Dio contra o Django). A lista usa
+/// o mesmo envelope `PageNumberPagination` da vitrine da cidade.
 abstract class VitrineAnuncianteDataSource {
   /// Primeira página da vitrine do [anunciante].
   Future<ImoveisEnvelopeModel> buscar(AnuncianteRef anunciante);
 
-  /// Próxima página, a partir do cursor opaco [proximaPagina].
+  /// Página seguinte, a partir da URL `next` absoluta ([proximaPagina]) da
+  /// resposta anterior — opaca para o app, seguida tal e qual.
   Future<ImoveisEnvelopeModel> seguir(String proximaPagina);
 }

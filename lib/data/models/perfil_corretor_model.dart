@@ -8,8 +8,8 @@ part 'perfil_corretor_model.freezed.dart';
 part 'perfil_corretor_model.g.dart';
 
 /// Modelo de transporte do perfil público do corretor
-/// (`GET /api/publico/corretores/{id}/`, WEB 02), hoje servido por
-/// `PerfilMockDataSource` e futuramente pelo endpoint real. Declara só as nove
+/// (`GET /api/publico/corretores/{id}/`, WEB 02), lido pela
+/// `PerfilRemoteDataSource` (WEB 02). Declara só as nove
 /// chaves públicas: qualquer chave extra do JSON é ignorada pelo
 /// `json_serializable`, então nenhum dado privado vaza para o app.
 @freezed

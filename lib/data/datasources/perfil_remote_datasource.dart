@@ -5,20 +5,16 @@ import '../models/perfil_corretor_model.dart';
 import '../models/perfil_empresa_model.dart';
 import 'perfil_datasource.dart';
 
-/// DataSource real dos perfis públicos (WEB 02): lê
-/// `GET /api/publico/corretores/{id}/` pelo `Dio` do `modulo_rede.dart`
-/// (`API_BASE_URL`).
-///
-/// Registrada com `@lazySingleton` SEM `as:` de propósito: enquanto detalhe e
-/// lista forem mock, o DI continua entregando `PerfilMockDataSource` como
-/// [PerfilDataSource]. A troca da Phase 5 é mover `as: PerfilDataSource` do
-/// mock para esta classe e rodar o build_runner (D-03) — duas anotações com
-/// `as:` quebrariam o `getIt`.
+/// DataSource dos perfis públicos (WEB 02): lê
+/// `GET /api/publico/corretores/{id}/` e `GET /api/publico/empresas/{id}/`
+/// pelo `Dio` do `modulo_rede.dart` (`API_BASE_URL`). É a implementação ativa
+/// de [PerfilDataSource] no DI de produção (D-08): não existe mock de perfil
+/// no app.
 ///
 /// Fina de propósito: não captura `DioException` (o Dio 5 lança em 404 e o
 /// repositório traduz) e NÃO tem interceptador de log, porque o corpo traz
 /// e-mail e telefone do corretor.
-@lazySingleton
+@LazySingleton(as: PerfilDataSource)
 class PerfilRemoteDataSource implements PerfilDataSource {
   PerfilRemoteDataSource(this._dio);
 
