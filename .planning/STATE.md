@@ -3,17 +3,17 @@ gsd_state_version: "1.0"
 current_phase: "07.1"
 current_phase_name: Integração da APP-07 com a API real (INSERTED)
 status: executing
-stopped_at: Completed 04-08-PLAN.md
-last_updated: "2026-11-19T02:00:35.096Z"
+stopped_at: Completed 07.1-01-PLAN.md
+last_updated: "2026-11-19T02:09:43.370Z"
 last_activity: 2026-11-18
 last_activity_desc: Phase 07.1 execution started
-state_head: 6ba8a5f5a388b883477e23984aa56617f7690c05
+state_head: 02d84cb3ab9240e41c9f7c1c41d7a1f90998ee26
 progress:
   total_phases: 7
-  completed_phases: 0
-  total_plans: 40
-  completed_plans: 34
-  percent: 0
+  completed_phases: 1
+  total_plans: 62
+  completed_plans: 57
+  percent: 14
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-21)
 ## Current Position
 
 Phase: 07.1 (Integração da APP-07 com a API real (INSERTED)) — EXECUTING
-Plan: 1 of 6
-Status: Executing Phase 07.1
+Plan: 2 of 6
+Status: Ready to execute
 Last activity: 2026-11-18 — Phase 07.1 execution started
 
-Progress: [██░░░░░░░░] 20%
+Progress: [█░░░░░░░░░] 14%
 
 ## Performance Metrics
 
@@ -95,6 +95,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 05 P20 | 10min | 2 tasks | 2 files |
 | Phase 05 P21 | 15min | 2 tasks | 7 files |
 | Phase 05 P22 | 20min | 2 tasks | 4 files |
+| Phase 07.1 P01 | 11 min | 2 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -140,6 +141,7 @@ Recent decisions affecting current work:
 - [Phase 05]: 05-19: preço e área têm tetos separados (9999999999.99 / 99999999.99); NUL, busca>200, bairro>20 itens ou >100 caracteres e número fora da allowlist ASCII viram 400 {campo: mensagem}
 - [Phase 05]: 05-20: filtro caracteristicas com teto de 20 ids distintos e tem-todas por uma subconsulta agregada na tabela M2M (CR-01); risco aceito de 21+ marcadas virar erro no app, a registrar no contrato pelo 05-22
 - [Phase 05]: 05-21: ThrottleVitrinePublica (balde unico por IP, 120/min via VITRINE_TAXA_ANONIMA, NUM_PROXIES=0) so nas 5 rotas publicas da vitrine; sem throttle global
+- [Phase 07.1]: 07.1-01: merge (nao rebase) de origin/main 43dd41d em feat/APP07; DataSource remota da vitrine do anunciante copia _lerEnvelope/_exigirMesmaOrigem do ImovelRemoteDataSource em vez de extrai-los; lib/ sem mock (PerfilRemoteDataSource ativo no DI)
 
 ### Pending Todos
 
@@ -173,6 +175,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-16
-Stopped at: Phase 05 complete; phases 1-4 aguardam verificação (VERIFICATION stale, UAT pendente)
+Last session: 2026-11-19T02:09:42.225Z
+Stopped at: Completed 07.1-01-PLAN.md
 Resume file: None
