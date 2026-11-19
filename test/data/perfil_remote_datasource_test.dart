@@ -1,270 +1,202 @@
-import 'dart:convert';
-import 'dart:io';
-import 'dart:typed_data';
-
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/core/result.dart';
 import 'package:imoveis_aqui/data/datasources/perfil_remote_datasource.dart';
-import 'package:imoveis_aqui/data/mocks/perfis_fixture.dart';
 import 'package:imoveis_aqui/data/repositories/perfil_repository_impl.dart';
 import 'package:imoveis_aqui/domain/entities/perfil_corretor.dart';
 import 'package:imoveis_aqui/domain/entities/perfil_empresa.dart';
 import 'package:imoveis_aqui/domain/repositories/perfil_repository.dart';
 
-const _baseUrl = 'http://10.0.2.2:8000';
+import '../support/api_falsa.dart';
 
-const _caminhoExemploCorretor =
-    '.planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/'
-    'contrato/perfil_corretor.example.json';
-
-const _caminhoExemploEmpresa =
-    '.planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/'
-    'contrato/perfil_empresa.example.json';
-
-/// Resposta fake pronta para um dado URI — status HTTP + corpo (mapa/lista que
-/// vira JSON).
-class _RespostaFalsa {
-  const _RespostaFalsa({required this.status, required this.corpo});
-
-  final int status;
-  final Object? corpo;
-}
-
-/// `HttpClientAdapter` de teste (mesma técnica de
-/// `cidade_remote_datasource_test.dart`, sem pacote novo): resolve cada URI
-/// por um callback e registra todas as URIs pedidas.
-class _HttpClientAdapterFalso implements HttpClientAdapter {
-  _HttpClientAdapterFalso(this._resolver);
-
-  final _RespostaFalsa Function(String uri) _resolver;
-  final List<String> uris = [];
-
-  @override
-  Future<ResponseBody> fetch(
-    RequestOptions options,
-    Stream<Uint8List>? requestStream,
-    Future<void>? cancelFuture,
-  ) async {
-    final uri = options.uri.toString();
-    uris.add(uri);
-    final resposta = _resolver(uri);
-    return ResponseBody.fromString(
-      jsonEncode(resposta.corpo),
-      resposta.status,
-      headers: {
-        Headers.contentTypeHeader: [Headers.jsonContentType],
-      },
-    );
-  }
-
-  @override
-  void close({bool force = false}) {}
-}
-
-({Dio dio, _HttpClientAdapterFalso adaptador}) _criarDio(
-  _RespostaFalsa Function(String uri) resolver,
-) {
-  final dio = Dio(BaseOptions(baseUrl: _baseUrl));
-  final adaptador = _HttpClientAdapterFalso(resolver);
-  dio.httpClientAdapter = adaptador;
-  return (dio: dio, adaptador: adaptador);
-}
-
-Exception? _falhaDe(Result<PerfilCorretor> resultado) => switch (resultado) {
-  Failure<PerfilCorretor>(:final erro) => erro,
-  _ => null,
-};
-
+/// Perfis públicos (PERF-04) sobre o wire capturado do Django real, servido
+/// pela [ApiFalsa]: a DataSource remota lê o JSON e o repositório traduz cada
+/// erro em falha tipada.
 void main() {
-  late Map<String, Object?> exemploCorretor;
+  late ApiFalsa api;
+  late PerfilRemoteDataSource remota;
+  late PerfilRepository repositorio;
+  late Map<String, Object?> corretor;
+  late Map<String, Object?> empresa;
 
-  setUpAll(() {
-    exemploCorretor = jsonDecode(
-      File(_caminhoExemploCorretor).readAsStringSync(),
-    ) as Map<String, Object?>;
+  bool rotaDoCorretor(Uri uri) =>
+      uri.path.startsWith('/api/publico/corretores/');
+  bool rotaDaEmpresa(Uri uri) => uri.path.startsWith('/api/publico/empresas/');
+
+  Exception? falhaDe<T>(Result<T> resultado) => switch (resultado) {
+    Failure<T>(:final erro) => erro,
+    _ => null,
+  };
+
+  setUp(() {
+    api = ApiFalsa();
+    final dio = api.criarDio();
+    remota = PerfilRemoteDataSource(dio);
+    repositorio = PerfilRepositoryImpl(remota);
+    corretor = lerFixtureApi('perfil_corretor.json')! as Map<String, Object?>;
+    empresa = lerFixtureApi('perfil_empresa.json')! as Map<String, Object?>;
   });
 
-  test(
-    'buscarCorretor(7) chama a URL exata e devolve o model da Marina',
-    () async {
-      final (:dio, :adaptador) = _criarDio(
-        (_) => _RespostaFalsa(status: 200, corpo: exemploCorretor),
+  group('corretor', () {
+    test('buscarCorretor pede /api/publico/corretores/<id>/ e devolve o model '
+        'capturado', () async {
+      final id = corretor['id']! as int;
+
+      final modelo = await remota.buscarCorretor(id);
+
+      expect(api.requisicoes.map((u) => u.path), [
+        '/api/publico/corretores/$id/',
+      ]);
+      expect(api.requisicoes.single.queryParameters, isEmpty);
+      expect(modelo.id, id);
+      expect(modelo.nome, corretor['nome']);
+      expect(modelo.empresaId, corretor['empresa_id']);
+    });
+
+    test('200 vira Success com a entidade igual à fixture', () async {
+      final resultado = await repositorio.buscarCorretor(
+        corretor['id']! as int,
       );
-      final remota = PerfilRemoteDataSource(dio);
-
-      final modelo = await remota.buscarCorretor(7);
-
-      expect(adaptador.uris, ['$_baseUrl/api/publico/corretores/7/']);
-      expect(modelo.id, 7);
-      expect(modelo.nome, 'Marina Lopes');
-      expect(modelo.empresaId, 3);
-    },
-  );
-
-  group('pela pilha PerfilRepositoryImpl(PerfilRemoteDataSource(dio))', () {
-    PerfilRepository pilha(_RespostaFalsa resposta) {
-      final (:dio, adaptador: _) = _criarDio((_) => resposta);
-      return PerfilRepositoryImpl(PerfilRemoteDataSource(dio));
-    }
-
-    test('200 válido vira Success com a entidade', () async {
-      final repositorio = pilha(
-        _RespostaFalsa(status: 200, corpo: exemploCorretor),
-      );
-
-      final resultado = await repositorio.buscarCorretor(7);
 
       expect(resultado, isA<Success<PerfilCorretor>>());
-      expect((resultado as Success<PerfilCorretor>).data.nome, 'Marina Lopes');
+      final perfil = (resultado as Success<PerfilCorretor>).data;
+      expect(perfil.nome, corretor['nome']);
+      expect(perfil.creci, corretor['creci']);
+      expect(perfil.empresaId, corretor['empresa_id']);
+      expect(perfil.foto, anyOf(isNull, startsWith('http')));
     });
 
-    test('404 vira PerfilNaoEncontradoException', () async {
-      final repositorio = pilha(
-        const _RespostaFalsa(status: 404, corpo: {'detail': 'Não encontrado.'}),
-      );
+    test(
+      'id inexistente (404 da API) vira PerfilNaoEncontradoException',
+      () async {
+        final resultado = await repositorio.buscarCorretor(999999);
 
-      final resultado = await repositorio.buscarCorretor(7);
-
-      expect(_falhaDe(resultado), isA<PerfilNaoEncontradoException>());
-    });
+        expect(falhaDe(resultado), isA<PerfilNaoEncontradoException>());
+      },
+    );
 
     test('500 vira DioException', () async {
-      final repositorio = pilha(
-        const _RespostaFalsa(status: 500, corpo: {'detail': 'erro'}),
+      api.falharProximas('/api/publico/corretores/');
+
+      final resultado = await repositorio.buscarCorretor(
+        corretor['id']! as int,
       );
 
-      final resultado = await repositorio.buscarCorretor(7);
-
-      expect(_falhaDe(resultado), isA<DioException>());
+      expect(falhaDe(resultado), isA<DioException>());
     });
 
     test('corpo que é uma lista JSON vira FormatException', () async {
-      final repositorio = pilha(
-        const _RespostaFalsa(status: 200, corpo: <Object?>[]),
+      api.responder(rotaDoCorretor, status: 200, corpo: <Object?>[]);
+
+      final resultado = await repositorio.buscarCorretor(
+        corretor['id']! as int,
       );
 
-      final resultado = await repositorio.buscarCorretor(7);
-
-      expect(_falhaDe(resultado), isA<FormatException>());
+      expect(falhaDe(resultado), isA<FormatException>());
     });
 
     test('corpo sem nome vira FormatException', () async {
-      final semNome = {...exemploCorretor}..remove('nome');
-      final repositorio = pilha(_RespostaFalsa(status: 200, corpo: semNome));
+      api.responder(
+        rotaDoCorretor,
+        status: 200,
+        corpo: {...corretor}..remove('nome'),
+      );
 
-      final resultado = await repositorio.buscarCorretor(7);
+      final resultado = await repositorio.buscarCorretor(
+        corretor['id']! as int,
+      );
 
-      expect(_falhaDe(resultado), isA<FormatException>());
+      expect(falhaDe(resultado), isA<FormatException>());
     });
   });
 
-  group('buscarEmpresa', () {
-    late Map<String, Object?> exemploEmpresa;
+  group('empresa', () {
+    test('buscarEmpresa pede /api/publico/empresas/<id>/ e parseia o corpo '
+        'capturado', () async {
+      final id = empresa['id']! as int;
 
-    setUpAll(() {
-      exemploEmpresa = jsonDecode(
-        File(_caminhoExemploEmpresa).readAsStringSync(),
-      ) as Map<String, Object?>;
+      final modelo = await remota.buscarEmpresa(id);
+
+      expect(api.requisicoes.map((u) => u.path), [
+        '/api/publico/empresas/$id/',
+      ]);
+      expect(modelo.id, id);
+      expect(modelo.nome, empresa['razao_social_ou_nome']);
+      expect(
+        modelo.cidadesAtuacao,
+        hasLength((empresa['cidades_atuacao']! as List).length),
+      );
     });
 
-    Exception? falhaEmpresa(Result<PerfilEmpresa> resultado) =>
-        switch (resultado) {
-          Failure<PerfilEmpresa>(:final erro) => erro,
-          _ => null,
-        };
-
-    PerfilRepository pilhaEmpresa(_RespostaFalsa resposta) {
-      final (:dio, adaptador: _) = _criarDio((_) => resposta);
-      return PerfilRepositoryImpl(PerfilRemoteDataSource(dio));
-    }
-
-    test('chama a URL exata e parseia o corpo do exemplo', () async {
-      final (:dio, :adaptador) = _criarDio(
-        (_) => _RespostaFalsa(status: 200, corpo: exemploEmpresa),
-      );
-      final remota = PerfilRemoteDataSource(dio);
-
-      final modelo = await remota.buscarEmpresa(3);
-
-      expect(adaptador.uris, ['$_baseUrl/api/publico/empresas/3/']);
-      expect(modelo.id, 3);
-      expect(modelo.nome, 'Imobiliária Jequitibá');
-      expect(modelo.cidadesAtuacao, hasLength(3));
-    });
-
-    test('200 válido vira Success com a entidade', () async {
-      final repositorio = pilhaEmpresa(
-        _RespostaFalsa(status: 200, corpo: exemploEmpresa),
-      );
-
-      final resultado = await repositorio.buscarEmpresa(3);
+    test('200 vira Success com a entidade igual à fixture', () async {
+      final resultado = await repositorio.buscarEmpresa(empresa['id']! as int);
 
       expect(resultado, isA<Success<PerfilEmpresa>>());
-      expect(
-        (resultado as Success<PerfilEmpresa>).data.tipo,
-        TipoEmpresa.imobiliaria,
-      );
+      final perfil = (resultado as Success<PerfilEmpresa>).data;
+      expect(perfil.nome, empresa['razao_social_ou_nome']);
+      expect(perfil.tipo, TipoEmpresa.imobiliaria);
+      expect(perfil.logomarca, anyOf(isNull, startsWith('http')));
     });
 
-    test('404 vira PerfilNaoEncontradoException', () async {
-      final repositorio = pilhaEmpresa(
-        const _RespostaFalsa(status: 404, corpo: {'detail': 'Não encontrado.'}),
-      );
+    test(
+      'id inexistente (404 da API) vira PerfilNaoEncontradoException',
+      () async {
+        final resultado = await repositorio.buscarEmpresa(999999);
 
-      final resultado = await repositorio.buscarEmpresa(3);
+        expect(falhaDe(resultado), isA<PerfilNaoEncontradoException>());
+      },
+    );
 
-      expect(falhaEmpresa(resultado), isA<PerfilNaoEncontradoException>());
+    test('500 vira DioException', () async {
+      api.falharProximas('/api/publico/empresas/');
+
+      final resultado = await repositorio.buscarEmpresa(empresa['id']! as int);
+
+      expect(falhaDe(resultado), isA<DioException>());
     });
 
     test('corpo que é uma lista JSON vira FormatException', () async {
-      final repositorio = pilhaEmpresa(
-        const _RespostaFalsa(status: 200, corpo: <Object?>[]),
-      );
+      api.responder(rotaDaEmpresa, status: 200, corpo: <Object?>[]);
 
-      final resultado = await repositorio.buscarEmpresa(3);
+      final resultado = await repositorio.buscarEmpresa(empresa['id']! as int);
 
-      expect(falhaEmpresa(resultado), isA<FormatException>());
+      expect(falhaDe(resultado), isA<FormatException>());
     });
 
     test('corpo sem o nome vira FormatException', () async {
-      final semNome = {...exemploEmpresa}..remove('razao_social_ou_nome');
-      final repositorio = pilhaEmpresa(_RespostaFalsa(status: 200, corpo: semNome));
+      api.responder(
+        rotaDaEmpresa,
+        status: 200,
+        corpo: {...empresa}..remove('razao_social_ou_nome'),
+      );
 
-      final resultado = await repositorio.buscarEmpresa(3);
+      final resultado = await repositorio.buscarEmpresa(empresa['id']! as int);
 
-      expect(falhaEmpresa(resultado), isA<FormatException>());
+      expect(falhaDe(resultado), isA<FormatException>());
     });
   });
 
   test(
     'duas buscas simultâneas resolvem cada uma com o próprio corpo',
     () async {
-      final fixture = corretoresPerfisFixture();
-      final (:dio, :adaptador) = _criarDio((uri) {
-        final id = int.parse(Uri.parse(uri).pathSegments[3]);
-        return _RespostaFalsa(status: 200, corpo: fixture[id]);
-      });
-      final repositorio = PerfilRepositoryImpl(PerfilRemoteDataSource(dio));
-
       final resultados = await Future.wait([
-        repositorio.buscarCorretor(7),
-        repositorio.buscarCorretor(9),
+        repositorio.buscarCorretor(corretor['id']! as int),
+        repositorio.buscarEmpresa(empresa['id']! as int),
       ]);
 
       expect(
         (resultados[0] as Success<PerfilCorretor>).data.nome,
-        'Marina Lopes',
+        corretor['nome'],
       );
       expect(
-        (resultados[1] as Success<PerfilCorretor>).data.nome,
-        'Camila Duarte',
+        (resultados[1] as Success<PerfilEmpresa>).data.nome,
+        empresa['razao_social_ou_nome'],
       );
       expect(
-        adaptador.uris,
+        api.requisicoes.map((u) => u.path),
         unorderedEquals([
-          '$_baseUrl/api/publico/corretores/7/',
-          '$_baseUrl/api/publico/corretores/9/',
+          '/api/publico/corretores/${corretor['id']}/',
+          '/api/publico/empresas/${empresa['id']}/',
         ]),
       );
     },
