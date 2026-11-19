@@ -1,4 +1,5 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -6,15 +7,22 @@ import 'package:imoveis_aqui/data/datasources/imovel_detalhe_datasource.dart';
 import 'package:imoveis_aqui/data/datasources/imovel_detalhe_remote_datasource.dart';
 import 'package:imoveis_aqui/data/datasources/imovel_remote_datasource.dart';
 import 'package:imoveis_aqui/data/datasources/opcoes_filtro_remote_datasource.dart';
+import 'package:imoveis_aqui/data/datasources/perfil_remote_datasource.dart';
+import 'package:imoveis_aqui/data/datasources/vitrine_anunciante_remote_datasource.dart';
 import 'package:imoveis_aqui/data/repositories/imovel_detalhe_repository_impl.dart';
 import 'package:imoveis_aqui/data/repositories/imovel_repository_impl.dart';
 import 'package:imoveis_aqui/data/repositories/opcoes_filtro_repository_impl.dart';
+import 'package:imoveis_aqui/data/repositories/perfil_repository_impl.dart';
+import 'package:imoveis_aqui/data/repositories/vitrine_anunciante_repository_impl.dart';
 import 'package:imoveis_aqui/di/injection.dart';
 import 'package:imoveis_aqui/domain/entities/cidade.dart';
+import 'package:imoveis_aqui/domain/usecases/buscar_imoveis_do_anunciante_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/buscar_imoveis_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/obter_bairros_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/obter_caracteristicas_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/obter_detalhe_imovel_usecase.dart';
+import 'package:imoveis_aqui/domain/usecases/obter_perfil_corretor_usecase.dart';
+import 'package:imoveis_aqui/domain/usecases/obter_perfil_empresa_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/salvar_cidade_usecase.dart';
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_cubit.dart';
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_screen.dart';
@@ -22,12 +30,17 @@ import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_state.da
 import 'package:imoveis_aqui/presentation/comum/imagem_rede.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_cubit.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_screen.dart';
-import 'package:imoveis_aqui/presentation/detalhe_imovel/perfil_corretor_screen.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/widgets/cartao_corretor.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/widgets/galeria_imovel.dart';
+import 'package:imoveis_aqui/presentation/perfis/perfil_corretor_cubit.dart';
+import 'package:imoveis_aqui/presentation/perfis/perfil_corretor_screen.dart';
+import 'package:imoveis_aqui/presentation/perfis/perfil_empresa_cubit.dart';
+import 'package:imoveis_aqui/presentation/perfis/perfil_empresa_screen.dart';
+import 'package:imoveis_aqui/presentation/perfis/vitrine_anunciante_cubit.dart';
 import 'package:imoveis_aqui/presentation/vitrine/opcoes_filtro_cubit.dart';
 import 'package:imoveis_aqui/presentation/vitrine/sessao_filtros_vitrine.dart';
 import 'package:imoveis_aqui/presentation/vitrine/vitrine_cubit.dart';
+import 'package:imoveis_aqui/presentation/vitrine/widgets/imovel_card.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../support/api_falsa.dart';
@@ -64,9 +77,48 @@ void main() {
   final idCasa = casa['id']! as int;
   final tituloCasa = casa['titulo']! as String;
   final descricaoCasa = casa['descricao']! as String;
-  final nomeCorretor =
-      (casa['corretor_responsavel']! as Map<String, Object?>)['nome']!
-          as String;
+  final corretorDaCasa = casa['corretor_responsavel']! as Map<String, Object?>;
+  final nomeCorretor = corretorDaCasa['nome']! as String;
+  final idCorretor = corretorDaCasa['id']! as int;
+
+  // Os perfis e as vitrines dos anunciantes, como o Django devolveu (corretor
+  // 1 e empresa 1 do seed de desenvolvimento). Nenhum nome, CRECI ou id vem de
+  // texto escrito à mão: tudo é lido do JSON capturado.
+  final perfilCorretor =
+      lerFixtureApi('perfil_corretor.json')! as Map<String, Object?>;
+  final creciCorretor = perfilCorretor['creci']! as String;
+  final perfilEmpresa =
+      lerFixtureApi('perfil_empresa.json')! as Map<String, Object?>;
+  final nomeEmpresa = perfilEmpresa['razao_social_ou_nome']! as String;
+  final creciEmpresa = perfilEmpresa['creci']! as String;
+  final cidadesDeAtuacao = (perfilEmpresa['cidades_atuacao']! as List<Object?>)
+      .cast<Map<String, Object?>>();
+
+  List<Map<String, Object?>> resultadosDe(String fixture) =>
+      ((lerFixtureApi(fixture)! as Map<String, Object?>)['results']!
+              as List<Object?>)
+          .cast<Map<String, Object?>>();
+  final vitrineCorretorP1 = resultadosDe('vitrine_corretor_p1.json');
+  final vitrineEmpresaP1 = resultadosDe('vitrine_empresa_p1.json');
+
+  // Um imóvel da p1 do corretor que tem detalhe capturado (o lote): é o imóvel
+  // que o teste abre a partir da vitrine do anunciante. Os ids com detalhe vêm
+  // dos próprios detalhe_*.json capturados.
+  final idsComDetalhe = {
+    for (final nome in [
+      'detalhe_casa.json',
+      'detalhe_apartamento.json',
+      'detalhe_lote.json',
+      'detalhe_terreno.json',
+    ])
+      (lerFixtureApi(nome)! as Map<String, Object?>)['id']! as int,
+  };
+  final imovelDaVitrineDoCorretor = vitrineCorretorP1.firstWhere(
+    (imovel) => idsComDetalhe.contains(imovel['id']),
+  );
+  final idDoImovelDaVitrine = imovelDaVitrineDoCorretor['id']! as int;
+  final tituloDoImovelDaVitrine =
+      imovelDaVitrineDoCorretor['titulo']! as String;
 
   final cardsDaP1 =
       ((lerFixtureApi('lista_campinas_p1.json')!
@@ -78,7 +130,8 @@ void main() {
 
   // Um segundo detalhe capturado, de outro imóvel, para provar que cada card
   // abre o próprio detalhe.
-  final terreno = lerFixtureApi('detalhe_terreno.json')! as Map<String, Object?>;
+  final terreno =
+      lerFixtureApi('detalhe_terreno.json')! as Map<String, Object?>;
   final idTerreno = terreno['id']! as int;
   final tituloTerreno = terreno['titulo']! as String;
 
@@ -124,6 +177,44 @@ void main() {
         ObterDetalheImovelUseCase(ImovelDetalheRepositoryImpl(dataSource)),
       ),
     );
+  }
+
+  /// Registra os Cubits dos perfis (corretor, empresa) e da vitrine do
+  /// anunciante sobre [dio], com a pilha REAL (Cubit -> UseCase ->
+  /// RepositoryImpl -> RemoteDataSource): nada falso entre o toque e o JSON
+  /// capturado. Passe o `Dio` da MESMA `ApiFalsa` do detalhe para as
+  /// requisições ficarem todas num só `requisicoes`.
+  void registrarCubitsDosPerfis(Dio dio) {
+    getIt.registerFactory<PerfilCorretorCubit>(
+      () => PerfilCorretorCubit(
+        ObterPerfilCorretorUseCase(
+          PerfilRepositoryImpl(PerfilRemoteDataSource(dio)),
+        ),
+      ),
+    );
+    getIt.registerFactory<PerfilEmpresaCubit>(
+      () => PerfilEmpresaCubit(
+        ObterPerfilEmpresaUseCase(
+          PerfilRepositoryImpl(PerfilRemoteDataSource(dio)),
+        ),
+      ),
+    );
+    getIt.registerFactory<VitrineAnuncianteCubit>(
+      () => VitrineAnuncianteCubit(
+        BuscarImoveisDoAnuncianteUseCase(
+          VitrineAnuncianteRepositoryImpl(
+            VitrineAnuncianteRemoteDataSource(dio),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Registra o detalhe E os perfis sobre a mesma [api].
+  void registrarDetalheEPerfis(ApiFalsa api) {
+    final dio = api.criarDio();
+    registrarDetalhe(ImovelDetalheRemoteDataSource(dio));
+    registrarCubitsDosPerfis(dio);
   }
 
   setUp(() {
@@ -173,6 +264,26 @@ void main() {
   Finder naPagina(Finder alvo) =>
       find.descendant(of: find.byType(DetalheImovelScreen), matching: alvo);
 
+  Finder noPerfil(Finder alvo) =>
+      find.descendant(of: find.byType(PerfilCorretorScreen), matching: alvo);
+
+  Finder naEmpresa(Finder alvo) =>
+      find.descendant(of: find.byType(PerfilEmpresaScreen), matching: alvo);
+
+  /// A rolagem externa (a primeira da árvore) da tela [tela]; as seguintes
+  /// são de campos de texto selecionáveis.
+  Finder rolavelDe(Type tela) => find
+      .descendant(of: find.byType(tela), matching: find.byType(Scrollable))
+      .first;
+
+  /// Toca em [botao] e deixa a transição de volta terminar.
+  Future<void> voltar(WidgetTester tester, Finder botao) async {
+    await tester.tap(botao);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(milliseconds: 400));
+  }
+
   /// Rola a lista da vitrine até o card [id] (a lista é preguiçosa e há cards
   /// abaixo da dobra) e toca nele.
   Future<void> tocarNoCard(WidgetTester tester, int id) async {
@@ -196,6 +307,28 @@ void main() {
     await tester.pump(latencia);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 50));
+  }
+
+  /// Da vitrine ao detalhe da casa (carregado) e ao toque no corretor: ao
+  /// terminar, o perfil está aberto com a prévia (um `pump` depois do toque).
+  /// O detalhe e os perfis precisam estar registrados sobre uma `ApiFalsa`
+  /// com [latencia].
+  Future<void> abrirPerfilDoCorretorDaCasa(
+    WidgetTester tester,
+    Duration latencia,
+  ) async {
+    await pumpVitrine(tester);
+    await tester.tap(find.byKey(ValueKey('imovel-$idCasa')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    await esperarDetalhe(tester, latencia);
+    await tester.scrollUntilVisible(
+      naPagina(find.text(nomeCorretor)),
+      200,
+      scrollable: naPagina(find.byType(Scrollable)).first,
+    );
+    await tester.tap(naPagina(find.text(nomeCorretor)));
+    await tester.pump();
   }
 
   group('tracer', () {
@@ -259,20 +392,22 @@ void main() {
 
   group('fluxo completo (DET-01..05, D-12, D-15)', () {
     testWidgets(
-      'vitrine -> detalhe da casa completo -> perfil do corretor -> volta ao '
-      'detalhe -> volta à vitrine intacta',
+      'vitrine -> detalhe da casa completo -> perfil do corretor (prévia na '
+      'hora, CRECI buscado por id) -> imóvel da vitrine do corretor -> volta '
+      'ao perfil, ao detalhe e à vitrine intacta (PERF-06, PERF-04, PERF-03, '
+      'D-05)',
       (tester) async {
-        registrarDetalhe(
-          ImovelDetalheRemoteDataSource(
-            ApiFalsa(latencia: const Duration(seconds: 1)).criarDio(),
-          ),
-        );
+        final api = ApiFalsa(latencia: const Duration(milliseconds: 300));
+        registrarDetalheEPerfis(api);
         await pumpVitrine(tester);
+        final posicaoDoCard = tester.getTopLeft(
+          find.byKey(ValueKey('imovel-$idCasa')),
+        );
 
         await tester.tap(find.byKey(ValueKey('imovel-$idCasa')));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 400));
-        await esperarDetalhe(tester, const Duration(seconds: 1));
+        await esperarDetalhe(tester, const Duration(milliseconds: 300));
 
         // Cabeçalho alimentado pelo detalhe, com as características pelo nome.
         expect(naPagina(find.textContaining('495.000')), findsOneWidget);
@@ -294,45 +429,199 @@ void main() {
         expect(scaffold.bottomNavigationBar, isNull);
         expect(scaffold.persistentFooterButtons, isNull);
 
-        // Rola até o corretor e abre o perfil; só nome e foto (D-16).
+        // O cartão do corretor mostra só nome e foto: nenhum contato (D-16).
         await tester.scrollUntilVisible(
           naPagina(find.text(nomeCorretor)),
           200,
           scrollable: naPagina(find.byType(Scrollable)).first,
         );
-        expect(naPagina(find.textContaining('example.com')), findsNothing);
-        expect(naPagina(find.textContaining('12345-F')), findsNothing);
+        expect(
+          naPagina(find.textContaining(perfilCorretor['email']! as String)),
+          findsNothing,
+        );
+        expect(naPagina(find.textContaining(creciCorretor)), findsNothing);
         await tester.tap(naPagina(find.text(nomeCorretor)));
         await tester.pump();
-        await tester.pump(const Duration(milliseconds: 400));
+        await tester.pump(const Duration(milliseconds: 100));
 
+        // Prévia na hora (nome e foto do detalhe) e spinner, ainda sem o CRECI.
         expect(find.byType(PerfilCorretorScreen), findsOneWidget);
+        expect(noPerfil(find.text(nomeCorretor)), findsOneWidget);
+        expect(noPerfil(find.byType(AvatarCorretor)), findsOneWidget);
+        expect(
+          noPerfil(find.byType(CircularProgressIndicator)),
+          findsOneWidget,
+        );
+        expect(noPerfil(find.text('CRECI $creciCorretor')), findsNothing);
+
+        // O perfil chega pela pilha real, buscado pelo id do corretor.
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pump();
+        expect(noPerfil(find.text(nomeCorretor)), findsOneWidget);
+        expect(noPerfil(find.text('CRECI $creciCorretor')), findsOneWidget);
+        expect(noPerfil(find.text('Apresentação')), findsOneWidget);
+        expect(noPerfil(find.text('Contato')), findsOneWidget);
+        expect(
+          noPerfil(find.text('Imóveis de ${perfilCorretor['nome']}')),
+          findsOneWidget,
+        );
+        // A vitrine só começa a carregar com o perfil existente: spinner da
+        // vitrine de pé durante a segunda latência.
+        expect(
+          noPerfil(find.byType(CircularProgressIndicator)),
+          findsOneWidget,
+        );
+
+        // A vitrine do corretor chega pela rota aninhada do Django (p1).
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pump();
+        expect(noPerfil(find.byType(CircularProgressIndicator)), findsNothing);
+        final cardDoImovel = find.byKey(
+          ValueKey('imovel-anunciante-$idDoImovelDaVitrine'),
+        );
+        await tester.scrollUntilVisible(
+          cardDoImovel,
+          300,
+          scrollable: rolavelDe(PerfilCorretorScreen),
+        );
         expect(
           find.descendant(
-            of: find.byType(PerfilCorretorScreen),
-            matching: find.text(nomeCorretor),
+            of: cardDoImovel,
+            matching: find.text(tituloDoImovelDaVitrine),
           ),
           findsOneWidget,
         );
 
-        // Volta ao detalhe, ainda carregado.
-        await tester.tap(find.byType(BackButton));
+        // Abre o imóvel da vitrine do corretor: o detalhe dele chega.
+        await tester.tap(cardDoImovel);
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 400));
-        await tester.pump(const Duration(milliseconds: 400));
+        await esperarDetalhe(tester, const Duration(milliseconds: 300));
+        // A página do imóvel cobre o perfil (que fica fora de cena).
+        expect(find.byType(DetalheImovelScreen), findsOneWidget);
+        expect(find.byType(PerfilCorretorScreen), findsNothing);
+        expect(naPagina(find.text('Descrição')), findsOneWidget);
+        expect(naPagina(find.text(tituloDoImovelDaVitrine)), findsOneWidget);
 
+        // Voltar do imóvel retorna ao perfil.
+        await voltar(tester, find.byTooltip('Voltar').last);
+        expect(find.byType(PerfilCorretorScreen), findsOneWidget);
+
+        // Volta ao detalhe da casa, ainda carregado.
+        await voltar(tester, find.byType(BackButton));
         expect(find.byType(PerfilCorretorScreen), findsNothing);
         expect(find.byType(DetalheImovelScreen), findsOneWidget);
         expect(naPagina(find.text('Descrição')), findsOneWidget);
+        expect(naPagina(find.text(tituloCasa)), findsOneWidget);
 
-        // Volta à vitrine, intacta.
-        await tester.tap(find.byTooltip('Voltar'));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 400));
-        await tester.pump(const Duration(milliseconds: 400));
-
+        // Volta à vitrine, intacta e na mesma posição.
+        await voltar(tester, find.byTooltip('Voltar'));
         expect(find.byType(DetalheImovelScreen), findsNothing);
         expect(find.byKey(ValueKey('imovel-$idCasa')), findsOneWidget);
+        expect(
+          tester.getTopLeft(find.byKey(ValueKey('imovel-$idCasa'))),
+          posicaoDoCard,
+        );
+      },
+    );
+
+    testWidgets(
+      'perfil do corretor -> "Ver página do anunciante" -> página da empresa '
+      'capturada (spinner, depois nome, tipo, CRECI, cidades de atuação e '
+      '"Imóveis de <empresa>") -> imóvel da vitrine da empresa -> volta ao '
+      'perfil do corretor carregado (PERF-01, PERF-04, PERF-06, D-06, D-09)',
+      (tester) async {
+        registrarDetalheEPerfis(
+          ApiFalsa(latencia: const Duration(milliseconds: 300)),
+        );
+        await abrirPerfilDoCorretorDaCasa(
+          tester,
+          const Duration(milliseconds: 300),
+        );
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.pump();
+        expect(noPerfil(find.text('CRECI $creciCorretor')), findsOneWidget);
+
+        // O cartão fica depois do contato, antes da vitrine do anunciante.
+        await tester.scrollUntilVisible(
+          noPerfil(find.text('Ver página do anunciante')),
+          100,
+          scrollable: rolavelDe(PerfilCorretorScreen),
+        );
+        await tester.tap(noPerfil(find.text('Ver página do anunciante')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
+
+        // Página da empresa aberta: só o spinner, sem prévia.
+        expect(find.byType(PerfilEmpresaScreen), findsOneWidget);
+        expect(
+          naEmpresa(find.byType(CircularProgressIndicator)),
+          findsOneWidget,
+        );
+        expect(naEmpresa(find.text(nomeEmpresa)), findsNothing);
+
+        // A transição (400 ms) cobre a latência da API de perfis (300 ms).
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.pump();
+
+        expect(naEmpresa(find.text(nomeEmpresa)), findsOneWidget);
+        expect(naEmpresa(find.text('Imobiliária')), findsOneWidget);
+        expect(naEmpresa(find.text('CRECI $creciEmpresa')), findsOneWidget);
+        // Logomarca nula na captura: placeholder de prédio.
+        expect(perfilEmpresa['logomarca'], isNull);
+        expect(
+          naEmpresa(find.byIcon(Icons.apartment_outlined)),
+          findsOneWidget,
+        );
+        expect(naEmpresa(find.text('Cidades de atuação')), findsOneWidget);
+        expect(
+          naEmpresa(find.byType(Chip)),
+          findsNWidgets(cidadesDeAtuacao.length),
+        );
+        for (final cidade in cidadesDeAtuacao) {
+          expect(
+            naEmpresa(find.text('${cidade['nome']}, ${cidade['uf']}')),
+            findsOneWidget,
+          );
+        }
+        expect(naEmpresa(find.text('Imóveis de $nomeEmpresa')), findsOneWidget);
+        // Só resta o spinner da vitrine da empresa, que nasce com a empresa
+        // carregada; a latência dela (300 ms) o resolve.
+        expect(
+          naEmpresa(find.byType(CircularProgressIndicator)),
+          findsOneWidget,
+        );
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pump();
+        expect(naEmpresa(find.byType(CircularProgressIndicator)), findsNothing);
+
+        // O primeiro card da vitrine da empresa é o primeiro da p1 capturada.
+        final primeiro = vitrineEmpresaP1.first;
+        final cardDaEmpresa = naEmpresa(
+          find.byKey(ValueKey('imovel-anunciante-${primeiro['id']}')),
+        );
+        expect(cardDaEmpresa, findsOneWidget);
+        expect(
+          find.descendant(
+            of: cardDaEmpresa,
+            matching: find.text(primeiro['titulo']! as String),
+          ),
+          findsOneWidget,
+        );
+        expect(naEmpresa(find.byType(ImovelCard)), findsWidgets);
+
+        // Voltar devolve o perfil do corretor, ainda carregado.
+        await voltar(tester, find.byType(BackButton));
+        expect(find.byType(PerfilEmpresaScreen), findsNothing);
+        expect(find.byType(PerfilCorretorScreen), findsOneWidget);
+        expect(noPerfil(find.text('Ver página do anunciante')), findsOneWidget);
+        await tester.scrollUntilVisible(
+          noPerfil(find.text('CRECI $creciCorretor')),
+          -200,
+          scrollable: rolavelDe(PerfilCorretorScreen),
+        );
+        expect(noPerfil(find.text(nomeCorretor)), findsOneWidget);
+        expect(noPerfil(find.text('CRECI $creciCorretor')), findsOneWidget);
       },
     );
   });
@@ -349,7 +638,7 @@ void main() {
         final apiDoDetalhe = ApiFalsa(
           latencia: const Duration(milliseconds: 300),
         );
-        registrarDetalhe(ImovelDetalheRemoteDataSource(apiDoDetalhe.criarDio()));
+        registrarDetalheEPerfis(apiDoDetalhe);
         await pumpVitrine(tester);
 
         await tocarNoCard(tester, idSemCorretor);
@@ -374,52 +663,53 @@ void main() {
     );
 
     testWidgets(
-      'o perfil do corretor de outro imóvel abre com o objeto em memória '
-      '(nome e foto) e nenhuma chamada a /api/publico/corretores/',
+      'o perfil do corretor abre com a prévia (nome e foto do detalhe) na '
+      'hora e depois busca o perfil por id: exatamente uma requisição a '
+      '/api/publico/corretores/<id>/ (PERF-04, D-05)',
       (tester) async {
         final apiDoDetalhe = ApiFalsa(
           latencia: const Duration(milliseconds: 300),
         );
-        registrarDetalhe(ImovelDetalheRemoteDataSource(apiDoDetalhe.criarDio()));
-        await pumpVitrine(tester);
-
-        await tester.tap(find.byKey(ValueKey('imovel-$idCasa')));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 400));
-        await esperarDetalhe(tester, const Duration(milliseconds: 300));
-        final requisicoesAteAqui = apiDoDetalhe.requisicoes.length;
-
-        await tester.scrollUntilVisible(
-          naPagina(find.text(nomeCorretor)),
-          200,
-          scrollable: naPagina(find.byType(Scrollable)).first,
+        registrarDetalheEPerfis(apiDoDetalhe);
+        await abrirPerfilDoCorretorDaCasa(
+          tester,
+          const Duration(milliseconds: 300),
         );
-        await tester.tap(naPagina(find.text(nomeCorretor)));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 400));
-        await tester.pump(const Duration(milliseconds: 50));
+        await tester.pump(const Duration(milliseconds: 100));
 
-        final noPerfil = find.byType(PerfilCorretorScreen);
-        expect(noPerfil, findsOneWidget);
+        bool ehOPerfil(Uri uri) =>
+            uri.path == '/api/publico/corretores/$idCorretor/';
+        bool ehAVitrine(Uri uri) =>
+            uri.path == '/api/publico/corretores/$idCorretor/imoveis/';
+
+        // Prévia na hora: nome e foto vêm do detalhe, o perfil ainda a caminho.
+        expect(find.byType(PerfilCorretorScreen), findsOneWidget);
+        expect(noPerfil(find.text(nomeCorretor)), findsOneWidget);
+        expect(noPerfil(find.byType(AvatarCorretor)), findsOneWidget);
         expect(
-          find.descendant(of: noPerfil, matching: find.text(nomeCorretor)),
+          noPerfil(find.byType(CircularProgressIndicator)),
           findsOneWidget,
         );
+        expect(noPerfil(find.text('CRECI $creciCorretor')), findsNothing);
+        expect(noPerfil(find.textContaining('@')), findsNothing);
+        expect(apiDoDetalhe.requisicoes.where(ehOPerfil), hasLength(1));
+        expect(apiDoDetalhe.requisicoes.where(ehAVitrine), isEmpty);
+
+        // O perfil chega: CRECI e dados do corretor capturado.
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pump();
+        expect(noPerfil(find.text('CRECI $creciCorretor')), findsOneWidget);
         expect(
-          find.descendant(of: noPerfil, matching: find.byType(AvatarCorretor)),
+          noPerfil(find.text(perfilCorretor['apresentacao']! as String)),
           findsOneWidget,
         );
-        expect(
-          find.descendant(of: noPerfil, matching: find.textContaining('@')),
-          findsNothing,
-        );
-        expect(apiDoDetalhe.requisicoes, hasLength(requisicoesAteAqui));
-        expect(
-          apiDoDetalhe.requisicoes.where(
-            (uri) => uri.path.startsWith('/api/publico/corretores/'),
-          ),
-          isEmpty,
-        );
+        expect(apiDoDetalhe.requisicoes.where(ehOPerfil), hasLength(1));
+
+        // Só depois do perfil a vitrine do corretor é pedida (uma vez, p1).
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pump();
+        expect(apiDoDetalhe.requisicoes.where(ehAVitrine), hasLength(1));
+        expect(noPerfil(find.byType(ImovelCard)), findsWidgets);
       },
     );
   });
@@ -444,14 +734,18 @@ void main() {
 
         expect(naPagina(find.text('Sobre o lote')), findsOneWidget);
         expect(naPagina(find.text('Número do lote')), findsOneWidget);
-        expect(naPagina(find.text(blocoLote['numero']! as String)),
-            findsOneWidget);
+        expect(
+          naPagina(find.text(blocoLote['numero']! as String)),
+          findsOneWidget,
+        );
         expect(naPagina(find.text('Entrada mínima')), findsOneWidget);
         expect(naPagina(find.text('R\$\u00A023.500')), findsOneWidget);
         expect(naPagina(find.text('Parcelas máximas')), findsOneWidget);
         expect(naPagina(find.text('120')), findsOneWidget);
-        expect(naPagina(find.text('Condições de parcelamento')),
-            findsOneWidget);
+        expect(
+          naPagina(find.text('Condições de parcelamento')),
+          findsOneWidget,
+        );
         expect(
           naPagina(find.text(blocoLote['condicoes_parcelamento']! as String)),
           findsOneWidget,
@@ -544,7 +838,10 @@ void main() {
       expect(naPagina(find.text('Prédio')), findsOneWidget);
       expect(naPagina(find.text(predio['nome']! as String)), findsOneWidget);
       expect(naPagina(find.text('Ano de construção')), findsOneWidget);
-      expect(naPagina(find.text('${predio['ano_construcao']}')), findsOneWidget);
+      expect(
+        naPagina(find.text('${predio['ano_construcao']}')),
+        findsOneWidget,
+      );
       expect(naPagina(find.text('Unidades por andar')), findsNothing);
     });
 
@@ -588,7 +885,10 @@ void main() {
         await esperarDetalhe(tester, const Duration(milliseconds: 300));
 
         expect(naPagina(find.text('Descrição')), findsOneWidget);
-        expect(naPagina(find.text(terreno['descricao']! as String)), findsOneWidget);
+        expect(
+          naPagina(find.text(terreno['descricao']! as String)),
+          findsOneWidget,
+        );
         expect(naPagina(find.text(descricaoCasa)), findsNothing);
       },
     );
@@ -597,13 +897,15 @@ void main() {
       'servidor sem o imóvel (404): termina em "Este imóvel não está mais '
       'disponível" e "Voltar à vitrine" devolve a vitrine (D-17)',
       (tester) async {
-        final apiDoDetalhe = ApiFalsa(latencia: const Duration(milliseconds: 300))
-          ..responder(
-            (uri) => uri.path == '/api/publico/imoveis/$idCasa/',
-            status: 404,
-            fixture: 'erro_404_detalhe.json',
-          );
-        registrarDetalhe(ImovelDetalheRemoteDataSource(apiDoDetalhe.criarDio()));
+        final apiDoDetalhe =
+            ApiFalsa(latencia: const Duration(milliseconds: 300))..responder(
+              (uri) => uri.path == '/api/publico/imoveis/$idCasa/',
+              status: 404,
+              fixture: 'erro_404_detalhe.json',
+            );
+        registrarDetalhe(
+          ImovelDetalheRemoteDataSource(apiDoDetalhe.criarDio()),
+        );
         await pumpVitrine(tester);
 
         await tester.tap(find.byKey(ValueKey('imovel-$idCasa')));
@@ -650,7 +952,10 @@ void main() {
         expect(naPagina(find.text('Descrição')), findsOneWidget);
         expect(naPagina(find.byType(ImagemPadraoImovel)), findsOneWidget);
         expect(naPagina(find.byType(GaleriaImovel)), findsOneWidget);
-        expect(naPagina(find.byKey(const ValueKey('contador-fotos'))), findsNothing);
+        expect(
+          naPagina(find.byKey(const ValueKey('contador-fotos'))),
+          findsNothing,
+        );
         expect(naPagina(find.byType(PageView)), findsNothing);
       },
     );
@@ -659,13 +964,15 @@ void main() {
       'imóvel que saiu da vitrine entre a lista e o toque (404 no detalhe): '
       'mostra "Este imóvel não está mais disponível" e nunca o dado velho',
       (tester) async {
-        final apiDoDetalhe = ApiFalsa(latencia: const Duration(milliseconds: 300))
-          ..responder(
-            (uri) => uri.path == '/api/publico/imoveis/$idCasa/',
-            status: 404,
-            fixture: 'erro_404_detalhe.json',
-          );
-        registrarDetalhe(ImovelDetalheRemoteDataSource(apiDoDetalhe.criarDio()));
+        final apiDoDetalhe =
+            ApiFalsa(latencia: const Duration(milliseconds: 300))..responder(
+              (uri) => uri.path == '/api/publico/imoveis/$idCasa/',
+              status: 404,
+              fixture: 'erro_404_detalhe.json',
+            );
+        registrarDetalhe(
+          ImovelDetalheRemoteDataSource(apiDoDetalhe.criarDio()),
+        );
         await pumpVitrine(tester);
 
         await tester.tap(find.byKey(ValueKey('imovel-$idCasa')));
@@ -688,7 +995,9 @@ void main() {
       'nada depois (guarda isClosed, sem exceção)',
       (tester) async {
         final apiDoDetalhe = ApiFalsa(latencia: const Duration(seconds: 2));
-        registrarDetalhe(ImovelDetalheRemoteDataSource(apiDoDetalhe.criarDio()));
+        registrarDetalhe(
+          ImovelDetalheRemoteDataSource(apiDoDetalhe.criarDio()),
+        );
         await pumpVitrine(tester);
 
         await tester.tap(find.byKey(ValueKey('imovel-$idCasa')));
@@ -721,9 +1030,12 @@ void main() {
       'erro 500 ao abrir mostra a mensagem com "Tentar de novo"; tocar repete '
       'a busca (spinner) e mostra a Descrição quando dá certo (D-17)',
       (tester) async {
-        final apiDoDetalhe = ApiFalsa(latencia: const Duration(milliseconds: 300))
-          ..falharProximas('/api/publico/imoveis/', status: 500);
-        registrarDetalhe(ImovelDetalheRemoteDataSource(apiDoDetalhe.criarDio()));
+        final apiDoDetalhe = ApiFalsa(
+          latencia: const Duration(milliseconds: 300),
+        )..falharProximas('/api/publico/imoveis/', status: 500);
+        registrarDetalhe(
+          ImovelDetalheRemoteDataSource(apiDoDetalhe.criarDio()),
+        );
         await pumpVitrine(tester);
 
         await tester.tap(find.byKey(ValueKey('imovel-$idCasa')));
