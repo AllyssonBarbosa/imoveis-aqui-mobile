@@ -9,6 +9,7 @@ abstract class VitrineAnuncianteRepository {
   /// Primeira página da vitrine do [anunciante].
   Future<Result<PaginaImoveis>> buscarPrimeiraPagina(AnuncianteRef anunciante);
 
-  /// Próxima página, a partir do cursor opaco [proximaPagina].
+  /// Próxima página, a partir da próxima página (URL `next` do
+  /// `PageNumberPagination`, opaca para o app) [proximaPagina].
   Future<Result<PaginaImoveis>> buscarProximaPagina(String proximaPagina);
 }

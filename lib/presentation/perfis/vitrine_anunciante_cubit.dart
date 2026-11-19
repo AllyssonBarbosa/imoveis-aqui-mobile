@@ -28,7 +28,7 @@ class VitrineAnuncianteCubit extends Cubit<VitrineAnuncianteState> {
 
   /// "Tentar de novo" — atende os dois erros: a falha da primeira página
   /// (repete a busca) e a falha de "carregar mais" (repete a MESMA página
-  /// pendente, mesmo cursor). Antes de `carregar`, durante o carregamento,
+  /// pendente, mesma URL). Antes de `carregar`, durante o carregamento,
   /// com a lista sem erro ou o vazio na tela, repetir não faz sentido (sem
   /// busca dupla num toque duplo). Retry é sempre explícito: a rolagem nunca
   /// redispara sozinha depois de uma falha (T-02-03-01).
@@ -58,8 +58,9 @@ class VitrineAnuncianteCubit extends Cubit<VitrineAnuncianteState> {
     await _carregarProximaPagina();
   }
 
-  /// Busca a página apontada por `proximaPagina` (cursor opaco — o Cubit só o
-  /// repassa) e a acrescenta aos itens visíveis, sem substituí-los nem
+  /// Busca a página apontada por `proximaPagina` (próxima página — URL `next`
+  /// do `PageNumberPagination`, opaca para o app: o Cubit só a repassa) e a
+  /// acrescenta aos itens visíveis, sem substituí-los nem
   /// descartá-los em caso de falha. Não há token de versão: o anunciante de
   /// um Cubit nunca muda.
   Future<void> _carregarProximaPagina() async {
@@ -79,9 +80,14 @@ class VitrineAnuncianteCubit extends Cubit<VitrineAnuncianteState> {
 
     switch (resultado) {
       case Success(:final data):
+        // Integridade da lista (não é filtro de negócio): se o acervo mudou
+        // entre as páginas, um id já exibido não entra de novo. A ordem é a
+        // do servidor.
+        final idsListados = atualizado.itens.map((i) => i.id).toSet();
+        final novos = data.itens.where((i) => !idsListados.contains(i.id));
         emit(
           atualizado.copyWith(
-            itens: [...atualizado.itens, ...data.itens],
+            itens: [...atualizado.itens, ...novos],
             proximaPagina: data.proximaPagina,
             carregandoMais: false,
           ),
