@@ -4,7 +4,6 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:imoveis_aqui/domain/entities/cidade.dart';
 import 'package:imoveis_aqui/domain/entities/imovel.dart';
 import 'package:imoveis_aqui/presentation/perfis/vitrine_anunciante_cubit.dart';
 import 'package:imoveis_aqui/presentation/perfis/vitrine_anunciante_state.dart';
@@ -23,7 +22,6 @@ List<Imovel> _imoveis(int quantidade, {int primeiroId = 1}) => [
       titulo: 'Imóvel ${primeiroId + i}',
       finalidade: FinalidadeImovel.venda,
       bairro: 'Cambuí',
-      cidade: const Cidade(nome: 'Campinas', uf: 'SP'),
     ),
 ];
 

@@ -1,8 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/core/result.dart';
-import 'package:imoveis_aqui/data/datasources/imovel_mock_datasource.dart'
-    show FalhaSimuladaDoMock;
 import 'package:imoveis_aqui/data/datasources/perfil_datasource.dart';
 import 'package:imoveis_aqui/data/models/perfil_corretor_model.dart';
 import 'package:imoveis_aqui/data/repositories/perfil_repository_impl.dart';
@@ -11,6 +9,11 @@ import 'package:imoveis_aqui/domain/repositories/perfil_repository.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _PerfilDataSourceFalso extends Mock implements PerfilDataSource {}
+
+/// Falha de teste local: qualquer exceção que não seja 404 vira `Failure`.
+class _FalhaDeTeste implements Exception {
+  const _FalhaDeTeste();
+}
 
 RequestOptions _opcoes() => RequestOptions(path: '/api/publico/corretores/7/');
 
@@ -101,11 +104,10 @@ void main() {
   });
 
   test('qualquer outra Exception vira Failure com ela', () async {
-    when(() => dataSource.buscarCorretor(7))
-        .thenThrow(const FalhaSimuladaDoMock());
+    when(() => dataSource.buscarCorretor(7)).thenThrow(const _FalhaDeTeste());
 
     final resultado = await repositorio.buscarCorretor(7);
 
-    expect(falhaDe(resultado), isA<FalhaSimuladaDoMock>());
+    expect(falhaDe(resultado), isA<_FalhaDeTeste>());
   });
 }

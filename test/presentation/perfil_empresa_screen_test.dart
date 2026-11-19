@@ -381,7 +381,6 @@ void main() {
       titulo: titulo,
       finalidade: FinalidadeImovel.venda,
       bairro: 'Cambuí',
-      cidade: const Cidade(nome: 'Campinas', uf: 'SP'),
     );
 
     testWidgets('carregada: os cards aparecem depois de "Imóveis de" e tocar '

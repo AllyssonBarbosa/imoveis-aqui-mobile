@@ -2,7 +2,6 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/domain/entities/anunciante_ref.dart';
-import 'package:imoveis_aqui/domain/entities/cidade.dart';
 import 'package:imoveis_aqui/domain/entities/detalhe_imovel.dart';
 import 'package:imoveis_aqui/domain/entities/imovel.dart';
 import 'package:imoveis_aqui/domain/entities/perfil_corretor.dart';
@@ -29,9 +28,8 @@ void main() {
     id: 7,
     nome: 'Marina Lopes',
     foto: 'https://exemplo.com/marina.jpg',
-    slug: 'marina-lopes',
   );
-  const semFotoNemSlug = CorretorResponsavel(id: 9, nome: 'Camila Duarte');
+  const semFoto = CorretorResponsavel(id: 9, nome: 'Camila Duarte');
   const perfilMarina = PerfilCorretor(
     id: 7,
     empresaId: 3,
@@ -259,7 +257,7 @@ void main() {
   testWidgets('prévia sem foto mostra o ícone de pessoa (D-19 a)', (
     tester,
   ) async {
-    await abrirPerfil(tester, semFotoNemSlug, const PerfilState.carregando());
+    await abrirPerfil(tester, semFoto, const PerfilState.carregando());
 
     expect(find.byType(PerfilCorretorScreen), findsOneWidget);
     expect(naPagina(find.text('Camila Duarte')), findsOneWidget);
@@ -328,11 +326,7 @@ void main() {
 
   testWidgets('carregado com omissões (Camila) some Apresentação e a linha '
       'Telefone, mantém WhatsApp e o avatar padrão', (tester) async {
-    await abrirPerfil(
-      tester,
-      semFotoNemSlug,
-      const PerfilState.carregado(camila),
-    );
+    await abrirPerfil(tester, semFoto, const PerfilState.carregado(camila));
 
     expect(naPagina(find.text('Apresentação')), findsNothing);
     expect(naPagina(find.text('Telefone')), findsNothing);
@@ -426,7 +420,6 @@ void main() {
       titulo: titulo,
       finalidade: FinalidadeImovel.venda,
       bairro: 'Cambuí',
-      cidade: const Cidade(nome: 'Campinas', uf: 'SP'),
     );
 
     testWidgets('carregada mostra os cards na ORDEM RECEBIDA (57, 101, 42), '
