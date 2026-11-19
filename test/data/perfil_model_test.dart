@@ -129,19 +129,21 @@ void main() {
   });
 
   group('empresa', () {
-    test('o exemplo do §12 parseia com nome, tipo, creci e 3 cidades', () {
+    test('o exemplo capturado do Django parseia com nome, tipo, creci e '
+        '4 cidades', () {
       final exemplo = jsonDecode(
         File(_caminhoExemploEmpresa).readAsStringSync(),
       ) as Map<String, Object?>;
 
       final empresa = PerfilEmpresaModel.fromJson(exemplo).paraEntidade();
 
-      expect(empresa.id, 3);
-      expect(empresa.nome, 'Imobiliária Jequitibá');
+      expect(empresa.id, 1);
+      expect(empresa.nome, 'Imobiliária Vitrine Demo (dev)');
       expect(empresa.tipo, TipoEmpresa.imobiliaria);
-      expect(empresa.creci, 'J-1234');
+      expect(empresa.creci, '00000-D');
       expect(empresa.cidadesAtuacao, const [
         Cidade(nome: 'Campinas', uf: 'SP'),
+        Cidade(nome: 'Indaiatuba', uf: 'SP'),
         Cidade(nome: 'Valinhos', uf: 'SP'),
         Cidade(nome: 'Vinhedo', uf: 'SP'),
       ]);
