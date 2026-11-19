@@ -24,7 +24,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 2: Vitrine — Lista, Busca e Ordenação** - Vitrine da cidade escolhida com lista paginada, busca e ordenação, cidades já vindas da API, imóveis ainda sobre mock.
 - [ ] **Phase 3: Vitrine — Filtros Server-Side** - Filtros completos da vitrine (finalidade, natureza, faixas, características), chips ativos e paginação sempre consistente.
 - [ ] **Phase 4: Página do Imóvel — Galeria e Dados da Natureza** - Tela de detalhe (card APP 04): galeria a partir da capa, preços, corretor e bloco por natureza (casa, terreno, apartamento, lote), sobre mock seguindo o contrato de `GET /api/publico/imoveis/{id}/`.
-- [ ] **Phase 5: Imóveis Real — Endpoint Público e Integração Final** - Endpoints públicos reais de lista e detalhe de imóveis e troca das DataSources mock pelas reais via DI.
+- [x] **Phase 5: Imóveis Real — Endpoint Público e Integração Final** - Endpoints públicos reais de lista e detalhe de imóveis e troca das DataSources mock pelas reais via DI. (completed 2026-11-16)
 - [ ] **Phase 7: Perfis Públicos da Empresa e do Corretor** - Card APP 07: página da empresa e página do corretor com a vitrine do anunciante, dados da API de perfis públicos (WEB 02) e aviso para corretor desativado. (Fase 6 reservada ao card APP 06, de outro colega — fase N = card APP 0N.)
 - [ ] **Phase 07.1: Integração da APP-07 com a API real**
 
@@ -187,13 +187,91 @@ Plans:
 **Requirements**: API-03, API-07
 **Success Criteria** (what must be TRUE):
 
-  1. `GET /api/publico/imoveis/?cidade=...&filtros` responde sem token, só com imóveis publicados, com busca/ordenação/filtros/paginação resolvidos no servidor.
+  1. `GET /api/publico/cidades/<id>/imoveis/?filtros` responde sem token, só com imóveis publicados, com busca/ordenação/filtros/paginação resolvidos no servidor.
   2. A resposta usa um serializer público com allowlist explícita (sem proprietário/documento/dado interno) e não quebra o isolamento multitenant — nenhum imóvel de outra empresa ou não publicado aparece.
-  3. A resposta segue o contrato congelado na Fase 1 (nomes de campo, envelope de paginação, nomes de parâmetro de filtro), sem drift silencioso.
-  4. O app troca a DataSource mock pela real via injeção de dependência (troca de uma linha), sem mudar UI/Cubit/domain; de ponta a ponta, o visitante vê, busca, ordena e filtra imóveis reais na vitrine.
+  3. A resposta segue o contrato do formato real da API (01-CONTRATO-API.md reescrito na Fase 5, com exemplos copiados de respostas capturadas e testes de contrato nos dois repositórios), sem drift silencioso.
+  4. O app troca as DataSources mock pelas reais via injeção de dependência; a adaptação ao formato real fica concentrada em data/ e UI, Cubits e domain/ mudam só o mínimo necessário (D-01); de ponta a ponta, o visitante vê, busca, ordena e filtra imóveis reais na vitrine.
   5. O detalhe (`GET /api/publico/imoveis/{id}/`) também passa a vir da API real, incluindo os dados de natureza, e a página do imóvel da Phase 4 funciona ponta a ponta.
 
-**Plans**: TBD
+**Plans**: 22/22 plans executed (18/18 executed + 4 gap closure from 05-VERIFICATION: CR-01, CR-02, WR-01, WR-02)
+Plans:
+**Wave 1**
+
+- [x] 05-01-PLAN.md — API: autorização git dos dois repositórios (API e app), feat/APP05 = WEB-09 + merge da web-08 (W09 vence o público), regra única na_vitrine, situação fora da vitrine (API-03, API-07) [checkpoint]
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 05-02-PLAN.md — API: lote na vitrine pública (LotePublicoSerializer, área do lote), decisão informada sobre o corretor público (contatos expostos, empresa_id, LGPD adiada), allowlist exata, galeria começando pela capa (API-03, API-07) [checkpoint]
+- [x] 05-03-PLAN.md — App: item da vitrine sem cidade (A-06), prévia só com o bairro (API-03)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 05-04-PLAN.md — API: bairros da cidade e catálogo de características públicos, natureza/bairro em CSV, README da vitrine (API-03)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 05-05-PLAN.md — API: seed das 4 naturezas nas 4 cidades (versionado, idempotente) + [BLOCKING] migrações no banco de dev (API-03, API-07)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [x] 05-06-PLAN.md — Captura do JSON real de lista e opções para test/fixtures/api/ (tool/capturar_fixtures_api.py) (API-03)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [x] 05-07-PLAN.md — Captura do JSON real dos detalhes (4 naturezas, sem fotos, sem corretor, 404) (API-07)
+- [x] 05-08-PLAN.md — App: cidades em array com id, cidade salva com id, ApiFalsa (API-03)
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [x] 05-09-PLAN.md — App: lista real por GET /cidades/<id>/imoveis/ via DI, Model no wire da W09, next de mesma origem (API-03)
+
+**Wave 8** *(blocked on Wave 7 completion)*
+
+- [x] 05-10-PLAN.md — App: busca e ordenação reais, rolagem e falhas (500, JSON malformado), sem card repetido (API-03)
+
+**Wave 9** *(blocked on Wave 8 completion)*
+
+- [x] 05-11-PLAN.md — App: filtros com os nomes da W09 + servidor simulado da lista removido (API-03)
+
+**Wave 10** *(blocked on Wave 9 completion)*
+
+- [x] 05-12-PLAN.md — App: opções reais de bairro/característica via DI, mock de opções removido (API-03)
+
+**Wave 11** *(blocked on Wave 10 completion)*
+
+- [x] 05-13-PLAN.md — App: característica {id, nome} nas opções (domínio, cubit, modal) (API-03)
+- [x] 05-14-PLAN.md — App: detalhe real via DI (endereco completo, fotos imagem/ordem/capa, corretor_responsavel), últimos mocks fora de lib/, contrato do detalhe (API-07)
+
+**Wave 12** *(blocked on Wave 11 completion)*
+
+- [x] 05-15-PLAN.md — App: filtro de características por id na consulta, sessão entre cidades (API-03)
+- [x] 05-16-PLAN.md — App: detalhe nas bordas (404, 500, sem fotos, sem corretor, fechada em voo) + corretor sem slug (API-07)
+
+**Wave 13** *(blocked on Wave 12 completion)*
+
+- [x] 05-17-PLAN.md — App: blocos de natureza no wire real (lote com parcelamento/quadra/loteamento, laterais, prédio) + rótulos de códigos (API-07)
+
+**Wave 14** *(blocked on Wave 13 completion)*
+
+- [x] 05-18-PLAN.md — Fechamento: contrato e exemplos = respostas reais + testes de contrato, rota real e critérios 3/4 em REQUIREMENTS/ROADMAP, README, gates dos dois repos, roteiro E2E (API-03, API-07)
+
+**Gap closure** *(05-VERIFICATION gaps_found; WR-03..WR-06 e IN-01..IN-09 adiados pelo usuário)*
+
+**Wave 15**
+
+- [x] 05-19-PLAN.md — API: número e texto hostis na lista pública viram 400 (NaN/Infinity/1e400/_ e tetos em _numero; NUL e tetos em busca/bairro) (CR-02, WR-01, WR-02) (API-03)
+
+**Wave 16** *(blocked on Wave 15 completion)*
+
+- [x] 05-20-PLAN.md — API: características com até 20 ids positivos e "tem todas" numa única subconsulta agregada (CR-01) (API-03)
+
+**Wave 17** *(blocked on Wave 16 completion)*
+
+- [x] 05-21-PLAN.md — API: limite de taxa anônimo (429) nas 5 rotas públicas da vitrine, sem tocar a API autenticada, NUM_PROXIES=0, suíte estável (WR-02) (API-03, API-07)
+
+**Wave 18** *(blocked on Wave 17 completion)*
+
+- [x] 05-22-PLAN.md — Contrato (tetos, mensagens 400, 429, riscos) + README da API + guarda do app para 400/429 + gates finais; check humano de fim de fase pendente (API-03, API-07)
 
 ### Phase 7: Perfis Públicos da Empresa e do Corretor
 
@@ -246,7 +324,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 7 (6 reservada ao APP 06)
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 7 → 07.1 (6 reservada ao APP 06)
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -254,7 +332,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 7 (6 reservada ao
 | 2. Vitrine — Lista, Busca e Ordenação | 5/5 | In Progress|  |
 | 3. Vitrine — Filtros Server-Side | 5/5 | In Progress|  |
 | 4. Página do Imóvel — Galeria e Dados da Natureza | 8/8 | In Progress|  |
-| 5. Imóveis Real — Endpoint Público e Integração Final | 0/TBD | Not started | - |
+| 5. Imóveis Real — Endpoint Público e Integração Final | 22/22 | Complete    | 2026-11-16 |
 | 7. Perfis Públicos da Empresa e do Corretor | 12/12 | In Progress | - |
 
 ### Phase 07.1: Integração da APP-07 com a API real (INSERTED)

@@ -6,8 +6,8 @@ part 'cidade_model.freezed.dart';
 part 'cidade_model.g.dart';
 
 /// Modelo de transporte para uma linha de `GET /api/publico/cidades/`
-/// (VIT-06, D-16). `id` existe no contrato, mas NÃO é o que persistimos —
-/// ver D-15 / [Cidade.chaveNatural].
+/// (VIT-06, D-16). `id` segue para a entidade só como atributo de rota; a
+/// identidade da cidade continua sendo [Cidade.chaveNatural] (D-15, A-01).
 @freezed
 abstract class CidadeModel with _$CidadeModel {
   const CidadeModel._();
@@ -21,6 +21,6 @@ abstract class CidadeModel with _$CidadeModel {
   factory CidadeModel.fromJson(Map<String, Object?> json) =>
       _$CidadeModelFromJson(json);
 
-  /// Mapeia para a entidade de domínio (descarta o `id`, D-15).
-  Cidade paraEntidade() => Cidade(nome: nome, uf: uf);
+  /// Mapeia para a entidade de domínio (o `id` vai fora da igualdade, A-01).
+  Cidade paraEntidade() => Cidade(id: id, nome: nome, uf: uf);
 }

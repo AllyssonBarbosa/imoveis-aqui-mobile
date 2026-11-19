@@ -1,7 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:imoveis_aqui/domain/entities/caracteristica.dart';
 import 'package:imoveis_aqui/domain/entities/filtros_vitrine.dart';
 import 'package:imoveis_aqui/domain/entities/imovel.dart';
 import 'package:imoveis_aqui/presentation/vitrine/apresentacao_filtros.dart';
+
+const _piscina = Caracteristica(id: 1, nome: 'Piscina');
+const _elevador = Caracteristica(id: 9, nome: 'Elevador');
+const _quintal = Caracteristica(id: 6, nome: 'Quintal');
 
 void main() {
   group('rotuloBotaoFiltros (D-15)', () {
@@ -176,30 +181,43 @@ void main() {
     });
 
     test(
-      'caracteristicas: um só -> nome puro; mais de um -> "nome +N"',
+      'caracteristicas: um só -> nome puro; mais de um -> primeiro nome em '
+      'ordem normalizada + "+N" (D-13, F3/D-15)',
       () {
         expect(
           chipsDosFiltros(
-            const FiltrosVitrine(caracteristicas: {'Piscina'}),
+            FiltrosVitrine(caracteristicas: {_piscina}),
           ).single.rotulo,
           'Piscina',
         );
         expect(
           chipsDosFiltros(
-            const FiltrosVitrine(
-              caracteristicas: {'Piscina', 'Elevador', 'Quintal'},
+            FiltrosVitrine(
+              caracteristicas: {_piscina, _elevador, _quintal},
             ),
           ).single.rotulo,
-          'Piscina +2',
+          'Elevador +2',
         );
       },
     );
 
+    test('caracteristicas: a ordem alfabética ignora caixa e acento', () {
+      const abacaxi = Caracteristica(id: 7, nome: 'Área gourmet');
+      const zebra = Caracteristica(id: 8, nome: 'zeladoria');
+
+      expect(
+        chipsDosFiltros(
+          FiltrosVitrine(caracteristicas: {zebra, abacaxi, _piscina}),
+        ).single.rotulo,
+        'Área gourmet +2',
+      );
+    });
+
     test(
       'a ordem dos chips segue FiltrosVitrine.ativos (finalidade primeiro)',
       () {
-        const filtros = FiltrosVitrine(
-          caracteristicas: {'Piscina'},
+        final filtros = FiltrosVitrine(
+          caracteristicas: {_piscina},
           finalidade: FinalidadeFiltro.venda,
         );
 

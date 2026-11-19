@@ -1,0 +1,31 @@
+{
+  "items": [
+    {
+      "requirement_id": "API-03",
+      "category": "concurrency",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "Plan truths + tests: 05-10 truth 'Edge API-03 (concorrência — interrompido/em paralelo)' — VitrineCubit appends only ids not yet listed (vitrine_cubit_test: p2 repeating a p1 id), stale responses discarded by _versaoConsulta, 500/timeout -> footer 'Tentar de novo' (vitrine_fluxo_test); 05-05 truth 'Edge (interrompido/em paralelo)' — interrupted seed resumes by natural-key lookups, proven by SemearVitrineDevTests (two runs, unchanged counts).",
+      "reason": null,
+      "probe": "If interrupted or run in parallel, what is guaranteed?"
+    },
+    {
+      "requirement_id": "API-07",
+      "category": "concurrency",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "Plan truths + tests: 05-01 truth 'Edge API-07 (concorrência — interrompido/em paralelo)' — vitrine rule evaluated per request with no cache, a property leaving the vitrine answers the same 404 as a nonexistent id (VitrineSituacaoTests); 05-16 truth 'Edge API-07' — the app shows 'Este imóvel não está mais disponível' on that 404 and a page closed with the request in flight emits nothing (detalhe_navegacao_test: 404 and close-in-flight cases).",
+      "reason": null,
+      "probe": "If interrupted or run in parallel, what is guaranteed?"
+    }
+  ],
+  "coverage": {
+    "applicable": 2,
+    "resolved": 2,
+    "unresolved": 0,
+    "byVerification": {
+      "explicit": 2,
+      "backstop": 0
+    }
+  }
+}

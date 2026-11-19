@@ -2,9 +2,13 @@ import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:imoveis_aqui/domain/entities/caracteristica.dart';
 import 'package:imoveis_aqui/domain/entities/filtros_vitrine.dart';
 import 'package:imoveis_aqui/domain/entities/imovel.dart';
 import 'package:imoveis_aqui/presentation/vitrine/rascunho_filtros_cubit.dart';
+
+const _piscina = Caracteristica(id: 1, nome: 'Piscina');
+const _churrasqueira = Caracteristica(id: 2, nome: 'Churrasqueira');
 
 void main() {
   group('RascunhoFiltrosCubit (D-08, D-13, D-18)', () {
@@ -216,11 +220,11 @@ void main() {
       build: () => RascunhoFiltrosCubit(
         const FiltrosVitrine(finalidade: FinalidadeFiltro.venda),
       ),
-      act: (cubit) => cubit.alternarCaracteristica('Piscina', marcada: true),
-      expect: () => const [
+      act: (cubit) => cubit.alternarCaracteristica(_piscina, marcada: true),
+      expect: () => [
         FiltrosVitrine(
           finalidade: FinalidadeFiltro.venda,
-          caracteristicas: {'Piscina'},
+          caracteristicas: {_piscina},
         ),
       ],
     );
@@ -229,11 +233,12 @@ void main() {
       'alternarCaracteristica(Piscina, marcada: false) remove só Piscina, '
       'mantendo as demais características já marcadas',
       build: () => RascunhoFiltrosCubit(
-        const FiltrosVitrine(caracteristicas: {'Piscina', 'Churrasqueira'}),
+        FiltrosVitrine(caracteristicas: {_piscina, _churrasqueira}),
       ),
-      act: (cubit) =>
-          cubit.alternarCaracteristica('Piscina', marcada: false),
-      expect: () => const [FiltrosVitrine(caracteristicas: {'Churrasqueira'})],
+      act: (cubit) => cubit.alternarCaracteristica(_piscina, marcada: false),
+      expect: () => [
+        FiltrosVitrine(caracteristicas: {_churrasqueira}),
+      ],
     );
   });
 

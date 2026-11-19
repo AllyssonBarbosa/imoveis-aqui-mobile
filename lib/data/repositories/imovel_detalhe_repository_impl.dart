@@ -6,15 +6,14 @@ import '../../domain/entities/detalhe_imovel.dart';
 import '../../domain/repositories/imovel_detalhe_repository.dart';
 import '../datasources/imovel_detalhe_datasource.dart';
 
-/// Impl de [ImovelDetalheRepository] — injeta a interface trocável
-/// [ImovelDetalheDataSource], nunca a classe mock diretamente (mesma
+/// Impl de [ImovelDetalheRepository] — injeta a interface
+/// [ImovelDetalheDataSource], nunca a classe remota diretamente (mesma
 /// disciplina de `ImovelRepositoryImpl`).
 ///
 /// Traduz toda falha da DataSource em `Result.failure` tipado (DET-06, D-01):
 /// 404 vira [ImovelNaoEncontradoException] e JSON malformado ([TypeError] do
 /// `fromJson`) vira [FormatException], então o Cubit decide só pelo tipo. A
-/// DataSource remota da API-07 apenas deixa a `DioException` subir — nada
-/// acima do repositório muda na Fase 5.
+/// DataSource remota apenas deixa a `DioException` subir.
 @LazySingleton(as: ImovelDetalheRepository)
 class ImovelDetalheRepositoryImpl implements ImovelDetalheRepository {
   ImovelDetalheRepositoryImpl(this._dataSource);
@@ -26,8 +25,6 @@ class ImovelDetalheRepositoryImpl implements ImovelDetalheRepository {
     try {
       final modelo = await _dataSource.buscarDetalhe(id);
       return Result.success(modelo.paraEntidade());
-    } on ImovelNaoEncontradoException catch (erro) {
-      return Result.failure(erro);
     } on DioException catch (erro) {
       // 404 = inexistente ou despublicado: repetir não resolve (D-17).
       if (erro.response?.statusCode == 404) {

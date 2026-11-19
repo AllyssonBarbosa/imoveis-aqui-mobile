@@ -1,4 +1,5 @@
 import '../../core/result.dart';
+import '../entities/caracteristica.dart';
 import '../entities/cidade.dart';
 
 /// Contrato trocável das opções de filtro (bairros/características, D-20).
@@ -9,5 +10,5 @@ import '../entities/cidade.dart';
 abstract class OpcoesFiltroRepository {
   Future<Result<List<String>>> bairrosDaCidade(Cidade cidade);
 
-  Future<Result<List<String>>> caracteristicas();
+  Future<Result<List<Caracteristica>>> caracteristicas();
 }

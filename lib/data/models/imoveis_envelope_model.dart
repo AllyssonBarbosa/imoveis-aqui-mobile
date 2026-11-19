@@ -6,8 +6,10 @@ import 'imovel_model.dart';
 part 'imoveis_envelope_model.freezed.dart';
 part 'imoveis_envelope_model.g.dart';
 
-/// Envelope `CursorPagination` de `GET /imoveis` (§4 do contrato) —
-/// não-genérico de propósito (RESEARCH Pitfall 5: freezed genérico +
+/// Envelope `PageNumberPagination` de
+/// `GET /api/publico/cidades/<id>/imoveis/` (W09): `count` é ignorado pelo
+/// `json_serializable`; `next` é uma URL absoluta ou nulo — não-genérico de
+/// propósito (RESEARCH Pitfall 5: freezed genérico +
 /// json_serializable exige boilerplate de `genericArgumentFactories`).
 @freezed
 abstract class ImoveisEnvelopeModel with _$ImoveisEnvelopeModel {

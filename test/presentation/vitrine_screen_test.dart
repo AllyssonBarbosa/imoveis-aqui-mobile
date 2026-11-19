@@ -16,8 +16,8 @@ import 'package:mocktail/mocktail.dart';
 
 /// Testes de widget da vitrine com um `VitrineCubit` falso (VIT-05) —
 /// exercita a renderização de todos os estados de lista e rodapé, sem
-/// depender do `ImovelMockDataSource` real (isso fica no e2e de
-/// `vitrine_fluxo_test.dart`).
+/// depender de uma fonte de dados real (isso fica no e2e de
+/// `vitrine_fluxo_test.dart`, sobre o JSON capturado da API).
 class _VitrineCubitFalso extends MockCubit<VitrineState>
     implements VitrineCubit {}
 
@@ -38,7 +38,6 @@ void main() {
     finalidade: FinalidadeImovel.venda,
     precoVenda: '100000.00',
     bairro: 'Centro',
-    cidade: campinas,
   );
 
   setUpAll(() {

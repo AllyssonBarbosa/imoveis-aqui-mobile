@@ -1,6 +1,7 @@
 import 'package:injectable/injectable.dart';
 
 import '../../core/result.dart';
+import '../entities/caracteristica.dart';
 import '../repositories/opcoes_filtro_repository.dart';
 
 /// Delega direto ao repositório (sem lógica própria) — a lista de
@@ -12,5 +13,5 @@ class ObterCaracteristicasUseCase {
 
   final OpcoesFiltroRepository _repositorio;
 
-  Future<Result<List<String>>> call() => _repositorio.caracteristicas();
+  Future<Result<List<Caracteristica>>> call() => _repositorio.caracteristicas();
 }

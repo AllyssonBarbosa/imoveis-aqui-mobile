@@ -1,18 +1,31 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:imoveis_aqui/data/datasources/opcoes_filtro_remote_datasource.dart';
+import 'package:imoveis_aqui/data/repositories/opcoes_filtro_repository_impl.dart';
+import 'package:imoveis_aqui/domain/entities/caracteristica.dart';
+import 'package:imoveis_aqui/domain/entities/cidade.dart';
 import 'package:imoveis_aqui/domain/entities/filtros_vitrine.dart';
 import 'package:imoveis_aqui/domain/entities/imovel.dart';
+import 'package:imoveis_aqui/domain/usecases/obter_bairros_usecase.dart';
+import 'package:imoveis_aqui/domain/usecases/obter_caracteristicas_usecase.dart';
 import 'package:imoveis_aqui/presentation/vitrine/opcoes_filtro_cubit.dart';
 import 'package:imoveis_aqui/presentation/vitrine/opcoes_filtro_state.dart';
 import 'package:imoveis_aqui/presentation/vitrine/widgets/filtros_bottom_sheet.dart';
 import 'package:mocktail/mocktail.dart';
+
+import '../support/api_falsa.dart';
 
 /// Fake de `OpcoesFiltroCubit` (Task 2) — todo teste do sheet agora passa
 /// um `opcoes:` seedado com o estado desejado, sem depender da pilha real
 /// (isso fica no e2e de `vitrine_fluxo_test.dart`).
 class _OpcoesFiltroCubitFalso extends MockCubit<OpcoesFiltroState>
     implements OpcoesFiltroCubit {}
+
+const _piscina = Caracteristica(id: 1, nome: 'Piscina');
+const _churrasqueira = Caracteristica(id: 2, nome: 'Churrasqueira');
 
 void main() {
   late _OpcoesFiltroCubitFalso opcoes;
@@ -27,7 +40,7 @@ void main() {
   /// exercitando só o resto do sheet, igual antes dos Tasks 2/3).
   OpcoesFiltroCubit opcoesComEstado({
     List<String> bairros = const [],
-    List<String> caracteristicas = const [],
+    List<Caracteristica> caracteristicas = const [],
   }) {
     final estado = OpcoesFiltroState(
       bairros: CarregamentoOpcoes.carregadas(bairros),
@@ -921,10 +934,10 @@ void main() {
       (tester) async {
         await abrirSheet(
           tester,
-          aplicados: const FiltrosVitrine(caracteristicas: {'Piscina'}),
+          aplicados: FiltrosVitrine(caracteristicas: {_piscina}),
           aoAplicar: (_) {},
           opcoesCubit: opcoesComEstado(
-            caracteristicas: ['Churrasqueira', 'Piscina'],
+            caracteristicas: [_churrasqueira, _piscina],
           ),
         );
         await tester.ensureVisible(find.text('Características'));
@@ -959,7 +972,7 @@ void main() {
             chamadas++;
           },
           opcoesCubit: opcoesComEstado(
-            caracteristicas: ['Piscina', 'Churrasqueira'],
+            caracteristicas: [_piscina, _churrasqueira],
           ),
         );
         final chipPiscina = find.widgetWithText(FilterChip, 'Piscina');
@@ -972,7 +985,59 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(chamadas, 1);
-        expect(aplicado, const FiltrosVitrine(caracteristicas: {'Piscina'}));
+        expect(aplicado, FiltrosVitrine(caracteristicas: {_piscina}));
+      },
+    );
+
+    testWidgets(
+      'e2e sobre a pilha real de opções (ApiFalsa): mostra os nomes de '
+      'caracteristicas.json na ordem do servidor e tocar marca o chip '
+      '(D-13, D-08)',
+      (tester) async {
+        final repositorio = OpcoesFiltroRepositoryImpl(
+          OpcoesFiltroRemoteDataSource(ApiFalsa().criarDio()),
+        );
+        final cubitReal = OpcoesFiltroCubit(
+          ObterBairrosUseCase(repositorio),
+          ObterCaracteristicasUseCase(repositorio),
+        );
+        addTearDown(cubitReal.close);
+        // Sem await: o relógio do testWidgets só avança com pump.
+        unawaited(
+          cubitReal.carregar(const Cidade(id: 1, nome: 'Campinas', uf: 'SP')),
+        );
+        final nomesDoServidor = (lerFixtureApi('caracteristicas.json')!
+                as List<Object?>)
+            .cast<Map<String, Object?>>()
+            .map((linha) => linha['nome']! as String)
+            .toList();
+
+        await abrirSheet(
+          tester,
+          aplicados: const FiltrosVitrine(),
+          aoAplicar: (_) {},
+          opcoesCubit: cubitReal,
+        );
+        await tester.ensureVisible(find.text('Características'));
+        await tester.pump();
+
+        // Características é a última seção; os chips anteriores são do tipo
+        // de imóvel.
+        final todosOsChips = tester
+            .widgetList<FilterChip>(find.byType(FilterChip))
+            .map((chip) => (chip.label as Text).data)
+            .toList();
+        expect(
+          todosOsChips.sublist(todosOsChips.length - nomesDoServidor.length),
+          nomesDoServidor,
+        );
+
+        final chipPiscina = find.widgetWithText(FilterChip, 'Piscina');
+        await tester.ensureVisible(chipPiscina);
+        await tester.tap(chipPiscina);
+        await tester.pumpAndSettle();
+
+        expect(tester.widget<FilterChip>(chipPiscina).selected, isTrue);
       },
     );
   });

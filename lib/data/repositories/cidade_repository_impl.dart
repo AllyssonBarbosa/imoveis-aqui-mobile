@@ -31,13 +31,13 @@ class CidadeRepositoryImpl implements CidadeRepository {
 
   @override
   Future<void> salvarCidade(Cidade cidade) {
-    return _prefs.salvar(nome: cidade.nome, uf: cidade.uf);
+    return _prefs.salvar(nome: cidade.nome, uf: cidade.uf, id: cidade.id);
   }
 
   @override
   Future<Cidade?> obterCidadeSalva() async {
     final salva = await _prefs.obterSalva();
     if (salva == null) return null;
-    return Cidade(nome: salva.$1, uf: salva.$2);
+    return Cidade(id: salva.$3, nome: salva.$1, uf: salva.$2);
   }
 }

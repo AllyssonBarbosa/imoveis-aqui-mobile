@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$DetalheImovel {
 
- int get id; String get titulo; FinalidadeImovel get finalidade; String? get precoVenda; String? get precoAluguel; String? get precoCondominio; String? get precoIptu; String get descricao; String get bairro; Cidade get cidade; String? get latitude; String? get longitude;/// Na ordem recebida — o servidor já manda a capa primeiro; o app nunca
+ int get id; String get titulo; FinalidadeImovel get finalidade; String? get precoVenda; String? get precoAluguel; String? get precoCondominio; String? get precoIptu; String get descricao; String get bairro; Cidade? get cidade; String? get latitude; String? get longitude;/// Na ordem recebida — o servidor já manda a capa primeiro; o app nunca
 /// reordena.
  List<FotoImovel> get fotos; List<String> get caracteristicas; CorretorResponsavel? get corretor; NaturezaImovel? get natureza;/// Dados próprios da natureza; `null` quando o servidor não manda o bloco
 /// ou a natureza é desconhecida (D-14).
@@ -55,7 +55,7 @@ abstract mixin class $DetalheImovelCopyWith<$Res>  {
   factory $DetalheImovelCopyWith(DetalheImovel value, $Res Function(DetalheImovel) _then) = _$DetalheImovelCopyWithImpl;
 @useResult
 $Res call({
- int id, String titulo, FinalidadeImovel finalidade, String? precoVenda, String? precoAluguel, String? precoCondominio, String? precoIptu, String descricao, String bairro, Cidade cidade, String? latitude, String? longitude, List<FotoImovel> fotos, List<String> caracteristicas, CorretorResponsavel? corretor, NaturezaImovel? natureza, DadosNatureza? dados
+ int id, String titulo, FinalidadeImovel finalidade, String? precoVenda, String? precoAluguel, String? precoCondominio, String? precoIptu, String descricao, String bairro, Cidade? cidade, String? latitude, String? longitude, List<FotoImovel> fotos, List<String> caracteristicas, CorretorResponsavel? corretor, NaturezaImovel? natureza, DadosNatureza? dados
 });
 
 
@@ -72,7 +72,7 @@ class _$DetalheImovelCopyWithImpl<$Res>
 
 /// Create a copy of DetalheImovel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? titulo = null,Object? finalidade = null,Object? precoVenda = freezed,Object? precoAluguel = freezed,Object? precoCondominio = freezed,Object? precoIptu = freezed,Object? descricao = null,Object? bairro = null,Object? cidade = null,Object? latitude = freezed,Object? longitude = freezed,Object? fotos = null,Object? caracteristicas = null,Object? corretor = freezed,Object? natureza = freezed,Object? dados = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? titulo = null,Object? finalidade = null,Object? precoVenda = freezed,Object? precoAluguel = freezed,Object? precoCondominio = freezed,Object? precoIptu = freezed,Object? descricao = null,Object? bairro = null,Object? cidade = freezed,Object? latitude = freezed,Object? longitude = freezed,Object? fotos = null,Object? caracteristicas = null,Object? corretor = freezed,Object? natureza = freezed,Object? dados = freezed,}) {
   return _then(DetalheImovel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,titulo: null == titulo ? _self.titulo : titulo // ignore: cast_nullable_to_non_nullable
@@ -83,8 +83,8 @@ as String?,precoCondominio: freezed == precoCondominio ? _self.precoCondominio :
 as String?,precoIptu: freezed == precoIptu ? _self.precoIptu : precoIptu // ignore: cast_nullable_to_non_nullable
 as String?,descricao: null == descricao ? _self.descricao : descricao // ignore: cast_nullable_to_non_nullable
 as String,bairro: null == bairro ? _self.bairro : bairro // ignore: cast_nullable_to_non_nullable
-as String,cidade: null == cidade ? _self.cidade : cidade // ignore: cast_nullable_to_non_nullable
-as Cidade,latitude: freezed == latitude ? _self.latitude : latitude // ignore: cast_nullable_to_non_nullable
+as String,cidade: freezed == cidade ? _self.cidade : cidade // ignore: cast_nullable_to_non_nullable
+as Cidade?,latitude: freezed == latitude ? _self.latitude : latitude // ignore: cast_nullable_to_non_nullable
 as String?,longitude: freezed == longitude ? _self.longitude : longitude // ignore: cast_nullable_to_non_nullable
 as String?,fotos: null == fotos ? _self.fotos : fotos // ignore: cast_nullable_to_non_nullable
 as List<FotoImovel>,caracteristicas: null == caracteristicas ? _self.caracteristicas : caracteristicas // ignore: cast_nullable_to_non_nullable
@@ -200,7 +200,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String titulo,  FinalidadeImovel finalidade,  String? precoVenda,  String? precoAluguel,  String? precoCondominio,  String? precoIptu,  String descricao,  String bairro,  Cidade cidade,  String? latitude,  String? longitude,  List<FotoImovel> fotos,  List<String> caracteristicas,  CorretorResponsavel? corretor,  NaturezaImovel? natureza,  DadosNatureza? dados)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String titulo,  FinalidadeImovel finalidade,  String? precoVenda,  String? precoAluguel,  String? precoCondominio,  String? precoIptu,  String descricao,  String bairro,  Cidade? cidade,  String? latitude,  String? longitude,  List<FotoImovel> fotos,  List<String> caracteristicas,  CorretorResponsavel? corretor,  NaturezaImovel? natureza,  DadosNatureza? dados)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DetalheImovel() when $default != null:
 return $default(_that.id,_that.titulo,_that.finalidade,_that.precoVenda,_that.precoAluguel,_that.precoCondominio,_that.precoIptu,_that.descricao,_that.bairro,_that.cidade,_that.latitude,_that.longitude,_that.fotos,_that.caracteristicas,_that.corretor,_that.natureza,_that.dados);case _:
@@ -221,7 +221,7 @@ return $default(_that.id,_that.titulo,_that.finalidade,_that.precoVenda,_that.pr
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String titulo,  FinalidadeImovel finalidade,  String? precoVenda,  String? precoAluguel,  String? precoCondominio,  String? precoIptu,  String descricao,  String bairro,  Cidade cidade,  String? latitude,  String? longitude,  List<FotoImovel> fotos,  List<String> caracteristicas,  CorretorResponsavel? corretor,  NaturezaImovel? natureza,  DadosNatureza? dados)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String titulo,  FinalidadeImovel finalidade,  String? precoVenda,  String? precoAluguel,  String? precoCondominio,  String? precoIptu,  String descricao,  String bairro,  Cidade? cidade,  String? latitude,  String? longitude,  List<FotoImovel> fotos,  List<String> caracteristicas,  CorretorResponsavel? corretor,  NaturezaImovel? natureza,  DadosNatureza? dados)  $default,) {final _that = this;
 switch (_that) {
 case _DetalheImovel():
 return $default(_that.id,_that.titulo,_that.finalidade,_that.precoVenda,_that.precoAluguel,_that.precoCondominio,_that.precoIptu,_that.descricao,_that.bairro,_that.cidade,_that.latitude,_that.longitude,_that.fotos,_that.caracteristicas,_that.corretor,_that.natureza,_that.dados);case _:
@@ -241,7 +241,7 @@ return $default(_that.id,_that.titulo,_that.finalidade,_that.precoVenda,_that.pr
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String titulo,  FinalidadeImovel finalidade,  String? precoVenda,  String? precoAluguel,  String? precoCondominio,  String? precoIptu,  String descricao,  String bairro,  Cidade cidade,  String? latitude,  String? longitude,  List<FotoImovel> fotos,  List<String> caracteristicas,  CorretorResponsavel? corretor,  NaturezaImovel? natureza,  DadosNatureza? dados)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String titulo,  FinalidadeImovel finalidade,  String? precoVenda,  String? precoAluguel,  String? precoCondominio,  String? precoIptu,  String descricao,  String bairro,  Cidade? cidade,  String? latitude,  String? longitude,  List<FotoImovel> fotos,  List<String> caracteristicas,  CorretorResponsavel? corretor,  NaturezaImovel? natureza,  DadosNatureza? dados)?  $default,) {final _that = this;
 switch (_that) {
 case _DetalheImovel() when $default != null:
 return $default(_that.id,_that.titulo,_that.finalidade,_that.precoVenda,_that.precoAluguel,_that.precoCondominio,_that.precoIptu,_that.descricao,_that.bairro,_that.cidade,_that.latitude,_that.longitude,_that.fotos,_that.caracteristicas,_that.corretor,_that.natureza,_that.dados);case _:
@@ -256,7 +256,7 @@ return $default(_that.id,_that.titulo,_that.finalidade,_that.precoVenda,_that.pr
 
 
 class _DetalheImovel implements DetalheImovel {
-  const _DetalheImovel({required this.id, required this.titulo, required this.finalidade, this.precoVenda, this.precoAluguel, this.precoCondominio, this.precoIptu, required this.descricao, required this.bairro, required this.cidade, this.latitude, this.longitude,  List<FotoImovel> fotos = const <FotoImovel>[],  List<String> caracteristicas = const <String>[], this.corretor, this.natureza, this.dados}): _fotos = fotos,_caracteristicas = caracteristicas;
+  const _DetalheImovel({required this.id, required this.titulo, required this.finalidade, this.precoVenda, this.precoAluguel, this.precoCondominio, this.precoIptu, required this.descricao, required this.bairro, this.cidade, this.latitude, this.longitude,  List<FotoImovel> fotos = const <FotoImovel>[],  List<String> caracteristicas = const <String>[], this.corretor, this.natureza, this.dados}): _fotos = fotos,_caracteristicas = caracteristicas;
   
 
 @override final  int id;
@@ -268,7 +268,7 @@ class _DetalheImovel implements DetalheImovel {
 @override final  String? precoIptu;
 @override final  String descricao;
 @override final  String bairro;
-@override final  Cidade cidade;
+@override final  Cidade? cidade;
 @override final  String? latitude;
 @override final  String? longitude;
 /// Na ordem recebida — o servidor já manda a capa primeiro; o app nunca
@@ -327,7 +327,7 @@ abstract mixin class _$DetalheImovelCopyWith<$Res> implements $DetalheImovelCopy
   factory _$DetalheImovelCopyWith(_DetalheImovel value, $Res Function(_DetalheImovel) _then) = __$DetalheImovelCopyWithImpl;
 @override @useResult
 $Res call({
- int id, String titulo, FinalidadeImovel finalidade, String? precoVenda, String? precoAluguel, String? precoCondominio, String? precoIptu, String descricao, String bairro, Cidade cidade, String? latitude, String? longitude, List<FotoImovel> fotos, List<String> caracteristicas, CorretorResponsavel? corretor, NaturezaImovel? natureza, DadosNatureza? dados
+ int id, String titulo, FinalidadeImovel finalidade, String? precoVenda, String? precoAluguel, String? precoCondominio, String? precoIptu, String descricao, String bairro, Cidade? cidade, String? latitude, String? longitude, List<FotoImovel> fotos, List<String> caracteristicas, CorretorResponsavel? corretor, NaturezaImovel? natureza, DadosNatureza? dados
 });
 
 
@@ -344,7 +344,7 @@ class __$DetalheImovelCopyWithImpl<$Res>
 
 /// Create a copy of DetalheImovel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? titulo = null,Object? finalidade = null,Object? precoVenda = freezed,Object? precoAluguel = freezed,Object? precoCondominio = freezed,Object? precoIptu = freezed,Object? descricao = null,Object? bairro = null,Object? cidade = null,Object? latitude = freezed,Object? longitude = freezed,Object? fotos = null,Object? caracteristicas = null,Object? corretor = freezed,Object? natureza = freezed,Object? dados = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? titulo = null,Object? finalidade = null,Object? precoVenda = freezed,Object? precoAluguel = freezed,Object? precoCondominio = freezed,Object? precoIptu = freezed,Object? descricao = null,Object? bairro = null,Object? cidade = freezed,Object? latitude = freezed,Object? longitude = freezed,Object? fotos = null,Object? caracteristicas = null,Object? corretor = freezed,Object? natureza = freezed,Object? dados = freezed,}) {
   return _then(_DetalheImovel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,titulo: null == titulo ? _self.titulo : titulo // ignore: cast_nullable_to_non_nullable
@@ -355,8 +355,8 @@ as String?,precoCondominio: freezed == precoCondominio ? _self.precoCondominio :
 as String?,precoIptu: freezed == precoIptu ? _self.precoIptu : precoIptu // ignore: cast_nullable_to_non_nullable
 as String?,descricao: null == descricao ? _self.descricao : descricao // ignore: cast_nullable_to_non_nullable
 as String,bairro: null == bairro ? _self.bairro : bairro // ignore: cast_nullable_to_non_nullable
-as String,cidade: null == cidade ? _self.cidade : cidade // ignore: cast_nullable_to_non_nullable
-as Cidade,latitude: freezed == latitude ? _self.latitude : latitude // ignore: cast_nullable_to_non_nullable
+as String,cidade: freezed == cidade ? _self.cidade : cidade // ignore: cast_nullable_to_non_nullable
+as Cidade?,latitude: freezed == latitude ? _self.latitude : latitude // ignore: cast_nullable_to_non_nullable
 as String?,longitude: freezed == longitude ? _self.longitude : longitude // ignore: cast_nullable_to_non_nullable
 as String?,fotos: null == fotos ? _self._fotos : fotos // ignore: cast_nullable_to_non_nullable
 as List<FotoImovel>,caracteristicas: null == caracteristicas ? _self._caracteristicas : caracteristicas // ignore: cast_nullable_to_non_nullable
@@ -664,7 +664,7 @@ as bool,
 /// @nodoc
 mixin _$CorretorResponsavel {
 
- int get id; String get nome; String? get foto; String? get slug;
+ int get id; String get nome; String? get foto;
 /// Create a copy of CorretorResponsavel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -676,20 +676,20 @@ $CorretorResponsavelCopyWith<CorretorResponsavel> get copyWith => _$CorretorResp
 @override
 bool operator ==(Object other) {
   final _this = this as CorretorResponsavel;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CorretorResponsavel&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.nome, _this.nome) || other.nome == _this.nome)&&(identical(other.foto, _this.foto) || other.foto == _this.foto)&&(identical(other.slug, _this.slug) || other.slug == _this.slug));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CorretorResponsavel&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.nome, _this.nome) || other.nome == _this.nome)&&(identical(other.foto, _this.foto) || other.foto == _this.foto));
 }
 
 
 @override
 int get hashCode {
   final _this = this as CorretorResponsavel;
-  return Object.hash(runtimeType,_this.id,_this.nome,_this.foto,_this.slug);
+  return Object.hash(runtimeType,_this.id,_this.nome,_this.foto);
 }
 
 @override
 String toString() {
   final _this = this as CorretorResponsavel;
-  return 'CorretorResponsavel(id: ${_this.id}, nome: ${_this.nome}, foto: ${_this.foto}, slug: ${_this.slug})';
+  return 'CorretorResponsavel(id: ${_this.id}, nome: ${_this.nome}, foto: ${_this.foto})';
 }
 
 
@@ -700,7 +700,7 @@ abstract mixin class $CorretorResponsavelCopyWith<$Res>  {
   factory $CorretorResponsavelCopyWith(CorretorResponsavel value, $Res Function(CorretorResponsavel) _then) = _$CorretorResponsavelCopyWithImpl;
 @useResult
 $Res call({
- int id, String nome, String? foto, String? slug
+ int id, String nome, String? foto
 });
 
 
@@ -717,12 +717,11 @@ class _$CorretorResponsavelCopyWithImpl<$Res>
 
 /// Create a copy of CorretorResponsavel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? nome = null,Object? foto = freezed,Object? slug = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? nome = null,Object? foto = freezed,}) {
   return _then(CorretorResponsavel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,nome: null == nome ? _self.nome : nome // ignore: cast_nullable_to_non_nullable
 as String,foto: freezed == foto ? _self.foto : foto // ignore: cast_nullable_to_non_nullable
-as String?,slug: freezed == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -808,10 +807,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String nome,  String? foto,  String? slug)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String nome,  String? foto)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CorretorResponsavel() when $default != null:
-return $default(_that.id,_that.nome,_that.foto,_that.slug);case _:
+return $default(_that.id,_that.nome,_that.foto);case _:
   return orElse();
 
 }
@@ -829,10 +828,10 @@ return $default(_that.id,_that.nome,_that.foto,_that.slug);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String nome,  String? foto,  String? slug)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String nome,  String? foto)  $default,) {final _that = this;
 switch (_that) {
 case _CorretorResponsavel():
-return $default(_that.id,_that.nome,_that.foto,_that.slug);case _:
+return $default(_that.id,_that.nome,_that.foto);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -849,10 +848,10 @@ return $default(_that.id,_that.nome,_that.foto,_that.slug);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String nome,  String? foto,  String? slug)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String nome,  String? foto)?  $default,) {final _that = this;
 switch (_that) {
 case _CorretorResponsavel() when $default != null:
-return $default(_that.id,_that.nome,_that.foto,_that.slug);case _:
+return $default(_that.id,_that.nome,_that.foto);case _:
   return null;
 
 }
@@ -864,13 +863,12 @@ return $default(_that.id,_that.nome,_that.foto,_that.slug);case _:
 
 
 class _CorretorResponsavel implements CorretorResponsavel {
-  const _CorretorResponsavel({required this.id, required this.nome, this.foto, this.slug});
+  const _CorretorResponsavel({required this.id, required this.nome, this.foto});
   
 
 @override final  int id;
 @override final  String nome;
 @override final  String? foto;
-@override final  String? slug;
 
 /// Create a copy of CorretorResponsavel
 /// with the given fields replaced by the non-null parameter values.
@@ -882,18 +880,18 @@ _$CorretorResponsavelCopyWith<_CorretorResponsavel> get copyWith => __$CorretorR
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CorretorResponsavel&&(identical(other.id, id) || other.id == id)&&(identical(other.nome, nome) || other.nome == nome)&&(identical(other.foto, foto) || other.foto == foto)&&(identical(other.slug, slug) || other.slug == slug));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CorretorResponsavel&&(identical(other.id, id) || other.id == id)&&(identical(other.nome, nome) || other.nome == nome)&&(identical(other.foto, foto) || other.foto == foto));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,nome,foto,slug);
+    return Object.hash(runtimeType,id,nome,foto);
 }
 
 @override
 String toString() {
-    return 'CorretorResponsavel(id: $id, nome: $nome, foto: $foto, slug: $slug)';
+    return 'CorretorResponsavel(id: $id, nome: $nome, foto: $foto)';
 }
 
 
@@ -904,7 +902,7 @@ abstract mixin class _$CorretorResponsavelCopyWith<$Res> implements $CorretorRes
   factory _$CorretorResponsavelCopyWith(_CorretorResponsavel value, $Res Function(_CorretorResponsavel) _then) = __$CorretorResponsavelCopyWithImpl;
 @override @useResult
 $Res call({
- int id, String nome, String? foto, String? slug
+ int id, String nome, String? foto
 });
 
 
@@ -921,12 +919,11 @@ class __$CorretorResponsavelCopyWithImpl<$Res>
 
 /// Create a copy of CorretorResponsavel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? nome = null,Object? foto = freezed,Object? slug = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? nome = null,Object? foto = freezed,}) {
   return _then(_CorretorResponsavel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,nome: null == nome ? _self.nome : nome // ignore: cast_nullable_to_non_nullable
 as String,foto: freezed == foto ? _self.foto : foto // ignore: cast_nullable_to_non_nullable
-as String?,slug: freezed == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }

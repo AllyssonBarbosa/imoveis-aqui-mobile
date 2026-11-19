@@ -1,7 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/core/result.dart';
 import 'package:imoveis_aqui/data/datasources/opcoes_filtro_datasource.dart';
+import 'package:imoveis_aqui/data/models/caracteristica_model.dart';
 import 'package:imoveis_aqui/data/repositories/opcoes_filtro_repository_impl.dart';
+import 'package:imoveis_aqui/domain/entities/caracteristica.dart';
 import 'package:imoveis_aqui/domain/entities/cidade.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -49,20 +51,39 @@ void main() {
 
       expect(resultado, isA<Failure<List<String>>>());
     });
+
+    test('TypeError do datasource vira Failure com FormatException', () async {
+      when(() => dataSource.bairros(any())).thenThrow(TypeError());
+
+      final resultado = await repositorio.bairrosDaCidade(campinas);
+
+      expect(resultado, isA<Failure<List<String>>>());
+      expect(
+        (resultado as Failure<List<String>>).erro,
+        isA<FormatException>(),
+      );
+    });
   });
 
   group('caracteristicas', () {
     test(
-      'lista do datasource vira Result.success com a mesma lista',
+      'modelos {id, nome} do datasource viram entidades Caracteristica na '
+      'ordem recebida, sem re-ordenar (D-13, D-14)',
       () async {
-        when(
-          () => dataSource.caracteristicas(),
-        ).thenAnswer((_) async => ['Piscina']);
+        when(() => dataSource.caracteristicas()).thenAnswer(
+          (_) async => const [
+            CaracteristicaModel(id: 3, nome: 'Piscina'),
+            CaracteristicaModel(id: 1, nome: 'Churrasqueira'),
+          ],
+        );
 
         final resultado = await repositorio.caracteristicas();
 
-        expect(resultado, isA<Success<List<String>>>());
-        expect((resultado as Success<List<String>>).data, ['Piscina']);
+        expect(resultado, isA<Success<List<Caracteristica>>>());
+        expect((resultado as Success<List<Caracteristica>>).data, const [
+          Caracteristica(id: 3, nome: 'Piscina'),
+          Caracteristica(id: 1, nome: 'Churrasqueira'),
+        ]);
       },
     );
 
@@ -71,7 +92,19 @@ void main() {
 
       final resultado = await repositorio.caracteristicas();
 
-      expect(resultado, isA<Failure<List<String>>>());
+      expect(resultado, isA<Failure<List<Caracteristica>>>());
+    });
+
+    test('TypeError do datasource vira Failure com FormatException', () async {
+      when(() => dataSource.caracteristicas()).thenThrow(TypeError());
+
+      final resultado = await repositorio.caracteristicas();
+
+      expect(resultado, isA<Failure<List<Caracteristica>>>());
+      expect(
+        (resultado as Failure<List<Caracteristica>>).erro,
+        isA<FormatException>(),
+      );
     });
   });
 }

@@ -3,98 +3,112 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/data/datasources/imovel_detalhe_datasource.dart';
-import 'package:imoveis_aqui/data/datasources/imovel_detalhe_mock_datasource.dart';
-import 'package:imoveis_aqui/data/datasources/imovel_mock_datasource.dart';
-import 'package:imoveis_aqui/data/datasources/opcoes_filtro_mock_datasource.dart';
-import 'package:imoveis_aqui/data/datasources/perfil_mock_datasource.dart';
-import 'package:imoveis_aqui/data/datasources/vitrine_anunciante_mock_datasource.dart';
-import 'package:imoveis_aqui/data/mocks/imoveis_detalhe_fixture.dart';
-import 'package:imoveis_aqui/data/mocks/imoveis_fixture.dart';
-import 'package:imoveis_aqui/data/mocks/perfis_fixture.dart';
-import 'package:imoveis_aqui/data/models/detalhe_imovel_model.dart';
-import 'package:imoveis_aqui/data/models/imovel_model.dart';
+import 'package:imoveis_aqui/data/datasources/imovel_detalhe_remote_datasource.dart';
+import 'package:imoveis_aqui/data/datasources/imovel_remote_datasource.dart';
+import 'package:imoveis_aqui/data/datasources/opcoes_filtro_remote_datasource.dart';
 import 'package:imoveis_aqui/data/repositories/imovel_detalhe_repository_impl.dart';
 import 'package:imoveis_aqui/data/repositories/imovel_repository_impl.dart';
 import 'package:imoveis_aqui/data/repositories/opcoes_filtro_repository_impl.dart';
-import 'package:imoveis_aqui/data/repositories/perfil_repository_impl.dart';
-import 'package:imoveis_aqui/data/repositories/vitrine_anunciante_repository_impl.dart';
 import 'package:imoveis_aqui/di/injection.dart';
 import 'package:imoveis_aqui/domain/entities/cidade.dart';
-import 'package:imoveis_aqui/domain/entities/detalhe_imovel.dart';
-import 'package:imoveis_aqui/domain/usecases/buscar_imoveis_do_anunciante_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/buscar_imoveis_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/obter_bairros_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/obter_caracteristicas_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/obter_detalhe_imovel_usecase.dart';
-import 'package:imoveis_aqui/domain/usecases/obter_perfil_corretor_usecase.dart';
-import 'package:imoveis_aqui/domain/usecases/obter_perfil_empresa_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/salvar_cidade_usecase.dart';
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_cubit.dart';
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_screen.dart';
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_state.dart';
+import 'package:imoveis_aqui/presentation/comum/imagem_rede.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_cubit.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_screen.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/perfil_corretor_screen.dart';
-import 'package:imoveis_aqui/presentation/perfis/perfil_corretor_cubit.dart';
-import 'package:imoveis_aqui/presentation/perfis/perfil_empresa_cubit.dart';
-import 'package:imoveis_aqui/presentation/perfis/perfil_empresa_screen.dart';
-import 'package:imoveis_aqui/presentation/perfis/vitrine_anunciante_cubit.dart';
-import 'package:imoveis_aqui/presentation/perfis/vitrine_anunciante_state.dart';
+import 'package:imoveis_aqui/presentation/detalhe_imovel/widgets/cartao_corretor.dart';
+import 'package:imoveis_aqui/presentation/detalhe_imovel/widgets/galeria_imovel.dart';
 import 'package:imoveis_aqui/presentation/vitrine/opcoes_filtro_cubit.dart';
 import 'package:imoveis_aqui/presentation/vitrine/sessao_filtros_vitrine.dart';
-import 'package:imoveis_aqui/presentation/vitrine/widgets/imovel_card.dart';
 import 'package:imoveis_aqui/presentation/vitrine/vitrine_cubit.dart';
 import 'package:mocktail/mocktail.dart';
 
-/// Teste ponta a ponta do tracer da Fase 4 (DET-01, critério 6): tocar num
-/// card da vitrine abre a página do imóvel pelo caminho de produção
-/// (`abrirDetalheImovel`, que resolve o Cubit no DI só no toque), mostra a
-/// prévia na hora e, quando o detalhe chega pela pilha REAL
+import '../support/api_falsa.dart';
+
+/// Teste ponta a ponta do detalhe na API real (DET-01, API-07, critério 6):
+/// tocar num card da vitrine (lista REAL: `ImovelRemoteDataSource` sobre o
+/// JSON capturado da `ApiFalsa`) abre a página do imóvel pelo caminho de
+/// produção (`abrirDetalheImovel`, que resolve o Cubit no DI só no toque),
+/// mostra a prévia na hora e, quando o detalhe chega pela pilha
 /// `DetalheImovelCubit -> ObterDetalheImovelUseCase ->
-/// ImovelDetalheRepositoryImpl -> ImovelDetalheMockDataSource`, a seção
-/// "Descrição".
+/// ImovelDetalheRepositoryImpl -> ImovelDetalheRemoteDataSource` (dio sobre o
+/// `detalhe_*.json` capturado), a seção "Descrição". Fixtures = só JSON
+/// capturado (D-18).
 class _CidadeSelecaoCubitFalso extends MockCubit<CidadeSelecaoState>
     implements CidadeSelecaoCubit {}
 
 class _SalvarCidadeUseCaseFalso extends Mock implements SalvarCidadeUseCase {}
 
-/// DataSource de teste que falha na primeira chamada e depois delega ao mock
-/// real — simula uma falha de rede transitória (D-17).
-class _DataSourceFalhaNaPrimeira implements ImovelDetalheDataSource {
-  _DataSourceFalhaNaPrimeira(this._real);
-
-  final ImovelDetalheDataSource _real;
-  int chamadas = 0;
-
-  @override
-  Future<DetalheImovelModel> buscarDetalhe(int id) async {
-    chamadas++;
-    if (chamadas == 1) throw Exception('falha simulada');
-    return _real.buscarDetalhe(id);
-  }
-}
-
 void main() {
-  const campinas = Cidade(nome: 'Campinas', uf: 'SP');
+  // Campinas como a API devolve (com id), lida da fixture capturada.
+  final campinas = () {
+    final linha = (lerFixtureApi('cidades.json')! as List<Object?>)
+        .cast<Map<String, Object?>>()
+        .firstWhere((c) => c['nome'] == 'Campinas');
+    return Cidade(
+      id: linha['id']! as int,
+      nome: linha['nome']! as String,
+      uf: linha['uf']! as String,
+    );
+  }();
+
+  // O detalhe completo capturado (a casa) e o card da lista com o mesmo id.
+  final casa = lerFixtureApi('detalhe_casa.json')! as Map<String, Object?>;
+  final idCasa = casa['id']! as int;
+  final tituloCasa = casa['titulo']! as String;
+  final descricaoCasa = casa['descricao']! as String;
+  final nomeCorretor =
+      (casa['corretor_responsavel']! as Map<String, Object?>)['nome']!
+          as String;
+
+  final cardsDaP1 =
+      ((lerFixtureApi('lista_campinas_p1.json')!
+                  as Map<String, Object?>)['results']!
+              as List<Object?>)
+          .cast<Map<String, Object?>>();
+  final cardDaCasa = cardsDaP1.firstWhere((c) => c['id'] == idCasa);
+  final bairroDaCasa = cardDaCasa['bairro']! as String;
+
+  // Um segundo detalhe capturado, de outro imóvel, para provar que cada card
+  // abre o próprio detalhe.
+  final terreno = lerFixtureApi('detalhe_terreno.json')! as Map<String, Object?>;
+  final idTerreno = terreno['id']! as int;
+  final tituloTerreno = terreno['titulo']! as String;
+
+  final apartamento =
+      lerFixtureApi('detalhe_apartamento.json')! as Map<String, Object?>;
+  final idApartamento = apartamento['id']! as int;
+
+  // O lote capturado (D-17, A-03): números e frases vêm do JSON, não escritos
+  // à mão no teste.
+  final lote = lerFixtureApi('detalhe_lote.json')! as Map<String, Object?>;
+  final idLote = lote['id']! as int;
+  final blocoLote = lote['lote']! as Map<String, Object?>;
+  final loteamentoDoLote =
+      (blocoLote['quadra']! as Map<String, Object?>)['loteamento']!
+          as Map<String, Object?>;
 
   late _CidadeSelecaoCubitFalso cidadeSelecaoCubit;
   late _SalvarCidadeUseCaseFalso salvarCidade;
+  late ApiFalsa apiFalsa;
 
   VitrineCubit criarVitrineCubitReal() => VitrineCubit(
     BuscarImoveisUseCase(
-      ImovelRepositoryImpl(
-        ImovelMockDataSource.paraTeste(
-          linhas: linhasAcervoFixture(),
-          tamanhoPagina: 10,
-        ),
-      ),
+      ImovelRepositoryImpl(ImovelRemoteDataSource(apiFalsa.criarDio())),
     ),
     SessaoFiltrosVitrine(),
   );
 
   OpcoesFiltroCubit criarOpcoesFiltroCubitReal() {
     final repositorio = OpcoesFiltroRepositoryImpl(
-      OpcoesFiltroMockDataSource.paraTeste(linhas: linhasAcervoFixture()),
+      OpcoesFiltroRemoteDataSource(apiFalsa.criarDio()),
     );
     return OpcoesFiltroCubit(
       ObterBairrosUseCase(repositorio),
@@ -102,26 +116,20 @@ void main() {
     );
   }
 
-  /// Pilha REAL da vitrine do anunciante: nada falso entre o Cubit e o mock
-  /// do §12.
-  VitrineAnuncianteCubit criarVitrineAnuncianteCubitReal({
-    Duration latencia = const Duration(milliseconds: 300),
-  }) => VitrineAnuncianteCubit(
-    BuscarImoveisDoAnuncianteUseCase(
-      VitrineAnuncianteRepositoryImpl(
-        VitrineAnuncianteMockDataSource.paraTeste(
-          linhas: linhasAcervoFixture(),
-          detalhes: detalhesAcervoFixture(),
-          corretores: corretoresPerfisFixture(),
-          latencia: latencia,
-        ),
+  /// Registra o Cubit do detalhe sobre [dataSource]. O detalhe usa a própria
+  /// `ApiFalsa` (com [latencia]) para a prévia ficar de pé o tempo de testar.
+  void registrarDetalhe(ImovelDetalheDataSource dataSource) {
+    getIt.registerFactory<DetalheImovelCubit>(
+      () => DetalheImovelCubit(
+        ObterDetalheImovelUseCase(ImovelDetalheRepositoryImpl(dataSource)),
       ),
-    ),
-  );
+    );
+  }
 
   setUp(() {
     cidadeSelecaoCubit = _CidadeSelecaoCubitFalso();
     salvarCidade = _SalvarCidadeUseCaseFalso();
+    apiFalsa = ApiFalsa();
   });
 
   tearDown(() async {
@@ -137,9 +145,9 @@ void main() {
     whenListen(
       cidadeSelecaoCubit,
       Stream<CidadeSelecaoState>.value(
-        const CidadeSelecaoState.autorizadaEAtendida(campinas),
+        CidadeSelecaoState.autorizadaEAtendida(campinas),
       ),
-      initialState: const CidadeSelecaoState.autorizadaEAtendida(campinas),
+      initialState: CidadeSelecaoState.autorizadaEAtendida(campinas),
     );
     await tester.pumpWidget(
       MaterialApp(
@@ -157,70 +165,86 @@ void main() {
     // nunca se estabiliza.
     await tester.pump();
     await tester.pump();
+    // O dio leva alguns turnos do event loop a mais que um dublê em memória
+    // para entregar a resposta.
+    await tester.pump(const Duration(milliseconds: 50));
   }
 
   Finder naPagina(Finder alvo) =>
       find.descendant(of: find.byType(DetalheImovelScreen), matching: alvo);
 
+  /// Rola a lista da vitrine até o card [id] (a lista é preguiçosa e há cards
+  /// abaixo da dobra) e toca nele.
+  Future<void> tocarNoCard(WidgetTester tester, int id) async {
+    final card = find.byKey(ValueKey('imovel-$id'));
+    await tester.scrollUntilVisible(
+      card,
+      300,
+      scrollable: find
+          .byWidgetPredicate(
+            (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
+          )
+          .first,
+    );
+    await tester.ensureVisible(card);
+    await tester.pump();
+    await tester.tap(card);
+  }
+
+  /// Deixa a resposta do dio (com [latencia]) chegar e a página redesenhar.
+  Future<void> esperarDetalhe(WidgetTester tester, Duration latencia) async {
+    await tester.pump(latencia);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+  }
+
   group('tracer', () {
     setUp(() {
-      getIt.registerFactory<DetalheImovelCubit>(
-        () => DetalheImovelCubit(
-          ObterDetalheImovelUseCase(
-            ImovelDetalheRepositoryImpl(
-              ImovelDetalheMockDataSource.paraTeste(
-                detalhes: detalhesAcervoFixture(),
-                latencia: const Duration(seconds: 1),
-              ),
-            ),
-          ),
+      registrarDetalhe(
+        ImovelDetalheRemoteDataSource(
+          ApiFalsa(latencia: const Duration(seconds: 1)).criarDio(),
         ),
       );
     });
 
     testWidgets(
-      'tocar no card 42 mostra a prévia com spinner na hora, depois a '
-      'Descrição do detalhe do mock, e voltar devolve a vitrine (DET-01, '
-      'D-09, D-11, D-16)',
+      'tocar no card da casa mostra a prévia com spinner na hora, depois a '
+      'Descrição do detalhe da API, e voltar devolve a vitrine (DET-01, '
+      'API-07, D-09, D-11, D-16)',
       (tester) async {
         await pumpVitrine(tester);
 
-        await tester.tap(find.byKey(const ValueKey('imovel-42')));
+        await tester.tap(find.byKey(ValueKey('imovel-$idCasa')));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 400));
 
         expect(find.byType(DetalheImovelScreen), findsOneWidget);
-        expect(
-          naPagina(find.text('Apartamento 2 quartos no Cambuí')),
-          findsOneWidget,
-        );
-        expect(naPagina(find.text('Cambuí · Campinas, SP')), findsOneWidget);
-        expect(naPagina(find.text('R\$ 450.000')), findsOneWidget);
+        expect(naPagina(find.text(tituloCasa)), findsOneWidget);
+        // A prévia vem do item da lista, que não traz cidade (A-06): só o
+        // bairro até o detalhe chegar.
+        expect(naPagina(find.text(bairroDaCasa)), findsOneWidget);
+        expect(naPagina(find.textContaining(', SP')), findsNothing);
         expect(
           naPagina(find.byType(CircularProgressIndicator)),
           findsOneWidget,
         );
         expect(naPagina(find.text('Descrição')), findsNothing);
 
-        await tester.pump(const Duration(seconds: 1));
-        await tester.pump();
+        await esperarDetalhe(tester, const Duration(seconds: 1));
 
         expect(naPagina(find.text('Descrição')), findsOneWidget);
-        expect(
-          naPagina(
-            find.text(
-              'Apartamento reformado, próximo ao centro, com varanda '
-              'gourmet.',
-            ),
-          ),
-          findsOneWidget,
-        );
+        expect(naPagina(find.text(descricaoCasa)), findsOneWidget);
         expect(naPagina(find.byType(CircularProgressIndicator)), findsNothing);
-        // O cabeçalho da prévia continua no mesmo lugar.
+        // Com o detalhe, o cabeçalho completa a localização com a cidade
+        // (do endereco) e mostra só "bairro · cidade, UF" (D-01).
         expect(
-          naPagina(find.text('Apartamento 2 quartos no Cambuí')),
+          naPagina(find.text('$bairroDaCasa · Campinas, SP')),
           findsOneWidget,
         );
+        expect(naPagina(find.textContaining('Rua dos Ipês')), findsNothing);
+        expect(naPagina(find.textContaining('13030-000')), findsNothing);
+        // O cabeçalho da prévia continua no mesmo lugar.
+        expect(naPagina(find.text(tituloCasa)), findsOneWidget);
 
         await tester.tap(find.byTooltip('Voltar'));
         await tester.pump();
@@ -228,62 +252,40 @@ void main() {
         await tester.pump(const Duration(milliseconds: 400));
 
         expect(find.byType(DetalheImovelScreen), findsNothing);
-        expect(find.byKey(const ValueKey('imovel-42')), findsOneWidget);
+        expect(find.byKey(ValueKey('imovel-$idCasa')), findsOneWidget);
       },
     );
   });
 
   group('fluxo completo (DET-01..05, D-12, D-15)', () {
     testWidgets(
-      'vitrine -> detalhe 42 completo -> perfil da Marina Lopes (prévia na '
-      'hora, CRECI buscado por id) -> volta ao detalhe -> volta à vitrine '
-      'intacta (PERF-06, D-05)',
+      'vitrine -> detalhe da casa completo -> perfil do corretor -> volta ao '
+      'detalhe -> volta à vitrine intacta',
       (tester) async {
-        getIt.registerFactory<DetalheImovelCubit>(
-          () => DetalheImovelCubit(
-            ObterDetalheImovelUseCase(
-              ImovelDetalheRepositoryImpl(
-                ImovelDetalheMockDataSource.paraTeste(
-                  detalhes: detalhesAcervoFixture(),
-                  latencia: const Duration(seconds: 1),
-                ),
-              ),
-            ),
+        registrarDetalhe(
+          ImovelDetalheRemoteDataSource(
+            ApiFalsa(latencia: const Duration(seconds: 1)).criarDio(),
           ),
-        );
-        // Pilha REAL do perfil: nada falso entre o toque e o Model.
-        getIt.registerFactory<PerfilCorretorCubit>(
-          () => PerfilCorretorCubit(
-            ObterPerfilCorretorUseCase(
-              PerfilRepositoryImpl(
-                PerfilMockDataSource.paraTeste(
-                  corretores: corretoresPerfisFixture(),
-                  latencia: const Duration(seconds: 1),
-                ),
-              ),
-            ),
-          ),
-        );
-        getIt.registerFactory<VitrineAnuncianteCubit>(
-          criarVitrineAnuncianteCubitReal,
         );
         await pumpVitrine(tester);
 
-        await tester.tap(find.byKey(const ValueKey('imovel-42')));
+        await tester.tap(find.byKey(ValueKey('imovel-$idCasa')));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 400));
-        await tester.pump(const Duration(seconds: 1));
-        await tester.pump();
+        await esperarDetalhe(tester, const Duration(seconds: 1));
 
-        // Cabeçalho alimentado pelo detalhe, com custos e características.
-        expect(naPagina(find.text('R\$\u00A0450.000')), findsOneWidget);
-        expect(
-          naPagina(find.text('Condomínio R\$\u00A0850/mês')),
-          findsOneWidget,
-        );
-        expect(naPagina(find.text('IPTU R\$\u00A01.200')), findsOneWidget);
+        // Cabeçalho alimentado pelo detalhe, com as características pelo nome.
+        expect(naPagina(find.textContaining('495.000')), findsOneWidget);
         expect(naPagina(find.text('Características')), findsOneWidget);
-        expect(naPagina(find.byType(Chip)), findsNWidgets(3));
+        expect(naPagina(find.byType(Chip)), findsNWidgets(2));
+        for (final nome in ['Churrasqueira', 'Varanda gourmet']) {
+          expect(
+            naPagina(
+              find.descendant(of: find.byType(Chip), matching: find.text(nome)),
+            ),
+            findsOneWidget,
+          );
+        }
 
         // Sem barra inferior fixa (D-12).
         final scaffold = tester.widget<Scaffold>(
@@ -292,69 +294,26 @@ void main() {
         expect(scaffold.bottomNavigationBar, isNull);
         expect(scaffold.persistentFooterButtons, isNull);
 
-        // Rola até o corretor e abre o perfil.
+        // Rola até o corretor e abre o perfil; só nome e foto (D-16).
         await tester.scrollUntilVisible(
-          naPagina(find.text('Marina Lopes')),
+          naPagina(find.text(nomeCorretor)),
           200,
           scrollable: naPagina(find.byType(Scrollable)).first,
         );
-        await tester.tap(naPagina(find.text('Marina Lopes')));
+        expect(naPagina(find.textContaining('example.com')), findsNothing);
+        expect(naPagina(find.textContaining('12345-F')), findsNothing);
+        await tester.tap(naPagina(find.text(nomeCorretor)));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 400));
 
-        // Prévia na hora: nome do detalhe e spinner, ainda sem o CRECI.
-        Finder noPerfil(Finder alvo) => find.descendant(
-          of: find.byType(PerfilCorretorScreen),
-          matching: alvo,
-        );
         expect(find.byType(PerfilCorretorScreen), findsOneWidget);
-        expect(noPerfil(find.text('Marina Lopes')), findsOneWidget);
         expect(
-          noPerfil(find.byType(CircularProgressIndicator)),
+          find.descendant(
+            of: find.byType(PerfilCorretorScreen),
+            matching: find.text(nomeCorretor),
+          ),
           findsOneWidget,
         );
-        expect(noPerfil(find.text('CRECI 12345-F')), findsNothing);
-
-        // O perfil chega pela pilha real, buscado pelo id do corretor.
-        await tester.pump(const Duration(seconds: 1));
-        await tester.pump();
-
-        expect(noPerfil(find.text('Marina Lopes')), findsOneWidget);
-        expect(noPerfil(find.text('CRECI 12345-F')), findsOneWidget);
-        // A vitrine só começa a carregar com o perfil existente: spinner da
-        // vitrine de pé durante a segunda latência.
-        expect(
-          noPerfil(find.byType(CircularProgressIndicator)),
-          findsOneWidget,
-        );
-        expect(noPerfil(find.text('Imóveis de Marina Lopes')), findsOneWidget);
-
-        // A vitrine do anunciante chega pela pilha real do §12.
-        await tester.pump(const Duration(milliseconds: 300));
-        await tester.pump();
-        expect(noPerfil(find.byType(CircularProgressIndicator)), findsNothing);
-
-        // Rola até o card do imóvel 42 e abre a página dele.
-        await tester.scrollUntilVisible(
-          find.byKey(const ValueKey('imovel-anunciante-42')),
-          300,
-          scrollable: noPerfil(find.byType(Scrollable)).first,
-        );
-        await tester.tap(find.byKey(const ValueKey('imovel-anunciante-42')));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 400));
-        await tester.pump(const Duration(seconds: 1));
-        await tester.pump();
-        // A página do imóvel cobre o perfil (que fica fora de cena).
-        expect(find.byType(DetalheImovelScreen), findsOneWidget);
-        expect(find.byType(PerfilCorretorScreen), findsNothing);
-
-        // Voltar do imóvel retorna ao perfil.
-        await tester.tap(find.byTooltip('Voltar').last);
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 400));
-        await tester.pump(const Duration(milliseconds: 400));
-        expect(find.byType(PerfilCorretorScreen), findsOneWidget);
 
         // Volta ao detalhe, ainda carregado.
         await tester.tap(find.byType(BackButton));
@@ -373,775 +332,284 @@ void main() {
         await tester.pump(const Duration(milliseconds: 400));
 
         expect(find.byType(DetalheImovelScreen), findsNothing);
-        expect(find.byKey(const ValueKey('imovel-42')), findsOneWidget);
-      },
-    );
-
-    testWidgets(
-      'vitrine -> detalhe 42 -> perfil da Marina Lopes -> cartão "Ver página '
-      'do anunciante" -> página da Imobiliária Jequitibá (spinner, depois '
-      'nome, tipo e CRECI) -> volta ao perfil da Marina carregado (PERF-01, '
-      'PERF-04, PERF-06, D-06, D-09)',
-      (tester) async {
-        getIt.registerFactory<DetalheImovelCubit>(
-          () => DetalheImovelCubit(
-            ObterDetalheImovelUseCase(
-              ImovelDetalheRepositoryImpl(
-                ImovelDetalheMockDataSource.paraTeste(
-                  detalhes: detalhesAcervoFixture(),
-                  latencia: const Duration(milliseconds: 300),
-                ),
-              ),
-            ),
-          ),
-        );
-        // Pilha REAL dos perfis (corretor e empresa) sobre o mesmo mock.
-        PerfilRepositoryImpl repositorioPerfis() => PerfilRepositoryImpl(
-          PerfilMockDataSource.paraTeste(
-            corretores: corretoresPerfisFixture(),
-            empresas: empresasPerfisFixture(),
-            latencia: const Duration(milliseconds: 300),
-          ),
-        );
-        getIt.registerFactory<PerfilCorretorCubit>(
-          () => PerfilCorretorCubit(
-            ObterPerfilCorretorUseCase(repositorioPerfis()),
-          ),
-        );
-        getIt.registerFactory<PerfilEmpresaCubit>(
-          () => PerfilEmpresaCubit(
-            ObterPerfilEmpresaUseCase(repositorioPerfis()),
-          ),
-        );
-        getIt.registerFactory<VitrineAnuncianteCubit>(
-          criarVitrineAnuncianteCubitReal,
-        );
-        await pumpVitrine(tester);
-
-        await tester.tap(find.byKey(const ValueKey('imovel-42')));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 400));
-        await tester.pump(const Duration(milliseconds: 300));
-        await tester.pump();
-
-        await tester.scrollUntilVisible(
-          naPagina(find.text('Marina Lopes')),
-          200,
-          scrollable: naPagina(find.byType(Scrollable)).first,
-        );
-        await tester.tap(naPagina(find.text('Marina Lopes')));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 400));
-        await tester.pump(const Duration(milliseconds: 300));
-        await tester.pump();
-
-        Finder noPerfil(Finder alvo) => find.descendant(
-          of: find.byType(PerfilCorretorScreen),
-          matching: alvo,
-        );
-        Finder naEmpresa(Finder alvo) => find.descendant(
-          of: find.byType(PerfilEmpresaScreen),
-          matching: alvo,
-        );
-        expect(noPerfil(find.text('CRECI 12345-F')), findsOneWidget);
-
-        // O cartão fica depois do contato, antes da vitrine do anunciante.
-        await tester.scrollUntilVisible(
-          noPerfil(find.text('Ver página do anunciante')),
-          100,
-          scrollable: noPerfil(find.byType(Scrollable)).first,
-        );
-        await tester.tap(noPerfil(find.text('Ver página do anunciante')));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 100));
-
-        // Página da empresa aberta: só o spinner, sem prévia.
-        expect(find.byType(PerfilEmpresaScreen), findsOneWidget);
-        expect(
-          naEmpresa(find.byType(CircularProgressIndicator)),
-          findsOneWidget,
-        );
-        expect(naEmpresa(find.text('Imobiliária Jequitibá')), findsNothing);
-
-        // A transição (400 ms) cobre a latência da API de perfis (300 ms).
-        await tester.pump(const Duration(milliseconds: 400));
-        await tester.pump();
-
-        expect(naEmpresa(find.text('Imobiliária Jequitibá')), findsOneWidget);
-        expect(naEmpresa(find.text('Imobiliária')), findsOneWidget);
-        expect(naEmpresa(find.text('CRECI J-1234')), findsOneWidget);
-        // Só resta o spinner da vitrine da empresa, que nasce com a empresa
-        // carregada; a latência dela (300 ms) o resolve.
-        expect(
-          naEmpresa(find.byType(CircularProgressIndicator)),
-          findsOneWidget,
-        );
-        await tester.pump(const Duration(milliseconds: 300));
-        await tester.pump();
-        expect(naEmpresa(find.byType(CircularProgressIndicator)), findsNothing);
-
-        // Voltar devolve o perfil da Marina, ainda carregado.
-        await tester.tap(find.byType(BackButton));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 400));
-        await tester.pump(const Duration(milliseconds: 400));
-
-        expect(find.byType(PerfilEmpresaScreen), findsNothing);
-        expect(find.byType(PerfilCorretorScreen), findsOneWidget);
-        expect(noPerfil(find.text('Ver página do anunciante')), findsOneWidget);
-        await tester.scrollUntilVisible(
-          noPerfil(find.text('CRECI 12345-F')),
-          -200,
-          scrollable: noPerfil(find.byType(Scrollable)).first,
-        );
-        expect(noPerfil(find.text('Marina Lopes')), findsOneWidget);
-        expect(noPerfil(find.text('CRECI 12345-F')), findsOneWidget);
+        expect(find.byKey(ValueKey('imovel-$idCasa')), findsOneWidget);
       },
     );
   });
 
-  group('empresa indisponível (PERF-01, D-15, Pitfall 3)', () {
+  group('corretor ausente e perfil em memória (D-16, D-17)', () {
+    final semCorretor =
+        lerFixtureApi('detalhe_sem_corretor.json')! as Map<String, Object?>;
+    final idSemCorretor = semCorretor['id']! as int;
+
     testWidgets(
-      'corretor ativo com empresa inativa (lacuna da WEB 02): Marina -> "Ver '
-      'página do anunciante" -> "Esta página não está mais disponível" sem '
-      'consultar a vitrine da empresa -> "Voltar" devolve o perfil da Marina '
-      'carregado',
+      'imóvel cujo corretor foi desativado (corretor_responsavel nulo) abre '
+      'sem a seção "Corretor responsável"',
       (tester) async {
-        // Servidor sem nenhuma empresa: toda busca de empresa responde 404.
-        getIt.registerFactory<PerfilEmpresaCubit>(
-          () => PerfilEmpresaCubit(
-            ObterPerfilEmpresaUseCase(
-              PerfilRepositoryImpl(
-                PerfilMockDataSource.paraTeste(
-                  corretores: corretoresPerfisFixture(),
-                  empresas: const {},
-                  latencia: const Duration(milliseconds: 300),
-                ),
-              ),
-            ),
-          ),
+        final apiDoDetalhe = ApiFalsa(
+          latencia: const Duration(milliseconds: 300),
         );
-        var vitrinesCriadas = 0;
-        getIt.registerFactory<VitrineAnuncianteCubit>(() {
-          vitrinesCriadas++;
-          return criarVitrineAnuncianteCubitReal(latencia: Duration.zero);
-        });
-        tester.view.physicalSize = const Size(400, 2400);
-        tester.view.devicePixelRatio = 1.0;
-        addTearDown(tester.view.resetPhysicalSize);
-        addTearDown(tester.view.resetDevicePixelRatio);
+        registrarDetalhe(ImovelDetalheRemoteDataSource(apiDoDetalhe.criarDio()));
+        await pumpVitrine(tester);
 
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Builder(
-              builder: (context) => Scaffold(
-                body: Center(
-                  child: FilledButton(
-                    onPressed: () => abrirPerfilCorretor(
-                      context,
-                      const CorretorResponsavel(id: 7, nome: 'Marina Lopes'),
-                      criarPerfilCubit: () => PerfilCorretorCubit(
-                        ObterPerfilCorretorUseCase(
-                          PerfilRepositoryImpl(
-                            PerfilMockDataSource.paraTeste(
-                              corretores: corretoresPerfisFixture(),
-                              latencia: const Duration(milliseconds: 300),
-                            ),
-                          ),
-                        ),
-                      ),
-                      criarVitrineCubit: () {
-                        vitrinesCriadas++;
-                        return criarVitrineAnuncianteCubitReal(
-                          latencia: Duration.zero,
-                        );
-                      },
-                    ),
-                    child: const Text('Abrir 7'),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-        await tester.tap(find.text('Abrir 7'));
+        await tocarNoCard(tester, idSemCorretor);
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 400));
-        await tester.pump();
-        await tester.pump();
+        await esperarDetalhe(tester, const Duration(milliseconds: 300));
 
-        Finder noPerfil(Finder alvo) => find.descendant(
-          of: find.byType(PerfilCorretorScreen),
-          matching: alvo,
-        );
-        Finder naEmpresa(Finder alvo) => find.descendant(
-          of: find.byType(PerfilEmpresaScreen),
-          matching: alvo,
-        );
-        expect(noPerfil(find.text('CRECI 12345-F')), findsOneWidget);
-        // Só a vitrine da Marina foi criada até aqui.
-        expect(vitrinesCriadas, 1);
-
-        await tester.scrollUntilVisible(
-          noPerfil(find.text('Ver página do anunciante')),
-          100,
-          scrollable: noPerfil(find.byType(Scrollable)).first,
-        );
-        await tester.tap(noPerfil(find.text('Ver página do anunciante')));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 400));
-        await tester.pump();
-
-        expect(find.byType(PerfilEmpresaScreen), findsOneWidget);
+        expect(naPagina(find.text('Descrição')), findsOneWidget);
         expect(
-          naEmpresa(find.text('Esta página não está mais disponível')),
+          naPagina(find.text(semCorretor['descricao']! as String)),
           findsOneWidget,
         );
-        expect(naEmpresa(find.text('Imobiliária Jequitibá')), findsNothing);
-        expect(naEmpresa(find.byType(CircularProgressIndicator)), findsNothing);
-        expect(naEmpresa(find.textContaining('Imóveis de')), findsNothing);
-        // A empresa 404 nunca consulta a vitrine dela.
-        expect(vitrinesCriadas, 1);
-
-        await tester.tap(naEmpresa(find.text('Voltar')));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 400));
-        await tester.pump(const Duration(milliseconds: 400));
-
-        expect(find.byType(PerfilEmpresaScreen), findsNothing);
-        expect(find.byType(PerfilCorretorScreen), findsOneWidget);
-        expect(noPerfil(find.text('Ver página do anunciante')), findsOneWidget);
-        await tester.scrollUntilVisible(
-          noPerfil(find.text('CRECI 12345-F')),
-          -200,
-          scrollable: noPerfil(find.byType(Scrollable)).first,
+        expect(naPagina(find.text('Corretor responsável')), findsNothing);
+        expect(naPagina(find.byType(CartaoCorretor)), findsNothing);
+        expect(
+          apiDoDetalhe.requisicoes.where(
+            (uri) => uri.path.startsWith('/api/publico/corretores/'),
+          ),
+          isEmpty,
         );
-        expect(noPerfil(find.text('Marina Lopes')), findsOneWidget);
-        expect(noPerfil(find.text('CRECI 12345-F')), findsOneWidget);
       },
     );
 
     testWidgets(
-      'fluxo completo (PERF-01..PERF-06, API-08): vitrine -> imóvel 42 -> '
-      'Marina (prévia, depois CRECI, apresentação e contato) -> "Ver página '
-      'do anunciante" -> Imobiliária Jequitibá completa -> imóvel da vitrine '
-      'da empresa -> volta passo a passo até a vitrine da cidade intacta',
+      'o perfil do corretor de outro imóvel abre com o objeto em memória '
+      '(nome e foto) e nenhuma chamada a /api/publico/corretores/',
       (tester) async {
-        getIt.registerFactory<DetalheImovelCubit>(
-          () => DetalheImovelCubit(
-            ObterDetalheImovelUseCase(
-              ImovelDetalheRepositoryImpl(
-                ImovelDetalheMockDataSource.paraTeste(
-                  detalhes: detalhesAcervoFixture(),
-                  latencia: const Duration(milliseconds: 300),
-                ),
-              ),
-            ),
-          ),
+        final apiDoDetalhe = ApiFalsa(
+          latencia: const Duration(milliseconds: 300),
         );
-        // Pilha REAL dos perfis (corretor e empresa) sobre o mesmo mock.
-        PerfilRepositoryImpl repositorioPerfis() => PerfilRepositoryImpl(
-          PerfilMockDataSource.paraTeste(
-            corretores: corretoresPerfisFixture(),
-            empresas: empresasPerfisFixture(),
-            latencia: const Duration(milliseconds: 300),
-          ),
-        );
-        getIt.registerFactory<PerfilCorretorCubit>(
-          () => PerfilCorretorCubit(
-            ObterPerfilCorretorUseCase(repositorioPerfis()),
-          ),
-        );
-        getIt.registerFactory<PerfilEmpresaCubit>(
-          () => PerfilEmpresaCubit(
-            ObterPerfilEmpresaUseCase(repositorioPerfis()),
-          ),
-        );
-        // Vitrine do anunciante sem latência: o servidor simulado recorta por
-        // corretor (Marina) e por empresa (Jequitibá).
-        getIt.registerFactory<VitrineAnuncianteCubit>(
-          () => criarVitrineAnuncianteCubitReal(latencia: Duration.zero),
-        );
+        registrarDetalhe(ImovelDetalheRemoteDataSource(apiDoDetalhe.criarDio()));
         await pumpVitrine(tester);
-        final posicaoDoCard42 = tester.getTopLeft(
-          find.byKey(const ValueKey('imovel-42')),
-        );
 
-        Finder noPerfil(Finder alvo) => find.descendant(
-          of: find.byType(PerfilCorretorScreen),
-          matching: alvo,
-        );
-        Finder naEmpresa(Finder alvo) => find.descendant(
-          of: find.byType(PerfilEmpresaScreen),
-          matching: alvo,
-        );
-
-        // Vitrine -> imóvel 42 (detalhe completo).
-        await tester.tap(find.byKey(const ValueKey('imovel-42')));
+        await tester.tap(find.byKey(ValueKey('imovel-$idCasa')));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 400));
-        await tester.pump(const Duration(milliseconds: 300));
-        await tester.pump();
-        expect(naPagina(find.text('Descrição')), findsOneWidget);
+        await esperarDetalhe(tester, const Duration(milliseconds: 300));
+        final requisicoesAteAqui = apiDoDetalhe.requisicoes.length;
 
-        // Imóvel -> corretora Marina: prévia na hora, perfil depois.
         await tester.scrollUntilVisible(
-          naPagina(find.text('Marina Lopes')),
+          naPagina(find.text(nomeCorretor)),
           200,
           scrollable: naPagina(find.byType(Scrollable)).first,
         );
-        await tester.tap(naPagina(find.text('Marina Lopes')));
+        await tester.tap(naPagina(find.text(nomeCorretor)));
         await tester.pump();
-        await tester.pump(const Duration(milliseconds: 100));
-        expect(noPerfil(find.text('Marina Lopes')), findsOneWidget);
-        expect(noPerfil(find.text('CRECI 12345-F')), findsNothing);
         await tester.pump(const Duration(milliseconds: 400));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 10));
-        expect(noPerfil(find.text('CRECI 12345-F')), findsOneWidget);
-        expect(noPerfil(find.text('Apresentação')), findsOneWidget);
-        expect(noPerfil(find.text('Contato')), findsOneWidget);
+        await tester.pump(const Duration(milliseconds: 50));
 
-        // Corretora -> página da empresa (sem prévia: spinner, depois dados).
-        await tester.scrollUntilVisible(
-          noPerfil(find.text('Ver página do anunciante')),
-          100,
-          scrollable: noPerfil(find.byType(Scrollable)).first,
-        );
-        await tester.tap(noPerfil(find.text('Ver página do anunciante')));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 100));
-        expect(find.byType(PerfilEmpresaScreen), findsOneWidget);
+        final noPerfil = find.byType(PerfilCorretorScreen);
+        expect(noPerfil, findsOneWidget);
         expect(
-          naEmpresa(find.byType(CircularProgressIndicator)),
+          find.descendant(of: noPerfil, matching: find.text(nomeCorretor)),
           findsOneWidget,
         );
-        expect(naEmpresa(find.text('Imobiliária Jequitibá')), findsNothing);
-        await tester.pump(const Duration(milliseconds: 400));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 10));
-
-        expect(naEmpresa(find.text('Imobiliária Jequitibá')), findsOneWidget);
-        expect(naEmpresa(find.text('Imobiliária')), findsOneWidget);
-        expect(naEmpresa(find.text('CRECI J-1234')), findsOneWidget);
-        expect(naEmpresa(find.text('Apresentação')), findsOneWidget);
-        expect(naEmpresa(find.text('Contato')), findsOneWidget);
-        expect(naEmpresa(find.text('Cidades de atuação')), findsOneWidget);
-        expect(naEmpresa(find.byType(Chip)), findsNWidgets(3));
-        expect(naEmpresa(find.text('Campinas, SP')), findsOneWidget);
         expect(
-          naEmpresa(find.text('Imóveis de Imobiliária Jequitibá')),
+          find.descendant(of: noPerfil, matching: find.byType(AvatarCorretor)),
           findsOneWidget,
         );
-        expect(naEmpresa(find.byType(CircularProgressIndicator)), findsNothing);
-
-        // Primeiro card da vitrine da empresa -> página do imóvel.
-        await tester.scrollUntilVisible(
-          naEmpresa(find.byType(ImovelCard)).first,
-          200,
-          scrollable: naEmpresa(find.byType(Scrollable)).first,
+        expect(
+          find.descendant(of: noPerfil, matching: find.textContaining('@')),
+          findsNothing,
         );
-        await tester.tap(naEmpresa(find.byType(ImovelCard)).first);
+        expect(apiDoDetalhe.requisicoes, hasLength(requisicoesAteAqui));
+        expect(
+          apiDoDetalhe.requisicoes.where(
+            (uri) => uri.path.startsWith('/api/publico/corretores/'),
+          ),
+          isEmpty,
+        );
+      },
+    );
+  });
+
+  group('natureza no wire real (D-17, A-03)', () {
+    testWidgets(
+      'o card do lote capturado abre "Sobre o lote" com parcelamento e o card '
+      '"Quadra e loteamento" com infraestrutura em chips e áreas de lazer em '
+      'texto corrido',
+      (tester) async {
+        registrarDetalhe(
+          ImovelDetalheRemoteDataSource(
+            ApiFalsa(latencia: const Duration(milliseconds: 300)).criarDio(),
+          ),
+        );
+        await pumpVitrine(tester);
+
+        await tocarNoCard(tester, idLote);
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 400));
-        await tester.pump(const Duration(milliseconds: 300));
-        await tester.pump();
-        expect(find.byType(DetalheImovelScreen), findsOneWidget);
-        expect(find.byType(PerfilEmpresaScreen), findsNothing);
-        expect(naPagina(find.text('Descrição')), findsOneWidget);
+        await esperarDetalhe(tester, const Duration(milliseconds: 300));
 
-        // Volta passo a passo: imóvel -> empresa -> perfil -> imóvel 42 ->
-        // vitrine da cidade, intacta e na mesma posição.
-        Future<void> voltar(Finder botao) async {
-          await tester.tap(botao);
-          await tester.pump();
-          await tester.pump(const Duration(milliseconds: 400));
-          await tester.pump(const Duration(milliseconds: 400));
+        expect(naPagina(find.text('Sobre o lote')), findsOneWidget);
+        expect(naPagina(find.text('Número do lote')), findsOneWidget);
+        expect(naPagina(find.text(blocoLote['numero']! as String)),
+            findsOneWidget);
+        expect(naPagina(find.text('Entrada mínima')), findsOneWidget);
+        expect(naPagina(find.text('R\$\u00A023.500')), findsOneWidget);
+        expect(naPagina(find.text('Parcelas máximas')), findsOneWidget);
+        expect(naPagina(find.text('120')), findsOneWidget);
+        expect(naPagina(find.text('Condições de parcelamento')),
+            findsOneWidget);
+        expect(
+          naPagina(find.text(blocoLote['condicoes_parcelamento']! as String)),
+          findsOneWidget,
+        );
+        // O lote não tem preço próprio: o cabeçalho mostra o de venda.
+        expect(naPagina(find.text('Preço do lote')), findsNothing);
+        expect(naPagina(find.textContaining('235.000')), findsOneWidget);
+
+        expect(naPagina(find.text('Quadra e loteamento')), findsOneWidget);
+        expect(naPagina(find.text('Infraestrutura')), findsOneWidget);
+        for (final rotulo in [
+          'Asfalto',
+          'Água',
+          'Energia',
+          'Esgoto',
+          'Iluminação pública',
+        ]) {
+          expect(
+            naPagina(
+              find.descendant(
+                of: find.byType(Chip),
+                matching: find.text(rotulo),
+              ),
+            ),
+            findsOneWidget,
+          );
         }
-
-        await voltar(find.byTooltip('Voltar').last);
-        expect(find.byType(PerfilEmpresaScreen), findsOneWidget);
-        expect(naEmpresa(find.byType(ImovelCard)), findsWidgets);
-
-        await voltar(find.byType(BackButton));
-        expect(find.byType(PerfilEmpresaScreen), findsNothing);
-        expect(find.byType(PerfilCorretorScreen), findsOneWidget);
-
-        await voltar(find.byType(BackButton));
-        expect(find.byType(PerfilCorretorScreen), findsNothing);
-        expect(find.byType(DetalheImovelScreen), findsOneWidget);
-        expect(naPagina(find.text('Descrição')), findsOneWidget);
-
-        await voltar(find.byTooltip('Voltar'));
-        expect(find.byType(DetalheImovelScreen), findsNothing);
-        expect(find.byKey(const ValueKey('imovel-42')), findsOneWidget);
-        expect(
-          tester.getTopLeft(find.byKey(const ValueKey('imovel-42'))),
-          posicaoDoCard42,
-        );
-      },
-    );
-  });
-
-  group('rolagem infinita da vitrine do corretor (PERF-03, D-12)', () {
-    testWidgets(
-      'Marina (corretor 7, 4 páginas): rolar até "Você chegou ao fim da '
-      'lista" acumula todos os ids do corretor, sem repetir e na ordem do '
-      'servidor',
-      (tester) async {
-        tester.view.physicalSize = const Size(400, 800);
-        tester.view.devicePixelRatio = 1.0;
-        addTearDown(tester.view.resetPhysicalSize);
-        addTearDown(tester.view.resetDevicePixelRatio);
-
-        // Ids esperados calculados das fixtures (mais recentes primeiro), sem
-        // passar pela paginação.
-        final detalhes = detalhesAcervoFixture();
-        final linhasDaMarina =
-            linhasAcervoFixture().where((linha) {
-              final corretor =
-                  detalhes[linha['id']! as int]?['corretor']
-                      as Map<String, Object?>?;
-              return corretor?['id'] == 7;
-            }).toList()..sort((a, b) {
-              final porData = (b['criado_em']! as String).compareTo(
-                a['criado_em']! as String,
-              );
-              return porData != 0
-                  ? porData
-                  : (b['id']! as int).compareTo(a['id']! as int);
-            });
-        final idsEsperados = [
-          for (final linha in linhasDaMarina) linha['id']! as int,
-        ];
-        expect(idsEsperados.length, greaterThan(30));
-
-        late VitrineAnuncianteCubit vitrineCriada;
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Builder(
-              builder: (context) => Scaffold(
-                body: Center(
-                  child: FilledButton(
-                    onPressed: () => abrirPerfilCorretor(
-                      context,
-                      const CorretorResponsavel(id: 7, nome: 'Marina Lopes'),
-                      criarPerfilCubit: () => PerfilCorretorCubit(
-                        ObterPerfilCorretorUseCase(
-                          PerfilRepositoryImpl(
-                            PerfilMockDataSource.paraTeste(
-                              corretores: corretoresPerfisFixture(),
-                              latencia: const Duration(milliseconds: 300),
-                            ),
-                          ),
-                        ),
-                      ),
-                      criarVitrineCubit: () =>
-                          vitrineCriada = criarVitrineAnuncianteCubitReal(
-                            latencia: Duration.zero,
-                          ),
-                    ),
-                    child: const Text('Abrir 7'),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-
-        await tester.tap(find.text('Abrir 7'));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 400));
-        await tester.pump();
-        await tester.pump();
-
-        final rolavel = find
-            .descendant(
-              of: find.byType(PerfilCorretorScreen),
-              matching: find.byType(Scrollable),
-            )
-            .first;
-        await tester.scrollUntilVisible(
-          find.text('Você chegou ao fim da lista'),
-          500,
-          scrollable: rolavel,
-          maxScrolls: 300,
-        );
-
-        final estado = vitrineCriada.state as VitrineAnuncianteCarregada;
-        final ids = estado.itens.map((imovel) => imovel.id).toList();
-        expect(estado.proximaPagina, isNull);
-        expect(estado.carregandoMais, isFalse);
-        expect(estado.erroAoCarregarMais, isFalse);
-        expect(ids.toSet().length, ids.length, reason: 'sem duplicatas');
-        expect(ids, idsEsperados);
-      },
-    );
-  });
-
-  group('corretor desativado (PERF-05, D-15)', () {
-    testWidgets(
-      'imóvel 337 -> Paulo Teixeira (id 99): prévia com spinner, depois só o '
-      'aviso "Este corretor não está mais disponível"; "Voltar" devolve o '
-      'detalhe 337 ainda carregado',
-      (tester) async {
-        getIt.registerFactory<DetalheImovelCubit>(
-          () => DetalheImovelCubit(
-            ObterDetalheImovelUseCase(
-              ImovelDetalheRepositoryImpl(
-                ImovelDetalheMockDataSource.paraTeste(
-                  detalhes: detalhesAcervoFixture(),
-                  latencia: const Duration(milliseconds: 300),
-                ),
-              ),
-            ),
-          ),
-        );
-        getIt.registerFactory<PerfilCorretorCubit>(
-          () => PerfilCorretorCubit(
-            ObterPerfilCorretorUseCase(
-              PerfilRepositoryImpl(
-                PerfilMockDataSource.paraTeste(
-                  corretores: corretoresPerfisFixture(),
-                  latencia: const Duration(seconds: 1),
-                ),
-              ),
-            ),
-          ),
-        );
-        // O perfil 404 nunca cria a vitrine: a fábrica não pode ser chamada.
-        var vitrinesCriadas = 0;
-        getIt.registerFactory<VitrineAnuncianteCubit>(() {
-          vitrinesCriadas++;
-          return criarVitrineAnuncianteCubitReal();
-        });
-        tester.view.physicalSize = const Size(400, 2400);
-        tester.view.devicePixelRatio = 1.0;
-        addTearDown(tester.view.resetPhysicalSize);
-        addTearDown(tester.view.resetDevicePixelRatio);
-
-        final previa = ImovelModel.fromJson(
-          linhasAcervoFixture().firstWhere(
-            (linha) => linha['id'] == idDetalheCorretorDesativadoMock,
-          ),
-        ).paraEntidade();
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Builder(
-              builder: (context) => Scaffold(
-                body: Center(
-                  child: FilledButton(
-                    onPressed: () => abrirDetalheImovel(context, previa),
-                    child: const Text('Abrir 337'),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-
-        await tester.tap(find.text('Abrir 337'));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 400));
-        await tester.pump(const Duration(milliseconds: 300));
-        await tester.pump();
-
-        expect(naPagina(find.text('Descrição')), findsOneWidget);
-
-        await tester.scrollUntilVisible(
-          naPagina(find.text('Paulo Teixeira')),
-          200,
-          scrollable: naPagina(find.byType(Scrollable)).first,
-        );
-        await tester.tap(naPagina(find.text('Paulo Teixeira')));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 400));
-
-        Finder noPerfil(Finder alvo) => find.descendant(
-          of: find.byType(PerfilCorretorScreen),
-          matching: alvo,
-        );
-        // Prévia na hora: nome do detalhe e spinner.
-        expect(find.byType(PerfilCorretorScreen), findsOneWidget);
-        expect(noPerfil(find.text('Paulo Teixeira')), findsOneWidget);
-        expect(
-          noPerfil(find.byType(CircularProgressIndicator)),
-          findsOneWidget,
-        );
-
-        // O servidor responde 404: some a prévia, fica só o aviso.
-        await tester.pump(const Duration(seconds: 1));
-        await tester.pump();
-
-        expect(
-          noPerfil(find.text('Este corretor não está mais disponível')),
-          findsOneWidget,
-        );
-        expect(noPerfil(find.text('Paulo Teixeira')), findsNothing);
-        expect(noPerfil(find.byType(CircularProgressIndicator)), findsNothing);
-        expect(noPerfil(find.textContaining('Imóveis de')), findsNothing);
-        expect(vitrinesCriadas, 0);
-
-        await tester.tap(noPerfil(find.text('Voltar')));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 400));
-        await tester.pump(const Duration(milliseconds: 400));
-
-        expect(find.byType(PerfilCorretorScreen), findsNothing);
-        expect(find.byType(DetalheImovelScreen), findsOneWidget);
-        expect(naPagina(find.text('Descrição')), findsOneWidget);
-      },
-    );
-  });
-
-  group('anunciante sem imóveis (D-12)', () {
-    testWidgets(
-      'corretor 10 (Bruno Sales), perfil válido sem imóveis: depois das duas '
-      'latências aparecem o CRECI, "Imóveis de Bruno Sales" e o aviso de '
-      'vitrine vazia',
-      (tester) async {
-        tester.view.physicalSize = const Size(400, 2400);
-        tester.view.devicePixelRatio = 1.0;
-        addTearDown(tester.view.resetPhysicalSize);
-        addTearDown(tester.view.resetDevicePixelRatio);
-
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Builder(
-              builder: (context) => Scaffold(
-                body: Center(
-                  child: FilledButton(
-                    onPressed: () => abrirPerfilCorretor(
-                      context,
-                      const CorretorResponsavel(id: 10, nome: 'Bruno Sales'),
-                      criarPerfilCubit: () => PerfilCorretorCubit(
-                        ObterPerfilCorretorUseCase(
-                          PerfilRepositoryImpl(
-                            PerfilMockDataSource.paraTeste(
-                              corretores: corretoresPerfisFixture(),
-                              latencia: const Duration(milliseconds: 300),
-                            ),
-                          ),
-                        ),
-                      ),
-                      criarVitrineCubit: criarVitrineAnuncianteCubitReal,
-                    ),
-                    child: const Text('Abrir 10'),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-
-        await tester.tap(find.text('Abrir 10'));
-        await tester.pump();
-        // A transição (400 ms) cobre a latência do perfil (300 ms); a vitrine
-        // só nasce no frame seguinte, com o perfil carregado.
-        await tester.pump(const Duration(milliseconds: 400));
-        await tester.pump();
-
-        Finder noPerfil(Finder alvo) => find.descendant(
-          of: find.byType(PerfilCorretorScreen),
-          matching: alvo,
-        );
-        expect(noPerfil(find.text('CRECI 45678-F')), findsOneWidget);
-        expect(noPerfil(find.text('Imóveis de Bruno Sales')), findsOneWidget);
-        expect(
-          noPerfil(find.byType(CircularProgressIndicator)),
-          findsOneWidget,
-        );
-
-        // Latência da vitrine.
-        await tester.pump(const Duration(milliseconds: 300));
-        await tester.pump();
-
-        expect(
-          noPerfil(find.text('Nenhum imóvel anunciado no momento.')),
-          findsOneWidget,
-        );
-        expect(noPerfil(find.byType(CircularProgressIndicator)), findsNothing);
-        expect(noPerfil(find.byType(ImovelCard)), findsNothing);
-      },
-    );
-  });
-
-  group('outros cards da vitrine (DET-01, API-06)', () {
-    testWidgets(
-      'tocar no card 57 abre o detalhe dele e, depois da latência, mostra a '
-      'própria descrição (não a do 42)',
-      (tester) async {
-        getIt.registerFactory<DetalheImovelCubit>(
-          () => DetalheImovelCubit(
-            ObterDetalheImovelUseCase(
-              ImovelDetalheRepositoryImpl(
-                ImovelDetalheMockDataSource.paraTeste(
-                  detalhes: detalhesAcervoFixture(),
-                  latencia: const Duration(milliseconds: 300),
-                ),
-              ),
-            ),
-          ),
-        );
-        await pumpVitrine(tester);
-
-        await tester.tap(find.byKey(const ValueKey('imovel-57')));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 400));
-
-        expect(
-          naPagina(find.text('Casa térrea 3 quartos no Taquaral')),
-          findsOneWidget,
-        );
-
-        await tester.pump(const Duration(milliseconds: 300));
-        await tester.pump();
-
-        expect(naPagina(find.text('Descrição')), findsOneWidget);
+        // As áreas de lazer são um Text com a frase inteira, nunca chips.
+        final frase = loteamentoDoLote['areas_de_lazer']! as String;
+        expect(naPagina(find.text('Áreas de lazer')), findsOneWidget);
+        expect(naPagina(find.text(frase)), findsOneWidget);
         expect(
           naPagina(
-            find.text(
-              'Casa térrea com quintal amplo, próxima à Lagoa do Taquaral.',
-            ),
-          ),
-          findsOneWidget,
-        );
-        expect(
-          naPagina(
-            find.text(
-              'Apartamento reformado, próximo ao centro, com '
-              'varanda gourmet.',
-            ),
+            find.descendant(of: find.byType(Chip), matching: find.text(frase)),
           ),
           findsNothing,
         );
       },
     );
+  });
 
+  group('natureza no wire real: terreno, apartamento e casa (D-17, A-04)', () {
+    /// Abre o card [id] da vitrine e deixa o detalhe capturado chegar.
+    Future<void> abrirDetalhe(WidgetTester tester, int id) async {
+      registrarDetalhe(
+        ImovelDetalheRemoteDataSource(
+          ApiFalsa(latencia: const Duration(milliseconds: 300)).criarDio(),
+        ),
+      );
+      await pumpVitrine(tester);
+      await tocarNoCard(tester, id);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await esperarDetalhe(tester, const Duration(milliseconds: 300));
+    }
+
+    testWidgets('terreno capturado: duas laterais, topografia e uso permitido '
+        'em português, sem o código em maiúsculas', (tester) async {
+      await abrirDetalhe(tester, idTerreno);
+
+      final bloco = terreno['terreno']! as Map<String, Object?>;
+      expect(bloco['lateral_esquerda'], '25.00');
+      expect(bloco['lateral_direita'], '25.00');
+      expect(naPagina(find.text('Sobre o terreno')), findsOneWidget);
+      expect(naPagina(find.text('Lateral esquerda')), findsOneWidget);
+      expect(naPagina(find.text('Lateral direita')), findsOneWidget);
+      expect(naPagina(find.text('Laterais')), findsNothing);
+      expect(naPagina(find.text('Topografia')), findsOneWidget);
+      expect(naPagina(find.text('Aclive')), findsOneWidget);
+      expect(naPagina(find.text('Murado')), findsOneWidget);
+      expect(naPagina(find.text('Esquina')), findsOneWidget);
+      expect(naPagina(find.text('Uso permitido')), findsOneWidget);
+      expect(naPagina(find.text('Comercial')), findsOneWidget);
+      expect(naPagina(find.text('COMERCIAL')), findsNothing);
+      expect(naPagina(find.text('ACLIVE')), findsNothing);
+    });
+
+    testWidgets('apartamento capturado: posição solar em português, sem '
+        '"Unidade", prédio com "Ano de construção"', (tester) async {
+      await abrirDetalhe(tester, idApartamento);
+
+      final predio =
+          (apartamento['apartamento']! as Map<String, Object?>)['predio']!
+              as Map<String, Object?>;
+      expect(naPagina(find.text('Sobre o apartamento')), findsOneWidget);
+      expect(naPagina(find.text('Posição solar')), findsOneWidget);
+      expect(naPagina(find.text('Poente')), findsOneWidget);
+      expect(naPagina(find.text('POENTE')), findsNothing);
+      expect(naPagina(find.text('Unidade')), findsNothing);
+      expect(naPagina(find.text('Prédio')), findsOneWidget);
+      expect(naPagina(find.text(predio['nome']! as String)), findsOneWidget);
+      expect(naPagina(find.text('Ano de construção')), findsOneWidget);
+      expect(naPagina(find.text('${predio['ano_construcao']}')), findsOneWidget);
+      expect(naPagina(find.text('Unidades por andar')), findsNothing);
+    });
+
+    testWidgets('casa capturada: banheiros, salas, pavimentos, piscina, '
+        'quintal, churrasqueira e mobiliada entram como no JSON', (
+      tester,
+    ) async {
+      await abrirDetalhe(tester, idCasa);
+
+      final bloco = casa['casa']! as Map<String, Object?>;
+      expect(naPagina(find.text('Sobre a casa')), findsOneWidget);
+      expect(naPagina(find.text('${bloco['banheiros']}')), findsWidgets);
+      expect(naPagina(find.text('banheiros')), findsOneWidget);
+      expect(naPagina(find.text('Salas')), findsOneWidget);
+      expect(naPagina(find.text('Pavimentos')), findsOneWidget);
+      expect(naPagina(find.text('Piscina')), findsOneWidget);
+      expect(naPagina(find.text('Quintal')), findsOneWidget);
+      expect(naPagina(find.text('Churrasqueira')), findsWidgets);
+      expect(naPagina(find.text('Mobiliada')), findsOneWidget);
+    });
+  });
+
+  group('outros cards da vitrine (DET-01, API-07)', () {
     testWidgets(
-      'servidor sem o imóvel: o card 42 termina em "Este imóvel não está '
-      'mais disponível" e "Voltar à vitrine" devolve a vitrine (D-17)',
+      'tocar em outro card abre o detalhe dele e, depois da latência, mostra '
+      'a própria descrição (não a da casa)',
       (tester) async {
-        final semOCard42 = detalhesAcervoFixture()..remove(42);
-        getIt.registerFactory<DetalheImovelCubit>(
-          () => DetalheImovelCubit(
-            ObterDetalheImovelUseCase(
-              ImovelDetalheRepositoryImpl(
-                ImovelDetalheMockDataSource.paraTeste(
-                  detalhes: semOCard42,
-                  latencia: const Duration(milliseconds: 300),
-                ),
-              ),
-            ),
+        registrarDetalhe(
+          ImovelDetalheRemoteDataSource(
+            ApiFalsa(latencia: const Duration(milliseconds: 300)).criarDio(),
           ),
         );
         await pumpVitrine(tester);
 
-        await tester.tap(find.byKey(const ValueKey('imovel-42')));
+        await tester.tap(find.byKey(ValueKey('imovel-$idTerreno')));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 400));
-        await tester.pump(const Duration(milliseconds: 300));
+
+        expect(naPagina(find.text(tituloTerreno)), findsOneWidget);
+
+        await esperarDetalhe(tester, const Duration(milliseconds: 300));
+
+        expect(naPagina(find.text('Descrição')), findsOneWidget);
+        expect(naPagina(find.text(terreno['descricao']! as String)), findsOneWidget);
+        expect(naPagina(find.text(descricaoCasa)), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'servidor sem o imóvel (404): termina em "Este imóvel não está mais '
+      'disponível" e "Voltar à vitrine" devolve a vitrine (D-17)',
+      (tester) async {
+        final apiDoDetalhe = ApiFalsa(latencia: const Duration(milliseconds: 300))
+          ..responder(
+            (uri) => uri.path == '/api/publico/imoveis/$idCasa/',
+            status: 404,
+            fixture: 'erro_404_detalhe.json',
+          );
+        registrarDetalhe(ImovelDetalheRemoteDataSource(apiDoDetalhe.criarDio()));
+        await pumpVitrine(tester);
+
+        await tester.tap(find.byKey(ValueKey('imovel-$idCasa')));
         await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await esperarDetalhe(tester, const Duration(milliseconds: 300));
 
         expect(
           naPagina(find.text('Este imóvel não está mais disponível')),
@@ -1154,37 +622,114 @@ void main() {
         await tester.pump(const Duration(milliseconds: 400));
 
         expect(find.byType(DetalheImovelScreen), findsNothing);
-        expect(find.byKey(const ValueKey('imovel-42')), findsOneWidget);
+        expect(find.byKey(ValueKey('imovel-$idCasa')), findsOneWidget);
+      },
+    );
+  });
+
+  group('bordas do detalhe real (D-15, D-18, DET-06)', () {
+    final semFotos =
+        lerFixtureApi('detalhe_sem_fotos.json')! as Map<String, Object?>;
+    final idSemFotos = semFotos['id']! as int;
+
+    testWidgets(
+      'imóvel sem fotos mostra o placeholder da galeria, sem o contador N/M',
+      (tester) async {
+        registrarDetalhe(
+          ImovelDetalheRemoteDataSource(
+            ApiFalsa(latencia: const Duration(milliseconds: 300)).criarDio(),
+          ),
+        );
+        await pumpVitrine(tester);
+
+        await tocarNoCard(tester, idSemFotos);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await esperarDetalhe(tester, const Duration(milliseconds: 300));
+
+        expect(naPagina(find.text('Descrição')), findsOneWidget);
+        expect(naPagina(find.byType(ImagemPadraoImovel)), findsOneWidget);
+        expect(naPagina(find.byType(GaleriaImovel)), findsOneWidget);
+        expect(naPagina(find.byKey(const ValueKey('contador-fotos'))), findsNothing);
+        expect(naPagina(find.byType(PageView)), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'imóvel que saiu da vitrine entre a lista e o toque (404 no detalhe): '
+      'mostra "Este imóvel não está mais disponível" e nunca o dado velho',
+      (tester) async {
+        final apiDoDetalhe = ApiFalsa(latencia: const Duration(milliseconds: 300))
+          ..responder(
+            (uri) => uri.path == '/api/publico/imoveis/$idCasa/',
+            status: 404,
+            fixture: 'erro_404_detalhe.json',
+          );
+        registrarDetalhe(ImovelDetalheRemoteDataSource(apiDoDetalhe.criarDio()));
+        await pumpVitrine(tester);
+
+        await tester.tap(find.byKey(ValueKey('imovel-$idCasa')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await esperarDetalhe(tester, const Duration(milliseconds: 300));
+
+        expect(
+          naPagina(find.text('Este imóvel não está mais disponível')),
+          findsOneWidget,
+        );
+        expect(naPagina(find.text('Descrição')), findsNothing);
+        expect(naPagina(find.text(descricaoCasa)), findsNothing);
+        expect(naPagina(find.text('Tentar de novo')), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'página fechada com a requisição em voo: o Cubit fechado não emite '
+      'nada depois (guarda isClosed, sem exceção)',
+      (tester) async {
+        final apiDoDetalhe = ApiFalsa(latencia: const Duration(seconds: 2));
+        registrarDetalhe(ImovelDetalheRemoteDataSource(apiDoDetalhe.criarDio()));
+        await pumpVitrine(tester);
+
+        await tester.tap(find.byKey(ValueKey('imovel-$idCasa')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        expect(find.byType(DetalheImovelScreen), findsOneWidget);
+        expect(apiDoDetalhe.requisicoes, hasLength(1));
+
+        // Fecha a página com a resposta ainda a caminho.
+        await tester.tap(find.byTooltip('Voltar'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.pump(const Duration(milliseconds: 400));
+        expect(find.byType(DetalheImovelScreen), findsNothing);
+
+        // A resposta (2 s de latência) chega depois do close(): nada a emitir
+        // nem a lançar.
+        await tester.pump(const Duration(seconds: 1));
+        await tester.pump(const Duration(milliseconds: 50));
+
+        expect(tester.takeException(), isNull);
+        expect(find.byType(DetalheImovelScreen), findsNothing);
+        expect(find.byKey(ValueKey('imovel-$idCasa')), findsOneWidget);
       },
     );
   });
 
   group('retry', () {
-    late _DataSourceFalhaNaPrimeira dataSource;
-
-    setUp(() {
-      dataSource = _DataSourceFalhaNaPrimeira(
-        ImovelDetalheMockDataSource.paraTeste(
-          detalhes: detalhesAcervoFixture(),
-          latencia: const Duration(milliseconds: 300),
-        ),
-      );
-      getIt.registerFactory<DetalheImovelCubit>(
-        () => DetalheImovelCubit(
-          ObterDetalheImovelUseCase(ImovelDetalheRepositoryImpl(dataSource)),
-        ),
-      );
-    });
-
     testWidgets(
-      'falha ao abrir mostra a mensagem com "Tentar de novo"; tocar repete '
+      'erro 500 ao abrir mostra a mensagem com "Tentar de novo"; tocar repete '
       'a busca (spinner) e mostra a Descrição quando dá certo (D-17)',
       (tester) async {
+        final apiDoDetalhe = ApiFalsa(latencia: const Duration(milliseconds: 300))
+          ..falharProximas('/api/publico/imoveis/', status: 500);
+        registrarDetalhe(ImovelDetalheRemoteDataSource(apiDoDetalhe.criarDio()));
         await pumpVitrine(tester);
 
-        await tester.tap(find.byKey(const ValueKey('imovel-42')));
+        await tester.tap(find.byKey(ValueKey('imovel-$idCasa')));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 400));
+        await esperarDetalhe(tester, const Duration(milliseconds: 300));
 
         expect(
           naPagina(find.text('Não foi possível carregar este imóvel.')),
@@ -1192,7 +737,7 @@ void main() {
         );
         expect(naPagina(find.text('Tentar de novo')), findsOneWidget);
         expect(naPagina(find.byType(CircularProgressIndicator)), findsNothing);
-        expect(dataSource.chamadas, 1);
+        expect(apiDoDetalhe.requisicoes, hasLength(1));
 
         await tester.tap(naPagina(find.text('Tentar de novo')));
         await tester.pump();
@@ -1203,15 +748,14 @@ void main() {
         );
         expect(naPagina(find.text('Tentar de novo')), findsNothing);
 
-        await tester.pump(const Duration(milliseconds: 300));
-        await tester.pump();
+        await esperarDetalhe(tester, const Duration(milliseconds: 300));
 
         expect(naPagina(find.text('Descrição')), findsOneWidget);
         expect(
           naPagina(find.text('Não foi possível carregar este imóvel.')),
           findsNothing,
         );
-        expect(dataSource.chamadas, 2);
+        expect(apiDoDetalhe.requisicoes, hasLength(2));
       },
     );
   });
@@ -1222,84 +766,15 @@ void main() {
     });
 
     test(
-      'resolve DetalheImovelCubit e a DataSource do detalhe (mock)',
+      'resolve DetalheImovelCubit e a DataSource remota do detalhe',
       () async {
         await configureDependencies();
 
         expect(getIt<DetalheImovelCubit>(), isA<DetalheImovelCubit>());
         expect(
           getIt<ImovelDetalheDataSource>(),
-          isA<ImovelDetalheMockDataSource>(),
+          isA<ImovelDetalheRemoteDataSource>(),
         );
-      },
-    );
-
-    test('resolve VitrineAnuncianteCubit', () async {
-      await configureDependencies();
-
-      expect(getIt<VitrineAnuncianteCubit>(), isA<VitrineAnuncianteCubit>());
-    });
-
-    testWidgets(
-      'abrirPerfilCorretor sem fábrica de teste: o DI de produção serve o '
-      'perfil do corretor 7 (prévia com spinner, depois CRECI 12345-F) '
-      '(PERF-04, PERF-06, D-03)',
-      (tester) async {
-        await configureDependencies();
-        addTearDown(getIt.reset);
-        // Janela alta: a vitrine cai abaixo da dobra e os slivers são lazy.
-        tester.view.physicalSize = const Size(400, 2400);
-        tester.view.devicePixelRatio = 1.0;
-        addTearDown(tester.view.resetPhysicalSize);
-        addTearDown(tester.view.resetDevicePixelRatio);
-
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Builder(
-              builder: (context) => Scaffold(
-                body: Center(
-                  child: FilledButton(
-                    onPressed: () => abrirPerfilCorretor(
-                      context,
-                      const CorretorResponsavel(id: 7, nome: 'Marina Lopes'),
-                      construirImagemDeRede: (url) =>
-                          ColoredBox(key: ValueKey(url), color: Colors.blue),
-                    ),
-                    child: const Text('Abrir'),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-        await tester.tap(find.text('Abrir'));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 100));
-
-        Finder noPerfil(Finder alvo) => find.descendant(
-          of: find.byType(PerfilCorretorScreen),
-          matching: alvo,
-        );
-        expect(noPerfil(find.text('Marina Lopes')), findsOneWidget);
-        expect(
-          noPerfil(find.byType(CircularProgressIndicator)),
-          findsOneWidget,
-        );
-        expect(noPerfil(find.text('CRECI 12345-F')), findsNothing);
-
-        // Latência padrão de 500 ms do servidor simulado.
-        await tester.pump(const Duration(milliseconds: 600));
-
-        expect(noPerfil(find.text('CRECI 12345-F')), findsOneWidget);
-
-        // Vitrine do corretor 7 pela mesma latência padrão (500 ms).
-        expect(
-          noPerfil(find.byType(CircularProgressIndicator)),
-          findsOneWidget,
-        );
-        await tester.pump(const Duration(milliseconds: 600));
-        expect(noPerfil(find.byType(CircularProgressIndicator)), findsNothing);
-        expect(noPerfil(find.text('Imóveis de Marina Lopes')), findsOneWidget);
       },
     );
   });

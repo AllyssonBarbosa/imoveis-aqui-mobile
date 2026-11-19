@@ -32,13 +32,13 @@ Plan: 1 of 6
 Status: Executing Phase 07.1
 Last activity: 2026-11-18 — Phase 07.1 execution started
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██░░░░░░░░] 20%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 0
+- Total plans completed: 22
 - Average duration: - min
 - Total execution time: 0 hours
 
@@ -46,7 +46,7 @@ Progress: [░░░░░░░░░░] 0%
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 05 | 22 | - | - |
 
 **Recent Trend:**
 
@@ -73,6 +73,28 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04 P06 | 16 min | 2 tasks | 7 files |
 | Phase 04 P07 | 10 min | 2 tasks | 8 files |
 | Phase 04 P08 | 5 min | 2 tasks | 10 files |
+| Phase 05 P01 | 5 min | 3 tasks | 6 files |
+| Phase 05 P02 | 12min | 3 tasks | 4 files |
+| Phase 05 P03 | 25min | 2 tasks | 11 files |
+| Phase 05 P04 | 15min | 2 tasks | 4 files |
+| Phase 05 P05 | 25min | 3 tasks | 6 files |
+| Phase 05 P06 | 15min | 2 tasks | 9 files |
+| Phase 05 P07 | 8min | 2 tasks | 8 files |
+| Phase 05 P08 | 20min | 2 tasks | 9 files |
+| Phase 05 P09 | 25 min | 2 tasks | 12 files |
+| Phase 05 P10 | 30min | 2 tasks | 8 files |
+| Phase 05 P11 | 45min | 2 tasks | 17 files |
+| Phase 05 P12 | 30min | 2 tasks | 12 files |
+| Phase 05 P13 | 25min | 2 tasks | 11 files |
+| Phase 05 P14 | 45min | 2 tasks | 18 files |
+| Phase 05 P15 | 20min | 2 tasks | 13 files |
+| Phase 05 P16 | 25min | 2 tasks | 9 files |
+| Phase 05 P17 | 40min | 2 tasks | 8 files |
+| Phase 05 P18 | 35min | 3 tasks | 12 files |
+| Phase 05 P19 | 12 min | 2 tasks | 2 files |
+| Phase 05 P20 | 10min | 2 tasks | 2 files |
+| Phase 05 P21 | 15min | 2 tasks | 7 files |
+| Phase 05 P22 | 20min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -105,6 +127,19 @@ Recent decisions affecting current work:
 - [Phase 04]: 04-07: @visibleForTesting only on DetalheImovelScreen and FotoCapaImovel; ImagemRede/GaleriaImovel pass the test hook through without the annotation (analyzer warns otherwise)
 - [Phase 04]: 04-07: viewer locks PageView swipe via NeverScrollableScrollPhysics while the visible photo is zoomed (A1); real pinch feel left to end-of-phase human check
 - [Phase 04]: 04-08: IPTU sem periodo ate o E2 (D-19 c); cabecalho usa precos da parte comum inclusive para lote (D-19 d); perfil do corretor abre com o objeto em memoria, sem rede nem contato (D-15) — Regras de negocio pendentes do E2 nao sao decididas no app
+- [Phase 05]: Fase 5 git: opcao-a + app-a (API: só commit do merge, resto sem commit; app: commit por task na feat/APP05; nunca push)
+- [Phase 05]: 05-02: opcao-a — empresa_id mantido em corretor_responsavel (W02); PENDENTE para a frente web, junto com a revisão LGPD de contato (§11.5 g)
+- [Phase 05]: 05-03: Imovel.cidade removida (A-06); cidade da vitrine vem da consulta, a do imovel vem do detalhe
+- [Phase 05]: 05-04: bairros por cidade e catálogo de características públicos; natureza/bairro em CSV (OU); vírgula em bairro é risco aceito A-05
+- [Phase 05]: 05-05: seed pula imóvel já existente inteiro (fotos e situação preservadas); apartamento sem endereço próprio; guarda de DEBUG testada em banco vazio
+- [Phase 05]: 05-11: parametrosDaApi e o unico mapeamento de params (nomes W09); ImovelMockDataSource removido; FalhaSimuladaDoMock movida para o mock do detalhe ate o 05-14
+- [Phase 05]: 05-12: dominio segue com nomes de caracteristica; repositorio mapeia CaracteristicaModel -> nome ate 05-13/05-15
+- [Phase 05]: 05-14: DetalheImovel.cidade nula; Model le endereco completo mas a pagina mostra so bairro · cidade, UF; CorretorModel so id/nome/foto
+- [Phase 05]: 05-17: infraestrutura do lote = booleanos verdadeiros traduzidos em data/ (ordem fixa); areas_de_lazer texto corrido; codigos de posicao solar/uso permitido rotulados em presentation/ (A-03, A-04)
+- [Phase 05]: 05-18: contrato reescrito para o formato real; PENDENTE web: IPTU, LGPD de contato do corretor e empresa_id
+- [Phase 05]: 05-19: preço e área têm tetos separados (9999999999.99 / 99999999.99); NUL, busca>200, bairro>20 itens ou >100 caracteres e número fora da allowlist ASCII viram 400 {campo: mensagem}
+- [Phase 05]: 05-20: filtro caracteristicas com teto de 20 ids distintos e tem-todas por uma subconsulta agregada na tabela M2M (CR-01); risco aceito de 21+ marcadas virar erro no app, a registrar no contrato pelo 05-22
+- [Phase 05]: 05-21: ThrottleVitrinePublica (balde unico por IP, 120/min via VITRINE_TAXA_ANONIMA, NUM_PROXIES=0) so nas 5 rotas publicas da vitrine; sem throttle global
 
 ### Pending Todos
 
@@ -138,6 +173,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-12T14:45:37.839Z
-Stopped at: Completed 04-08-PLAN.md
+Last session: 2026-11-16
+Stopped at: Phase 05 complete; phases 1-4 aguardam verificação (VERIFICATION stale, UAT pendente)
 Resume file: None

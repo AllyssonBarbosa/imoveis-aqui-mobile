@@ -1,54 +1,82 @@
 {
-  "id": 42,
-  "titulo": "Apartamento 2 quartos no Cambuí",
-  "finalidade": "VENDA",
-  "preco_venda": "450000.00",
-  "preco_aluguel": null,
-  "preco_condominio": "850.00",
-  "preco_iptu": "1200.00",
-  "descricao": "Apartamento reformado, próximo ao centro, com varanda gourmet.",
-  "bairro": "Cambuí",
-  "cidade": { "id": 1, "nome": "Campinas", "uf": "SP" },
-  "latitude": "-22.894100",
-  "longitude": "-47.052300",
-  "fotos": [
-    { "url": "https://api.imoveisaqui.exemplo.com/media/imoveis/fotos/capa-42.jpg", "capa": true, "ordem": 0 },
-    { "url": "https://api.imoveisaqui.exemplo.com/media/imoveis/fotos/sala-42.jpg", "capa": false, "ordem": 1 },
-    { "url": "https://api.imoveisaqui.exemplo.com/media/imoveis/fotos/varanda-42.jpg", "capa": false, "ordem": 2 }
-  ],
-  "caracteristicas": ["Portão eletrônico", "Ar-condicionado", "Varanda gourmet"],
-  "corretor": {
-    "id": 7,
-    "nome": "Marina Lopes",
-    "foto": "https://api.imoveisaqui.exemplo.com/media/imoveis/corretores/marina-lopes.jpg",
-    "slug": "marina-lopes"
-  },
+  "id": 22,
+  "titulo": "Apartamento no bairro Centro",
   "natureza": "APARTAMENTO",
+  "finalidade": "ALUGUEL",
+  "preco_venda": null,
+  "preco_aluguel": "3050.00",
+  "preco_condominio": null,
+  "preco_iptu": null,
+  "descricao": "Apartamento de demonstração em Campinas (Centro), semeado para o desenvolvimento da vitrine.",
+  "caracteristicas": [
+    {
+      "id": 4,
+      "nome": "Ar-condicionado"
+    },
+    {
+      "id": 1,
+      "nome": "Piscina"
+    }
+  ],
   "casa": null,
   "terreno": null,
-  "lote": null,
   "apartamento": {
-    "andar": 8,
-    "numero": "82",
-    "area_privativa": "68.50",
-    "area_total": "92.00",
-    "quartos": 2,
-    "suites": 1,
-    "banheiros": 2,
-    "vagas": 1,
-    "varanda": true,
-    "posicao_solar": "Nascente",
     "predio": {
-      "nome": "Edifício Jequitibá",
-      "andares": 15,
-      "unidades_por_andar": 4,
-      "ano": 2012,
+      "nome": "Edifício Girassol Campinas",
+      "andares": 12,
+      "ano_construcao": 2013,
       "elevadores": 2,
       "portaria_24h": true,
       "piscina": true,
       "academia": true,
       "salao_de_festas": true,
       "playground": false
+    },
+    "andar": 11,
+    "area_privativa": "85.00",
+    "area_total": "100.00",
+    "quartos": 1,
+    "suites": 1,
+    "banheiros": 2,
+    "vagas": 2,
+    "varanda": false,
+    "posicao_solar": "POENTE"
+  },
+  "lote": null,
+  "endereco": {
+    "logradouro": "Rua das Palmeiras",
+    "numero": "457",
+    "bairro": "Taquaral",
+    "cep": "13061-000",
+    "cidade": {
+      "id": 1,
+      "nome": "Campinas",
+      "uf": "SP"
+    },
+    "latitude": "-22.839300",
+    "longitude": "-47.127100"
+  },
+  "fotos": [
+    {
+      "imagem": "http://127.0.0.1:8000/media/imoveis/fotos/dev-campinas-22-1_Sbjbt6x.jpg",
+      "ordem": 0,
+      "capa": true
+    },
+    {
+      "imagem": "http://127.0.0.1:8000/media/imoveis/fotos/dev-campinas-22-2_kU0WZMu.jpg",
+      "ordem": 1,
+      "capa": false
     }
+  ],
+  "corretor_responsavel": {
+    "id": 1,
+    "empresa_id": 1,
+    "foto": "http://127.0.0.1:8000/media/corretores/fotos/corretor_oNKldeD.vitrine.demo.jpg",
+    "nome": "Corretor Vitrine Demo",
+    "email": "corretor.vitrine.demo@example.com",
+    "creci": "12345-F",
+    "telefone": "19988887777",
+    "whatsapp": "19988887777",
+    "apresentacao": "Corretor de demonstração da vitrine de desenvolvimento."
   }
 }

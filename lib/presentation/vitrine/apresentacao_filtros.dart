@@ -5,6 +5,7 @@
 import 'package:intl/intl.dart';
 
 import '../../core/texto_normalizado.dart';
+import '../../domain/entities/caracteristica.dart';
 import '../../domain/entities/filtros_vitrine.dart';
 import '../../domain/entities/imovel.dart';
 
@@ -69,7 +70,7 @@ String _rotuloDoFiltro(FiltroAtivo filtro, FiltrosVitrine filtros) =>
       FiltroAtivo.bairros => _rotuloMultiSelecao(filtros.bairros),
       FiltroAtivo.area => _rotuloArea(filtros),
       FiltroAtivo.caracteristicas => _rotuloMultiSelecao(
-        filtros.caracteristicas,
+        _nomesOrdenados(filtros.caracteristicas),
       ),
     };
 
@@ -127,9 +128,17 @@ String _rotuloMinimo(int valor, String singular, String plural) {
   return '$valor+ $unidade';
 }
 
+/// Nomes das características escolhidas, ordenados por [normalizarTexto]
+/// (nunca pela ordem de iteração do `Set`) — o chip mostra sempre o mesmo
+/// primeiro nome (D-13).
+List<String> _nomesOrdenados(Set<Caracteristica> caracteristicas) {
+  return [for (final caracteristica in caracteristicas) caracteristica.nome]
+    ..sort((a, b) => normalizarTexto(a).compareTo(normalizarTexto(b)));
+}
+
 /// "Cambuí" (um só valor) ou "Cambuí +1" (demais, contados) — mesma forma
 /// para bairros e características.
-String _rotuloMultiSelecao(Set<String> valores) {
+String _rotuloMultiSelecao(Iterable<String> valores) {
   final primeiro = valores.first;
   final resto = valores.length - 1;
   return resto == 0 ? primeiro : '$primeiro +$resto';

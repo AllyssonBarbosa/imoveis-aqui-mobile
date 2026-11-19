@@ -8,6 +8,8 @@ import 'package:imoveis_aqui/domain/entities/consulta_imoveis.dart';
 import 'package:imoveis_aqui/domain/entities/pagina_imoveis.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../support/api_falsa.dart';
+
 class _ImovelDataSourceFalso extends Mock implements ImovelDataSource {}
 
 const _linhaValida = {
@@ -99,6 +101,51 @@ void main() {
       final resultado = await repositorio.buscarImoveis(consulta);
 
       expect(resultado, isA<Failure<PaginaImoveis>>());
+    },
+  );
+
+  /// Cópia da p1 capturada com o `titulo` do primeiro item trocado por um
+  /// número — o `fromJson` gerado lança TypeError (Pitfall 1).
+  Map<String, Object?> listaMalformada() {
+    final lista = Map<String, Object?>.from(
+      lerFixtureApi('lista_campinas_p1.json')! as Map<String, Object?>,
+    );
+    final itens = (lista['results']! as List<Object?>)
+        .cast<Map<String, Object?>>()
+        .map(Map<String, Object?>.from)
+        .toList();
+    itens.first['titulo'] = 123;
+    lista['results'] = itens;
+    return lista;
+  }
+
+  test(
+    'buscarImoveis: TypeError do JSON malformado vira Result.failure com '
+    'FormatException (Pitfall 1)',
+    () async {
+      when(() => dataSource.buscar(any())).thenAnswer(
+        (_) async => ImoveisEnvelopeModel.fromJson(listaMalformada()),
+      );
+
+      final resultado = await repositorio.buscarImoveis(consulta);
+
+      expect(resultado, isA<Failure<PaginaImoveis>>());
+      expect((resultado as Failure<PaginaImoveis>).erro, isA<FormatException>());
+    },
+  );
+
+  test(
+    'buscarProximaPagina: TypeError do JSON malformado vira Result.failure '
+    'com FormatException (Pitfall 1)',
+    () async {
+      when(() => dataSource.seguir(any())).thenAnswer(
+        (_) async => ImoveisEnvelopeModel.fromJson(listaMalformada()),
+      );
+
+      final resultado = await repositorio.buscarProximaPagina('cursor-x');
+
+      expect(resultado, isA<Failure<PaginaImoveis>>());
+      expect((resultado as Failure<PaginaImoveis>).erro, isA<FormatException>());
     },
   );
 

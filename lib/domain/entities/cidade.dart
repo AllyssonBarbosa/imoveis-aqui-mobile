@@ -4,8 +4,13 @@ import '../../core/texto_normalizado.dart';
 ///
 /// Imutável, sem serialização (isso é papel de `CidadeModel` em `data/`).
 class Cidade {
-  const Cidade({required this.nome, required this.uf});
+  const Cidade({this.id, required this.nome, required this.uf});
 
+  /// Id da API, só para montar rotas (`/api/publico/cidades/<id>/...`) — a
+  /// identidade continua nome+uf ([chaveNatural]); por isso fica fora de
+  /// `==`/`hashCode`. Nulo quando a cidade vem de um valor salvo no formato
+  /// antigo `nome|uf` (A-01).
+  final int? id;
   final String nome;
   final String uf;
 
@@ -26,5 +31,5 @@ class Cidade {
   int get hashCode => Object.hash(nome, uf);
 
   @override
-  String toString() => 'Cidade(nome: $nome, uf: $uf)';
+  String toString() => 'Cidade(id: $id, nome: $nome, uf: $uf)';
 }

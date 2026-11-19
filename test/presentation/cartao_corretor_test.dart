@@ -13,7 +13,6 @@ void main() {
     id: 7,
     nome: 'Marina Lopes',
     foto: fotoMarina,
-    slug: 'marina-lopes',
   );
   const semFoto = CorretorResponsavel(id: 9, nome: 'Camila Duarte');
 

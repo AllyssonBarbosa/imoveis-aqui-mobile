@@ -1,59 +1,233 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:imoveis_aqui/data/mocks/imoveis_detalhe_fixture.dart';
-import 'package:imoveis_aqui/data/mocks/imoveis_fixture.dart';
 import 'package:imoveis_aqui/data/models/detalhe_imovel_model.dart';
 import 'package:imoveis_aqui/data/models/imovel_model.dart';
 import 'package:imoveis_aqui/data/models/url_segura.dart';
 import 'package:imoveis_aqui/domain/entities/dados_natureza.dart';
 import 'package:imoveis_aqui/domain/entities/imovel.dart';
 
-/// Contrato de parse de `DetalheImovelModel` (DET-06, T-04-03-01): um campo
-/// obrigatório ausente é `TypeError` (que o repositório traduz), valores
-/// desconhecidos de enum são tratados na `paraEntidade()`.
+import '../support/api_falsa.dart';
+
+/// Contrato de parse de `DetalheImovelModel` sobre o JSON REAL capturado da
+/// API (`test/fixtures/api/detalhe_*.json`, D-15, DET-06, T-04-03-01): um
+/// campo obrigatório ausente é `TypeError` (que o repositório traduz), valores
+/// desconhecidos de enum são tratados na `paraEntidade()`. Os mapas alterados
+/// são sempre cópias da captura com uma chave mudada.
 void main() {
-  Map<String, Object?> mapaCompleto() =>
-      Map<String, Object?>.of(detalhesAcervoFixture()[42]!);
+  Map<String, Object?> detalheCapturado(String nome) =>
+      Map<String, Object?>.of(lerFixtureApi(nome)! as Map<String, Object?>);
 
-  test('mapa completo do contrato é lido e mapeado para a entidade', () {
-    final detalhe = DetalheImovelModel.fromJson(mapaCompleto()).paraEntidade();
+  Map<String, Object?> mapaCompleto() => detalheCapturado('detalhe_casa.json');
 
-    expect(detalhe.id, 42);
-    expect(detalhe.titulo, 'Apartamento 2 quartos no Cambuí');
-    expect(detalhe.finalidade, FinalidadeImovel.venda);
-    expect(detalhe.fotos, isNotEmpty);
-    expect(detalhe.caracteristicas, isNotEmpty);
+  Map<String, Object?> enderecoCapturado() =>
+      Map<String, Object?>.of(mapaCompleto()['endereco']! as Map<String, Object?>);
+
+  group('detalhes capturados', () {
+    for (final nome in [
+      'detalhe_casa.json',
+      'detalhe_apartamento.json',
+      'detalhe_terreno.json',
+      'detalhe_lote.json',
+      'detalhe_sem_fotos.json',
+      'detalhe_sem_corretor.json',
+    ]) {
+      test('$nome parseia e vira a entidade', () {
+        final capturado = detalheCapturado(nome);
+
+        final detalhe = DetalheImovelModel.fromJson(capturado).paraEntidade();
+
+        expect(detalhe.id, capturado['id']);
+        expect(detalhe.titulo, capturado['titulo']);
+        expect(detalhe.cidade?.nome, 'Campinas');
+      });
+    }
   });
 
-  test('mapa sem titulo lança TypeError em fromJson', () {
-    final mapa = mapaCompleto()..remove('titulo');
+  group('detalhe_casa.json no wire real (D-15, D-16)', () {
+    test('endereco é lido inteiro, como veio na captura', () {
+      final capturado = mapaCompleto();
+      final endereco = capturado['endereco']! as Map<String, Object?>;
+      final cidade = endereco['cidade']! as Map<String, Object?>;
 
-    expect(() => DetalheImovelModel.fromJson(mapa), throwsA(isA<TypeError>()));
+      final modelo = DetalheImovelModel.fromJson(capturado);
+
+      expect(modelo.endereco?.logradouro, endereco['logradouro']);
+      expect(modelo.endereco?.numero, endereco['numero']);
+      expect(modelo.endereco?.bairro, endereco['bairro']);
+      expect(modelo.endereco?.cep, endereco['cep']);
+      expect(modelo.endereco?.cidade?.id, cidade['id']);
+      expect(modelo.endereco?.cidade?.nome, cidade['nome']);
+      expect(modelo.endereco?.cidade?.uf, cidade['uf']);
+      expect(modelo.endereco?.latitude, endereco['latitude']);
+      expect(modelo.endereco?.longitude, endereco['longitude']);
+    });
+
+    test('a entidade traz bairro, cidade e coordenadas do endereco', () {
+      final capturado = mapaCompleto();
+      final endereco = capturado['endereco']! as Map<String, Object?>;
+
+      final detalhe = DetalheImovelModel.fromJson(capturado).paraEntidade();
+
+      expect(detalhe.bairro, endereco['bairro']);
+      expect(detalhe.cidade?.nome, 'Campinas');
+      expect(detalhe.cidade?.uf, 'SP');
+      expect(detalhe.latitude, endereco['latitude']);
+      expect(detalhe.longitude, endereco['longitude']);
+    });
+
+    test('campos de topo e preços chegam como a API mandou', () {
+      final capturado = mapaCompleto();
+
+      final detalhe = DetalheImovelModel.fromJson(capturado).paraEntidade();
+
+      expect(detalhe.id, 21);
+      expect(detalhe.titulo, capturado['titulo']);
+      expect(detalhe.finalidade, FinalidadeImovel.venda);
+      expect(detalhe.natureza, NaturezaImovel.casa);
+      expect(detalhe.precoVenda, capturado['preco_venda']);
+      expect(detalhe.precoAluguel, isNull);
+      expect(detalhe.descricao, capturado['descricao']);
+    });
+
+    test('fotos: url = imagem, ordem e capa como recebidas, sem reordenar', () {
+      final capturado = mapaCompleto();
+      final fotos = (capturado['fotos']! as List<Object?>)
+          .cast<Map<String, Object?>>();
+
+      final modelo = DetalheImovelModel.fromJson(capturado);
+      final detalhe = modelo.paraEntidade();
+
+      expect(modelo.fotos.map((f) => f.url), fotos.map((f) => f['imagem']));
+      expect(modelo.fotos.map((f) => f.ordem), fotos.map((f) => f['ordem']));
+      expect(modelo.fotos.map((f) => f.capa), fotos.map((f) => f['capa']));
+      expect(detalhe.fotos.map((f) => f.url), fotos.map((f) => f['imagem']));
+      expect(detalhe.fotos.first.capa, isTrue);
+    });
+
+    test('características viram a lista de nomes', () {
+      final detalhe = DetalheImovelModel.fromJson(mapaCompleto())
+          .paraEntidade();
+
+      expect(detalhe.caracteristicas, ['Churrasqueira', 'Varanda gourmet']);
+    });
+
+    test('corretor_responsavel: id, nome e foto', () {
+      final capturado = mapaCompleto();
+      final corretor =
+          capturado['corretor_responsavel']! as Map<String, Object?>;
+
+      final detalhe = DetalheImovelModel.fromJson(capturado).paraEntidade();
+
+      expect(detalhe.corretor?.id, corretor['id']);
+      expect(detalhe.corretor?.nome, corretor['nome']);
+      expect(detalhe.corretor?.foto, corretor['foto']);
+    });
+
+    test('corretor_responsavel null vira corretor null', () {
+      final detalhe = DetalheImovelModel.fromJson(
+        detalheCapturado('detalhe_sem_corretor.json'),
+      ).paraEntidade();
+
+      expect(detalhe.corretor, isNull);
+    });
+
+    test('fotos [] vira lista vazia', () {
+      final detalhe = DetalheImovelModel.fromJson(
+        detalheCapturado('detalhe_sem_fotos.json'),
+      ).paraEntidade();
+
+      expect(detalhe.fotos, isEmpty);
+    });
   });
 
-  test('finalidade PERMUTA faz paraEntidade lançar FormatException', () {
-    final mapa = mapaCompleto()..['finalidade'] = 'PERMUTA';
-    final modelo = DetalheImovelModel.fromJson(mapa);
+  group('tolerância do endereco (D-15)', () {
+    test('logradouro, numero e cep nulos ainda parseiam', () {
+      final mapa = mapaCompleto()
+        ..['endereco'] = (enderecoCapturado()
+          ..['logradouro'] = null
+          ..['numero'] = null
+          ..['cep'] = null);
 
-    expect(modelo.paraEntidade, throwsA(isA<FormatException>()));
+      final modelo = DetalheImovelModel.fromJson(mapa);
+      final detalhe = modelo.paraEntidade();
+
+      expect(modelo.endereco?.logradouro, isNull);
+      expect(modelo.endereco?.numero, isNull);
+      expect(modelo.endereco?.cep, isNull);
+      expect(detalhe.cidade?.nome, 'Campinas');
+    });
+
+    test('endereco nulo vira bairro vazio e cidade nula', () {
+      final mapa = mapaCompleto()..['endereco'] = null;
+
+      final detalhe = DetalheImovelModel.fromJson(mapa).paraEntidade();
+
+      expect(detalhe.bairro, '');
+      expect(detalhe.cidade, isNull);
+      expect(detalhe.latitude, isNull);
+      expect(detalhe.longitude, isNull);
+    });
+
+    test('endereco.cidade nula vira cidade nula na entidade', () {
+      final mapa = mapaCompleto()
+        ..['endereco'] = (enderecoCapturado()..['cidade'] = null);
+
+      final detalhe = DetalheImovelModel.fromJson(mapa).paraEntidade();
+
+      expect(detalhe.cidade, isNull);
+      expect(detalhe.bairro, isNotEmpty);
+    });
   });
 
-  test('natureza CHALE (desconhecida) vira null', () {
-    final mapa = mapaCompleto()..['natureza'] = 'CHALE';
+  group('erros de parse (DET-06)', () {
+    test('mapa sem titulo lança TypeError em fromJson', () {
+      final mapa = mapaCompleto()..remove('titulo');
 
-    final detalhe = DetalheImovelModel.fromJson(mapa).paraEntidade();
+      expect(
+        () => DetalheImovelModel.fromJson(mapa),
+        throwsA(isA<TypeError>()),
+      );
+    });
 
-    expect(detalhe.natureza, isNull);
-  });
+    test('foto sem ordem lança TypeError em fromJson', () {
+      final fotos = (mapaCompleto()['fotos']! as List<Object?>)
+          .cast<Map<String, Object?>>();
+      final mapa = mapaCompleto()
+        ..['fotos'] = [
+          Map<String, Object?>.of(fotos.first)..remove('ordem'),
+          ...fotos.skip(1),
+        ];
 
-  test('fotos e caracteristicas ausentes viram listas vazias', () {
-    final mapa = mapaCompleto()
-      ..remove('fotos')
-      ..remove('caracteristicas');
+      expect(
+        () => DetalheImovelModel.fromJson(mapa),
+        throwsA(isA<TypeError>()),
+      );
+    });
 
-    final detalhe = DetalheImovelModel.fromJson(mapa).paraEntidade();
+    test('finalidade PERMUTA faz paraEntidade lançar FormatException', () {
+      final mapa = mapaCompleto()..['finalidade'] = 'PERMUTA';
+      final modelo = DetalheImovelModel.fromJson(mapa);
 
-    expect(detalhe.fotos, isEmpty);
-    expect(detalhe.caracteristicas, isEmpty);
+      expect(modelo.paraEntidade, throwsA(isA<FormatException>()));
+    });
+
+    test('natureza CHALE (desconhecida) vira null', () {
+      final mapa = mapaCompleto()..['natureza'] = 'CHALE';
+
+      final detalhe = DetalheImovelModel.fromJson(mapa).paraEntidade();
+
+      expect(detalhe.natureza, isNull);
+    });
+
+    test('fotos e caracteristicas ausentes viram listas vazias', () {
+      final mapa = mapaCompleto()
+        ..remove('fotos')
+        ..remove('caracteristicas');
+
+      final detalhe = DetalheImovelModel.fromJson(mapa).paraEntidade();
+
+      expect(detalhe.fotos, isEmpty);
+      expect(detalhe.caracteristicas, isEmpty);
+    });
   });
 
   group('URLs seguras (DET-02, segurança V12/V13)', () {
@@ -85,9 +259,9 @@ void main() {
       () {
         final mapa = mapaCompleto()
           ..['fotos'] = [
-            {'url': 'https://a.b/A.jpg', 'capa': true, 'ordem': 0},
-            {'url': 'javascript:alert(1)', 'capa': false, 'ordem': 1},
-            {'url': 'https://a.b/C.jpg', 'capa': false, 'ordem': 2},
+            {'imagem': 'https://a.b/A.jpg', 'ordem': 0, 'capa': true},
+            {'imagem': 'javascript:alert(1)', 'ordem': 1, 'capa': false},
+            {'imagem': 'https://a.b/C.jpg', 'ordem': 2, 'capa': false},
           ];
 
         final detalhe = DetalheImovelModel.fromJson(mapa).paraEntidade();
@@ -100,30 +274,35 @@ void main() {
     );
 
     test('DetalheImovelModel zera a foto do corretor fora de http(s)', () {
-      final mapa = mapaCompleto()
-        ..['corretor'] = {
-          'id': 7,
-          'nome': 'Marina Lopes',
-          'foto': 'file:///x',
-          'slug': 'marina-lopes',
-        };
+      final corretor = Map<String, Object?>.of(
+        mapaCompleto()['corretor_responsavel']! as Map<String, Object?>,
+      )..['foto'] = 'file:///x';
+      final mapa = mapaCompleto()..['corretor_responsavel'] = corretor;
 
       final detalhe = DetalheImovelModel.fromJson(mapa).paraEntidade();
 
       expect(detalhe.corretor?.foto, isNull);
-      expect(detalhe.corretor?.nome, 'Marina Lopes');
+      expect(detalhe.corretor?.nome, corretor['nome']);
     });
 
-    test('DetalheImovelModel mantém a foto https do corretor', () {
+    test('DetalheImovelModel mantém a foto http do corretor', () {
       final detalhe = DetalheImovelModel.fromJson(mapaCompleto())
           .paraEntidade();
 
-      expect(detalhe.corretor?.foto, startsWith('https://'));
+      expect(detalhe.corretor?.foto, startsWith('http'));
     });
 
+    Map<String, Object?> primeiraLinhaDaLista() =>
+        Map<String, Object?>.of(
+          ((lerFixtureApi('lista_campinas_p1.json')!
+                      as Map<String, Object?>)['results']!
+                  as List<Object?>)
+              .first!
+              as Map<String, Object?>,
+        );
+
     test('ImovelModel descarta a capa da lista com esquema inseguro', () {
-      final linha = Map<String, Object?>.of(linhasAcervoFixture().first)
-        ..['foto_capa'] = 'javascript:x';
+      final linha = primeiraLinhaDaLista()..['foto_capa'] = 'javascript:x';
 
       final imovel = ImovelModel.fromJson(linha).paraEntidade();
 
@@ -131,7 +310,7 @@ void main() {
     });
 
     test('ImovelModel mantém a capa https', () {
-      final linha = Map<String, Object?>.of(linhasAcervoFixture().first)
+      final linha = primeiraLinhaDaLista()
         ..['foto_capa'] = 'https://a.b/capa.jpg';
 
       final imovel = ImovelModel.fromJson(linha).paraEntidade();
@@ -140,73 +319,79 @@ void main() {
     });
   });
 
-  group('dados da natureza (DET-04, D-02, D-05, D-14)', () {
-    Map<String, Object?> detalheDe(int id) =>
-        Map<String, Object?>.of(detalhesAcervoFixture()[id]!);
-
+  group('dados da natureza nos blocos capturados (DET-04, D-14)', () {
     DadosNatureza? dadosDe(Map<String, Object?> mapa) =>
         DetalheImovelModel.fromJson(mapa).paraEntidade().dados;
 
-    test('CASA com bloco casa vira DadosCasa com todos os campos', () {
-      final mapa = detalheDe(57);
-
-      final dados = dadosDe(mapa);
+    test('CASA capturada vira DadosCasa com todos os campos', () {
+      final dados = dadosDe(mapaCompleto());
 
       expect(
         dados,
         const DadosNatureza.casa(
-          areaTerreno: '300.00',
-          areaConstruida: '180.00',
-          areaLivre: '100.00',
-          quartos: 3,
-          suites: 0,
-          banheiros: 2,
+          areaTerreno: '325.00',
+          areaConstruida: '150.00',
+          areaLivre: '175.00',
+          quartos: 4,
+          suites: 2,
+          banheiros: 3,
           salas: 2,
-          vagas: 2,
-          pavimentos: 1,
-          anoConstrucao: 1998,
-          piscina: false,
+          vagas: 3,
+          pavimentos: 2,
+          anoConstrucao: 2010,
+          piscina: true,
           quintal: true,
-          churrasqueira: true,
-          mobiliada: false,
+          churrasqueira: false,
+          mobiliada: true,
         ),
       );
     });
 
     test('area_livre chega exatamente como o servidor mandou, sem cálculo', () {
-      final dados = dadosDe(detalheDe(57));
+      final casa = dadosDe(mapaCompleto())! as DadosCasa;
 
-      expect(dados, isA<DadosCasa>());
-      final casa = dados! as DadosCasa;
-      // 300,00 - 180,00 seria 120,00: o app nunca recalcula (D-04).
-      expect(casa.areaLivre, '100.00');
-      expect(casa.areaTerreno, '300.00');
-      expect(casa.areaConstruida, '180.00');
+      // 325,00 - 150,00 também dá 175,00, mas o app nunca recalcula (D-04):
+      // o valor é o da captura, tal e qual.
+      expect(casa.areaLivre, '175.00');
+      expect(casa.areaTerreno, '325.00');
+      expect(casa.areaConstruida, '150.00');
     });
 
-    test('TERRENO com topografia ACLIVE vira DadosTerreno aclive', () {
-      final dados = dadosDe(detalheDe(63));
+    test('TERRENO capturado vira DadosTerreno com topografia aclive', () {
+      final dados = dadosDe(detalheCapturado('detalhe_terreno.json'));
 
-      expect(
-        dados,
-        const DadosNatureza.terreno(
-          areaTotal: '300.00',
-          frente: '12.00',
-          fundo: '25.00',
-          laterais: '25.00',
-          topografia: Topografia.aclive,
-          murado: true,
-          esquina: false,
-          usoPermitido: 'Residencial',
-        ),
-      );
+      expect(dados, isA<DadosTerreno>());
+      final terreno = dados! as DadosTerreno;
+      expect(terreno.areaTotal, '375.00');
+      expect(terreno.frente, '15.00');
+      expect(terreno.fundo, '25.00');
+      expect(terreno.lateralEsquerda, '25.00');
+      expect(terreno.lateralDireita, '25.00');
+      expect(terreno.topografia, Topografia.aclive);
+      expect(terreno.murado, isTrue);
+      expect(terreno.esquina, isFalse);
+      // O código chega como a API mandou; o rótulo é da apresentação (A-04).
+      expect(terreno.usoPermitido, 'COMERCIAL');
+    });
+
+    test('lateral_esquerda e lateral_direita são lidas separadas, sem soma', () {
+      final mapa = detalheCapturado('detalhe_terreno.json');
+      mapa['terreno'] = {
+        ...(mapa['terreno']! as Map<String, Object?>),
+        'lateral_esquerda': '20.00',
+        'lateral_direita': null,
+      };
+
+      final terreno = dadosDe(mapa)! as DadosTerreno;
+      expect(terreno.lateralEsquerda, '20.00');
+      expect(terreno.lateralDireita, isNull);
     });
 
     test(
       'topografia PLANO, ACLIVE e DECLIVE são mapeadas; outra vira null',
       () {
         Topografia? topografiaCom(String? valor) {
-          final mapa = detalheDe(63);
+          final mapa = detalheCapturado('detalhe_terreno.json');
           mapa['terreno'] = {
             ...(mapa['terreno']! as Map<String, Object?>),
             'topografia': valor,
@@ -222,135 +407,49 @@ void main() {
       },
     );
 
-    test('APARTAMENTO mapeia os campos próprios do apartamento', () {
-      final dados = dadosDe(detalheDe(42));
+    test('APARTAMENTO capturado mapeia os campos próprios', () {
+      final dados = dadosDe(detalheCapturado('detalhe_apartamento.json'));
 
       expect(dados, isA<DadosApartamento>());
       final apto = dados! as DadosApartamento;
-      expect(apto.andar, 8);
-      expect(apto.numero, '82');
-      expect(apto.areaPrivativa, '68.50');
-      expect(apto.areaTotal, '92.00');
-      expect(apto.quartos, 2);
+      expect(apto.andar, 11);
+      expect(apto.areaPrivativa, '85.00');
+      expect(apto.areaTotal, '100.00');
+      expect(apto.quartos, 1);
       expect(apto.suites, 1);
       expect(apto.banheiros, 2);
-      expect(apto.vagas, 1);
-      expect(apto.varanda, isTrue);
+      expect(apto.vagas, 2);
+      expect(apto.varanda, isFalse);
     });
 
-    test('posicao_solar chega como o texto da API, sem enum (D-19 b)', () {
+    test('posicao_solar chega como o código da API, sem enum (A-04)', () {
       expect(
-        (dadosDe(detalheDe(42))! as DadosApartamento).posicaoSolar,
-        'Nascente',
-      );
-
-      final mapa = detalheDe(42);
-      mapa['apartamento'] = {
-        ...(mapa['apartamento']! as Map<String, Object?>),
-        'posicao_solar': 'Sol da manhã',
-      };
-      expect((dadosDe(mapa)! as DadosApartamento).posicaoSolar, 'Sol da manhã');
-    });
-
-    test('LOTE mapeia os campos próprios do lote', () {
-      final mapa = detalheDe(103);
-      mapa['lote'] = {
-        'numero': '12',
-        'area': '450.00',
-        'frente': '15.00',
-        'fundo': '30.00',
-        'preco': '180000.00',
-        'condicoes_parcelamento': 'Entrada de 20%',
-      };
-
-      final dados = dadosDe(mapa);
-
-      expect(
-        dados,
-        const DadosNatureza.lote(
-          numero: '12',
-          area: '450.00',
-          frente: '15.00',
-          fundo: '30.00',
-          preco: '180000.00',
-          condicoesParcelamento: 'Entrada de 20%',
-        ),
+        (dadosDe(detalheCapturado('detalhe_apartamento.json'))!
+                as DadosApartamento)
+            .posicaoSolar,
+        'POENTE',
       );
     });
 
-    test(
-      'todos os campos do bloco são opcionais (bloco vazio não derruba)',
-      () {
-        final mapa = detalheDe(57);
-        mapa['casa'] = <String, Object?>{};
+    test('apartamento.predio capturado vira DadosPredio', () {
+      final apto =
+          dadosDe(detalheCapturado('detalhe_apartamento.json'))!
+              as DadosApartamento;
 
-        final dados = dadosDe(mapa);
-
-        expect(dados, const DadosNatureza.casa());
-      },
-    );
-
-    test('natureza desconhecida resulta em dados == null', () {
-      final mapa = detalheDe(57)..['natureza'] = 'CHALE';
-
-      expect(() => dadosDe(mapa), returnsNormally);
-      expect(dadosDe(mapa), isNull);
-    });
-
-    test('bloco nulo ou ausente resulta em dados == null', () {
-      final nulo = detalheDe(57)..['casa'] = null;
-      final ausente = detalheDe(57)..remove('casa');
-
-      expect(dadosDe(nulo), isNull);
-      expect(dadosDe(ausente), isNull);
-    });
-
-    test('natureza sem bloco próprio (só outro bloco preenchido) -> null', () {
-      final mapa = detalheDe(57)
-        ..['casa'] = null
-        ..['apartamento'] = (detalheDe(42)['apartamento']);
-
-      expect(() => dadosDe(mapa), returnsNormally);
-      expect(dadosDe(mapa), isNull);
-    });
-
-    test('natureza ausente resulta em dados == null mesmo com bloco', () {
-      final mapa = detalheDe(57)..remove('natureza');
-
-      expect(dadosDe(mapa), isNull);
-    });
-  });
-
-  group('prédio, quadra e loteamento embutidos (DET-04, D-03)', () {
-    Map<String, Object?> detalheDe(int id) =>
-        Map<String, Object?>.of(detalhesAcervoFixture()[id]!);
-
-    DadosNatureza? dadosDe(Map<String, Object?> mapa) =>
-        DetalheImovelModel.fromJson(mapa).paraEntidade().dados;
-
-    test('apartamento.predio vira DadosPredio com todos os campos', () {
-      final apto = dadosDe(detalheDe(42))! as DadosApartamento;
-
-      expect(
-        apto.predio,
-        const DadosPredio(
-          nome: 'Edifício Jequitibá',
-          andares: 15,
-          unidadesPorAndar: 4,
-          ano: 2012,
-          elevadores: 2,
-          portaria24h: true,
-          piscina: true,
-          academia: true,
-          salaoDeFestas: true,
-          playground: false,
-        ),
-      );
+      expect(apto.predio?.nome, 'Edifício Girassol Campinas');
+      expect(apto.predio?.andares, 12);
+      expect(apto.predio?.anoConstrucao, 2013);
+      expect(apto.predio?.elevadores, 2);
+      expect(apto.predio?.portaria24h, isTrue);
+      expect(apto.predio?.piscina, isTrue);
+      expect(apto.predio?.academia, isTrue);
+      expect(apto.predio?.salaoDeFestas, isTrue);
+      expect(apto.predio?.playground, isFalse);
     });
 
     test('predio nulo ou ausente vira null', () {
       Map<String, Object?> comPredio(Object? valor) {
-        final mapa = detalheDe(42);
+        final mapa = detalheCapturado('detalhe_apartamento.json');
         mapa['apartamento'] = {
           ...(mapa['apartamento']! as Map<String, Object?>),
           'predio': valor,
@@ -360,75 +459,195 @@ void main() {
 
       expect((dadosDe(comPredio(null))! as DadosApartamento).predio, isNull);
 
-      final ausente = detalheDe(42);
-      (ausente['apartamento']! as Map<String, Object?>).remove('predio');
+      final ausente = detalheCapturado('detalhe_apartamento.json');
+      ausente['apartamento'] = Map<String, Object?>.of(
+        ausente['apartamento']! as Map<String, Object?>,
+      )..remove('predio');
       expect((dadosDe(ausente)! as DadosApartamento).predio, isNull);
     });
 
-    test('lote.quadra vira DadosQuadra com o loteamento mapeado', () {
-      final lote = dadosDe(detalheDe(103))! as DadosLote;
+    test('LOTE capturado mapeia número, medidas e a quadra com o loteamento', () {
+      final lote =
+          dadosDe(detalheCapturado('detalhe_lote.json'))! as DadosLote;
 
-      expect(lote.quadra?.identificacao, 'Quadra B');
-      expect(lote.quadra?.loteamento?.nome, 'Residencial Parque das Flores');
-      expect(lote.quadra?.loteamento?.incorporadora, 'Flores Urbanismo');
-      expect(lote.quadra?.loteamento?.infraestrutura, [
-        'Asfalto',
-        'Água encanada',
-        'Rede de esgoto',
-        'Energia elétrica',
-        'Iluminação pública',
-      ]);
-      expect(lote.quadra?.loteamento?.areasLazer, [
-        'Praça',
-        'Playground',
-        'Quadra poliesportiva',
-      ]);
+      expect(lote.numero, '24');
+      expect(lote.area, '275.00');
+      expect(lote.frente, '11.00');
+      expect(lote.fundo, '25.00');
+      expect(lote.entradaMinima, '23500.00');
+      expect(lote.parcelasMaximas, 120);
+      expect(lote.condicoesParcelamento, 'Correção anual pelo IPCA.');
+      expect(lote.quadra?.identificacao, 'B');
+      expect(
+        lote.quadra?.loteamento?.nome,
+        'Loteamento Jardim dos Ipês Campinas',
+      );
+      expect(
+        lote.quadra?.loteamento?.incorporadora,
+        'Incorporadora Verde Vale',
+      );
     });
 
-    test('infraestrutura e areas_lazer ausentes viram listas vazias', () {
-      final mapa = detalheDe(103);
+    group('loteamento do lote capturado (A-03)', () {
+      Map<String, Object?> comLoteamento(Map<String, Object?> alteracoes) {
+        final mapa = detalheCapturado('detalhe_lote.json');
+        final lote = Map<String, Object?>.of(
+          mapa['lote']! as Map<String, Object?>,
+        );
+        final quadra = Map<String, Object?>.of(
+          lote['quadra']! as Map<String, Object?>,
+        );
+        quadra['loteamento'] = {
+          ...(quadra['loteamento']! as Map<String, Object?>),
+          ...alteracoes,
+        };
+        lote['quadra'] = quadra;
+        mapa['lote'] = lote;
+        return mapa;
+      }
+
+      DadosLoteamento? loteamentoDe(Map<String, Object?> mapa) =>
+          (dadosDe(mapa)! as DadosLote).quadra?.loteamento;
+
+      test('os cinco booleanos verdadeiros viram rótulos na ordem fixa e '
+          'areas_de_lazer chega como a frase do servidor', () {
+        final loteamento = loteamentoDe(detalheCapturado('detalhe_lote.json'));
+
+        expect(loteamento?.infraestrutura, [
+          'Asfalto',
+          'Água',
+          'Energia',
+          'Esgoto',
+          'Iluminação pública',
+        ]);
+        expect(
+          loteamento?.areasDeLazer,
+          'Praça central, quadra poliesportiva e pista de caminhada.',
+        );
+      });
+
+      test('só os booleanos verdadeiros entram; falso e nulo são omitidos', () {
+        final loteamento = loteamentoDe(
+          comLoteamento({
+            'asfalto': false,
+            'agua': true,
+            'energia': null,
+            'esgoto': false,
+            'iluminacao': true,
+          }),
+        );
+
+        expect(loteamento?.infraestrutura, ['Água', 'Iluminação pública']);
+      });
+
+      test('nenhum booleano verdadeiro resulta em infraestrutura vazia', () {
+        final loteamento = loteamentoDe(
+          comLoteamento({
+            'asfalto': false,
+            'agua': false,
+            'energia': false,
+            'esgoto': false,
+            'iluminacao': false,
+          }),
+        );
+
+        expect(loteamento?.infraestrutura, isEmpty);
+      });
+
+      test('areas_de_lazer em branco ou nula vira null, sem dividir o texto', () {
+        expect(
+          loteamentoDe(comLoteamento({'areas_de_lazer': '   '}))?.areasDeLazer,
+          isNull,
+        );
+        expect(
+          loteamentoDe(comLoteamento({'areas_de_lazer': ''}))?.areasDeLazer,
+          isNull,
+        );
+        expect(
+          loteamentoDe(comLoteamento({'areas_de_lazer': null}))?.areasDeLazer,
+          isNull,
+        );
+        expect(
+          loteamentoDe(
+            comLoteamento({'areas_de_lazer': 'Praça, quadra'}),
+          )?.areasDeLazer,
+          'Praça, quadra',
+        );
+      });
+    });
+
+    test('entrada_minima e parcelas_maximas nulas viram null', () {
+      final mapa = detalheCapturado('detalhe_lote.json');
       mapa['lote'] = {
         ...(mapa['lote']! as Map<String, Object?>),
-        'quadra': {
-          'identificacao': 'Quadra A',
-          'loteamento': {'nome': 'Residencial X'},
-        },
+        'entrada_minima': null,
+        'parcelas_maximas': null,
       };
 
       final lote = dadosDe(mapa)! as DadosLote;
-
-      expect(lote.quadra?.loteamento?.infraestrutura, isEmpty);
-      expect(lote.quadra?.loteamento?.areasLazer, isEmpty);
+      expect(lote.entradaMinima, isNull);
+      expect(lote.parcelasMaximas, isNull);
     });
 
     test('quadra nula e loteamento nulo viram null', () {
-      final semQuadra = detalheDe(103);
-      semQuadra['lote'] = {
-        ...(semQuadra['lote']! as Map<String, Object?>),
-        'quadra': null,
-      };
-      expect((dadosDe(semQuadra)! as DadosLote).quadra, isNull);
+      Map<String, Object?> comLote(Map<String, Object?> alteracoes) {
+        final mapa = detalheCapturado('detalhe_lote.json');
+        mapa['lote'] = {
+          ...(mapa['lote']! as Map<String, Object?>),
+          ...alteracoes,
+        };
+        return mapa;
+      }
 
-      final semLoteamento = detalheDe(103);
-      semLoteamento['lote'] = {
-        ...(semLoteamento['lote']! as Map<String, Object?>),
-        'quadra': {'identificacao': 'Quadra A', 'loteamento': null},
-      };
-      final quadra = (dadosDe(semLoteamento)! as DadosLote).quadra;
-      expect(quadra?.identificacao, 'Quadra A');
+      expect((dadosDe(comLote({'quadra': null}))! as DadosLote).quadra, isNull);
+
+      final quadra =
+          (dadosDe(
+                    comLote({
+                      'quadra': {'identificacao': 'B', 'loteamento': null},
+                    }),
+                  )!
+                  as DadosLote)
+              .quadra;
+      expect(quadra?.identificacao, 'B');
       expect(quadra?.loteamento, isNull);
     });
 
-    test('lote 103 mantém o preço do servidor, sem derivar de preco_venda', () {
-      final lote = dadosDe(detalheDe(103))! as DadosLote;
-      final semPreco = detalheDe(103);
-      semPreco['lote'] = {
-        ...(semPreco['lote']! as Map<String, Object?>),
-        'preco': null,
-      };
+    test('todos os campos do bloco são opcionais (bloco vazio não derruba)', () {
+      final mapa = mapaCompleto()..['casa'] = <String, Object?>{};
 
-      expect(lote.preco, '210500.50');
-      expect((dadosDe(semPreco)! as DadosLote).preco, isNull);
+      expect(dadosDe(mapa), const DadosNatureza.casa());
+    });
+
+    test('natureza desconhecida resulta em dados == null', () {
+      final mapa = mapaCompleto()..['natureza'] = 'CHALE';
+
+      expect(() => dadosDe(mapa), returnsNormally);
+      expect(dadosDe(mapa), isNull);
+    });
+
+    test('bloco nulo ou ausente resulta em dados == null', () {
+      final nulo = mapaCompleto()..['casa'] = null;
+      final ausente = mapaCompleto()..remove('casa');
+
+      expect(dadosDe(nulo), isNull);
+      expect(dadosDe(ausente), isNull);
+    });
+
+    test('natureza sem bloco próprio (só outro bloco preenchido) -> null', () {
+      final mapa = mapaCompleto()
+        ..['casa'] = null
+        ..['apartamento'] =
+            detalheCapturado('detalhe_apartamento.json')['apartamento'];
+
+      expect(() => dadosDe(mapa), returnsNormally);
+      expect(dadosDe(mapa), isNull);
+    });
+
+    test('natureza ausente resulta em dados == null mesmo com bloco', () {
+      final mapa = mapaCompleto()..remove('natureza');
+
+      expect(dadosDe(mapa), isNull);
     });
   });
 }

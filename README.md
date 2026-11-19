@@ -65,10 +65,13 @@ flutter run
 
 ## API e servidor de desenvolvimento
 
-A lista de cidades da tela de seleção vem de `GET /api/publico/cidades/`, servido pelo
-Django do repositório irmão (`../imoveis-aqui/Web`) — não há mais um asset fixo empacotado
-no app (D-16). O acervo de imóveis da vitrine ainda é servido por um mock em memória dentro
-do próprio app até a Fase 4.
+As cidades, a vitrine (lista, busca, ordenação, filtros e as opções de bairro e característica) e a
+página do imóvel vêm da API real do repositório irmão (`../imoveis-aqui/Web`), na branch
+`feat/APP05`: `GET /api/publico/cidades/`, `/api/publico/cidades/<id>/imoveis/`,
+`/api/publico/cidades/<id>/bairros/`, `/api/publico/caracteristicas/` e `/api/publico/imoveis/<id>/`.
+O app não tem mock de acervo: se a API falhar, a tela mostra o estado de erro com "Tentar de novo".
+O formato das respostas está em
+`.planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/01-CONTRATO-API.md`.
 
 ### Base URL da API (app)
 
@@ -88,16 +91,106 @@ o emulador Android:
 
 ### Subir o Django (`../imoveis-aqui/Web`)
 
+Na branch `feat/APP05` do repositório da API (ela traz a vitrine pública da W09 e as migrações
+`imoveis.0003` a `0006`):
+
 ```bash
 # a partir de ../imoveis-aqui/Web
-cp .env.example .env               # preencha DATABASE_URL e ALLOWED_HOSTS com suas credenciais
-python manage.py migrate
-python manage.py semear_vitrine_dev  # semeia Campinas/Valinhos/Vinhedo/Indaiatuba com 1 empresa demo ativa
-python manage.py runserver 0.0.0.0:8000
+git switch feat/APP05
+cp .env.example .env               # preencha DATABASE_URL (Postgres) e confira DEBUG=True
+.venv/bin/python manage.py migrate
+.venv/bin/python manage.py semear_vitrine_dev
+.venv/bin/python manage.py runserver 0.0.0.0:8000
 ```
 
-`ALLOWED_HOSTS` deve incluir `10.0.2.2` (emulador Android) e o IP da rede local da máquina
-(aparelho físico). `semear_vitrine_dev` é idempotente e só roda com `DEBUG=True`.
+- `semear_vitrine_dev` é idempotente, **só roda com `DEBUG=True`** e cria imóveis das quatro
+  naturezas (casa, apartamento, terreno e lote) em Campinas (24), Valinhos, Vinhedo e Indaiatuba
+  (4 cada), com fotos geradas na hora. Roda de novo sem duplicar nada.
+- `ALLOWED_HOSTS` deve incluir `10.0.2.2` (emulador Android) e o IP da rede local da máquina
+  (aparelho físico); o `.env.example` já traz `localhost,127.0.0.1,10.0.2.2`.
+- O servidor escuta em `0.0.0.0:8000` só durante o desenvolvimento; pare-o ao terminar.
+
+### Fixtures de teste (JSON real)
+
+Os testes do app não usam JSON escrito à mão: `test/fixtures/api/` guarda respostas **capturadas** da
+API semeada (cidades, listas de Campinas, bairros, características, os quatro detalhes, os casos sem
+foto e sem corretor e os erros 400 e 404). Os exemplos do contrato
+(`.planning/phases/01-.../contrato/*.example.json`) são cópias exatas delas, e
+`test/data/contrato_lista_test.dart` / `test/data/contrato_detalhe_test.dart` falham se divergirem.
+Para recapturar tudo (por exemplo, depois que a API mudar):
+
+```bash
+# 1. em ../imoveis-aqui/Web, com um SQLite temporário (NUNCA o banco do .env)
+CAPTURA_DB="sqlite:///${TMPDIR:-/tmp}/imoveis_captura_05.sqlite3"
+rm -f "${TMPDIR:-/tmp}/imoveis_captura_05.sqlite3"
+DEBUG=True DATABASE_URL="$CAPTURA_DB" .venv/bin/python manage.py migrate --noinput
+DEBUG=True DATABASE_URL="$CAPTURA_DB" .venv/bin/python manage.py semear_vitrine_dev
+
+# 2. servidor temporário em segundo plano
+DEBUG=True ALLOWED_HOSTS=localhost,127.0.0.1,10.0.2.2 DATABASE_URL="$CAPTURA_DB" \
+  .venv/bin/python manage.py runserver 127.0.0.1:8000 --noreload &
+
+# 3. na raiz do app (aguarde o servidor responder em /api/publico/cidades/)
+python3 tool/capturar_fixtures_api.py http://127.0.0.1:8000 test/fixtures/api --grupo todos
+
+# 4. pare o servidor temporário e apague o SQLite temporário
+```
+
+`--grupo todos` recaptura as 15 fixtures de uma vez (`lista` e `detalhe` capturam só o seu grupo).
+Depois, copie as fixtures para os exemplos do contrato (tabela no §12 do `01-CONTRATO-API.md`) e rode
+`flutter test`.
+
+### Verificação ponta a ponta (emulador)
+
+Só um emulador ou simulador contra o Django semeado prova a integração de verdade (rede, imagens,
+rolagem, latência). Desktop e web **não** servem: o projeto não tem a pasta `macos/` e a API não tem CORS.
+
+1. Suba a API (veja "Subir o Django" acima), com o banco migrado e semeado:
+
+   ```bash
+   cd ../imoveis-aqui/Web
+   .venv/bin/python manage.py runserver 0.0.0.0:8000
+   ```
+
+2. Rode o app:
+
+   - **Android** (AVD `Medium_Phone_API_36.0`, base URL padrão `http://10.0.2.2:8000`):
+
+     ```bash
+     flutter emulators --launch Medium_Phone_API_36.0
+     flutter run
+     ```
+
+   - **iOS** (simulador iOS 17.5):
+
+     ```bash
+     open -a Simulator
+     flutter run --dart-define=API_BASE_URL=http://127.0.0.1:8000
+     ```
+
+3. Roteiro (o que deve aparecer entre parênteses):
+   1. Escolha Campinas (ou deixe a localização escolher) e role a lista inteira (imóveis semeados com
+      fotos geradas em cores; duas páginas, sem cards repetidos).
+   2. Busque `Cambuí` e depois uma palavra que não casa com nada (cards correspondentes; depois o estado
+      sem resultado).
+   3. Ordene por "Maior preço" (o mais caro primeiro).
+   4. Abra "Filtros": marque Casa e Lote, um bairro, "Piscina" e uma faixa de preço; aplique; remova um
+      chip; toque em "Limpar filtros" (o servidor responde a cada combinação; chips e contador
+      acompanham; "Limpar filtros" volta à lista completa).
+   5. Abra uma casa, um apartamento, um terreno e um lote (galeria começando pela capa com "N/M"; preços
+      com condomínio/IPTU; "Sobre a casa"; "Sobre o apartamento" com o cartão do prédio e "Ano de
+      construção"; "Sobre o terreno" com "Lateral esquerda" e "Lateral direita" e "Uso permitido" em
+      português; "Sobre o lote" com "Entrada mínima", "Parcelas máximas" e o cartão "Quadra e loteamento",
+      sem "Preço do lote"; posição solar em português). No lote, toque no cartão do corretor e volte (o
+      perfil mostra só nome e foto).
+   6. Abra o imóvel sem fotos e o sem corretor (placeholder sem contador; sem a seção "Corretor
+      responsável").
+   7. Troque para Valinhos com um filtro ativo (a lista de Valinhos mantém o filtro e os bairros
+      escolhidos são limpos).
+
+   Textos e layout devem ler naturalmente em português a 360 dp, em Material 3 verde e branco.
+
+4. Ao terminar, pare o `runserver` (Ctrl+C).
 
 ## Testes e análise
 

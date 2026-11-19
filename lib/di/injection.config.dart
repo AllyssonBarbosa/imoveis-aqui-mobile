@@ -19,23 +19,14 @@ import 'package:imoveis_aqui/data/datasources/cidade_remote_datasource.dart'
 import 'package:imoveis_aqui/data/datasources/imovel_datasource.dart' as _i326;
 import 'package:imoveis_aqui/data/datasources/imovel_detalhe_datasource.dart'
     as _i631;
-import 'package:imoveis_aqui/data/datasources/imovel_detalhe_mock_datasource.dart'
-    as _i569;
-import 'package:imoveis_aqui/data/datasources/imovel_mock_datasource.dart'
-    as _i609;
+import 'package:imoveis_aqui/data/datasources/imovel_detalhe_remote_datasource.dart'
+    as _i601;
+import 'package:imoveis_aqui/data/datasources/imovel_remote_datasource.dart'
+    as _i877;
 import 'package:imoveis_aqui/data/datasources/opcoes_filtro_datasource.dart'
     as _i585;
-import 'package:imoveis_aqui/data/datasources/opcoes_filtro_mock_datasource.dart'
-    as _i158;
-import 'package:imoveis_aqui/data/datasources/perfil_datasource.dart' as _i185;
-import 'package:imoveis_aqui/data/datasources/perfil_mock_datasource.dart'
-    as _i258;
-import 'package:imoveis_aqui/data/datasources/perfil_remote_datasource.dart'
-    as _i879;
-import 'package:imoveis_aqui/data/datasources/vitrine_anunciante_datasource.dart'
-    as _i736;
-import 'package:imoveis_aqui/data/datasources/vitrine_anunciante_mock_datasource.dart'
-    as _i818;
+import 'package:imoveis_aqui/data/datasources/opcoes_filtro_remote_datasource.dart'
+    as _i429;
 import 'package:imoveis_aqui/data/gateways/geocoding_gateway_impl.dart'
     as _i506;
 import 'package:imoveis_aqui/data/gateways/geolocator_gateway_impl.dart'
@@ -48,10 +39,6 @@ import 'package:imoveis_aqui/data/repositories/imovel_repository_impl.dart'
     as _i1051;
 import 'package:imoveis_aqui/data/repositories/opcoes_filtro_repository_impl.dart'
     as _i375;
-import 'package:imoveis_aqui/data/repositories/perfil_repository_impl.dart'
-    as _i890;
-import 'package:imoveis_aqui/data/repositories/vitrine_anunciante_repository_impl.dart'
-    as _i477;
 import 'package:imoveis_aqui/di/modulo_rede.dart' as _i497;
 import 'package:imoveis_aqui/domain/gateways/geocoding_gateway.dart' as _i881;
 import 'package:imoveis_aqui/domain/gateways/geolocator_gateway.dart' as _i246;
@@ -63,12 +50,6 @@ import 'package:imoveis_aqui/domain/repositories/imovel_repository.dart'
     as _i970;
 import 'package:imoveis_aqui/domain/repositories/opcoes_filtro_repository.dart'
     as _i987;
-import 'package:imoveis_aqui/domain/repositories/perfil_repository.dart'
-    as _i195;
-import 'package:imoveis_aqui/domain/repositories/vitrine_anunciante_repository.dart'
-    as _i868;
-import 'package:imoveis_aqui/domain/usecases/buscar_imoveis_do_anunciante_usecase.dart'
-    as _i427;
 import 'package:imoveis_aqui/domain/usecases/buscar_imoveis_usecase.dart'
     as _i213;
 import 'package:imoveis_aqui/domain/usecases/detectar_cidade_usecase.dart'
@@ -83,10 +64,6 @@ import 'package:imoveis_aqui/domain/usecases/obter_cidades_atendidas_usecase.dar
     as _i54;
 import 'package:imoveis_aqui/domain/usecases/obter_detalhe_imovel_usecase.dart'
     as _i990;
-import 'package:imoveis_aqui/domain/usecases/obter_perfil_corretor_usecase.dart'
-    as _i741;
-import 'package:imoveis_aqui/domain/usecases/obter_perfil_empresa_usecase.dart'
-    as _i370;
 import 'package:imoveis_aqui/domain/usecases/salvar_cidade_usecase.dart'
     as _i589;
 import 'package:imoveis_aqui/domain/usecases/validar_cidade_atendida_usecase.dart'
@@ -95,12 +72,6 @@ import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_cubit.da
     as _i765;
 import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_cubit.dart'
     as _i331;
-import 'package:imoveis_aqui/presentation/perfis/perfil_corretor_cubit.dart'
-    as _i194;
-import 'package:imoveis_aqui/presentation/perfis/perfil_empresa_cubit.dart'
-    as _i723;
-import 'package:imoveis_aqui/presentation/perfis/vitrine_anunciante_cubit.dart'
-    as _i325;
 import 'package:imoveis_aqui/presentation/vitrine/opcoes_filtro_cubit.dart'
     as _i1002;
 import 'package:imoveis_aqui/presentation/vitrine/sessao_filtros_vitrine.dart'
@@ -123,14 +94,8 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i59.SessaoFiltrosVitrine>(
       () => _i59.SessaoFiltrosVitrine(),
     );
-    gh.lazySingleton<_i185.PerfilDataSource>(
-      () => _i258.PerfilMockDataSource(),
-    );
-    gh.lazySingleton<_i585.OpcoesFiltroDataSource>(
-      () => _i158.OpcoesFiltroMockDataSource(),
-    );
-    gh.lazySingleton<_i631.ImovelDetalheDataSource>(
-      () => _i569.ImovelDetalheMockDataSource(),
+    gh.lazySingleton<_i326.ImovelDataSource>(
+      () => _i877.ImovelRemoteDataSource(gh<_i361.Dio>()),
     );
     gh.lazySingleton<_i881.GeocodingGateway>(
       () => _i506.GeocodingGatewayImpl(),
@@ -138,34 +103,17 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i246.GeolocatorGateway>(
       () => _i777.GeolocatorGatewayImpl(),
     );
-    gh.lazySingleton<_i736.VitrineAnuncianteDataSource>(
-      () => _i818.VitrineAnuncianteMockDataSource(),
+    gh.lazySingleton<_i585.OpcoesFiltroDataSource>(
+      () => _i429.OpcoesFiltroRemoteDataSource(gh<_i361.Dio>()),
     );
-    gh.lazySingleton<_i326.ImovelDataSource>(
-      () => _i609.ImovelMockDataSource(),
+    gh.lazySingleton<_i631.ImovelDetalheDataSource>(
+      () => _i601.ImovelDetalheRemoteDataSource(gh<_i361.Dio>()),
     );
     gh.lazySingleton<_i970.ImovelRepository>(
       () => _i1051.ImovelRepositoryImpl(gh<_i326.ImovelDataSource>()),
     );
     gh.lazySingleton<_i320.CidadeRemoteDataSource>(
       () => _i320.CidadeRemoteDataSource(gh<_i361.Dio>()),
-    );
-    gh.lazySingleton<_i879.PerfilRemoteDataSource>(
-      () => _i879.PerfilRemoteDataSource(gh<_i361.Dio>()),
-    );
-    gh.lazySingleton<_i868.VitrineAnuncianteRepository>(
-      () => _i477.VitrineAnuncianteRepositoryImpl(
-        gh<_i736.VitrineAnuncianteDataSource>(),
-      ),
-    );
-    gh.lazySingleton<_i195.PerfilRepository>(
-      () => _i890.PerfilRepositoryImpl(gh<_i185.PerfilDataSource>()),
-    );
-    gh.factory<_i741.ObterPerfilCorretorUseCase>(
-      () => _i741.ObterPerfilCorretorUseCase(gh<_i195.PerfilRepository>()),
-    );
-    gh.factory<_i370.ObterPerfilEmpresaUseCase>(
-      () => _i370.ObterPerfilEmpresaUseCase(gh<_i195.PerfilRepository>()),
     );
     gh.factory<_i213.BuscarImoveisUseCase>(
       () => _i213.BuscarImoveisUseCase(gh<_i970.ImovelRepository>()),
@@ -178,14 +126,6 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i109.ImovelDetalheRepositoryImpl(
         gh<_i631.ImovelDetalheDataSource>(),
       ),
-    );
-    gh.factory<_i427.BuscarImoveisDoAnuncianteUseCase>(
-      () => _i427.BuscarImoveisDoAnuncianteUseCase(
-        gh<_i868.VitrineAnuncianteRepository>(),
-      ),
-    );
-    gh.factory<_i194.PerfilCorretorCubit>(
-      () => _i194.PerfilCorretorCubit(gh<_i741.ObterPerfilCorretorUseCase>()),
     );
     gh.factory<_i990.ObterDetalheImovelUseCase>(
       () =>
@@ -210,9 +150,6 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i59.SessaoFiltrosVitrine>(),
       ),
     );
-    gh.factory<_i723.PerfilEmpresaCubit>(
-      () => _i723.PerfilEmpresaCubit(gh<_i370.ObterPerfilEmpresaUseCase>()),
-    );
     gh.factory<_i20.ObterBairrosUseCase>(
       () => _i20.ObterBairrosUseCase(gh<_i987.OpcoesFiltroRepository>()),
     );
@@ -233,11 +170,6 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i1002.OpcoesFiltroCubit(
         gh<_i20.ObterBairrosUseCase>(),
         gh<_i441.ObterCaracteristicasUseCase>(),
-      ),
-    );
-    gh.factory<_i325.VitrineAnuncianteCubit>(
-      () => _i325.VitrineAnuncianteCubit(
-        gh<_i427.BuscarImoveisDoAnuncianteUseCase>(),
       ),
     );
     gh.factory<_i331.DetalheImovelCubit>(

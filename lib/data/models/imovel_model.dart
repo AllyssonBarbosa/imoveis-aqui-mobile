@@ -1,17 +1,16 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../domain/entities/imovel.dart';
-import 'cidade_model.dart';
 import 'url_segura.dart';
 
 part 'imovel_model.freezed.dart';
 part 'imovel_model.g.dart';
 
-/// Modelo de transporte para uma linha de `GET /imoveis` (contrato §3.1 +
-/// §3.2), hoje servida por `ImovelMockDataSource` (D-14) e futuramente pelo
-/// endpoint real (Fase 4, API-04). Campos PENDENTE E2 (`natureza`, `quartos`,
-/// `suites`, `vagas`, `area`) ficam nullable até o backend confirmar o campo
-/// real.
+/// Modelo de transporte para um item de
+/// `GET /api/publico/cidades/<id>/imoveis/` (W09, D-17). A lista não manda
+/// descrição, cidade, características nem data de criação, então o modelo
+/// não os declara; chaves a mais (ex.: `preco_condominio`) são ignoradas. O
+/// `bairro` pode vir nulo (`bairro_anuncio` vazio) e vira `''` na entidade.
 @freezed
 abstract class ImovelModel with _$ImovelModel {
   const ImovelModel._();
@@ -22,12 +21,8 @@ abstract class ImovelModel with _$ImovelModel {
     required String finalidade,
     @JsonKey(name: 'preco_venda') String? precoVenda,
     @JsonKey(name: 'preco_aluguel') String? precoAluguel,
-    required String descricao,
-    required String bairro,
-    required CidadeModel cidade,
+    String? bairro,
     @JsonKey(name: 'foto_capa') String? fotoCapa,
-    required List<String> caracteristicas,
-    @JsonKey(name: 'criado_em') required String criadoEm,
     String? natureza,
     int? quartos,
     int? suites,
@@ -38,7 +33,8 @@ abstract class ImovelModel with _$ImovelModel {
   factory ImovelModel.fromJson(Map<String, Object?> json) =>
       _$ImovelModelFromJson(json);
 
-  /// Mapeia para a entidade de domínio. `finalidade` desconhecida lança
+  /// Mapeia para a entidade de domínio. `bairro` nulo vira `''`;
+  /// `finalidade` desconhecida lança
   /// [FormatException] — o repositório converte em `Result.failure`
   /// (T-02-01-01); `natureza` desconhecida ou ausente vira `null`;
   /// `fotoCapa` fora de http(s) vira `null` (V12/V13).
@@ -49,8 +45,7 @@ abstract class ImovelModel with _$ImovelModel {
       finalidade: _mapearFinalidade(finalidade),
       precoVenda: precoVenda,
       precoAluguel: precoAluguel,
-      bairro: bairro,
-      cidade: cidade.paraEntidade(),
+      bairro: bairro ?? '',
       fotoCapa: urlHttpOuNula(fotoCapa),
       natureza: _mapearNatureza(natureza),
       quartos: quartos,

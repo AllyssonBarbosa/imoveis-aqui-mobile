@@ -1,12 +1,13 @@
 import 'package:injectable/injectable.dart';
 
 import '../../core/result.dart';
+import '../../domain/entities/caracteristica.dart';
 import '../../domain/entities/cidade.dart';
 import '../../domain/repositories/opcoes_filtro_repository.dart';
 import '../datasources/opcoes_filtro_datasource.dart';
 
-/// Impl de [OpcoesFiltroRepository] (API-04) — injeta a interface trocável
-/// [OpcoesFiltroDataSource], nunca a classe mock diretamente (mesma
+/// Impl de [OpcoesFiltroRepository] (API-04) — injeta a interface
+/// [OpcoesFiltroDataSource], nunca a classe concreta diretamente (mesma
 /// disciplina de `ImovelRepositoryImpl`).
 @LazySingleton(as: OpcoesFiltroRepository)
 class OpcoesFiltroRepositoryImpl implements OpcoesFiltroRepository {
@@ -19,16 +20,28 @@ class OpcoesFiltroRepositoryImpl implements OpcoesFiltroRepository {
     try {
       final bairros = await _dataSource.bairros(cidade);
       return Result.success(bairros);
+    } on TypeError catch (erro) {
+      return Result.failure(
+        FormatException('opções de filtro malformadas: $erro'),
+      );
     } on Exception catch (erro) {
       return Result.failure(erro);
     }
   }
 
   @override
-  Future<Result<List<String>>> caracteristicas() async {
+  Future<Result<List<Caracteristica>>> caracteristicas() async {
     try {
       final caracteristicas = await _dataSource.caracteristicas();
-      return Result.success(caracteristicas);
+      // Ordem do servidor preservada (D-14): o app nunca re-ordena.
+      return Result.success([
+        for (final modelo in caracteristicas)
+          Caracteristica(id: modelo.id, nome: modelo.nome),
+      ]);
+    } on TypeError catch (erro) {
+      return Result.failure(
+        FormatException('opções de filtro malformadas: $erro'),
+      );
     } on Exception catch (erro) {
       return Result.failure(erro);
     }

@@ -1,0 +1,76 @@
+{
+  "id": 23,
+  "titulo": "Terreno no bairro Taquaral",
+  "natureza": "TERRENO",
+  "finalidade": "VENDA_E_ALUGUEL",
+  "preco_venda": "290000.00",
+  "preco_aluguel": "2450.00",
+  "preco_condominio": null,
+  "preco_iptu": null,
+  "descricao": "Terreno de demonstração em Campinas (Taquaral), semeado para o desenvolvimento da vitrine.",
+  "caracteristicas": [
+    {
+      "id": 3,
+      "nome": "Portão eletrônico"
+    },
+    {
+      "id": 6,
+      "nome": "Quintal"
+    }
+  ],
+  "casa": null,
+  "terreno": {
+    "area_total": "375.00",
+    "frente": "15.00",
+    "fundo": "25.00",
+    "lateral_esquerda": "25.00",
+    "lateral_direita": "25.00",
+    "topografia": "ACLIVE",
+    "murado": true,
+    "esquina": false,
+    "uso_permitido": "COMERCIAL"
+  },
+  "apartamento": null,
+  "lote": null,
+  "endereco": {
+    "logradouro": "Avenida Norte-Sul",
+    "numero": "254",
+    "bairro": "Taquaral",
+    "cep": "13032-000",
+    "cidade": {
+      "id": 1,
+      "nome": "Campinas",
+      "uf": "SP"
+    },
+    "latitude": "-22.877000",
+    "longitude": "-47.089400"
+  },
+  "fotos": [
+    {
+      "imagem": "http://127.0.0.1:8000/media/imoveis/fotos/dev-campinas-23-1_OjI1h19.jpg",
+      "ordem": 0,
+      "capa": true
+    },
+    {
+      "imagem": "http://127.0.0.1:8000/media/imoveis/fotos/dev-campinas-23-2_ukoW2fc.jpg",
+      "ordem": 1,
+      "capa": false
+    },
+    {
+      "imagem": "http://127.0.0.1:8000/media/imoveis/fotos/dev-campinas-23-3_WjPbLDA.jpg",
+      "ordem": 2,
+      "capa": false
+    }
+  ],
+  "corretor_responsavel": {
+    "id": 1,
+    "empresa_id": 1,
+    "foto": "http://127.0.0.1:8000/media/corretores/fotos/corretor_oNKldeD.vitrine.demo.jpg",
+    "nome": "Corretor Vitrine Demo",
+    "email": "corretor.vitrine.demo@example.com",
+    "creci": "12345-F",
+    "telefone": "19988887777",
+    "whatsapp": "19988887777",
+    "apresentacao": "Corretor de demonstração da vitrine de desenvolvimento."
+  }
+}

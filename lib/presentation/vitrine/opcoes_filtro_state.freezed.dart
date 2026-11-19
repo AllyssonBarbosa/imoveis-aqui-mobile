@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$OpcoesFiltroState {
 
- CarregamentoOpcoes get bairros; CarregamentoOpcoes get caracteristicas;
+ CarregamentoOpcoes<String> get bairros; CarregamentoOpcoes<Caracteristica> get caracteristicas;
 /// Create a copy of OpcoesFiltroState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -51,11 +51,11 @@ abstract mixin class $OpcoesFiltroStateCopyWith<$Res>  {
   factory $OpcoesFiltroStateCopyWith(OpcoesFiltroState value, $Res Function(OpcoesFiltroState) _then) = _$OpcoesFiltroStateCopyWithImpl;
 @useResult
 $Res call({
- CarregamentoOpcoes bairros, CarregamentoOpcoes caracteristicas
+ CarregamentoOpcoes<String> bairros, CarregamentoOpcoes<Caracteristica> caracteristicas
 });
 
 
-$CarregamentoOpcoesCopyWith<$Res> get bairros;$CarregamentoOpcoesCopyWith<$Res> get caracteristicas;
+$CarregamentoOpcoesCopyWith<String, $Res> get bairros;$CarregamentoOpcoesCopyWith<Caracteristica, $Res> get caracteristicas;
 
 }
 /// @nodoc
@@ -71,26 +71,26 @@ class _$OpcoesFiltroStateCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? bairros = null,Object? caracteristicas = null,}) {
   return _then(OpcoesFiltroState(
 bairros: null == bairros ? _self.bairros : bairros // ignore: cast_nullable_to_non_nullable
-as CarregamentoOpcoes,caracteristicas: null == caracteristicas ? _self.caracteristicas : caracteristicas // ignore: cast_nullable_to_non_nullable
-as CarregamentoOpcoes,
+as CarregamentoOpcoes<String>,caracteristicas: null == caracteristicas ? _self.caracteristicas : caracteristicas // ignore: cast_nullable_to_non_nullable
+as CarregamentoOpcoes<Caracteristica>,
   ));
 }
 /// Create a copy of OpcoesFiltroState
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$CarregamentoOpcoesCopyWith<$Res> get bairros {
+$CarregamentoOpcoesCopyWith<String, $Res> get bairros {
   
-  return $CarregamentoOpcoesCopyWith<$Res>(_self.bairros, (value) {
+  return $CarregamentoOpcoesCopyWith<String, $Res>(_self.bairros, (value) {
     return _then(_self.copyWith(bairros: value));
   });
 }/// Create a copy of OpcoesFiltroState
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$CarregamentoOpcoesCopyWith<$Res> get caracteristicas {
+$CarregamentoOpcoesCopyWith<Caracteristica, $Res> get caracteristicas {
   
-  return $CarregamentoOpcoesCopyWith<$Res>(_self.caracteristicas, (value) {
+  return $CarregamentoOpcoesCopyWith<Caracteristica, $Res>(_self.caracteristicas, (value) {
     return _then(_self.copyWith(caracteristicas: value));
   });
 }
@@ -175,7 +175,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( CarregamentoOpcoes bairros,  CarregamentoOpcoes caracteristicas)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( CarregamentoOpcoes<String> bairros,  CarregamentoOpcoes<Caracteristica> caracteristicas)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _OpcoesFiltroState() when $default != null:
 return $default(_that.bairros,_that.caracteristicas);case _:
@@ -196,7 +196,7 @@ return $default(_that.bairros,_that.caracteristicas);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( CarregamentoOpcoes bairros,  CarregamentoOpcoes caracteristicas)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( CarregamentoOpcoes<String> bairros,  CarregamentoOpcoes<Caracteristica> caracteristicas)  $default,) {final _that = this;
 switch (_that) {
 case _OpcoesFiltroState():
 return $default(_that.bairros,_that.caracteristicas);case _:
@@ -216,7 +216,7 @@ return $default(_that.bairros,_that.caracteristicas);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( CarregamentoOpcoes bairros,  CarregamentoOpcoes caracteristicas)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( CarregamentoOpcoes<String> bairros,  CarregamentoOpcoes<Caracteristica> caracteristicas)?  $default,) {final _that = this;
 switch (_that) {
 case _OpcoesFiltroState() when $default != null:
 return $default(_that.bairros,_that.caracteristicas);case _:
@@ -231,11 +231,11 @@ return $default(_that.bairros,_that.caracteristicas);case _:
 
 
 class _OpcoesFiltroState implements OpcoesFiltroState {
-  const _OpcoesFiltroState({this.bairros = const CarregamentoOpcoes.carregando(), this.caracteristicas = const CarregamentoOpcoes.carregando()});
+  const _OpcoesFiltroState({this.bairros = const CarregamentoOpcoes<String>.carregando(), this.caracteristicas = const CarregamentoOpcoes<Caracteristica>.carregando()});
   
 
-@override@JsonKey() final  CarregamentoOpcoes bairros;
-@override@JsonKey() final  CarregamentoOpcoes caracteristicas;
+@override@JsonKey() final  CarregamentoOpcoes<String> bairros;
+@override@JsonKey() final  CarregamentoOpcoes<Caracteristica> caracteristicas;
 
 /// Create a copy of OpcoesFiltroState
 /// with the given fields replaced by the non-null parameter values.
@@ -269,11 +269,11 @@ abstract mixin class _$OpcoesFiltroStateCopyWith<$Res> implements $OpcoesFiltroS
   factory _$OpcoesFiltroStateCopyWith(_OpcoesFiltroState value, $Res Function(_OpcoesFiltroState) _then) = __$OpcoesFiltroStateCopyWithImpl;
 @override @useResult
 $Res call({
- CarregamentoOpcoes bairros, CarregamentoOpcoes caracteristicas
+ CarregamentoOpcoes<String> bairros, CarregamentoOpcoes<Caracteristica> caracteristicas
 });
 
 
-@override $CarregamentoOpcoesCopyWith<$Res> get bairros;@override $CarregamentoOpcoesCopyWith<$Res> get caracteristicas;
+@override $CarregamentoOpcoesCopyWith<String, $Res> get bairros;@override $CarregamentoOpcoesCopyWith<Caracteristica, $Res> get caracteristicas;
 
 }
 /// @nodoc
@@ -289,8 +289,8 @@ class __$OpcoesFiltroStateCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? bairros = null,Object? caracteristicas = null,}) {
   return _then(_OpcoesFiltroState(
 bairros: null == bairros ? _self.bairros : bairros // ignore: cast_nullable_to_non_nullable
-as CarregamentoOpcoes,caracteristicas: null == caracteristicas ? _self.caracteristicas : caracteristicas // ignore: cast_nullable_to_non_nullable
-as CarregamentoOpcoes,
+as CarregamentoOpcoes<String>,caracteristicas: null == caracteristicas ? _self.caracteristicas : caracteristicas // ignore: cast_nullable_to_non_nullable
+as CarregamentoOpcoes<Caracteristica>,
   ));
 }
 
@@ -298,25 +298,25 @@ as CarregamentoOpcoes,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$CarregamentoOpcoesCopyWith<$Res> get bairros {
+$CarregamentoOpcoesCopyWith<String, $Res> get bairros {
   
-  return $CarregamentoOpcoesCopyWith<$Res>(_self.bairros, (value) {
+  return $CarregamentoOpcoesCopyWith<String, $Res>(_self.bairros, (value) {
     return _then(_self.copyWith(bairros: value));
   });
 }/// Create a copy of OpcoesFiltroState
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$CarregamentoOpcoesCopyWith<$Res> get caracteristicas {
+$CarregamentoOpcoesCopyWith<Caracteristica, $Res> get caracteristicas {
   
-  return $CarregamentoOpcoesCopyWith<$Res>(_self.caracteristicas, (value) {
+  return $CarregamentoOpcoesCopyWith<Caracteristica, $Res>(_self.caracteristicas, (value) {
     return _then(_self.copyWith(caracteristicas: value));
   });
 }
 }
 
 /// @nodoc
-mixin _$CarregamentoOpcoes {
+mixin _$CarregamentoOpcoes<T> {
 
 
 
@@ -324,7 +324,7 @@ mixin _$CarregamentoOpcoes {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is CarregamentoOpcoes);
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is CarregamentoOpcoes<T>);
 }
 
 
@@ -333,20 +333,20 @@ int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-    return 'CarregamentoOpcoes()';
+    return 'CarregamentoOpcoes<$T>()';
 }
 
 
 }
 
 /// @nodoc
-class $CarregamentoOpcoesCopyWith<$Res>  {
-$CarregamentoOpcoesCopyWith(CarregamentoOpcoes _, $Res Function(CarregamentoOpcoes) __);
+class $CarregamentoOpcoesCopyWith<T,$Res>  {
+$CarregamentoOpcoesCopyWith(CarregamentoOpcoes<T> _, $Res Function(CarregamentoOpcoes<T>) __);
 }
 
 
 /// Adds pattern-matching-related methods to [CarregamentoOpcoes].
-extension CarregamentoOpcoesPatterns on CarregamentoOpcoes {
+extension CarregamentoOpcoesPatterns<T> on CarregamentoOpcoes<T> {
 /// A variant of `map` that fallback to returning `orElse`.
 ///
 /// It is equivalent to doing:
@@ -359,7 +359,7 @@ extension CarregamentoOpcoesPatterns on CarregamentoOpcoes {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( OpcoesCarregando value)?  carregando,TResult Function( OpcoesCarregadas value)?  carregadas,TResult Function( OpcoesFalha value)?  falha,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( OpcoesCarregando<T> value)?  carregando,TResult Function( OpcoesCarregadas<T> value)?  carregadas,TResult Function( OpcoesFalha<T> value)?  falha,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case OpcoesCarregando() when carregando != null:
@@ -383,7 +383,7 @@ return falha(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( OpcoesCarregando value)  carregando,required TResult Function( OpcoesCarregadas value)  carregadas,required TResult Function( OpcoesFalha value)  falha,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( OpcoesCarregando<T> value)  carregando,required TResult Function( OpcoesCarregadas<T> value)  carregadas,required TResult Function( OpcoesFalha<T> value)  falha,}){
 final _that = this;
 switch (_that) {
 case OpcoesCarregando():
@@ -403,7 +403,7 @@ return falha(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( OpcoesCarregando value)?  carregando,TResult? Function( OpcoesCarregadas value)?  carregadas,TResult? Function( OpcoesFalha value)?  falha,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( OpcoesCarregando<T> value)?  carregando,TResult? Function( OpcoesCarregadas<T> value)?  carregadas,TResult? Function( OpcoesFalha<T> value)?  falha,}){
 final _that = this;
 switch (_that) {
 case OpcoesCarregando() when carregando != null:
@@ -426,7 +426,7 @@ return falha(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  carregando,TResult Function( List<String> opcoes)?  carregadas,TResult Function()?  falha,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  carregando,TResult Function( List<T> opcoes)?  carregadas,TResult Function()?  falha,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case OpcoesCarregando() when carregando != null:
 return carregando();case OpcoesCarregadas() when carregadas != null:
@@ -449,7 +449,7 @@ return falha();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  carregando,required TResult Function( List<String> opcoes)  carregadas,required TResult Function()  falha,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  carregando,required TResult Function( List<T> opcoes)  carregadas,required TResult Function()  falha,}) {final _that = this;
 switch (_that) {
 case OpcoesCarregando():
 return carregando();case OpcoesCarregadas():
@@ -468,7 +468,7 @@ return falha();}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  carregando,TResult? Function( List<String> opcoes)?  carregadas,TResult? Function()?  falha,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  carregando,TResult? Function( List<T> opcoes)?  carregadas,TResult? Function()?  falha,}) {final _that = this;
 switch (_that) {
 case OpcoesCarregando() when carregando != null:
 return carregando();case OpcoesCarregadas() when carregadas != null:
@@ -484,7 +484,7 @@ return falha();case _:
 /// @nodoc
 
 
-class OpcoesCarregando implements CarregamentoOpcoes {
+class OpcoesCarregando<T> implements CarregamentoOpcoes<T> {
   const OpcoesCarregando();
   
 
@@ -495,7 +495,7 @@ class OpcoesCarregando implements CarregamentoOpcoes {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is OpcoesCarregando);
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is OpcoesCarregando<T>);
 }
 
 
@@ -504,7 +504,7 @@ int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-    return 'CarregamentoOpcoes.carregando()';
+    return 'CarregamentoOpcoes<$T>.carregando()';
 }
 
 
@@ -516,12 +516,12 @@ String toString() {
 /// @nodoc
 
 
-class OpcoesCarregadas implements CarregamentoOpcoes {
-  const OpcoesCarregadas( List<String> opcoes): _opcoes = opcoes;
+class OpcoesCarregadas<T> implements CarregamentoOpcoes<T> {
+  const OpcoesCarregadas( List<T> opcoes): _opcoes = opcoes;
   
 
- final  List<String> _opcoes;
- List<String> get opcoes {
+ final  List<T> _opcoes;
+ List<T> get opcoes {
   if (_opcoes is EqualUnmodifiableListView) return _opcoes;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_opcoes);
@@ -532,13 +532,13 @@ class OpcoesCarregadas implements CarregamentoOpcoes {
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-$OpcoesCarregadasCopyWith<OpcoesCarregadas> get copyWith => _$OpcoesCarregadasCopyWithImpl<OpcoesCarregadas>(this, _$identity);
+$OpcoesCarregadasCopyWith<T, OpcoesCarregadas<T>> get copyWith => _$OpcoesCarregadasCopyWithImpl<T, OpcoesCarregadas<T>>(this, _$identity);
 
 
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is OpcoesCarregadas&&const DeepCollectionEquality().equals(other.opcoes, _opcoes));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is OpcoesCarregadas<T>&&const DeepCollectionEquality().equals(other.opcoes, _opcoes));
 }
 
 
@@ -549,18 +549,18 @@ int get hashCode {
 
 @override
 String toString() {
-    return 'CarregamentoOpcoes.carregadas(opcoes: $opcoes)';
+    return 'CarregamentoOpcoes<$T>.carregadas(opcoes: $opcoes)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class $OpcoesCarregadasCopyWith<$Res> implements $CarregamentoOpcoesCopyWith<$Res> {
-  factory $OpcoesCarregadasCopyWith(OpcoesCarregadas value, $Res Function(OpcoesCarregadas) _then) = _$OpcoesCarregadasCopyWithImpl;
+abstract mixin class $OpcoesCarregadasCopyWith<T,$Res> implements $CarregamentoOpcoesCopyWith<T, $Res> {
+  factory $OpcoesCarregadasCopyWith(OpcoesCarregadas<T> value, $Res Function(OpcoesCarregadas<T>) _then) = _$OpcoesCarregadasCopyWithImpl;
 @useResult
 $Res call({
- List<String> opcoes
+ List<T> opcoes
 });
 
 
@@ -568,19 +568,19 @@ $Res call({
 
 }
 /// @nodoc
-class _$OpcoesCarregadasCopyWithImpl<$Res>
-    implements $OpcoesCarregadasCopyWith<$Res> {
+class _$OpcoesCarregadasCopyWithImpl<T,$Res>
+    implements $OpcoesCarregadasCopyWith<T, $Res> {
   _$OpcoesCarregadasCopyWithImpl(this._self, this._then);
 
-  final OpcoesCarregadas _self;
-  final $Res Function(OpcoesCarregadas) _then;
+  final OpcoesCarregadas<T> _self;
+  final $Res Function(OpcoesCarregadas<T>) _then;
 
 /// Create a copy of CarregamentoOpcoes
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') $Res call({Object? opcoes = null,}) {
-  return _then(OpcoesCarregadas(
+  return _then(OpcoesCarregadas<T>(
 null == opcoes ? _self._opcoes : opcoes // ignore: cast_nullable_to_non_nullable
-as List<String>,
+as List<T>,
   ));
 }
 
@@ -590,7 +590,7 @@ as List<String>,
 /// @nodoc
 
 
-class OpcoesFalha implements CarregamentoOpcoes {
+class OpcoesFalha<T> implements CarregamentoOpcoes<T> {
   const OpcoesFalha();
   
 
@@ -601,7 +601,7 @@ class OpcoesFalha implements CarregamentoOpcoes {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is OpcoesFalha);
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is OpcoesFalha<T>);
 }
 
 
@@ -610,7 +610,7 @@ int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-    return 'CarregamentoOpcoes.falha()';
+    return 'CarregamentoOpcoes<$T>.falha()';
 }
 
 

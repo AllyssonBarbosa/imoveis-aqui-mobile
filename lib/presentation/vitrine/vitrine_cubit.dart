@@ -230,10 +230,14 @@ class VitrineCubit extends Cubit<VitrineState> {
 
     switch (resultado) {
       case Success(:final data):
+        // Integridade da lista (não é filtro de negócio): se o acervo mudou
+        // entre as páginas, um id já exibido não entra de novo.
+        final idsListados = conteudoAtual.itens.map((i) => i.id).toSet();
+        final novos = data.itens.where((i) => !idsListados.contains(i.id));
         emit(
           state.copyWith(
             conteudo: conteudoAtual.copyWith(
-              itens: [...conteudoAtual.itens, ...data.itens],
+              itens: [...conteudoAtual.itens, ...novos],
               proximaPagina: data.proximaPagina,
               carregandoMais: false,
             ),

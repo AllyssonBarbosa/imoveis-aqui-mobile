@@ -1,6 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:imoveis_aqui/domain/entities/caracteristica.dart';
 import 'package:imoveis_aqui/domain/entities/filtros_vitrine.dart';
 import 'package:imoveis_aqui/domain/entities/imovel.dart';
+
+const _piscina = Caracteristica(id: 1, nome: 'Piscina');
 
 void main() {
   group('FiltrosVitrine.quantidadeAtiva (D-16)', () {
@@ -45,7 +48,7 @@ void main() {
     });
 
     test('todos os 9 campos ativos ao mesmo tempo contam 9', () {
-      const filtros = FiltrosVitrine(
+      final filtros = FiltrosVitrine(
         finalidade: FinalidadeFiltro.aluguel,
         naturezas: {NaturezaImovel.casa},
         precoMin: 1000,
@@ -54,7 +57,7 @@ void main() {
         vagasMin: 1,
         bairros: {'Cambuí'},
         areaMin: 50,
-        caracteristicas: {'Piscina'},
+        caracteristicas: {_piscina},
       );
 
       expect(filtros.quantidadeAtiva, 9);
@@ -71,8 +74,8 @@ void main() {
       'suites, vagas, bairros, area, caracteristicas, independente da ordem '
       'de construção',
       () {
-        const filtros = FiltrosVitrine(
-          caracteristicas: {'Piscina'},
+        final filtros = FiltrosVitrine(
+          caracteristicas: {_piscina},
           bairros: {'Cambuí'},
           finalidade: FinalidadeFiltro.venda,
           areaMin: 50,
@@ -156,9 +159,9 @@ void main() {
     });
 
     test('semFiltro(bairros)/semFiltro(caracteristicas) limpam os Sets', () {
-      const filtros = FiltrosVitrine(
+      final filtros = FiltrosVitrine(
         bairros: {'Cambuí'},
-        caracteristicas: {'Piscina'},
+        caracteristicas: {_piscina},
       );
 
       expect(

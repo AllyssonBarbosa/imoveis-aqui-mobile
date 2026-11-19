@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../domain/entities/caracteristica.dart';
 import '../../domain/entities/filtros_vitrine.dart';
 import '../../domain/entities/imovel.dart';
 
@@ -96,11 +97,15 @@ class RascunhoFiltrosCubit extends Cubit<FiltrosVitrine> {
     emit(state.copyWith(bairros: bairros));
   }
 
-  /// Marca/desmarca uma característica no rascunho (FIL-04, D-04, D-20) —
-  /// multi-seleção; o servidor simulado combina as marcadas com E (D-04,
-  /// implementado em 03-02); nunca dispara consulta ao acervo.
-  void alternarCaracteristica(String caracteristica, {required bool marcada}) {
-    final caracteristicas = Set<String>.of(state.caracteristicas);
+  /// Marca/desmarca uma característica no rascunho (FIL-04, D-04, D-13,
+  /// D-20) — multi-seleção; o rascunho guarda a [Caracteristica] inteira
+  /// (id para a consulta, nome para o chip); o servidor combina as marcadas
+  /// com E (D-04); nunca dispara consulta ao acervo.
+  void alternarCaracteristica(
+    Caracteristica caracteristica, {
+    required bool marcada,
+  }) {
+    final caracteristicas = Set<Caracteristica>.of(state.caracteristicas);
     if (marcada) {
       caracteristicas.add(caracteristica);
     } else {
@@ -111,8 +116,8 @@ class RascunhoFiltrosCubit extends Cubit<FiltrosVitrine> {
 }
 
 /// Validação de FORMULÁRIO do rascunho de filtros (D-12) — nunca uma regra
-/// de negócio: o servidor simulado revalida sozinho, independentemente desta
-/// extensão (03-03/Task 1, `filtrosDosParametros`). Mínimo maior que máximo
+/// de negócio: o servidor revalida sozinho (responde 400), independentemente
+/// desta extensão. Mínimo maior que máximo
 /// mostra erro inline e desabilita "Ver imóveis"; mínimo IGUAL ao máximo é
 /// válido (faixa de um único valor).
 extension ValidacaoRascunho on FiltrosVitrine {

@@ -35,17 +35,18 @@ sealed class DadosNatureza with _$DadosNatureza {
     String? areaTotal,
     String? frente,
     String? fundo,
-    String? laterais,
+    String? lateralEsquerda,
+    String? lateralDireita,
     Topografia? topografia,
     bool? murado,
     bool? esquina,
+
+    /// Código da API (RESIDENCIAL, COMERCIAL...); o rótulo é da apresentação.
     String? usoPermitido,
   }) = DadosTerreno;
 
-  /// [posicaoSolar] é o texto que a API manda, mostrado como veio (D-19 b).
   const factory DadosNatureza.apartamento({
     int? andar,
-    String? numero,
     String? areaPrivativa,
     String? areaTotal,
     int? quartos,
@@ -53,20 +54,25 @@ sealed class DadosNatureza with _$DadosNatureza {
     int? banheiros,
     int? vagas,
     bool? varanda,
+
+    /// Código da API (NASCENTE, POENTE, NORTE, SUL) ou vazio; o rótulo é da
+    /// apresentação.
     String? posicaoSolar,
 
     /// Prédio embutido no detalhe (D-03), sem chamada extra.
     DadosPredio? predio,
   }) = DadosApartamento;
 
-  /// [preco] só existe quando o servidor manda; nunca é derivado do preço da
-  /// parte comum (D-19 d).
+  /// O preço do lote é o preço de venda do imóvel, mostrado no cabeçalho
+  /// (§11.5 d): o bloco do lote não tem preço próprio. [entradaMinima] é a
+  /// string decimal do servidor e [parcelasMaximas] o inteiro como veio.
   const factory DadosNatureza.lote({
     String? numero,
     String? area,
     String? frente,
     String? fundo,
-    String? preco,
+    String? entradaMinima,
+    int? parcelasMaximas,
     String? condicoesParcelamento,
 
     /// Quadra com o loteamento embutidos no detalhe (D-03).
@@ -80,8 +86,7 @@ abstract class DadosPredio with _$DadosPredio {
   const factory DadosPredio({
     String? nome,
     int? andares,
-    int? unidadesPorAndar,
-    int? ano,
+    int? anoConstrucao,
     int? elevadores,
     bool? portaria24h,
     bool? piscina,
@@ -100,14 +105,15 @@ abstract class DadosQuadra with _$DadosQuadra {
   }) = _DadosQuadra;
 }
 
-/// Loteamento da quadra; as listas ficam na ordem recebida e vazias quando o
-/// servidor não as manda.
+/// Loteamento da quadra. [infraestrutura] são os rótulos dos itens que o
+/// servidor marcou como verdadeiros (tradução feita em data/); [areasDeLazer]
+/// é o texto corrido do servidor, nunca dividido no app.
 @freezed
 abstract class DadosLoteamento with _$DadosLoteamento {
   const factory DadosLoteamento({
     String? nome,
     String? incorporadora,
     @Default(<String>[]) List<String> infraestrutura,
-    @Default(<String>[]) List<String> areasLazer,
+    String? areasDeLazer,
   }) = _DadosLoteamento;
 }

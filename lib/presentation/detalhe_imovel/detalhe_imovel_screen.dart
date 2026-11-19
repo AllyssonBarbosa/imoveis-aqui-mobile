@@ -135,10 +135,7 @@ class DetalheImovelScreen extends StatelessWidget {
                     ),
                     _ => _Cabecalho(
                       titulo: previa.titulo,
-                      localizacao: rotuloLocalizacao(
-                        previa.bairro,
-                        previa.cidade,
-                      ),
+                      localizacao: rotuloLocalizacao(previa.bairro, null),
                       linhasPreco: linhasDePreco(previa),
                     ),
                   },

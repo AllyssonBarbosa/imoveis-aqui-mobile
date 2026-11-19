@@ -644,7 +644,7 @@ class _SecaoCaracteristicas extends StatelessWidget {
                       children: [
                         for (final caracteristica in opcoes)
                           FilterChip(
-                            label: Text(caracteristica),
+                            label: Text(caracteristica.nome),
                             selected: rascunho.caracteristicas.contains(
                               caracteristica,
                             ),

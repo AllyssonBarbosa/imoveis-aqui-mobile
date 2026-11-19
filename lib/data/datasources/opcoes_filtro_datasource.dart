@@ -1,20 +1,23 @@
 import '../../domain/entities/cidade.dart';
+import '../models/caracteristica_model.dart';
 
-/// Caminhos dos endpoints públicos de opções (contrato §10 item 8, adendo da
-/// Fase 3) — reaproveitados tal e qual pela Fase 4 quando a DataSource
-/// remota substituir o mock (API-04).
-const String caminhoBairrosPublico = '/api/publico/bairros/';
+/// Caminho dos bairros com imóvel publicado na cidade de id [cidadeId]
+/// (`GET /api/publico/cidades/<id>/bairros/`, 05-04). A cidade vai no
+/// caminho pelo id da API, como a lista de imóveis.
+String caminhoBairrosDaCidade(int cidadeId) =>
+    '/api/publico/cidades/$cidadeId/bairros/';
+
+/// Caminho do catálogo público de características (05-04).
 const String caminhoCaracteristicasPublico = '/api/publico/caracteristicas/';
 
-/// Fronteira trocável mock->real das opções de bairro/característica (D-20).
-/// A Fase 4 troca [OpcoesFiltroMockDataSource] por uma implementação `dio`
-/// sem tocar `domain/`/`presentation/` — só a anotação de DI muda (mesma
-/// disciplina de `ImovelDataSource`).
+/// Fronteira das opções de bairro/característica (D-08): a implementação
+/// real é [OpcoesFiltroRemoteDataSource] (`dio`), registrada no DI.
 abstract class OpcoesFiltroDataSource {
-  /// Bairros com ao menos um imóvel publicado em [cidade] — array não-
-  /// paginado de strings (contrato §10 item 8).
+  /// Bairros com ao menos um imóvel publicado em [cidade] — array não
+  /// paginado de strings, na ordem recebida.
   Future<List<String>> bairros(Cidade cidade);
 
-  /// Todas as características do catálogo — array não-paginado de strings.
-  Future<List<String>> caracteristicas();
+  /// Catálogo de características — array não paginado de `{id, nome}`, na
+  /// ordem recebida (D-13).
+  Future<List<CaracteristicaModel>> caracteristicas();
 }

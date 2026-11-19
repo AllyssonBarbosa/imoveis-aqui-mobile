@@ -7,7 +7,7 @@ import '../vitrine/apresentacao_imovel.dart';
 /// Funções puras de apresentação dos dados da natureza (DET-04, D-13) — quais
 /// linhas existem é decidido aqui, nunca espalhado em widgets. Só formatam o
 /// que o servidor mandou: nenhuma soma, diferença ou total de áreas (D-04) e
-/// nenhum preço derivado (D-19 d).
+/// nenhum preço derivado (o do lote é o do cabeçalho, §11.5 d).
 
 /// Um item da linha de destaques: ícone, valor em evidência e rótulo curto.
 typedef Destaque = ({IconData icone, String valor, String rotulo});
@@ -38,6 +38,30 @@ String rotuloTopografia(Topografia topografia) {
     Topografia.plano => 'Plano',
     Topografia.aclive => 'Aclive',
     Topografia.declive => 'Declive',
+  };
+}
+
+/// Código da API -> rótulo em português (A-04). Código desconhecido sai como
+/// veio, nunca lança (T-05-17-02).
+String rotuloPosicaoSolar(String codigo) {
+  return switch (codigo) {
+    'NASCENTE' => 'Nascente',
+    'POENTE' => 'Poente',
+    'NORTE' => 'Norte',
+    'SUL' => 'Sul',
+    _ => codigo,
+  };
+}
+
+/// Código da API -> rótulo em português (A-04); desconhecido sai como veio.
+String rotuloUsoPermitido(String codigo) {
+  return switch (codigo) {
+    'RESIDENCIAL' => 'Residencial',
+    'COMERCIAL' => 'Comercial',
+    'MISTO' => 'Misto',
+    'INDUSTRIAL' => 'Industrial',
+    'RURAL' => 'Rural',
+    _ => codigo,
   };
 }
 
@@ -105,28 +129,31 @@ List<LinhaDado> linhasDe(DadosNatureza dados) {
     final DadosApartamento apartamento => [
       if (apartamento.andar case final andar?)
         (rotulo: 'Andar', valor: '$andarº'),
-      ..._texto('Unidade', apartamento.numero),
       ..._area('Área privativa', apartamento.areaPrivativa),
       ..._area('Área total', apartamento.areaTotal),
       ..._simNao('Varanda', apartamento.varanda),
-      // Texto da API como veio: o app não tem enum nem tabela de rótulos
-      // para a posição solar (D-19 b).
-      ..._texto('Posição solar', apartamento.posicaoSolar),
+      // A API manda código (NASCENTE, POENTE...); vazio omite a linha e
+      // código desconhecido sai como veio (A-04).
+      ..._codigo(
+        'Posição solar',
+        apartamento.posicaoSolar,
+        rotuloPosicaoSolar,
+      ),
     ],
     final DadosTerreno terreno => [
-      ..._medida('Laterais', terreno.laterais),
+      ..._medida('Lateral esquerda', terreno.lateralEsquerda),
+      ..._medida('Lateral direita', terreno.lateralDireita),
       if (terreno.topografia case final topografia?)
         (rotulo: 'Topografia', valor: rotuloTopografia(topografia)),
       ..._simNao('Murado', terreno.murado),
       ..._simNao('Esquina', terreno.esquina),
-      ..._texto('Uso permitido', terreno.usoPermitido),
+      ..._codigo('Uso permitido', terreno.usoPermitido, rotuloUsoPermitido),
     ],
     final DadosLote lote => [
       ..._texto('Número do lote', lote.numero),
-      // Só quando o servidor manda `preco`; nunca derivado de preco_venda /
-      // preco_aluguel, que o cabeçalho já mostra (D-19 d).
-      if (lote.preco case final preco?)
-        (rotulo: 'Preço do lote', valor: formatarPrecoBrl(preco)),
+      if (lote.entradaMinima case final entrada?)
+        (rotulo: 'Entrada mínima', valor: formatarPrecoBrl(entrada)),
+      ..._inteiro('Parcelas máximas', lote.parcelasMaximas),
       ..._texto('Condições de parcelamento', lote.condicoesParcelamento),
     ],
   };
@@ -138,8 +165,7 @@ List<LinhaDado> linhasDoPredio(DadosPredio predio) {
   return [
     ..._texto('Nome', predio.nome),
     ..._inteiro('Andares', predio.andares),
-    ..._inteiro('Unidades por andar', predio.unidadesPorAndar),
-    ..._inteiro('Ano', predio.ano),
+    ..._inteiro('Ano de construção', predio.anoConstrucao),
     ..._inteiro('Elevadores', predio.elevadores),
     ..._simNao('Portaria 24h', predio.portaria24h),
     ..._simNao('Piscina', predio.piscina),
@@ -150,7 +176,7 @@ List<LinhaDado> linhasDoPredio(DadosPredio predio) {
 }
 
 /// Linhas do card da quadra e do loteamento do lote; as listas de
-/// infraestrutura e áreas de lazer são desenhadas à parte, como `Chip`s.
+/// infraestrutura (`Chip`s) e áreas de lazer (texto) são desenhadas à parte.
 List<LinhaDado> linhasDaQuadra(DadosQuadra quadra) {
   return [
     ..._texto('Quadra', quadra.identificacao),
@@ -160,13 +186,13 @@ List<LinhaDado> linhasDaQuadra(DadosQuadra quadra) {
 }
 
 /// `true` quando o card da quadra e do loteamento tem algo para mostrar:
-/// alguma linha ou alguma das duas listas (D-14).
+/// alguma linha, a infraestrutura ou as áreas de lazer (D-14).
 bool quadraTemConteudo(DadosQuadra quadra) {
   final loteamento = quadra.loteamento;
   return linhasDaQuadra(quadra).isNotEmpty ||
       (loteamento != null &&
           (loteamento.infraestrutura.isNotEmpty ||
-              loteamento.areasLazer.isNotEmpty));
+              loteamento.areasDeLazer != null));
 }
 
 List<Destaque> _destaquesDeComodos({
@@ -221,6 +247,17 @@ List<Destaque> _contagem(
 List<LinhaDado> _texto(String rotulo, String? valor) {
   if (valor == null) return const [];
   return [(rotulo: rotulo, valor: valor)];
+}
+
+/// Linha de um código de enum da API: nulo ou em branco não gera linha;
+/// senão mostra o rótulo em português de [rotulo].
+List<LinhaDado> _codigo(
+  String rotulo,
+  String? codigo,
+  String Function(String) rotuloDoCodigo,
+) {
+  if (codigo == null || codigo.trim().isEmpty) return const [];
+  return [(rotulo: rotulo, valor: rotuloDoCodigo(codigo))];
 }
 
 List<LinhaDado> _inteiro(String rotulo, int? valor) {

@@ -1,0 +1,67 @@
+{
+  "count": 24,
+  "next": null,
+  "previous": "http://127.0.0.1:8000/api/publico/cidades/1/imoveis/",
+  "results": [
+    {
+      "id": 4,
+      "titulo": "Lote no bairro Barão Geraldo",
+      "natureza": "LOTE",
+      "finalidade": "VENDA",
+      "preco_venda": "90000.00",
+      "preco_aluguel": null,
+      "preco_condominio": null,
+      "bairro": "Barão Geraldo",
+      "area": "250.00",
+      "quartos": null,
+      "suites": null,
+      "vagas": null,
+      "foto_capa": "http://127.0.0.1:8000/media/imoveis/fotos/dev-campinas-04-1_KkLl27o.jpg"
+    },
+    {
+      "id": 3,
+      "titulo": "Terreno no bairro Taquaral",
+      "natureza": "TERRENO",
+      "finalidade": "VENDA_E_ALUGUEL",
+      "preco_venda": "160000.00",
+      "preco_aluguel": "1200.00",
+      "preco_condominio": null,
+      "bairro": "Taquaral",
+      "area": "250.00",
+      "quartos": null,
+      "suites": null,
+      "vagas": null,
+      "foto_capa": "http://127.0.0.1:8000/media/imoveis/fotos/dev-campinas-03-1_8yVYIKO.jpg"
+    },
+    {
+      "id": 2,
+      "titulo": "Apartamento no bairro Centro",
+      "natureza": "APARTAMENTO",
+      "finalidade": "ALUGUEL",
+      "preco_venda": null,
+      "preco_aluguel": "1800.00",
+      "preco_condominio": null,
+      "bairro": "Centro",
+      "area": "55.00",
+      "quartos": 2,
+      "suites": 1,
+      "vagas": 2,
+      "foto_capa": "http://127.0.0.1:8000/media/imoveis/fotos/dev-campinas-02-1_ZheXVn2.jpg"
+    },
+    {
+      "id": 1,
+      "titulo": "Casa no bairro Cambuí",
+      "natureza": "CASA",
+      "finalidade": "VENDA",
+      "preco_venda": "350000.00",
+      "preco_aluguel": null,
+      "preco_condominio": null,
+      "bairro": "Cambuí",
+      "area": "90.00",
+      "quartos": 2,
+      "suites": 0,
+      "vagas": 1,
+      "foto_capa": "http://127.0.0.1:8000/media/imoveis/fotos/dev-campinas-01-1_nDz1cyG.jpg"
+    }
+  ]
+}

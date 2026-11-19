@@ -22,8 +22,9 @@ mixin _$FiltrosVitrine {
 /// `data/`.
  int? get precoMin; int? get precoMax;/// "N ou mais" (D-01) — nunca "exatamente N".
  int? get quartosMin; int? get suitesMin; int? get vagasMin;/// OU entre valores (D-05).
- Set<String> get bairros; int? get areaMin; int? get areaMax;/// E entre valores (D-04) — o imóvel precisa ter TODAS as marcadas.
- Set<String> get caracteristicas;
+ Set<String> get bairros; int? get areaMin; int? get areaMax;/// E entre valores (D-04) — o imóvel precisa ter TODAS as marcadas; o
+/// servidor recebe os ids (D-13), o nome é só para mostrar.
+ Set<Caracteristica> get caracteristicas;
 /// Create a copy of FiltrosVitrine
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -59,7 +60,7 @@ abstract mixin class $FiltrosVitrineCopyWith<$Res>  {
   factory $FiltrosVitrineCopyWith(FiltrosVitrine value, $Res Function(FiltrosVitrine) _then) = _$FiltrosVitrineCopyWithImpl;
 @useResult
 $Res call({
- FinalidadeFiltro? finalidade, Set<NaturezaImovel> naturezas, int? precoMin, int? precoMax, int? quartosMin, int? suitesMin, int? vagasMin, Set<String> bairros, int? areaMin, int? areaMax, Set<String> caracteristicas
+ FinalidadeFiltro? finalidade, Set<NaturezaImovel> naturezas, int? precoMin, int? precoMax, int? quartosMin, int? suitesMin, int? vagasMin, Set<String> bairros, int? areaMin, int? areaMax, Set<Caracteristica> caracteristicas
 });
 
 
@@ -89,7 +90,7 @@ as int?,bairros: null == bairros ? _self.bairros : bairros // ignore: cast_nulla
 as Set<String>,areaMin: freezed == areaMin ? _self.areaMin : areaMin // ignore: cast_nullable_to_non_nullable
 as int?,areaMax: freezed == areaMax ? _self.areaMax : areaMax // ignore: cast_nullable_to_non_nullable
 as int?,caracteristicas: null == caracteristicas ? _self.caracteristicas : caracteristicas // ignore: cast_nullable_to_non_nullable
-as Set<String>,
+as Set<Caracteristica>,
   ));
 }
 
@@ -174,7 +175,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( FinalidadeFiltro? finalidade,  Set<NaturezaImovel> naturezas,  int? precoMin,  int? precoMax,  int? quartosMin,  int? suitesMin,  int? vagasMin,  Set<String> bairros,  int? areaMin,  int? areaMax,  Set<String> caracteristicas)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( FinalidadeFiltro? finalidade,  Set<NaturezaImovel> naturezas,  int? precoMin,  int? precoMax,  int? quartosMin,  int? suitesMin,  int? vagasMin,  Set<String> bairros,  int? areaMin,  int? areaMax,  Set<Caracteristica> caracteristicas)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _FiltrosVitrine() when $default != null:
 return $default(_that.finalidade,_that.naturezas,_that.precoMin,_that.precoMax,_that.quartosMin,_that.suitesMin,_that.vagasMin,_that.bairros,_that.areaMin,_that.areaMax,_that.caracteristicas);case _:
@@ -195,7 +196,7 @@ return $default(_that.finalidade,_that.naturezas,_that.precoMin,_that.precoMax,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( FinalidadeFiltro? finalidade,  Set<NaturezaImovel> naturezas,  int? precoMin,  int? precoMax,  int? quartosMin,  int? suitesMin,  int? vagasMin,  Set<String> bairros,  int? areaMin,  int? areaMax,  Set<String> caracteristicas)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( FinalidadeFiltro? finalidade,  Set<NaturezaImovel> naturezas,  int? precoMin,  int? precoMax,  int? quartosMin,  int? suitesMin,  int? vagasMin,  Set<String> bairros,  int? areaMin,  int? areaMax,  Set<Caracteristica> caracteristicas)  $default,) {final _that = this;
 switch (_that) {
 case _FiltrosVitrine():
 return $default(_that.finalidade,_that.naturezas,_that.precoMin,_that.precoMax,_that.quartosMin,_that.suitesMin,_that.vagasMin,_that.bairros,_that.areaMin,_that.areaMax,_that.caracteristicas);case _:
@@ -215,7 +216,7 @@ return $default(_that.finalidade,_that.naturezas,_that.precoMin,_that.precoMax,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( FinalidadeFiltro? finalidade,  Set<NaturezaImovel> naturezas,  int? precoMin,  int? precoMax,  int? quartosMin,  int? suitesMin,  int? vagasMin,  Set<String> bairros,  int? areaMin,  int? areaMax,  Set<String> caracteristicas)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( FinalidadeFiltro? finalidade,  Set<NaturezaImovel> naturezas,  int? precoMin,  int? precoMax,  int? quartosMin,  int? suitesMin,  int? vagasMin,  Set<String> bairros,  int? areaMin,  int? areaMax,  Set<Caracteristica> caracteristicas)?  $default,) {final _that = this;
 switch (_that) {
 case _FiltrosVitrine() when $default != null:
 return $default(_that.finalidade,_that.naturezas,_that.precoMin,_that.precoMax,_that.quartosMin,_that.suitesMin,_that.vagasMin,_that.bairros,_that.areaMin,_that.areaMax,_that.caracteristicas);case _:
@@ -230,7 +231,7 @@ return $default(_that.finalidade,_that.naturezas,_that.precoMin,_that.precoMax,_
 
 
 class _FiltrosVitrine extends FiltrosVitrine {
-  const _FiltrosVitrine({this.finalidade,  Set<NaturezaImovel> naturezas = const <NaturezaImovel>{}, this.precoMin, this.precoMax, this.quartosMin, this.suitesMin, this.vagasMin,  Set<String> bairros = const <String>{}, this.areaMin, this.areaMax,  Set<String> caracteristicas = const <String>{}}): _naturezas = naturezas,_bairros = bairros,_caracteristicas = caracteristicas,super._();
+  const _FiltrosVitrine({this.finalidade,  Set<NaturezaImovel> naturezas = const <NaturezaImovel>{}, this.precoMin, this.precoMax, this.quartosMin, this.suitesMin, this.vagasMin,  Set<String> bairros = const <String>{}, this.areaMin, this.areaMax,  Set<Caracteristica> caracteristicas = const <Caracteristica>{}}): _naturezas = naturezas,_bairros = bairros,_caracteristicas = caracteristicas,super._();
   
 
 /// `null` = "Qualquer" (D-11).
@@ -264,10 +265,12 @@ class _FiltrosVitrine extends FiltrosVitrine {
 
 @override final  int? areaMin;
 @override final  int? areaMax;
-/// E entre valores (D-04) — o imóvel precisa ter TODAS as marcadas.
- final  Set<String> _caracteristicas;
-/// E entre valores (D-04) — o imóvel precisa ter TODAS as marcadas.
-@override@JsonKey() Set<String> get caracteristicas {
+/// E entre valores (D-04) — o imóvel precisa ter TODAS as marcadas; o
+/// servidor recebe os ids (D-13), o nome é só para mostrar.
+ final  Set<Caracteristica> _caracteristicas;
+/// E entre valores (D-04) — o imóvel precisa ter TODAS as marcadas; o
+/// servidor recebe os ids (D-13), o nome é só para mostrar.
+@override@JsonKey() Set<Caracteristica> get caracteristicas {
   if (_caracteristicas is EqualUnmodifiableSetView) return _caracteristicas;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableSetView(_caracteristicas);
@@ -306,7 +309,7 @@ abstract mixin class _$FiltrosVitrineCopyWith<$Res> implements $FiltrosVitrineCo
   factory _$FiltrosVitrineCopyWith(_FiltrosVitrine value, $Res Function(_FiltrosVitrine) _then) = __$FiltrosVitrineCopyWithImpl;
 @override @useResult
 $Res call({
- FinalidadeFiltro? finalidade, Set<NaturezaImovel> naturezas, int? precoMin, int? precoMax, int? quartosMin, int? suitesMin, int? vagasMin, Set<String> bairros, int? areaMin, int? areaMax, Set<String> caracteristicas
+ FinalidadeFiltro? finalidade, Set<NaturezaImovel> naturezas, int? precoMin, int? precoMax, int? quartosMin, int? suitesMin, int? vagasMin, Set<String> bairros, int? areaMin, int? areaMax, Set<Caracteristica> caracteristicas
 });
 
 
@@ -336,7 +339,7 @@ as int?,bairros: null == bairros ? _self._bairros : bairros // ignore: cast_null
 as Set<String>,areaMin: freezed == areaMin ? _self.areaMin : areaMin // ignore: cast_nullable_to_non_nullable
 as int?,areaMax: freezed == areaMax ? _self.areaMax : areaMax // ignore: cast_nullable_to_non_nullable
 as int?,caracteristicas: null == caracteristicas ? _self._caracteristicas : caracteristicas // ignore: cast_nullable_to_non_nullable
-as Set<String>,
+as Set<Caracteristica>,
   ));
 }
 

@@ -22,6 +22,12 @@ class ImovelRepositoryImpl implements ImovelRepository {
     try {
       final envelope = await _dataSource.buscar(consulta);
       return Result.success(envelope.paraPagina());
+    } on TypeError catch (erro) {
+      // Campo obrigatório ausente ou de tipo errado: o `fromJson` gerado faz
+      // `as` e lança TypeError, que é um Error (não Exception) — Pitfall 1.
+      return Result.failure(
+        FormatException('lista de imóveis malformada: $erro'),
+      );
     } on Exception catch (erro) {
       return Result.failure(erro);
     }
@@ -34,6 +40,12 @@ class ImovelRepositoryImpl implements ImovelRepository {
     try {
       final envelope = await _dataSource.seguir(proximaPagina);
       return Result.success(envelope.paraPagina());
+    } on TypeError catch (erro) {
+      // Campo obrigatório ausente ou de tipo errado: o `fromJson` gerado faz
+      // `as` e lança TypeError, que é um Error (não Exception) — Pitfall 1.
+      return Result.failure(
+        FormatException('lista de imóveis malformada: $erro'),
+      );
     } on Exception catch (erro) {
       return Result.failure(erro);
     }

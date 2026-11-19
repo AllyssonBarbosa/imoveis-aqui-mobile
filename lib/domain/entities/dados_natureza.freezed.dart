@@ -126,13 +126,13 @@ return lote(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String? areaTerreno,  String? areaConstruida,  String? areaLivre,  int? quartos,  int? suites,  int? banheiros,  int? salas,  int? vagas,  int? pavimentos,  int? anoConstrucao,  bool? piscina,  bool? quintal,  bool? churrasqueira,  bool? mobiliada)?  casa,TResult Function( String? areaTotal,  String? frente,  String? fundo,  String? laterais,  Topografia? topografia,  bool? murado,  bool? esquina,  String? usoPermitido)?  terreno,TResult Function( int? andar,  String? numero,  String? areaPrivativa,  String? areaTotal,  int? quartos,  int? suites,  int? banheiros,  int? vagas,  bool? varanda,  String? posicaoSolar,  DadosPredio? predio)?  apartamento,TResult Function( String? numero,  String? area,  String? frente,  String? fundo,  String? preco,  String? condicoesParcelamento,  DadosQuadra? quadra)?  lote,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String? areaTerreno,  String? areaConstruida,  String? areaLivre,  int? quartos,  int? suites,  int? banheiros,  int? salas,  int? vagas,  int? pavimentos,  int? anoConstrucao,  bool? piscina,  bool? quintal,  bool? churrasqueira,  bool? mobiliada)?  casa,TResult Function( String? areaTotal,  String? frente,  String? fundo,  String? lateralEsquerda,  String? lateralDireita,  Topografia? topografia,  bool? murado,  bool? esquina,  String? usoPermitido)?  terreno,TResult Function( int? andar,  String? areaPrivativa,  String? areaTotal,  int? quartos,  int? suites,  int? banheiros,  int? vagas,  bool? varanda,  String? posicaoSolar,  DadosPredio? predio)?  apartamento,TResult Function( String? numero,  String? area,  String? frente,  String? fundo,  String? entradaMinima,  int? parcelasMaximas,  String? condicoesParcelamento,  DadosQuadra? quadra)?  lote,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case DadosCasa() when casa != null:
 return casa(_that.areaTerreno,_that.areaConstruida,_that.areaLivre,_that.quartos,_that.suites,_that.banheiros,_that.salas,_that.vagas,_that.pavimentos,_that.anoConstrucao,_that.piscina,_that.quintal,_that.churrasqueira,_that.mobiliada);case DadosTerreno() when terreno != null:
-return terreno(_that.areaTotal,_that.frente,_that.fundo,_that.laterais,_that.topografia,_that.murado,_that.esquina,_that.usoPermitido);case DadosApartamento() when apartamento != null:
-return apartamento(_that.andar,_that.numero,_that.areaPrivativa,_that.areaTotal,_that.quartos,_that.suites,_that.banheiros,_that.vagas,_that.varanda,_that.posicaoSolar,_that.predio);case DadosLote() when lote != null:
-return lote(_that.numero,_that.area,_that.frente,_that.fundo,_that.preco,_that.condicoesParcelamento,_that.quadra);case _:
+return terreno(_that.areaTotal,_that.frente,_that.fundo,_that.lateralEsquerda,_that.lateralDireita,_that.topografia,_that.murado,_that.esquina,_that.usoPermitido);case DadosApartamento() when apartamento != null:
+return apartamento(_that.andar,_that.areaPrivativa,_that.areaTotal,_that.quartos,_that.suites,_that.banheiros,_that.vagas,_that.varanda,_that.posicaoSolar,_that.predio);case DadosLote() when lote != null:
+return lote(_that.numero,_that.area,_that.frente,_that.fundo,_that.entradaMinima,_that.parcelasMaximas,_that.condicoesParcelamento,_that.quadra);case _:
   return orElse();
 
 }
@@ -150,13 +150,13 @@ return lote(_that.numero,_that.area,_that.frente,_that.fundo,_that.preco,_that.c
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String? areaTerreno,  String? areaConstruida,  String? areaLivre,  int? quartos,  int? suites,  int? banheiros,  int? salas,  int? vagas,  int? pavimentos,  int? anoConstrucao,  bool? piscina,  bool? quintal,  bool? churrasqueira,  bool? mobiliada)  casa,required TResult Function( String? areaTotal,  String? frente,  String? fundo,  String? laterais,  Topografia? topografia,  bool? murado,  bool? esquina,  String? usoPermitido)  terreno,required TResult Function( int? andar,  String? numero,  String? areaPrivativa,  String? areaTotal,  int? quartos,  int? suites,  int? banheiros,  int? vagas,  bool? varanda,  String? posicaoSolar,  DadosPredio? predio)  apartamento,required TResult Function( String? numero,  String? area,  String? frente,  String? fundo,  String? preco,  String? condicoesParcelamento,  DadosQuadra? quadra)  lote,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String? areaTerreno,  String? areaConstruida,  String? areaLivre,  int? quartos,  int? suites,  int? banheiros,  int? salas,  int? vagas,  int? pavimentos,  int? anoConstrucao,  bool? piscina,  bool? quintal,  bool? churrasqueira,  bool? mobiliada)  casa,required TResult Function( String? areaTotal,  String? frente,  String? fundo,  String? lateralEsquerda,  String? lateralDireita,  Topografia? topografia,  bool? murado,  bool? esquina,  String? usoPermitido)  terreno,required TResult Function( int? andar,  String? areaPrivativa,  String? areaTotal,  int? quartos,  int? suites,  int? banheiros,  int? vagas,  bool? varanda,  String? posicaoSolar,  DadosPredio? predio)  apartamento,required TResult Function( String? numero,  String? area,  String? frente,  String? fundo,  String? entradaMinima,  int? parcelasMaximas,  String? condicoesParcelamento,  DadosQuadra? quadra)  lote,}) {final _that = this;
 switch (_that) {
 case DadosCasa():
 return casa(_that.areaTerreno,_that.areaConstruida,_that.areaLivre,_that.quartos,_that.suites,_that.banheiros,_that.salas,_that.vagas,_that.pavimentos,_that.anoConstrucao,_that.piscina,_that.quintal,_that.churrasqueira,_that.mobiliada);case DadosTerreno():
-return terreno(_that.areaTotal,_that.frente,_that.fundo,_that.laterais,_that.topografia,_that.murado,_that.esquina,_that.usoPermitido);case DadosApartamento():
-return apartamento(_that.andar,_that.numero,_that.areaPrivativa,_that.areaTotal,_that.quartos,_that.suites,_that.banheiros,_that.vagas,_that.varanda,_that.posicaoSolar,_that.predio);case DadosLote():
-return lote(_that.numero,_that.area,_that.frente,_that.fundo,_that.preco,_that.condicoesParcelamento,_that.quadra);}
+return terreno(_that.areaTotal,_that.frente,_that.fundo,_that.lateralEsquerda,_that.lateralDireita,_that.topografia,_that.murado,_that.esquina,_that.usoPermitido);case DadosApartamento():
+return apartamento(_that.andar,_that.areaPrivativa,_that.areaTotal,_that.quartos,_that.suites,_that.banheiros,_that.vagas,_that.varanda,_that.posicaoSolar,_that.predio);case DadosLote():
+return lote(_that.numero,_that.area,_that.frente,_that.fundo,_that.entradaMinima,_that.parcelasMaximas,_that.condicoesParcelamento,_that.quadra);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -170,13 +170,13 @@ return lote(_that.numero,_that.area,_that.frente,_that.fundo,_that.preco,_that.c
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String? areaTerreno,  String? areaConstruida,  String? areaLivre,  int? quartos,  int? suites,  int? banheiros,  int? salas,  int? vagas,  int? pavimentos,  int? anoConstrucao,  bool? piscina,  bool? quintal,  bool? churrasqueira,  bool? mobiliada)?  casa,TResult? Function( String? areaTotal,  String? frente,  String? fundo,  String? laterais,  Topografia? topografia,  bool? murado,  bool? esquina,  String? usoPermitido)?  terreno,TResult? Function( int? andar,  String? numero,  String? areaPrivativa,  String? areaTotal,  int? quartos,  int? suites,  int? banheiros,  int? vagas,  bool? varanda,  String? posicaoSolar,  DadosPredio? predio)?  apartamento,TResult? Function( String? numero,  String? area,  String? frente,  String? fundo,  String? preco,  String? condicoesParcelamento,  DadosQuadra? quadra)?  lote,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String? areaTerreno,  String? areaConstruida,  String? areaLivre,  int? quartos,  int? suites,  int? banheiros,  int? salas,  int? vagas,  int? pavimentos,  int? anoConstrucao,  bool? piscina,  bool? quintal,  bool? churrasqueira,  bool? mobiliada)?  casa,TResult? Function( String? areaTotal,  String? frente,  String? fundo,  String? lateralEsquerda,  String? lateralDireita,  Topografia? topografia,  bool? murado,  bool? esquina,  String? usoPermitido)?  terreno,TResult? Function( int? andar,  String? areaPrivativa,  String? areaTotal,  int? quartos,  int? suites,  int? banheiros,  int? vagas,  bool? varanda,  String? posicaoSolar,  DadosPredio? predio)?  apartamento,TResult? Function( String? numero,  String? area,  String? frente,  String? fundo,  String? entradaMinima,  int? parcelasMaximas,  String? condicoesParcelamento,  DadosQuadra? quadra)?  lote,}) {final _that = this;
 switch (_that) {
 case DadosCasa() when casa != null:
 return casa(_that.areaTerreno,_that.areaConstruida,_that.areaLivre,_that.quartos,_that.suites,_that.banheiros,_that.salas,_that.vagas,_that.pavimentos,_that.anoConstrucao,_that.piscina,_that.quintal,_that.churrasqueira,_that.mobiliada);case DadosTerreno() when terreno != null:
-return terreno(_that.areaTotal,_that.frente,_that.fundo,_that.laterais,_that.topografia,_that.murado,_that.esquina,_that.usoPermitido);case DadosApartamento() when apartamento != null:
-return apartamento(_that.andar,_that.numero,_that.areaPrivativa,_that.areaTotal,_that.quartos,_that.suites,_that.banheiros,_that.vagas,_that.varanda,_that.posicaoSolar,_that.predio);case DadosLote() when lote != null:
-return lote(_that.numero,_that.area,_that.frente,_that.fundo,_that.preco,_that.condicoesParcelamento,_that.quadra);case _:
+return terreno(_that.areaTotal,_that.frente,_that.fundo,_that.lateralEsquerda,_that.lateralDireita,_that.topografia,_that.murado,_that.esquina,_that.usoPermitido);case DadosApartamento() when apartamento != null:
+return apartamento(_that.andar,_that.areaPrivativa,_that.areaTotal,_that.quartos,_that.suites,_that.banheiros,_that.vagas,_that.varanda,_that.posicaoSolar,_that.predio);case DadosLote() when lote != null:
+return lote(_that.numero,_that.area,_that.frente,_that.fundo,_that.entradaMinima,_that.parcelasMaximas,_that.condicoesParcelamento,_that.quadra);case _:
   return null;
 
 }
@@ -282,16 +282,18 @@ as bool?,
 
 
 class DadosTerreno implements DadosNatureza {
-  const DadosTerreno({this.areaTotal, this.frente, this.fundo, this.laterais, this.topografia, this.murado, this.esquina, this.usoPermitido});
+  const DadosTerreno({this.areaTotal, this.frente, this.fundo, this.lateralEsquerda, this.lateralDireita, this.topografia, this.murado, this.esquina, this.usoPermitido});
   
 
  final  String? areaTotal;
  final  String? frente;
  final  String? fundo;
- final  String? laterais;
+ final  String? lateralEsquerda;
+ final  String? lateralDireita;
  final  Topografia? topografia;
  final  bool? murado;
  final  bool? esquina;
+/// Código da API (RESIDENCIAL, COMERCIAL...); o rótulo é da apresentação.
  final  String? usoPermitido;
 
 /// Create a copy of DadosNatureza
@@ -304,18 +306,18 @@ $DadosTerrenoCopyWith<DadosTerreno> get copyWith => _$DadosTerrenoCopyWithImpl<D
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is DadosTerreno&&(identical(other.areaTotal, areaTotal) || other.areaTotal == areaTotal)&&(identical(other.frente, frente) || other.frente == frente)&&(identical(other.fundo, fundo) || other.fundo == fundo)&&(identical(other.laterais, laterais) || other.laterais == laterais)&&(identical(other.topografia, topografia) || other.topografia == topografia)&&(identical(other.murado, murado) || other.murado == murado)&&(identical(other.esquina, esquina) || other.esquina == esquina)&&(identical(other.usoPermitido, usoPermitido) || other.usoPermitido == usoPermitido));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is DadosTerreno&&(identical(other.areaTotal, areaTotal) || other.areaTotal == areaTotal)&&(identical(other.frente, frente) || other.frente == frente)&&(identical(other.fundo, fundo) || other.fundo == fundo)&&(identical(other.lateralEsquerda, lateralEsquerda) || other.lateralEsquerda == lateralEsquerda)&&(identical(other.lateralDireita, lateralDireita) || other.lateralDireita == lateralDireita)&&(identical(other.topografia, topografia) || other.topografia == topografia)&&(identical(other.murado, murado) || other.murado == murado)&&(identical(other.esquina, esquina) || other.esquina == esquina)&&(identical(other.usoPermitido, usoPermitido) || other.usoPermitido == usoPermitido));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,areaTotal,frente,fundo,laterais,topografia,murado,esquina,usoPermitido);
+    return Object.hash(runtimeType,areaTotal,frente,fundo,lateralEsquerda,lateralDireita,topografia,murado,esquina,usoPermitido);
 }
 
 @override
 String toString() {
-    return 'DadosNatureza.terreno(areaTotal: $areaTotal, frente: $frente, fundo: $fundo, laterais: $laterais, topografia: $topografia, murado: $murado, esquina: $esquina, usoPermitido: $usoPermitido)';
+    return 'DadosNatureza.terreno(areaTotal: $areaTotal, frente: $frente, fundo: $fundo, lateralEsquerda: $lateralEsquerda, lateralDireita: $lateralDireita, topografia: $topografia, murado: $murado, esquina: $esquina, usoPermitido: $usoPermitido)';
 }
 
 
@@ -326,7 +328,7 @@ abstract mixin class $DadosTerrenoCopyWith<$Res> implements $DadosNaturezaCopyWi
   factory $DadosTerrenoCopyWith(DadosTerreno value, $Res Function(DadosTerreno) _then) = _$DadosTerrenoCopyWithImpl;
 @useResult
 $Res call({
- String? areaTotal, String? frente, String? fundo, String? laterais, Topografia? topografia, bool? murado, bool? esquina, String? usoPermitido
+ String? areaTotal, String? frente, String? fundo, String? lateralEsquerda, String? lateralDireita, Topografia? topografia, bool? murado, bool? esquina, String? usoPermitido
 });
 
 
@@ -343,12 +345,13 @@ class _$DadosTerrenoCopyWithImpl<$Res>
 
 /// Create a copy of DadosNatureza
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? areaTotal = freezed,Object? frente = freezed,Object? fundo = freezed,Object? laterais = freezed,Object? topografia = freezed,Object? murado = freezed,Object? esquina = freezed,Object? usoPermitido = freezed,}) {
+@pragma('vm:prefer-inline') $Res call({Object? areaTotal = freezed,Object? frente = freezed,Object? fundo = freezed,Object? lateralEsquerda = freezed,Object? lateralDireita = freezed,Object? topografia = freezed,Object? murado = freezed,Object? esquina = freezed,Object? usoPermitido = freezed,}) {
   return _then(DadosTerreno(
 areaTotal: freezed == areaTotal ? _self.areaTotal : areaTotal // ignore: cast_nullable_to_non_nullable
 as String?,frente: freezed == frente ? _self.frente : frente // ignore: cast_nullable_to_non_nullable
 as String?,fundo: freezed == fundo ? _self.fundo : fundo // ignore: cast_nullable_to_non_nullable
-as String?,laterais: freezed == laterais ? _self.laterais : laterais // ignore: cast_nullable_to_non_nullable
+as String?,lateralEsquerda: freezed == lateralEsquerda ? _self.lateralEsquerda : lateralEsquerda // ignore: cast_nullable_to_non_nullable
+as String?,lateralDireita: freezed == lateralDireita ? _self.lateralDireita : lateralDireita // ignore: cast_nullable_to_non_nullable
 as String?,topografia: freezed == topografia ? _self.topografia : topografia // ignore: cast_nullable_to_non_nullable
 as Topografia?,murado: freezed == murado ? _self.murado : murado // ignore: cast_nullable_to_non_nullable
 as bool?,esquina: freezed == esquina ? _self.esquina : esquina // ignore: cast_nullable_to_non_nullable
@@ -364,11 +367,10 @@ as String?,
 
 
 class DadosApartamento implements DadosNatureza {
-  const DadosApartamento({this.andar, this.numero, this.areaPrivativa, this.areaTotal, this.quartos, this.suites, this.banheiros, this.vagas, this.varanda, this.posicaoSolar, this.predio});
+  const DadosApartamento({this.andar, this.areaPrivativa, this.areaTotal, this.quartos, this.suites, this.banheiros, this.vagas, this.varanda, this.posicaoSolar, this.predio});
   
 
  final  int? andar;
- final  String? numero;
  final  String? areaPrivativa;
  final  String? areaTotal;
  final  int? quartos;
@@ -376,6 +378,8 @@ class DadosApartamento implements DadosNatureza {
  final  int? banheiros;
  final  int? vagas;
  final  bool? varanda;
+/// Código da API (NASCENTE, POENTE, NORTE, SUL) ou vazio; o rótulo é da
+/// apresentação.
  final  String? posicaoSolar;
 /// Prédio embutido no detalhe (D-03), sem chamada extra.
  final  DadosPredio? predio;
@@ -390,18 +394,18 @@ $DadosApartamentoCopyWith<DadosApartamento> get copyWith => _$DadosApartamentoCo
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is DadosApartamento&&(identical(other.andar, andar) || other.andar == andar)&&(identical(other.numero, numero) || other.numero == numero)&&(identical(other.areaPrivativa, areaPrivativa) || other.areaPrivativa == areaPrivativa)&&(identical(other.areaTotal, areaTotal) || other.areaTotal == areaTotal)&&(identical(other.quartos, quartos) || other.quartos == quartos)&&(identical(other.suites, suites) || other.suites == suites)&&(identical(other.banheiros, banheiros) || other.banheiros == banheiros)&&(identical(other.vagas, vagas) || other.vagas == vagas)&&(identical(other.varanda, varanda) || other.varanda == varanda)&&(identical(other.posicaoSolar, posicaoSolar) || other.posicaoSolar == posicaoSolar)&&(identical(other.predio, predio) || other.predio == predio));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is DadosApartamento&&(identical(other.andar, andar) || other.andar == andar)&&(identical(other.areaPrivativa, areaPrivativa) || other.areaPrivativa == areaPrivativa)&&(identical(other.areaTotal, areaTotal) || other.areaTotal == areaTotal)&&(identical(other.quartos, quartos) || other.quartos == quartos)&&(identical(other.suites, suites) || other.suites == suites)&&(identical(other.banheiros, banheiros) || other.banheiros == banheiros)&&(identical(other.vagas, vagas) || other.vagas == vagas)&&(identical(other.varanda, varanda) || other.varanda == varanda)&&(identical(other.posicaoSolar, posicaoSolar) || other.posicaoSolar == posicaoSolar)&&(identical(other.predio, predio) || other.predio == predio));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,andar,numero,areaPrivativa,areaTotal,quartos,suites,banheiros,vagas,varanda,posicaoSolar,predio);
+    return Object.hash(runtimeType,andar,areaPrivativa,areaTotal,quartos,suites,banheiros,vagas,varanda,posicaoSolar,predio);
 }
 
 @override
 String toString() {
-    return 'DadosNatureza.apartamento(andar: $andar, numero: $numero, areaPrivativa: $areaPrivativa, areaTotal: $areaTotal, quartos: $quartos, suites: $suites, banheiros: $banheiros, vagas: $vagas, varanda: $varanda, posicaoSolar: $posicaoSolar, predio: $predio)';
+    return 'DadosNatureza.apartamento(andar: $andar, areaPrivativa: $areaPrivativa, areaTotal: $areaTotal, quartos: $quartos, suites: $suites, banheiros: $banheiros, vagas: $vagas, varanda: $varanda, posicaoSolar: $posicaoSolar, predio: $predio)';
 }
 
 
@@ -412,7 +416,7 @@ abstract mixin class $DadosApartamentoCopyWith<$Res> implements $DadosNaturezaCo
   factory $DadosApartamentoCopyWith(DadosApartamento value, $Res Function(DadosApartamento) _then) = _$DadosApartamentoCopyWithImpl;
 @useResult
 $Res call({
- int? andar, String? numero, String? areaPrivativa, String? areaTotal, int? quartos, int? suites, int? banheiros, int? vagas, bool? varanda, String? posicaoSolar, DadosPredio? predio
+ int? andar, String? areaPrivativa, String? areaTotal, int? quartos, int? suites, int? banheiros, int? vagas, bool? varanda, String? posicaoSolar, DadosPredio? predio
 });
 
 
@@ -429,11 +433,10 @@ class _$DadosApartamentoCopyWithImpl<$Res>
 
 /// Create a copy of DadosNatureza
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? andar = freezed,Object? numero = freezed,Object? areaPrivativa = freezed,Object? areaTotal = freezed,Object? quartos = freezed,Object? suites = freezed,Object? banheiros = freezed,Object? vagas = freezed,Object? varanda = freezed,Object? posicaoSolar = freezed,Object? predio = freezed,}) {
+@pragma('vm:prefer-inline') $Res call({Object? andar = freezed,Object? areaPrivativa = freezed,Object? areaTotal = freezed,Object? quartos = freezed,Object? suites = freezed,Object? banheiros = freezed,Object? vagas = freezed,Object? varanda = freezed,Object? posicaoSolar = freezed,Object? predio = freezed,}) {
   return _then(DadosApartamento(
 andar: freezed == andar ? _self.andar : andar // ignore: cast_nullable_to_non_nullable
-as int?,numero: freezed == numero ? _self.numero : numero // ignore: cast_nullable_to_non_nullable
-as String?,areaPrivativa: freezed == areaPrivativa ? _self.areaPrivativa : areaPrivativa // ignore: cast_nullable_to_non_nullable
+as int?,areaPrivativa: freezed == areaPrivativa ? _self.areaPrivativa : areaPrivativa // ignore: cast_nullable_to_non_nullable
 as String?,areaTotal: freezed == areaTotal ? _self.areaTotal : areaTotal // ignore: cast_nullable_to_non_nullable
 as String?,quartos: freezed == quartos ? _self.quartos : quartos // ignore: cast_nullable_to_non_nullable
 as int?,suites: freezed == suites ? _self.suites : suites // ignore: cast_nullable_to_non_nullable
@@ -465,14 +468,15 @@ $DadosPredioCopyWith<$Res>? get predio {
 
 
 class DadosLote implements DadosNatureza {
-  const DadosLote({this.numero, this.area, this.frente, this.fundo, this.preco, this.condicoesParcelamento, this.quadra});
+  const DadosLote({this.numero, this.area, this.frente, this.fundo, this.entradaMinima, this.parcelasMaximas, this.condicoesParcelamento, this.quadra});
   
 
  final  String? numero;
  final  String? area;
  final  String? frente;
  final  String? fundo;
- final  String? preco;
+ final  String? entradaMinima;
+ final  int? parcelasMaximas;
  final  String? condicoesParcelamento;
 /// Quadra com o loteamento embutidos no detalhe (D-03).
  final  DadosQuadra? quadra;
@@ -487,18 +491,18 @@ $DadosLoteCopyWith<DadosLote> get copyWith => _$DadosLoteCopyWithImpl<DadosLote>
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is DadosLote&&(identical(other.numero, numero) || other.numero == numero)&&(identical(other.area, area) || other.area == area)&&(identical(other.frente, frente) || other.frente == frente)&&(identical(other.fundo, fundo) || other.fundo == fundo)&&(identical(other.preco, preco) || other.preco == preco)&&(identical(other.condicoesParcelamento, condicoesParcelamento) || other.condicoesParcelamento == condicoesParcelamento)&&(identical(other.quadra, quadra) || other.quadra == quadra));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is DadosLote&&(identical(other.numero, numero) || other.numero == numero)&&(identical(other.area, area) || other.area == area)&&(identical(other.frente, frente) || other.frente == frente)&&(identical(other.fundo, fundo) || other.fundo == fundo)&&(identical(other.entradaMinima, entradaMinima) || other.entradaMinima == entradaMinima)&&(identical(other.parcelasMaximas, parcelasMaximas) || other.parcelasMaximas == parcelasMaximas)&&(identical(other.condicoesParcelamento, condicoesParcelamento) || other.condicoesParcelamento == condicoesParcelamento)&&(identical(other.quadra, quadra) || other.quadra == quadra));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,numero,area,frente,fundo,preco,condicoesParcelamento,quadra);
+    return Object.hash(runtimeType,numero,area,frente,fundo,entradaMinima,parcelasMaximas,condicoesParcelamento,quadra);
 }
 
 @override
 String toString() {
-    return 'DadosNatureza.lote(numero: $numero, area: $area, frente: $frente, fundo: $fundo, preco: $preco, condicoesParcelamento: $condicoesParcelamento, quadra: $quadra)';
+    return 'DadosNatureza.lote(numero: $numero, area: $area, frente: $frente, fundo: $fundo, entradaMinima: $entradaMinima, parcelasMaximas: $parcelasMaximas, condicoesParcelamento: $condicoesParcelamento, quadra: $quadra)';
 }
 
 
@@ -509,7 +513,7 @@ abstract mixin class $DadosLoteCopyWith<$Res> implements $DadosNaturezaCopyWith<
   factory $DadosLoteCopyWith(DadosLote value, $Res Function(DadosLote) _then) = _$DadosLoteCopyWithImpl;
 @useResult
 $Res call({
- String? numero, String? area, String? frente, String? fundo, String? preco, String? condicoesParcelamento, DadosQuadra? quadra
+ String? numero, String? area, String? frente, String? fundo, String? entradaMinima, int? parcelasMaximas, String? condicoesParcelamento, DadosQuadra? quadra
 });
 
 
@@ -526,14 +530,15 @@ class _$DadosLoteCopyWithImpl<$Res>
 
 /// Create a copy of DadosNatureza
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? numero = freezed,Object? area = freezed,Object? frente = freezed,Object? fundo = freezed,Object? preco = freezed,Object? condicoesParcelamento = freezed,Object? quadra = freezed,}) {
+@pragma('vm:prefer-inline') $Res call({Object? numero = freezed,Object? area = freezed,Object? frente = freezed,Object? fundo = freezed,Object? entradaMinima = freezed,Object? parcelasMaximas = freezed,Object? condicoesParcelamento = freezed,Object? quadra = freezed,}) {
   return _then(DadosLote(
 numero: freezed == numero ? _self.numero : numero // ignore: cast_nullable_to_non_nullable
 as String?,area: freezed == area ? _self.area : area // ignore: cast_nullable_to_non_nullable
 as String?,frente: freezed == frente ? _self.frente : frente // ignore: cast_nullable_to_non_nullable
 as String?,fundo: freezed == fundo ? _self.fundo : fundo // ignore: cast_nullable_to_non_nullable
-as String?,preco: freezed == preco ? _self.preco : preco // ignore: cast_nullable_to_non_nullable
-as String?,condicoesParcelamento: freezed == condicoesParcelamento ? _self.condicoesParcelamento : condicoesParcelamento // ignore: cast_nullable_to_non_nullable
+as String?,entradaMinima: freezed == entradaMinima ? _self.entradaMinima : entradaMinima // ignore: cast_nullable_to_non_nullable
+as String?,parcelasMaximas: freezed == parcelasMaximas ? _self.parcelasMaximas : parcelasMaximas // ignore: cast_nullable_to_non_nullable
+as int?,condicoesParcelamento: freezed == condicoesParcelamento ? _self.condicoesParcelamento : condicoesParcelamento // ignore: cast_nullable_to_non_nullable
 as String?,quadra: freezed == quadra ? _self.quadra : quadra // ignore: cast_nullable_to_non_nullable
 as DadosQuadra?,
   ));
@@ -557,7 +562,7 @@ $DadosQuadraCopyWith<$Res>? get quadra {
 /// @nodoc
 mixin _$DadosPredio {
 
- String? get nome; int? get andares; int? get unidadesPorAndar; int? get ano; int? get elevadores; bool? get portaria24h; bool? get piscina; bool? get academia; bool? get salaoDeFestas; bool? get playground;
+ String? get nome; int? get andares; int? get anoConstrucao; int? get elevadores; bool? get portaria24h; bool? get piscina; bool? get academia; bool? get salaoDeFestas; bool? get playground;
 /// Create a copy of DadosPredio
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -569,20 +574,20 @@ $DadosPredioCopyWith<DadosPredio> get copyWith => _$DadosPredioCopyWithImpl<Dado
 @override
 bool operator ==(Object other) {
   final _this = this as DadosPredio;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DadosPredio&&(identical(other.nome, _this.nome) || other.nome == _this.nome)&&(identical(other.andares, _this.andares) || other.andares == _this.andares)&&(identical(other.unidadesPorAndar, _this.unidadesPorAndar) || other.unidadesPorAndar == _this.unidadesPorAndar)&&(identical(other.ano, _this.ano) || other.ano == _this.ano)&&(identical(other.elevadores, _this.elevadores) || other.elevadores == _this.elevadores)&&(identical(other.portaria24h, _this.portaria24h) || other.portaria24h == _this.portaria24h)&&(identical(other.piscina, _this.piscina) || other.piscina == _this.piscina)&&(identical(other.academia, _this.academia) || other.academia == _this.academia)&&(identical(other.salaoDeFestas, _this.salaoDeFestas) || other.salaoDeFestas == _this.salaoDeFestas)&&(identical(other.playground, _this.playground) || other.playground == _this.playground));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DadosPredio&&(identical(other.nome, _this.nome) || other.nome == _this.nome)&&(identical(other.andares, _this.andares) || other.andares == _this.andares)&&(identical(other.anoConstrucao, _this.anoConstrucao) || other.anoConstrucao == _this.anoConstrucao)&&(identical(other.elevadores, _this.elevadores) || other.elevadores == _this.elevadores)&&(identical(other.portaria24h, _this.portaria24h) || other.portaria24h == _this.portaria24h)&&(identical(other.piscina, _this.piscina) || other.piscina == _this.piscina)&&(identical(other.academia, _this.academia) || other.academia == _this.academia)&&(identical(other.salaoDeFestas, _this.salaoDeFestas) || other.salaoDeFestas == _this.salaoDeFestas)&&(identical(other.playground, _this.playground) || other.playground == _this.playground));
 }
 
 
 @override
 int get hashCode {
   final _this = this as DadosPredio;
-  return Object.hash(runtimeType,_this.nome,_this.andares,_this.unidadesPorAndar,_this.ano,_this.elevadores,_this.portaria24h,_this.piscina,_this.academia,_this.salaoDeFestas,_this.playground);
+  return Object.hash(runtimeType,_this.nome,_this.andares,_this.anoConstrucao,_this.elevadores,_this.portaria24h,_this.piscina,_this.academia,_this.salaoDeFestas,_this.playground);
 }
 
 @override
 String toString() {
   final _this = this as DadosPredio;
-  return 'DadosPredio(nome: ${_this.nome}, andares: ${_this.andares}, unidadesPorAndar: ${_this.unidadesPorAndar}, ano: ${_this.ano}, elevadores: ${_this.elevadores}, portaria24h: ${_this.portaria24h}, piscina: ${_this.piscina}, academia: ${_this.academia}, salaoDeFestas: ${_this.salaoDeFestas}, playground: ${_this.playground})';
+  return 'DadosPredio(nome: ${_this.nome}, andares: ${_this.andares}, anoConstrucao: ${_this.anoConstrucao}, elevadores: ${_this.elevadores}, portaria24h: ${_this.portaria24h}, piscina: ${_this.piscina}, academia: ${_this.academia}, salaoDeFestas: ${_this.salaoDeFestas}, playground: ${_this.playground})';
 }
 
 
@@ -593,7 +598,7 @@ abstract mixin class $DadosPredioCopyWith<$Res>  {
   factory $DadosPredioCopyWith(DadosPredio value, $Res Function(DadosPredio) _then) = _$DadosPredioCopyWithImpl;
 @useResult
 $Res call({
- String? nome, int? andares, int? unidadesPorAndar, int? ano, int? elevadores, bool? portaria24h, bool? piscina, bool? academia, bool? salaoDeFestas, bool? playground
+ String? nome, int? andares, int? anoConstrucao, int? elevadores, bool? portaria24h, bool? piscina, bool? academia, bool? salaoDeFestas, bool? playground
 });
 
 
@@ -610,12 +615,11 @@ class _$DadosPredioCopyWithImpl<$Res>
 
 /// Create a copy of DadosPredio
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? nome = freezed,Object? andares = freezed,Object? unidadesPorAndar = freezed,Object? ano = freezed,Object? elevadores = freezed,Object? portaria24h = freezed,Object? piscina = freezed,Object? academia = freezed,Object? salaoDeFestas = freezed,Object? playground = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? nome = freezed,Object? andares = freezed,Object? anoConstrucao = freezed,Object? elevadores = freezed,Object? portaria24h = freezed,Object? piscina = freezed,Object? academia = freezed,Object? salaoDeFestas = freezed,Object? playground = freezed,}) {
   return _then(DadosPredio(
 nome: freezed == nome ? _self.nome : nome // ignore: cast_nullable_to_non_nullable
 as String?,andares: freezed == andares ? _self.andares : andares // ignore: cast_nullable_to_non_nullable
-as int?,unidadesPorAndar: freezed == unidadesPorAndar ? _self.unidadesPorAndar : unidadesPorAndar // ignore: cast_nullable_to_non_nullable
-as int?,ano: freezed == ano ? _self.ano : ano // ignore: cast_nullable_to_non_nullable
+as int?,anoConstrucao: freezed == anoConstrucao ? _self.anoConstrucao : anoConstrucao // ignore: cast_nullable_to_non_nullable
 as int?,elevadores: freezed == elevadores ? _self.elevadores : elevadores // ignore: cast_nullable_to_non_nullable
 as int?,portaria24h: freezed == portaria24h ? _self.portaria24h : portaria24h // ignore: cast_nullable_to_non_nullable
 as bool?,piscina: freezed == piscina ? _self.piscina : piscina // ignore: cast_nullable_to_non_nullable
@@ -707,10 +711,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? nome,  int? andares,  int? unidadesPorAndar,  int? ano,  int? elevadores,  bool? portaria24h,  bool? piscina,  bool? academia,  bool? salaoDeFestas,  bool? playground)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? nome,  int? andares,  int? anoConstrucao,  int? elevadores,  bool? portaria24h,  bool? piscina,  bool? academia,  bool? salaoDeFestas,  bool? playground)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DadosPredio() when $default != null:
-return $default(_that.nome,_that.andares,_that.unidadesPorAndar,_that.ano,_that.elevadores,_that.portaria24h,_that.piscina,_that.academia,_that.salaoDeFestas,_that.playground);case _:
+return $default(_that.nome,_that.andares,_that.anoConstrucao,_that.elevadores,_that.portaria24h,_that.piscina,_that.academia,_that.salaoDeFestas,_that.playground);case _:
   return orElse();
 
 }
@@ -728,10 +732,10 @@ return $default(_that.nome,_that.andares,_that.unidadesPorAndar,_that.ano,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? nome,  int? andares,  int? unidadesPorAndar,  int? ano,  int? elevadores,  bool? portaria24h,  bool? piscina,  bool? academia,  bool? salaoDeFestas,  bool? playground)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? nome,  int? andares,  int? anoConstrucao,  int? elevadores,  bool? portaria24h,  bool? piscina,  bool? academia,  bool? salaoDeFestas,  bool? playground)  $default,) {final _that = this;
 switch (_that) {
 case _DadosPredio():
-return $default(_that.nome,_that.andares,_that.unidadesPorAndar,_that.ano,_that.elevadores,_that.portaria24h,_that.piscina,_that.academia,_that.salaoDeFestas,_that.playground);case _:
+return $default(_that.nome,_that.andares,_that.anoConstrucao,_that.elevadores,_that.portaria24h,_that.piscina,_that.academia,_that.salaoDeFestas,_that.playground);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -748,10 +752,10 @@ return $default(_that.nome,_that.andares,_that.unidadesPorAndar,_that.ano,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? nome,  int? andares,  int? unidadesPorAndar,  int? ano,  int? elevadores,  bool? portaria24h,  bool? piscina,  bool? academia,  bool? salaoDeFestas,  bool? playground)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? nome,  int? andares,  int? anoConstrucao,  int? elevadores,  bool? portaria24h,  bool? piscina,  bool? academia,  bool? salaoDeFestas,  bool? playground)?  $default,) {final _that = this;
 switch (_that) {
 case _DadosPredio() when $default != null:
-return $default(_that.nome,_that.andares,_that.unidadesPorAndar,_that.ano,_that.elevadores,_that.portaria24h,_that.piscina,_that.academia,_that.salaoDeFestas,_that.playground);case _:
+return $default(_that.nome,_that.andares,_that.anoConstrucao,_that.elevadores,_that.portaria24h,_that.piscina,_that.academia,_that.salaoDeFestas,_that.playground);case _:
   return null;
 
 }
@@ -763,13 +767,12 @@ return $default(_that.nome,_that.andares,_that.unidadesPorAndar,_that.ano,_that.
 
 
 class _DadosPredio implements DadosPredio {
-  const _DadosPredio({this.nome, this.andares, this.unidadesPorAndar, this.ano, this.elevadores, this.portaria24h, this.piscina, this.academia, this.salaoDeFestas, this.playground});
+  const _DadosPredio({this.nome, this.andares, this.anoConstrucao, this.elevadores, this.portaria24h, this.piscina, this.academia, this.salaoDeFestas, this.playground});
   
 
 @override final  String? nome;
 @override final  int? andares;
-@override final  int? unidadesPorAndar;
-@override final  int? ano;
+@override final  int? anoConstrucao;
 @override final  int? elevadores;
 @override final  bool? portaria24h;
 @override final  bool? piscina;
@@ -787,18 +790,18 @@ _$DadosPredioCopyWith<_DadosPredio> get copyWith => __$DadosPredioCopyWithImpl<_
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DadosPredio&&(identical(other.nome, nome) || other.nome == nome)&&(identical(other.andares, andares) || other.andares == andares)&&(identical(other.unidadesPorAndar, unidadesPorAndar) || other.unidadesPorAndar == unidadesPorAndar)&&(identical(other.ano, ano) || other.ano == ano)&&(identical(other.elevadores, elevadores) || other.elevadores == elevadores)&&(identical(other.portaria24h, portaria24h) || other.portaria24h == portaria24h)&&(identical(other.piscina, piscina) || other.piscina == piscina)&&(identical(other.academia, academia) || other.academia == academia)&&(identical(other.salaoDeFestas, salaoDeFestas) || other.salaoDeFestas == salaoDeFestas)&&(identical(other.playground, playground) || other.playground == playground));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DadosPredio&&(identical(other.nome, nome) || other.nome == nome)&&(identical(other.andares, andares) || other.andares == andares)&&(identical(other.anoConstrucao, anoConstrucao) || other.anoConstrucao == anoConstrucao)&&(identical(other.elevadores, elevadores) || other.elevadores == elevadores)&&(identical(other.portaria24h, portaria24h) || other.portaria24h == portaria24h)&&(identical(other.piscina, piscina) || other.piscina == piscina)&&(identical(other.academia, academia) || other.academia == academia)&&(identical(other.salaoDeFestas, salaoDeFestas) || other.salaoDeFestas == salaoDeFestas)&&(identical(other.playground, playground) || other.playground == playground));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,nome,andares,unidadesPorAndar,ano,elevadores,portaria24h,piscina,academia,salaoDeFestas,playground);
+    return Object.hash(runtimeType,nome,andares,anoConstrucao,elevadores,portaria24h,piscina,academia,salaoDeFestas,playground);
 }
 
 @override
 String toString() {
-    return 'DadosPredio(nome: $nome, andares: $andares, unidadesPorAndar: $unidadesPorAndar, ano: $ano, elevadores: $elevadores, portaria24h: $portaria24h, piscina: $piscina, academia: $academia, salaoDeFestas: $salaoDeFestas, playground: $playground)';
+    return 'DadosPredio(nome: $nome, andares: $andares, anoConstrucao: $anoConstrucao, elevadores: $elevadores, portaria24h: $portaria24h, piscina: $piscina, academia: $academia, salaoDeFestas: $salaoDeFestas, playground: $playground)';
 }
 
 
@@ -809,7 +812,7 @@ abstract mixin class _$DadosPredioCopyWith<$Res> implements $DadosPredioCopyWith
   factory _$DadosPredioCopyWith(_DadosPredio value, $Res Function(_DadosPredio) _then) = __$DadosPredioCopyWithImpl;
 @override @useResult
 $Res call({
- String? nome, int? andares, int? unidadesPorAndar, int? ano, int? elevadores, bool? portaria24h, bool? piscina, bool? academia, bool? salaoDeFestas, bool? playground
+ String? nome, int? andares, int? anoConstrucao, int? elevadores, bool? portaria24h, bool? piscina, bool? academia, bool? salaoDeFestas, bool? playground
 });
 
 
@@ -826,12 +829,11 @@ class __$DadosPredioCopyWithImpl<$Res>
 
 /// Create a copy of DadosPredio
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? nome = freezed,Object? andares = freezed,Object? unidadesPorAndar = freezed,Object? ano = freezed,Object? elevadores = freezed,Object? portaria24h = freezed,Object? piscina = freezed,Object? academia = freezed,Object? salaoDeFestas = freezed,Object? playground = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? nome = freezed,Object? andares = freezed,Object? anoConstrucao = freezed,Object? elevadores = freezed,Object? portaria24h = freezed,Object? piscina = freezed,Object? academia = freezed,Object? salaoDeFestas = freezed,Object? playground = freezed,}) {
   return _then(_DadosPredio(
 nome: freezed == nome ? _self.nome : nome // ignore: cast_nullable_to_non_nullable
 as String?,andares: freezed == andares ? _self.andares : andares // ignore: cast_nullable_to_non_nullable
-as int?,unidadesPorAndar: freezed == unidadesPorAndar ? _self.unidadesPorAndar : unidadesPorAndar // ignore: cast_nullable_to_non_nullable
-as int?,ano: freezed == ano ? _self.ano : ano // ignore: cast_nullable_to_non_nullable
+as int?,anoConstrucao: freezed == anoConstrucao ? _self.anoConstrucao : anoConstrucao // ignore: cast_nullable_to_non_nullable
 as int?,elevadores: freezed == elevadores ? _self.elevadores : elevadores // ignore: cast_nullable_to_non_nullable
 as int?,portaria24h: freezed == portaria24h ? _self.portaria24h : portaria24h // ignore: cast_nullable_to_non_nullable
 as bool?,piscina: freezed == piscina ? _self.piscina : piscina // ignore: cast_nullable_to_non_nullable
@@ -1139,7 +1141,7 @@ $DadosLoteamentoCopyWith<$Res>? get loteamento {
 /// @nodoc
 mixin _$DadosLoteamento {
 
- String? get nome; String? get incorporadora; List<String> get infraestrutura; List<String> get areasLazer;
+ String? get nome; String? get incorporadora; List<String> get infraestrutura; String? get areasDeLazer;
 /// Create a copy of DadosLoteamento
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1151,20 +1153,20 @@ $DadosLoteamentoCopyWith<DadosLoteamento> get copyWith => _$DadosLoteamentoCopyW
 @override
 bool operator ==(Object other) {
   final _this = this as DadosLoteamento;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DadosLoteamento&&(identical(other.nome, _this.nome) || other.nome == _this.nome)&&(identical(other.incorporadora, _this.incorporadora) || other.incorporadora == _this.incorporadora)&&const DeepCollectionEquality().equals(other.infraestrutura, _this.infraestrutura)&&const DeepCollectionEquality().equals(other.areasLazer, _this.areasLazer));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DadosLoteamento&&(identical(other.nome, _this.nome) || other.nome == _this.nome)&&(identical(other.incorporadora, _this.incorporadora) || other.incorporadora == _this.incorporadora)&&const DeepCollectionEquality().equals(other.infraestrutura, _this.infraestrutura)&&(identical(other.areasDeLazer, _this.areasDeLazer) || other.areasDeLazer == _this.areasDeLazer));
 }
 
 
 @override
 int get hashCode {
   final _this = this as DadosLoteamento;
-  return Object.hash(runtimeType,_this.nome,_this.incorporadora,const DeepCollectionEquality().hash(_this.infraestrutura),const DeepCollectionEquality().hash(_this.areasLazer));
+  return Object.hash(runtimeType,_this.nome,_this.incorporadora,const DeepCollectionEquality().hash(_this.infraestrutura),_this.areasDeLazer);
 }
 
 @override
 String toString() {
   final _this = this as DadosLoteamento;
-  return 'DadosLoteamento(nome: ${_this.nome}, incorporadora: ${_this.incorporadora}, infraestrutura: ${_this.infraestrutura}, areasLazer: ${_this.areasLazer})';
+  return 'DadosLoteamento(nome: ${_this.nome}, incorporadora: ${_this.incorporadora}, infraestrutura: ${_this.infraestrutura}, areasDeLazer: ${_this.areasDeLazer})';
 }
 
 
@@ -1175,7 +1177,7 @@ abstract mixin class $DadosLoteamentoCopyWith<$Res>  {
   factory $DadosLoteamentoCopyWith(DadosLoteamento value, $Res Function(DadosLoteamento) _then) = _$DadosLoteamentoCopyWithImpl;
 @useResult
 $Res call({
- String? nome, String? incorporadora, List<String> infraestrutura, List<String> areasLazer
+ String? nome, String? incorporadora, List<String> infraestrutura, String? areasDeLazer
 });
 
 
@@ -1192,13 +1194,13 @@ class _$DadosLoteamentoCopyWithImpl<$Res>
 
 /// Create a copy of DadosLoteamento
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? nome = freezed,Object? incorporadora = freezed,Object? infraestrutura = null,Object? areasLazer = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? nome = freezed,Object? incorporadora = freezed,Object? infraestrutura = null,Object? areasDeLazer = freezed,}) {
   return _then(DadosLoteamento(
 nome: freezed == nome ? _self.nome : nome // ignore: cast_nullable_to_non_nullable
 as String?,incorporadora: freezed == incorporadora ? _self.incorporadora : incorporadora // ignore: cast_nullable_to_non_nullable
 as String?,infraestrutura: null == infraestrutura ? _self.infraestrutura : infraestrutura // ignore: cast_nullable_to_non_nullable
-as List<String>,areasLazer: null == areasLazer ? _self.areasLazer : areasLazer // ignore: cast_nullable_to_non_nullable
-as List<String>,
+as List<String>,areasDeLazer: freezed == areasDeLazer ? _self.areasDeLazer : areasDeLazer // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -1283,10 +1285,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? nome,  String? incorporadora,  List<String> infraestrutura,  List<String> areasLazer)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? nome,  String? incorporadora,  List<String> infraestrutura,  String? areasDeLazer)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DadosLoteamento() when $default != null:
-return $default(_that.nome,_that.incorporadora,_that.infraestrutura,_that.areasLazer);case _:
+return $default(_that.nome,_that.incorporadora,_that.infraestrutura,_that.areasDeLazer);case _:
   return orElse();
 
 }
@@ -1304,10 +1306,10 @@ return $default(_that.nome,_that.incorporadora,_that.infraestrutura,_that.areasL
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? nome,  String? incorporadora,  List<String> infraestrutura,  List<String> areasLazer)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? nome,  String? incorporadora,  List<String> infraestrutura,  String? areasDeLazer)  $default,) {final _that = this;
 switch (_that) {
 case _DadosLoteamento():
-return $default(_that.nome,_that.incorporadora,_that.infraestrutura,_that.areasLazer);case _:
+return $default(_that.nome,_that.incorporadora,_that.infraestrutura,_that.areasDeLazer);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1324,10 +1326,10 @@ return $default(_that.nome,_that.incorporadora,_that.infraestrutura,_that.areasL
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? nome,  String? incorporadora,  List<String> infraestrutura,  List<String> areasLazer)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? nome,  String? incorporadora,  List<String> infraestrutura,  String? areasDeLazer)?  $default,) {final _that = this;
 switch (_that) {
 case _DadosLoteamento() when $default != null:
-return $default(_that.nome,_that.incorporadora,_that.infraestrutura,_that.areasLazer);case _:
+return $default(_that.nome,_that.incorporadora,_that.infraestrutura,_that.areasDeLazer);case _:
   return null;
 
 }
@@ -1339,7 +1341,7 @@ return $default(_that.nome,_that.incorporadora,_that.infraestrutura,_that.areasL
 
 
 class _DadosLoteamento implements DadosLoteamento {
-  const _DadosLoteamento({this.nome, this.incorporadora,  List<String> infraestrutura = const <String>[],  List<String> areasLazer = const <String>[]}): _infraestrutura = infraestrutura,_areasLazer = areasLazer;
+  const _DadosLoteamento({this.nome, this.incorporadora,  List<String> infraestrutura = const <String>[], this.areasDeLazer}): _infraestrutura = infraestrutura;
   
 
 @override final  String? nome;
@@ -1351,13 +1353,7 @@ class _DadosLoteamento implements DadosLoteamento {
   return EqualUnmodifiableListView(_infraestrutura);
 }
 
- final  List<String> _areasLazer;
-@override@JsonKey() List<String> get areasLazer {
-  if (_areasLazer is EqualUnmodifiableListView) return _areasLazer;
-  // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_areasLazer);
-}
-
+@override final  String? areasDeLazer;
 
 /// Create a copy of DadosLoteamento
 /// with the given fields replaced by the non-null parameter values.
@@ -1369,18 +1365,18 @@ _$DadosLoteamentoCopyWith<_DadosLoteamento> get copyWith => __$DadosLoteamentoCo
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DadosLoteamento&&(identical(other.nome, nome) || other.nome == nome)&&(identical(other.incorporadora, incorporadora) || other.incorporadora == incorporadora)&&const DeepCollectionEquality().equals(other.infraestrutura, _infraestrutura)&&const DeepCollectionEquality().equals(other.areasLazer, _areasLazer));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DadosLoteamento&&(identical(other.nome, nome) || other.nome == nome)&&(identical(other.incorporadora, incorporadora) || other.incorporadora == incorporadora)&&const DeepCollectionEquality().equals(other.infraestrutura, _infraestrutura)&&(identical(other.areasDeLazer, areasDeLazer) || other.areasDeLazer == areasDeLazer));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,nome,incorporadora,const DeepCollectionEquality().hash(_infraestrutura),const DeepCollectionEquality().hash(_areasLazer));
+    return Object.hash(runtimeType,nome,incorporadora,const DeepCollectionEquality().hash(_infraestrutura),areasDeLazer);
 }
 
 @override
 String toString() {
-    return 'DadosLoteamento(nome: $nome, incorporadora: $incorporadora, infraestrutura: $infraestrutura, areasLazer: $areasLazer)';
+    return 'DadosLoteamento(nome: $nome, incorporadora: $incorporadora, infraestrutura: $infraestrutura, areasDeLazer: $areasDeLazer)';
 }
 
 
@@ -1391,7 +1387,7 @@ abstract mixin class _$DadosLoteamentoCopyWith<$Res> implements $DadosLoteamento
   factory _$DadosLoteamentoCopyWith(_DadosLoteamento value, $Res Function(_DadosLoteamento) _then) = __$DadosLoteamentoCopyWithImpl;
 @override @useResult
 $Res call({
- String? nome, String? incorporadora, List<String> infraestrutura, List<String> areasLazer
+ String? nome, String? incorporadora, List<String> infraestrutura, String? areasDeLazer
 });
 
 
@@ -1408,13 +1404,13 @@ class __$DadosLoteamentoCopyWithImpl<$Res>
 
 /// Create a copy of DadosLoteamento
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? nome = freezed,Object? incorporadora = freezed,Object? infraestrutura = null,Object? areasLazer = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? nome = freezed,Object? incorporadora = freezed,Object? infraestrutura = null,Object? areasDeLazer = freezed,}) {
   return _then(_DadosLoteamento(
 nome: freezed == nome ? _self.nome : nome // ignore: cast_nullable_to_non_nullable
 as String?,incorporadora: freezed == incorporadora ? _self.incorporadora : incorporadora // ignore: cast_nullable_to_non_nullable
 as String?,infraestrutura: null == infraestrutura ? _self._infraestrutura : infraestrutura // ignore: cast_nullable_to_non_nullable
-as List<String>,areasLazer: null == areasLazer ? _self._areasLazer : areasLazer // ignore: cast_nullable_to_non_nullable
-as List<String>,
+as List<String>,areasDeLazer: freezed == areasDeLazer ? _self.areasDeLazer : areasDeLazer // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

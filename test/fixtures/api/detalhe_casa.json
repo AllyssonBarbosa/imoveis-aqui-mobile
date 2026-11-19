@@ -1,0 +1,81 @@
+{
+  "id": 21,
+  "titulo": "Casa no bairro Cambuí",
+  "natureza": "CASA",
+  "finalidade": "VENDA",
+  "preco_venda": "495000.00",
+  "preco_aluguel": null,
+  "preco_condominio": null,
+  "preco_iptu": null,
+  "descricao": "Casa de demonstração em Campinas (Cambuí), semeado para o desenvolvimento da vitrine.",
+  "caracteristicas": [
+    {
+      "id": 2,
+      "nome": "Churrasqueira"
+    },
+    {
+      "id": 5,
+      "nome": "Varanda gourmet"
+    }
+  ],
+  "casa": {
+    "area_terreno": "325.00",
+    "area_construida": "150.00",
+    "area_livre": "175.00",
+    "quartos": 4,
+    "suites": 2,
+    "banheiros": 3,
+    "salas": 2,
+    "vagas": 3,
+    "pavimentos": 2,
+    "ano_construcao": 2010,
+    "piscina": true,
+    "quintal": true,
+    "churrasqueira": false,
+    "mobiliada": true
+  },
+  "terreno": null,
+  "apartamento": null,
+  "lote": null,
+  "endereco": {
+    "logradouro": "Rua dos Ipês",
+    "numero": "240",
+    "bairro": "Cambuí",
+    "cep": "13030-000",
+    "cidade": {
+      "id": 1,
+      "nome": "Campinas",
+      "uf": "SP"
+    },
+    "latitude": "-22.879600",
+    "longitude": "-47.086800"
+  },
+  "fotos": [
+    {
+      "imagem": "http://127.0.0.1:8000/media/imoveis/fotos/dev-campinas-21-1_EDtTXmn.jpg",
+      "ordem": 0,
+      "capa": true
+    },
+    {
+      "imagem": "http://127.0.0.1:8000/media/imoveis/fotos/dev-campinas-21-2_ALJp36L.jpg",
+      "ordem": 1,
+      "capa": false
+    },
+    {
+      "imagem": "http://127.0.0.1:8000/media/imoveis/fotos/dev-campinas-21-3_Rbie6vr.jpg",
+      "ordem": 2,
+      "capa": false
+    }
+  ],
+  "corretor_responsavel": {
+    "id": 1,
+    "empresa_id": 1,
+    "foto": "http://127.0.0.1:8000/media/corretores/fotos/corretor_oNKldeD.vitrine.demo.jpg",
+    "nome": "Corretor Vitrine Demo",
+    "email": "corretor.vitrine.demo@example.com",
+    "creci": "12345-F",
+    "telefone": "19988887777",
+    "whatsapp": "19988887777",
+    "apresentacao": "Corretor de demonstração da vitrine de desenvolvimento."
+  }
+}

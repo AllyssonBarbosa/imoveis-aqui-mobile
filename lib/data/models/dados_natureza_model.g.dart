@@ -46,7 +46,8 @@ _TerrenoModel _$TerrenoModelFromJson(Map<String, dynamic> json) =>
       areaTotal: json['area_total'] as String?,
       frente: json['frente'] as String?,
       fundo: json['fundo'] as String?,
-      laterais: json['laterais'] as String?,
+      lateralEsquerda: json['lateral_esquerda'] as String?,
+      lateralDireita: json['lateral_direita'] as String?,
       topografia: json['topografia'] as String?,
       murado: json['murado'] as bool?,
       esquina: json['esquina'] as bool?,
@@ -58,7 +59,8 @@ Map<String, dynamic> _$TerrenoModelToJson(_TerrenoModel instance) =>
       'area_total': instance.areaTotal,
       'frente': instance.frente,
       'fundo': instance.fundo,
-      'laterais': instance.laterais,
+      'lateral_esquerda': instance.lateralEsquerda,
+      'lateral_direita': instance.lateralDireita,
       'topografia': instance.topografia,
       'murado': instance.murado,
       'esquina': instance.esquina,
@@ -68,7 +70,6 @@ Map<String, dynamic> _$TerrenoModelToJson(_TerrenoModel instance) =>
 _ApartamentoModel _$ApartamentoModelFromJson(Map<String, dynamic> json) =>
     _ApartamentoModel(
       andar: (json['andar'] as num?)?.toInt(),
-      numero: json['numero'] as String?,
       areaPrivativa: json['area_privativa'] as String?,
       areaTotal: json['area_total'] as String?,
       quartos: (json['quartos'] as num?)?.toInt(),
@@ -85,7 +86,6 @@ _ApartamentoModel _$ApartamentoModelFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$ApartamentoModelToJson(_ApartamentoModel instance) =>
     <String, dynamic>{
       'andar': instance.andar,
-      'numero': instance.numero,
       'area_privativa': instance.areaPrivativa,
       'area_total': instance.areaTotal,
       'quartos': instance.quartos,
@@ -102,7 +102,8 @@ _LoteModel _$LoteModelFromJson(Map<String, dynamic> json) => _LoteModel(
   area: json['area'] as String?,
   frente: json['frente'] as String?,
   fundo: json['fundo'] as String?,
-  preco: json['preco'] as String?,
+  entradaMinima: json['entrada_minima'] as String?,
+  parcelasMaximas: (json['parcelas_maximas'] as num?)?.toInt(),
   condicoesParcelamento: json['condicoes_parcelamento'] as String?,
   quadra: json['quadra'] == null
       ? null
@@ -115,7 +116,8 @@ Map<String, dynamic> _$LoteModelToJson(_LoteModel instance) =>
       'area': instance.area,
       'frente': instance.frente,
       'fundo': instance.fundo,
-      'preco': instance.preco,
+      'entrada_minima': instance.entradaMinima,
+      'parcelas_maximas': instance.parcelasMaximas,
       'condicoes_parcelamento': instance.condicoesParcelamento,
       'quadra': instance.quadra,
     };
@@ -123,8 +125,7 @@ Map<String, dynamic> _$LoteModelToJson(_LoteModel instance) =>
 _PredioModel _$PredioModelFromJson(Map<String, dynamic> json) => _PredioModel(
   nome: json['nome'] as String?,
   andares: (json['andares'] as num?)?.toInt(),
-  unidadesPorAndar: (json['unidades_por_andar'] as num?)?.toInt(),
-  ano: (json['ano'] as num?)?.toInt(),
+  anoConstrucao: (json['ano_construcao'] as num?)?.toInt(),
   elevadores: (json['elevadores'] as num?)?.toInt(),
   portaria24h: json['portaria_24h'] as bool?,
   piscina: json['piscina'] as bool?,
@@ -137,8 +138,7 @@ Map<String, dynamic> _$PredioModelToJson(_PredioModel instance) =>
     <String, dynamic>{
       'nome': instance.nome,
       'andares': instance.andares,
-      'unidades_por_andar': instance.unidadesPorAndar,
-      'ano': instance.ano,
+      'ano_construcao': instance.anoConstrucao,
       'elevadores': instance.elevadores,
       'portaria_24h': instance.portaria24h,
       'piscina': instance.piscina,
@@ -164,22 +164,22 @@ _LoteamentoModel _$LoteamentoModelFromJson(Map<String, dynamic> json) =>
     _LoteamentoModel(
       nome: json['nome'] as String?,
       incorporadora: json['incorporadora'] as String?,
-      infraestrutura:
-          (json['infraestrutura'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList() ??
-          const <String>[],
-      areasLazer:
-          (json['areas_lazer'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList() ??
-          const <String>[],
+      asfalto: json['asfalto'] as bool?,
+      agua: json['agua'] as bool?,
+      energia: json['energia'] as bool?,
+      esgoto: json['esgoto'] as bool?,
+      iluminacao: json['iluminacao'] as bool?,
+      areasDeLazer: json['areas_de_lazer'] as String?,
     );
 
 Map<String, dynamic> _$LoteamentoModelToJson(_LoteamentoModel instance) =>
     <String, dynamic>{
       'nome': instance.nome,
       'incorporadora': instance.incorporadora,
-      'infraestrutura': instance.infraestrutura,
-      'areas_lazer': instance.areasLazer,
+      'asfalto': instance.asfalto,
+      'agua': instance.agua,
+      'energia': instance.energia,
+      'esgoto': instance.esgoto,
+      'iluminacao': instance.iluminacao,
+      'areas_de_lazer': instance.areasDeLazer,
     };
