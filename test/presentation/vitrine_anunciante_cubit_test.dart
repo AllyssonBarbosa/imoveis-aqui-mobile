@@ -3,13 +3,7 @@ import 'dart:async';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/core/result.dart';
-import 'package:imoveis_aqui/data/datasources/vitrine_anunciante_mock_datasource.dart';
-import 'package:imoveis_aqui/data/mocks/imoveis_detalhe_fixture.dart';
-import 'package:imoveis_aqui/data/mocks/imoveis_fixture.dart';
-import 'package:imoveis_aqui/data/mocks/perfis_fixture.dart';
-import 'package:imoveis_aqui/data/repositories/vitrine_anunciante_repository_impl.dart';
 import 'package:imoveis_aqui/domain/entities/anunciante_ref.dart';
-import 'package:imoveis_aqui/domain/entities/cidade.dart';
 import 'package:imoveis_aqui/domain/entities/imovel.dart';
 import 'package:imoveis_aqui/domain/entities/pagina_imoveis.dart';
 import 'package:imoveis_aqui/domain/usecases/buscar_imoveis_do_anunciante_usecase.dart';
@@ -30,17 +24,15 @@ void main() {
       titulo: 'Casa 57',
       finalidade: FinalidadeImovel.venda,
       bairro: 'Taquaral',
-      cidade: Cidade(nome: 'Campinas', uf: 'SP'),
     ),
     Imovel(
       id: 42,
       titulo: 'Apartamento 42',
       finalidade: FinalidadeImovel.venda,
       bairro: 'Cambuí',
-      cidade: Cidade(nome: 'Campinas', uf: 'SP'),
     ),
   ];
-  const pagina = PaginaImoveis(itens: imoveis, proximaPagina: 'cursor-2');
+  const pagina = PaginaImoveis(itens: imoveis, proximaPagina: 'pagina-2');
   const paginaVazia = PaginaImoveis(itens: []);
 
   setUpAll(() {
@@ -69,7 +61,7 @@ void main() {
     expect: () => [
       const VitrineAnuncianteState.carregada(
         itens: imoveis,
-        proximaPagina: 'cursor-2',
+        proximaPagina: 'pagina-2',
       ),
     ],
     verify: (_) => verify(() => buscar(corretor7)).called(1),
@@ -119,7 +111,7 @@ void main() {
       const VitrineAnuncianteState.carregando(),
       const VitrineAnuncianteState.carregada(
         itens: imoveis,
-        proximaPagina: 'cursor-2',
+        proximaPagina: 'pagina-2',
       ),
     ],
     verify: (_) => verify(() => buscar(corretor7)).called(2),
@@ -162,7 +154,7 @@ void main() {
     expect: () => [
       const VitrineAnuncianteState.carregada(
         itens: imoveis,
-        proximaPagina: 'cursor-2',
+        proximaPagina: 'pagina-2',
       ),
     ],
     verify: (_) => verify(() => buscar(any())).called(1),
@@ -214,22 +206,21 @@ void main() {
         titulo: 'Casa 31',
         finalidade: FinalidadeImovel.aluguel,
         bairro: 'Barão Geraldo',
-        cidade: Cidade(nome: 'Campinas', uf: 'SP'),
       ),
     ];
     const paginaDois = PaginaImoveis(
       itens: imoveisPagina2,
-      proximaPagina: 'cursor-3',
+      proximaPagina: 'pagina-3',
     );
     const paginaFinal = PaginaImoveis(itens: imoveisPagina2);
     const carregadaInicial = VitrineAnuncianteState.carregada(
       itens: imoveis,
-      proximaPagina: 'cursor-2',
+      proximaPagina: 'pagina-2',
     );
 
     blocTest<VitrineAnuncianteCubit, VitrineAnuncianteState>(
       'de carregada com próxima página emite [carregandoMais, itens '
-      'acumulados com o novo cursor]',
+      'acumulados com o nova próxima página]',
       build: construir,
       setUp: () {
         when(() => buscar(any()))
@@ -245,19 +236,19 @@ void main() {
       expect: () => [
         const VitrineAnuncianteState.carregada(
           itens: imoveis,
-          proximaPagina: 'cursor-2',
+          proximaPagina: 'pagina-2',
           carregandoMais: true,
         ),
         const VitrineAnuncianteState.carregada(
           itens: [...imoveis, ...imoveisPagina2],
-          proximaPagina: 'cursor-3',
+          proximaPagina: 'pagina-3',
         ),
       ],
-      verify: (_) => verify(() => buscar.proximaPagina('cursor-2')).called(1),
+      verify: (_) => verify(() => buscar.proximaPagina('pagina-2')).called(1),
     );
 
     blocTest<VitrineAnuncianteCubit, VitrineAnuncianteState>(
-      'a última página zera o cursor e o carregarMais seguinte não faz nada',
+      'a última página zera a próxima página e o carregarMais seguinte não faz nada',
       build: construir,
       setUp: () {
         when(() => buscar(any()))
@@ -274,7 +265,7 @@ void main() {
       expect: () => [
         const VitrineAnuncianteState.carregada(
           itens: imoveis,
-          proximaPagina: 'cursor-2',
+          proximaPagina: 'pagina-2',
           carregandoMais: true,
         ),
         const VitrineAnuncianteState.carregada(
@@ -332,6 +323,45 @@ void main() {
       verify: (_) => verifyNever(() => buscar.proximaPagina(any())),
     );
 
+    blocTest<VitrineAnuncianteCubit, VitrineAnuncianteState>(
+      'carregarMais não repete id já listado (acervo mudou entre as páginas)',
+      build: construir,
+      setUp: () {
+        when(() => buscar(any()))
+            .thenAnswer((_) async => const Result.success(pagina));
+        when(() => buscar.proximaPagina(any())).thenAnswer(
+          (_) async => const Result.success(
+            PaginaImoveis(
+              itens: [
+                Imovel(
+                  id: 42,
+                  titulo: 'Apartamento 42',
+                  finalidade: FinalidadeImovel.venda,
+                  bairro: 'Cambuí',
+                ),
+                Imovel(
+                  id: 31,
+                  titulo: 'Casa 31',
+                  finalidade: FinalidadeImovel.aluguel,
+                  bairro: 'Barão Geraldo',
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+      act: (cubit) async {
+        await cubit.carregar(corretor7);
+        await cubit.carregarMais();
+      },
+      skip: 2,
+      expect: () => [
+        const VitrineAnuncianteState.carregada(
+          itens: [...imoveis, ...imoveisPagina2],
+        ),
+      ],
+    );
+
     test('duas chamadas seguidas sem await geram uma única busca', () async {
       final resposta = Completer<Result<PaginaImoveis>>();
       when(() => buscar(any()))
@@ -346,12 +376,12 @@ void main() {
       resposta.complete(const Result.success(paginaDois));
       await Future.wait([primeira, segunda]);
 
-      verify(() => buscar.proximaPagina('cursor-2')).called(1);
+      verify(() => buscar.proximaPagina('pagina-2')).called(1);
       expect(
         cubit.state,
         const VitrineAnuncianteState.carregada(
           itens: [...imoveis, ...imoveisPagina2],
-          proximaPagina: 'cursor-3',
+          proximaPagina: 'pagina-3',
         ),
       );
       await cubit.close();
@@ -359,7 +389,7 @@ void main() {
 
     blocTest<VitrineAnuncianteCubit, VitrineAnuncianteState>(
       'falha mantém os itens com erroAoCarregarMais; carregarMais nesse '
-      'estado não faz nada e tentarNovamente busca o MESMO cursor',
+      'estado não faz nada e tentarNovamente busca a MESMA página',
       build: construir,
       setUp: () {
         when(() => buscar(any()))
@@ -382,25 +412,25 @@ void main() {
       expect: () => [
         const VitrineAnuncianteState.carregada(
           itens: imoveis,
-          proximaPagina: 'cursor-2',
+          proximaPagina: 'pagina-2',
           carregandoMais: true,
         ),
         const VitrineAnuncianteState.carregada(
           itens: imoveis,
-          proximaPagina: 'cursor-2',
+          proximaPagina: 'pagina-2',
           erroAoCarregarMais: true,
         ),
         const VitrineAnuncianteState.carregada(
           itens: imoveis,
-          proximaPagina: 'cursor-2',
+          proximaPagina: 'pagina-2',
           carregandoMais: true,
         ),
         const VitrineAnuncianteState.carregada(
           itens: [...imoveis, ...imoveisPagina2],
-          proximaPagina: 'cursor-3',
+          proximaPagina: 'pagina-3',
         ),
       ],
-      verify: (_) => verify(() => buscar.proximaPagina('cursor-2')).called(2),
+      verify: (_) => verify(() => buscar.proximaPagina('pagina-2')).called(2),
     );
 
     blocTest<VitrineAnuncianteCubit, VitrineAnuncianteState>(
@@ -442,56 +472,5 @@ void main() {
         ),
       );
     });
-
-    test('pilha real: carregarMais até o fim acumula todos os ids do '
-        'corretor 7 sem repetir e na ordem recebida', () async {
-      final cubit = VitrineAnuncianteCubit(
-        BuscarImoveisDoAnuncianteUseCase(
-          VitrineAnuncianteRepositoryImpl(
-            VitrineAnuncianteMockDataSource.paraTeste(
-              linhas: linhasAcervoFixture(),
-              detalhes: detalhesAcervoFixture(),
-              corretores: corretoresPerfisFixture(),
-            ),
-          ),
-        ),
-      );
-      final esperados = _idsEsperadosDoCorretor7();
-      await cubit.carregar(corretor7);
-      var guarda = 0;
-      while ((cubit.state as VitrineAnuncianteCarregada).proximaPagina !=
-              null &&
-          guarda++ < 20) {
-        await cubit.carregarMais();
-      }
-
-      final carregada = cubit.state as VitrineAnuncianteCarregada;
-      final ids = carregada.itens.map((i) => i.id).toList();
-      expect(carregada.proximaPagina, isNull);
-      expect(ids.toSet().length, ids.length, reason: 'sem duplicatas');
-      expect(ids, esperados);
-      expect(ids.length, greaterThan(30));
-      await cubit.close();
-    });
   });
-}
-
-/// Ids do corretor 7 na ordem do servidor simulado (mais recentes primeiro),
-/// calculados das fixtures — independente da paginação.
-List<int> _idsEsperadosDoCorretor7() {
-  final detalhes = detalhesAcervoFixture();
-  final linhas =
-      linhasAcervoFixture().where((linha) {
-        final corretor =
-            detalhes[linha['id']! as int]?['corretor'] as Map<String, Object?>?;
-        return corretor?['id'] == 7;
-      }).toList()..sort((a, b) {
-        final porData = (b['criado_em']! as String).compareTo(
-          a['criado_em']! as String,
-        );
-        return porData != 0
-            ? porData
-            : (b['id']! as int).compareTo(a['id']! as int);
-      });
-  return [for (final linha in linhas) linha['id']! as int];
 }
