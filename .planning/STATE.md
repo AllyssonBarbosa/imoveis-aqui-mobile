@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: "07.1"
 current_phase_name: Integração da APP-07 com a API real (INSERTED)
 status: executing
-stopped_at: Completed 07.1-02-PLAN.md
-last_updated: "2026-11-19T02:40:49.236Z"
+stopped_at: Completed 07.1-03-PLAN.md
+last_updated: "2026-11-19T02:50:39.884Z"
 last_activity: 2026-11-18
 last_activity_desc: Phase 07.1 execution started
-state_head: 426ccdea1568f571b541bbd0f1e964f046cef12b
+state_head: 04ebae82783e603fe72e86872f8c7632335549bc
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 62
-  completed_plans: 58
+  completed_plans: 59
   percent: 14
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-09-21)
 ## Current Position
 
 Phase: 07.1 (Integração da APP-07 com a API real (INSERTED)) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 Status: Ready to execute
 Last activity: 2026-11-18 — Phase 07.1 execution started
 
@@ -97,6 +97,7 @@ Progress: [█░░░░░░░░░] 14%
 | Phase 05 P22 | 20min | 2 tasks | 4 files |
 | Phase 07.1 P01 | 11 min | 2 tasks | 12 files |
 | Phase 07.1 P02 | 28 min | 2 tasks | 8 files |
+| Phase 07.1 P03 | 7 min | 2 tasks | 15 files |
 
 ## Accumulated Context
 
@@ -144,6 +145,7 @@ Recent decisions affecting current work:
 - [Phase 05]: 05-21: ThrottleVitrinePublica (balde unico por IP, 120/min via VITRINE_TAXA_ANONIMA, NUM_PROXIES=0) so nas 5 rotas publicas da vitrine; sem throttle global
 - [Phase 07.1]: 07.1-01: merge (nao rebase) de origin/main 43dd41d em feat/APP07; DataSource remota da vitrine do anunciante copia _lerEnvelope/_exigirMesmaOrigem do ImovelRemoteDataSource em vez de extrai-los; lib/ sem mock (PerfilRemoteDataSource ativo no DI)
 - [Phase 07.1]: 07.1-02: vitrine do anunciante no Django em rotas aninhadas corretores|empresas/<id>/imoveis/; 404 uniforme (texto do detail varia entre as rotas) e 200 vazio para anunciante ativo sem imoveis
+- [Phase 07.1]: 07.1-03: capturar so os grupos perfis e anunciante (nunca todos) para manter as 15 fixtures da APP-05 intactas; 404 da vitrine do anunciante reaproveita erro_404_perfil.json na ApiFalsa
 
 ### Pending Todos
 
@@ -177,6 +179,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-19T02:40:48.074Z
-Stopped at: Completed 07.1-02-PLAN.md
+Last session: 2026-11-19T02:50:38.735Z
+Stopped at: Completed 07.1-03-PLAN.md
 Resume file: None
