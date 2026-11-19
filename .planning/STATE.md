@@ -2,17 +2,17 @@
 gsd_state_version: "1.0"
 current_phase: "07.1"
 current_phase_name: Integração da APP-07 com a API real (INSERTED)
-status: executing
-stopped_at: Completed 07.1-05-PLAN.md
-last_updated: "2026-11-19T03:12:08.479Z"
+status: verifying
+stopped_at: Completed 07.1-06-PLAN.md
+last_updated: "2026-11-19T10:09:26.081Z"
 last_activity: 2026-11-18
 last_activity_desc: Phase 07.1 execution started
-state_head: fd566971c6b91355a26f725edf1cce5ed13836eb
+state_head: ce8264d1e779a41393787de3f69505d69792cf37
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 62
-  completed_plans: 61
+  completed_plans: 62
   percent: 14
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-21)
 
 Phase: 07.1 (Integração da APP-07 com a API real (INSERTED)) — EXECUTING
 Plan: 6 of 6
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-11-18 — Phase 07.1 execution started
 
 Progress: [█░░░░░░░░░] 14%
@@ -100,6 +100,7 @@ Progress: [█░░░░░░░░░] 14%
 | Phase 07.1 P03 | 7 min | 2 tasks | 15 files |
 | Phase 07.1 P04 | 15 min | 2 tasks | 8 files |
 | Phase 07.1 P05 | 25min | 2 tasks | 1 files |
+| Phase 07.1 P06 | 25min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -150,6 +151,7 @@ Recent decisions affecting current work:
 - [Phase 07.1]: 07.1-03: capturar so os grupos perfis e anunciante (nunca todos) para manter as 15 fixtures da APP-05 intactas; 404 da vitrine do anunciante reaproveita erro_404_perfil.json na ApiFalsa
 - [Phase 07.1]: 07.1-04: VitrineAnuncianteCubit descarta id ja listado ao anexar a proxima pagina (integridade da lista, ordem do servidor); teste 'pilha real' removido, garantia passa ao wire capturado e ao e2e do 07.1-05
 - [Phase 07.1]: 07.1-05: e2e dos perfis registra detalhe e perfis sobre o mesmo Dio da ApiFalsa (registrarDetalheEPerfis); rolagem infinita provada pelo estado do Cubit; grupo DI real da APP-07 nao portado (coberto por injection_perfis_test)
+- [Phase 07.1]: Contrato §13 registra o 404 de anunciante inexistente/inativo (muda o antigo nunca 404) e os PENDENTE WEB (f), (g), (h)
 
 ### Pending Todos
 
@@ -183,6 +185,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-19T03:12:07.315Z
-Stopped at: Completed 07.1-05-PLAN.md
+Last session: 2026-11-19T10:09:24.781Z
+Stopped at: Completed 07.1-06-PLAN.md
 Resume file: None

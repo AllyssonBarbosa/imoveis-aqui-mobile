@@ -47,8 +47,8 @@ Requisitos da primeira entrega (tarefas APP01, APP02, APP03, APP04, APP07 + os e
 
 - [ ] **PERF-01**: A página da empresa mostra logomarca, CRECI, apresentação, contato e cidades de atuação.
 - [ ] **PERF-02**: A página do corretor mostra foto, CRECI, apresentação e contato.
-- [ ] **PERF-03**: As páginas da empresa e do corretor mostram a vitrine dos imóveis daquele anunciante (lista paginada por página — `GET /api/publico/corretores/<id>/imoveis/` e `/api/publico/empresas/<id>/imoveis/` —, recortada e ordenada no servidor).
-- [ ] **PERF-04**: Os dados dos perfis vêm da API dos perfis públicos (`GET /api/publico/corretores/{id}/` e `GET /api/publico/empresas/{id}/`, WEB 02) por DataSource trocável, sem nada montado ou decidido no app.
+- [x] **PERF-03**: As páginas da empresa e do corretor mostram a vitrine dos imóveis daquele anunciante (lista paginada por página — `GET /api/publico/corretores/<id>/imoveis/` e `/api/publico/empresas/<id>/imoveis/` —, recortada e ordenada no servidor).
+- [x] **PERF-04**: Os dados dos perfis vêm da API dos perfis públicos (`GET /api/publico/corretores/{id}/` e `GET /api/publico/empresas/{id}/`, WEB 02) por DataSource trocável, sem nada montado ou decidido no app.
 - [ ] **PERF-05**: Perfil de corretor desativado (404) mostra o aviso "Este corretor não está mais disponível", e não uma tela quebrada.
 - [ ] **PERF-06**: Dá para chegar ao perfil do corretor a partir da página do imóvel e à página da empresa a partir do perfil do corretor.
 
@@ -60,7 +60,7 @@ Requisitos da primeira entrega (tarefas APP01, APP02, APP03, APP04, APP07 + os e
 - [x] **API-04**: A camada de dados do app é trocável (DataSource mock/fixture honrando o contrato → DataSource real por DI), permitindo desenvolver APP02/APP03 antes de o endpoint real de imóveis existir.
 - [x] **API-06**: O contrato de `GET /api/publico/imoveis/{id}/` fica congelado por escrito no §11 do contrato da API + `imovel_detalhe.example.json`, e o app o consome por DataSource trocável (mock honrando o contrato).
 - [x] **API-07**: Endpoint real `GET /api/publico/imoveis/{id}/` público, só imóveis publicados, 404 igual para inexistente e não publicado, serializer com a allowlist do §11, e troca da DataSource do detalhe por DI.
-- [ ] **API-08**: A vitrine do anunciante fica escrita como §13 do contrato (rotas `GET /api/publico/corretores/<id>/imoveis/` e `/api/publico/empresas/<id>/imoveis/`, `PageNumberPagination`, allowlist e limite de taxa da API pública) e o app a consome pela DataSource real (Dio), entregue pelo Django.
+- [x] **API-08**: A vitrine do anunciante fica escrita como §13 do contrato (rotas `GET /api/publico/corretores/<id>/imoveis/` e `/api/publico/empresas/<id>/imoveis/`, `PageNumberPagination`, allowlist e limite de taxa da API pública) e o app a consome pela DataSource real (Dio), entregue pelo Django.
 
 ## v2 Requirements
 
@@ -122,11 +122,11 @@ Excluídos de propósito. Documentados para evitar scope creep.
 | API-07 | Phase 5 | Complete |
 | PERF-01 | Phase 7 | Pending |
 | PERF-02 | Phase 7 | Pending |
-| PERF-03 | Phase 7, Phase 07.1 | Pending |
-| PERF-04 | Phase 7, Phase 07.1 | Pending |
+| PERF-03 | Phase 7, Phase 07.1 | Complete |
+| PERF-04 | Phase 7, Phase 07.1 | Complete |
 | PERF-05 | Phase 7 | Pending |
 | PERF-06 | Phase 7 | Pending |
-| API-08 | Phase 7, Phase 07.1 | Pending |
+| API-08 | Phase 7, Phase 07.1 | Complete |
 
 **Coverage:**
 
