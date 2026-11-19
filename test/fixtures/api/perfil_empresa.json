@@ -1,0 +1,46 @@
+{
+  "id": 1,
+  "tipo": "IMOBILIARIA",
+  "razao_social_ou_nome": "Imobiliária Vitrine Demo (dev)",
+  "creci": "00000-D",
+  "telefone": "",
+  "whatsapp": "11900000000",
+  "email": "vitrine-demo@example.com",
+  "descricao": "",
+  "logomarca": null,
+  "cidades_atuacao": [
+    {
+      "id": 1,
+      "nome": "Campinas",
+      "uf": "SP"
+    },
+    {
+      "id": 4,
+      "nome": "Indaiatuba",
+      "uf": "SP"
+    },
+    {
+      "id": 2,
+      "nome": "Valinhos",
+      "uf": "SP"
+    },
+    {
+      "id": 3,
+      "nome": "Vinhedo",
+      "uf": "SP"
+    }
+  ],
+  "corretores_ativos": [
+    {
+      "id": 1,
+      "empresa_id": 1,
+      "foto": "http://127.0.0.1:8000/media/corretores/fotos/corretor.vitrine.demo.jpg",
+      "nome": "Corretor Vitrine Demo",
+      "email": "corretor.vitrine.demo@example.com",
+      "creci": "12345-F",
+      "telefone": "19988887777",
+      "whatsapp": "19988887777",
+      "apresentacao": "Corretor de demonstração da vitrine de desenvolvimento."
+    }
+  ]
+}
