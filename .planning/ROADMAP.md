@@ -346,12 +346,12 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 7 → 07.1 (6 res
   4. O app consome esse endpoint com a paginação nova; o adendo do contrato da vitrine do anunciante fica renumerado (o §12 da `main` passou a ser outro assunto) e alinhado ao que o Django entrega.
   5. Com o Django rodando e `semear_vitrine_dev`, dá para ir de um imóvel real até o corretor, a empresa e a vitrine deles, e de volta a um imóvel.
 **Depends on:** Phase 7
-**Plans:** 1/6 plans executed
+**Plans:** 2/6 plans executed
 
 Plans:
 **Wave 1**
 - [x] 07.1-01-PLAN.md — Merge de origin/main (APP-05) em feat/APP07 com os 10 conflitos resolvidos + TRACER: perfis e vitrine do anunciante nas DataSources Dio pelo DI de produção, zero mock em lib/ (PERF-04, PERF-03, API-08)
-- [ ] 07.1-02-PLAN.md — Django (repo web, branch feat/APP07): rotas corretores/<id>/imoveis/ e empresas/<id>/imoveis/ no padrão da APP-05, D-11 (corretor de empresa inativa -> 404), site usando as mesmas consultas (D-19), testes (PERF-03, API-08)
+- [x] 07.1-02-PLAN.md — Django (repo web, branch feat/APP07): rotas corretores/<id>/imoveis/ e empresas/<id>/imoveis/ no padrão da APP-05, D-11 (corretor de empresa inativa -> 404), site usando as mesmas consultas (D-19), testes (PERF-03, API-08)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 07.1-03-PLAN.md — Wire real: captura dos perfis e da vitrine do anunciante do Django, ApiFalsa com as rotas novas, teste da DataSource remota, perfil_remote/contrato_perfis e exemplos do contrato copiados (PERF-04, PERF-03, API-08)
