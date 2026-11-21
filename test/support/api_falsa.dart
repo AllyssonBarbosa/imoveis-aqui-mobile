@@ -24,11 +24,15 @@ class RequisicaoGravada {
     required this.uri,
     required this.metodo,
     required Map<String, Object?> cabecalhos,
+    this.corpo,
   }) : cabecalhos = Map.unmodifiable(cabecalhos);
 
   final Uri uri;
   final String metodo;
   final Map<String, Object?> cabecalhos;
+
+  /// Corpo enviado (`RequestOptions.data`), ou nulo se o pedido não tem corpo.
+  final Object? corpo;
 
   /// Valor do cabeçalho [nome] (sem diferenciar maiúsculas), ou nulo.
   String? cabecalho(String nome) {
@@ -73,7 +77,10 @@ class _Falha {
 /// `vitrine_<corretor|empresa>_p1.json` (p2 com `page=2`) para o id do perfil
 /// capturado. Id sem fixture nessas rotas responde 404 com
 /// `erro_404_perfil.json`, o mesmo `{detail}` que o Django devolve (o app nunca
-/// lê o texto). Rota ainda não servida responde 404 com um objeto JSON vazio.
+/// lê o texto). As rotas de autenticação: `POST /api/auth/login/` serve
+/// `login_200.json`; `GET /api/auth/eu/` serve `eu_corretor.json` e
+/// `POST /api/auth/sair/` responde 204, ambos só com `Authorization: Token ...`
+/// (senão 401 com `erro_401.json`). Rota ainda não servida responde 404 com um objeto JSON vazio.
 /// Cada requisição é gravada com método e cabeçalhos ([requisicoesGravadas]),
 /// e [criarDioAutenticado] monta o mesmo `Dio` autenticado da produção sobre a
 /// rede falsa, para provar o que o app envia (ex.: `Authorization`).
@@ -150,6 +157,7 @@ class ApiFalsa {
         uri: uri,
         metodo: opcoes.method,
         cabecalhos: Map<String, Object?>.of(opcoes.headers),
+        corpo: opcoes.data,
       ),
     );
     if (latencia > Duration.zero) await Future<void>.delayed(latencia);
@@ -177,6 +185,19 @@ class ApiFalsa {
     }
     if (uri.path == '/api/publico/caracteristicas/') {
       return _corpoJson(lerFixtureApi('caracteristicas.json'), 200);
+    }
+    if (uri.path == '/api/auth/login/' && opcoes.method == 'POST') {
+      return _corpoJson(lerFixtureApi('login_200.json'), 200);
+    }
+    if (uri.path == '/api/auth/eu/' && opcoes.method == 'GET') {
+      return _temToken(opcoes)
+          ? _corpoJson(lerFixtureApi('eu_corretor.json'), 200)
+          : _corpoJson(lerFixtureApi('erro_401.json'), 401);
+    }
+    if (uri.path == '/api/auth/sair/' && opcoes.method == 'POST') {
+      return _temToken(opcoes)
+          ? _semCorpo(204)
+          : _corpoJson(lerFixtureApi('erro_401.json'), 401);
     }
     final idDoDetalhe = _idDoDetalheDeImovel(uri.path);
     if (idDoDetalhe != null) {
@@ -314,6 +335,18 @@ class ApiFalsa {
     );
     return campinas['id']! as int;
   }
+
+  /// Verdadeiro se o pedido leva `Authorization: Token ...`.
+  bool _temToken(RequestOptions opcoes) {
+    for (final entrada in opcoes.headers.entries) {
+      if (entrada.key.toLowerCase() == 'authorization') {
+        return entrada.value.toString().startsWith('Token ');
+      }
+    }
+    return false;
+  }
+
+  ResponseBody _semCorpo(int status) => ResponseBody.fromString('', status);
 
   ResponseBody _corpoJson(Object? corpo, int status) {
     return ResponseBody.fromString(

@@ -17,6 +17,10 @@ import 'package:imoveis_aqui/data/datasources/armazenamento_token.dart'
     as _i288;
 import 'package:imoveis_aqui/data/datasources/armazenamento_token_seguro.dart'
     as _i179;
+import 'package:imoveis_aqui/data/datasources/autenticacao_datasource.dart'
+    as _i887;
+import 'package:imoveis_aqui/data/datasources/autenticacao_remote_datasource.dart'
+    as _i652;
 import 'package:imoveis_aqui/data/datasources/cidade_prefs_datasource.dart'
     as _i94;
 import 'package:imoveis_aqui/data/datasources/cidade_remote_datasource.dart'
@@ -256,6 +260,12 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i331.DetalheImovelCubit>(
       () => _i331.DetalheImovelCubit(gh<_i990.ObterDetalheImovelUseCase>()),
+    );
+    gh.lazySingleton<_i887.AutenticacaoDataSource>(
+      () => _i652.AutenticacaoRemoteDataSource(
+        gh<_i361.Dio>(),
+        gh<_i361.Dio>(instanceName: 'autenticado'),
+      ),
     );
     gh.factory<_i14.ValidarCidadeAtendidaUseCase>(
       () => _i14.ValidarCidadeAtendidaUseCase(
