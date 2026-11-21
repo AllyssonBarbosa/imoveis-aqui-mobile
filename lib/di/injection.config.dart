@@ -121,6 +121,7 @@ import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_cubit.da
     as _i765;
 import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_cubit.dart'
     as _i331;
+import 'package:imoveis_aqui/presentation/login/login_cubit.dart' as _i81;
 import 'package:imoveis_aqui/presentation/perfis/perfil_corretor_cubit.dart'
     as _i194;
 import 'package:imoveis_aqui/presentation/perfis/perfil_empresa_cubit.dart'
@@ -330,6 +331,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i986.SairUseCase>(
       () => _i986.SairUseCase(gh<_i550.AutenticacaoRepository>()),
+    );
+    gh.factory<_i81.LoginCubit>(
+      () => _i81.LoginCubit(gh<_i411.EntrarUseCase>()),
     );
     gh.lazySingleton<_i231.SessaoCubit>(
       () => _i231.SessaoCubit(
