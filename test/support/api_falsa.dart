@@ -46,12 +46,19 @@ class RequisicaoGravada {
 }
 
 class _Sobrescrita {
-  const _Sobrescrita(this.quando, this.status, this.fixture, this.corpo);
+  const _Sobrescrita(
+    this.quando,
+    this.status,
+    this.fixture,
+    this.corpo,
+    this.cabecalhos,
+  );
 
   final bool Function(Uri uri) quando;
   final int status;
   final String? fixture;
   final Object? corpo;
+  final Map<String, List<String>>? cabecalhos;
 }
 
 class _Falha {
@@ -119,13 +126,18 @@ class ApiFalsa {
   /// `test/fixtures/api/`; [corpo] serve um valor JSON derivado de uma
   /// fixture (ex.: uma cópia com uma chave alterada para simular wire
   /// malformado). Sem nenhum dos dois o corpo é um objeto JSON vazio.
+  /// [cabecalhos] são somados aos cabeçalhos da resposta (ex.: `Retry-After`
+  /// de um 429).
   void responder(
     bool Function(Uri uri) quando, {
     required int status,
     String? fixture,
     Object? corpo,
+    Map<String, List<String>>? cabecalhos,
   }) {
-    _sobrescritas.add(_Sobrescrita(quando, status, fixture, corpo));
+    _sobrescritas.add(
+      _Sobrescrita(quando, status, fixture, corpo, cabecalhos),
+    );
   }
 
   /// As próximas [vezes] requisições cujo caminho começa com [caminho]
@@ -179,6 +191,7 @@ class ApiFalsa {
               ? lerFixtureApi(sobrescrita.fixture!)
               : sobrescrita.corpo ?? const <String, Object?>{},
           sobrescrita.status,
+          cabecalhos: sobrescrita.cabecalhos,
         );
       }
     }
@@ -367,12 +380,17 @@ class ApiFalsa {
 
   ResponseBody _semCorpo(int status) => ResponseBody.fromString('', status);
 
-  ResponseBody _corpoJson(Object? corpo, int status) {
+  ResponseBody _corpoJson(
+    Object? corpo,
+    int status, {
+    Map<String, List<String>>? cabecalhos,
+  }) {
     return ResponseBody.fromString(
       jsonEncode(corpo),
       status,
       headers: {
         Headers.contentTypeHeader: [Headers.jsonContentType],
+        ...?cabecalhos,
       },
     );
   }
