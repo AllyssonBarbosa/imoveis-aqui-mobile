@@ -85,6 +85,8 @@ import 'package:imoveis_aqui/domain/usecases/buscar_imoveis_usecase.dart'
     as _i213;
 import 'package:imoveis_aqui/domain/usecases/detectar_cidade_usecase.dart'
     as _i502;
+import 'package:imoveis_aqui/domain/usecases/entrar_usecase.dart' as _i411;
+import 'package:imoveis_aqui/domain/usecases/ler_sessao_usecase.dart' as _i560;
 import 'package:imoveis_aqui/domain/usecases/obter_bairros_usecase.dart'
     as _i20;
 import 'package:imoveis_aqui/domain/usecases/obter_caracteristicas_usecase.dart'
@@ -95,10 +97,12 @@ import 'package:imoveis_aqui/domain/usecases/obter_cidades_atendidas_usecase.dar
     as _i54;
 import 'package:imoveis_aqui/domain/usecases/obter_detalhe_imovel_usecase.dart'
     as _i990;
+import 'package:imoveis_aqui/domain/usecases/obter_papel_usecase.dart' as _i396;
 import 'package:imoveis_aqui/domain/usecases/obter_perfil_corretor_usecase.dart'
     as _i741;
 import 'package:imoveis_aqui/domain/usecases/obter_perfil_empresa_usecase.dart'
     as _i370;
+import 'package:imoveis_aqui/domain/usecases/sair_usecase.dart' as _i986;
 import 'package:imoveis_aqui/domain/usecases/salvar_cidade_usecase.dart'
     as _i589;
 import 'package:imoveis_aqui/domain/usecases/validar_cidade_atendida_usecase.dart'
@@ -289,6 +293,18 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i502.DetectarCidadeUseCase>(),
         gh<_i14.ValidarCidadeAtendidaUseCase>(),
       ),
+    );
+    gh.factory<_i411.EntrarUseCase>(
+      () => _i411.EntrarUseCase(gh<_i550.AutenticacaoRepository>()),
+    );
+    gh.factory<_i560.LerSessaoUseCase>(
+      () => _i560.LerSessaoUseCase(gh<_i550.AutenticacaoRepository>()),
+    );
+    gh.factory<_i396.ObterPapelUseCase>(
+      () => _i396.ObterPapelUseCase(gh<_i550.AutenticacaoRepository>()),
+    );
+    gh.factory<_i986.SairUseCase>(
+      () => _i986.SairUseCase(gh<_i550.AutenticacaoRepository>()),
     );
     return this;
   }
