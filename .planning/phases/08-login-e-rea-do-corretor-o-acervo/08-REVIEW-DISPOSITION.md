@@ -51,7 +51,7 @@ findings:
     severity: info
     disposition: open
     title: "Script de captura anuncia revogação de tokens que não faz e segue qualquer URL"
-open: 12
+open: 9
 total: 12
 recorded: 2026-11-21T15:45:47.955Z
 ---
@@ -60,9 +60,9 @@ recorded: 2026-11-21T15:45:47.955Z
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | open | - |
-| WR-02 | warning | open | - |
-| WR-03 | warning | open | - |
+| WR-01 | warning | fixed | a378670 (08-REVIEW-FIX.md) |
+| WR-02 | warning | fixed | 1e59281 (08-REVIEW-FIX.md) |
+| WR-03 | warning | fixed | 2c4587b (08-REVIEW-FIX.md) |
 | WR-04 | warning | open | - |
 | WR-05 | warning | open | - |
 | WR-06 | warning | open | - |
