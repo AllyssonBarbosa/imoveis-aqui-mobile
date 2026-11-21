@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../cidade_selecao/cidade_selecao_cubit.dart';
 import '../cidade_selecao/cidade_selecao_screen.dart';
+import '../sessao/rota_vitrine.dart';
 
 /// Tela de priming (D-05) — explica o porquê antes de disparar o prompt
 /// nativo do OS. O `FilledButton` "Usar minha localização" é o ÚNICO lugar
@@ -65,6 +66,9 @@ class PrimingScreen extends StatelessWidget {
     unawaited(cubit.detectarCidade());
     Navigator.of(context).push(
       MaterialPageRoute<void>(
+        // Nomeada para "Sair" e "sessão terminou" voltarem à vitrine, e não a
+        // esta tela de priming (que fica embaixo na pilha).
+        settings: configuracaoRotaVitrine,
         builder: (_) => BlocProvider<CidadeSelecaoCubit>.value(
           value: cubit,
           child: CidadeSelecaoScreen(acaoSessao: acaoSessao),

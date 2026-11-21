@@ -14,6 +14,7 @@ import 'package:imoveis_aqui/presentation/login/login_cubit.dart';
 import 'package:imoveis_aqui/presentation/login/login_screen.dart';
 import 'package:imoveis_aqui/presentation/login/login_state.dart';
 import 'package:imoveis_aqui/presentation/perfis/widgets/rodape_paginacao_lista.dart';
+import 'package:imoveis_aqui/presentation/sessao/rota_vitrine.dart';
 import 'package:imoveis_aqui/presentation/sessao/sessao_cubit.dart';
 import 'package:imoveis_aqui/presentation/sessao/sessao_state.dart';
 import 'package:mocktail/mocktail.dart';
@@ -341,6 +342,52 @@ void main() {
       await tester.pumpAndSettle();
     }
 
+    /// Primeiro uso, sem cidade salva: a primeira rota é o priming e a vitrine
+    /// (rota nomeada, como o `PrimingScreen` a empurra) vem por cima; o acervo
+    /// fecha a pilha `[Priming, Vitrine, Acervo]`.
+    Future<void> montarEmpilhadoComPriming(
+      WidgetTester tester,
+      Stream<AcervoState> depois,
+    ) async {
+      whenListen(cubit, depois, initialState: carregada([_imovel(1)]));
+      await tester.pumpWidget(
+        BlocProvider<SessaoCubit>.value(
+          value: sessao,
+          child: MaterialApp(
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: TextButton(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      settings: configuracaoRotaVitrine,
+                      builder: (contextoVitrine) => Scaffold(
+                        body: TextButton(
+                          onPressed: () => Navigator.of(contextoVitrine).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => AcervoScreen(
+                                criarCubit: () => cubit,
+                                aoAbrirImovel: (context, imovel) async {},
+                              ),
+                            ),
+                          ),
+                          child: const Text('Vitrine'),
+                        ),
+                      ),
+                    ),
+                  ),
+                  child: const Text('Priming'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('Priming'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Vitrine'));
+      await tester.pumpAndSettle();
+    }
+
     testWidgets('a AppBar tem a ação Sair com tooltip', (tester) async {
       await montarEmpilhado(tester, const Stream<AcervoState>.empty());
 
@@ -383,6 +430,62 @@ void main() {
       expect(find.byType(AcervoScreen), findsNothing);
       expect(find.text('Vitrine'), findsOneWidget);
     });
+
+    testWidgets(
+      'Sair no primeiro uso volta à vitrine, não ao priming (WR-01)',
+      (tester) async {
+        await montarEmpilhadoComPriming(
+          tester,
+          const Stream<AcervoState>.empty(),
+        );
+
+        await tester.tap(find.byTooltip('Sair'));
+        await tester.pumpAndSettle();
+        await tester.tap(
+          find.descendant(
+            of: find.byType(AlertDialog),
+            matching: find.widgetWithText(FilledButton, 'Sair'),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        verify(() => sessao.sair()).called(1);
+        expect(find.byType(AcervoScreen), findsNothing);
+        expect(find.text('Vitrine'), findsOneWidget);
+        expect(find.text('Priming'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'sessaoExpirada no primeiro uso deixa a vitrine, e não o priming, '
+      'embaixo do login (WR-01)',
+      (tester) async {
+        final login = _LoginCubitFalso();
+        whenListen(
+          login,
+          const Stream<LoginState>.empty(),
+          initialState: const LoginState.editando(),
+        );
+        getIt.registerFactory<LoginCubit>(() => login);
+
+        await montarEmpilhadoComPriming(
+          tester,
+          Stream.value(
+            const AcervoState(conteudo: ConteudoAcervo.sessaoExpirada()),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byType(LoginScreen), findsOneWidget);
+
+        await tester.pageBack();
+        await tester.pumpAndSettle();
+
+        expect(find.text('Vitrine'), findsOneWidget);
+        expect(find.text('Priming'), findsNothing);
+        expect(find.byType(AcervoScreen), findsNothing);
+      },
+    );
 
     testWidgets(
       'sessaoExpirada marca anônima e abre o login com o aviso, só com a vitrine embaixo',

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'rota_vitrine.dart';
 import 'sessao_cubit.dart';
 
 /// Pede a confirmação de Sair e, confirmado, encerra a sessão e volta à
-/// primeira rota (a vitrine) — AC-2. O [SessaoCubit] sempre termina anônimo,
+/// rota da vitrine — AC-2 (a primeira rota, ou a rota nomeada em
+/// `rota_vitrine.dart` quando o priming vem por baixo). O [SessaoCubit] sempre termina anônimo,
 /// mesmo que o servidor falhe, e a pilha não deixa o "voltar" reabrir uma
 /// tela logada (T-08-54).
 Future<void> confirmarESair(BuildContext context) async {
@@ -36,5 +38,5 @@ Future<void> confirmarESair(BuildContext context) async {
 
   await sessao.sair();
   if (!navegador.mounted) return;
-  navegador.popUntil((rota) => rota.isFirst);
+  navegador.popUntil(eRotaDaVitrine);
 }

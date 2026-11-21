@@ -10,7 +10,9 @@ import 'package:imoveis_aqui/domain/usecases/obter_cidades_atendidas_usecase.dar
 import 'package:imoveis_aqui/domain/usecases/salvar_cidade_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/validar_cidade_atendida_usecase.dart';
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_cubit.dart';
+import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_screen.dart';
 import 'package:imoveis_aqui/presentation/priming/priming_screen.dart';
+import 'package:imoveis_aqui/presentation/sessao/rota_vitrine.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _GeolocatorGatewayFalso extends Mock implements GeolocatorGateway {}
@@ -54,18 +56,13 @@ void main() {
     // cidade_selecao_screen_test.dart).
     getIt.registerFactory<SalvarCidadeUseCase>(_SalvarCidadeUseCaseFalso.new);
 
-    when(
-      () => geolocator.isServicoHabilitado(),
-    ).thenAnswer((_) async => true);
-    when(() => geolocator.verificarPermissao()).thenAnswer(
-      (_) async => GatewayPermissaoLocalizacao.negada,
-    );
-    when(() => geolocator.solicitarPermissao()).thenAnswer(
-      (_) async => GatewayPermissaoLocalizacao.negada,
-    );
-    when(
-      () => obterCidadesAtendidas(),
-    ).thenAnswer((_) async => const Result.success(listaAtendida));
+    when(() => geolocator.isServicoHabilitado()).thenAnswer((_) async => true);
+    when(() => geolocator.verificarPermissao())
+        .thenAnswer((_) async => GatewayPermissaoLocalizacao.negada);
+    when(() => geolocator.solicitarPermissao())
+        .thenAnswer((_) async => GatewayPermissaoLocalizacao.negada);
+    when(() => obterCidadesAtendidas())
+        .thenAnswer((_) async => const Result.success(listaAtendida));
   });
 
   tearDown(() async {
@@ -104,12 +101,40 @@ void main() {
         ),
       );
 
-      await tester.tap(find.widgetWithText(FilledButton, 'Usar minha localização'));
+      await tester.tap(
+        find.widgetWithText(FilledButton, 'Usar minha localização'),
+      );
       await tester.pumpAndSettle();
 
       verify(() => geolocator.isServicoHabilitado()).called(1);
       verify(() => geolocator.verificarPermissao()).called(1);
       verify(() => geolocator.solicitarPermissao()).called(1);
+    },
+  );
+
+  testWidgets(
+    'a rota empurrada pelo CTA é a rota nomeada da vitrine, para Sair e a '
+    'sessão terminada voltarem a ela e não ao priming (WR-01)',
+    (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: BlocProvider<CidadeSelecaoCubit>.value(
+            value: cubit,
+            child: const PrimingScreen(),
+          ),
+        ),
+      );
+
+      await tester.tap(
+        find.widgetWithText(FilledButton, 'Usar minha localização'),
+      );
+      await tester.pumpAndSettle();
+
+      final rota = ModalRoute.of(
+        tester.element(find.byType(CidadeSelecaoScreen)),
+      )!;
+      expect(rota.settings.name, nomeRotaVitrine);
+      expect(eRotaDaVitrine(rota), isTrue);
     },
   );
 }

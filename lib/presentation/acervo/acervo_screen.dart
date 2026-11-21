@@ -8,6 +8,7 @@ import '../login/apresentacao_login.dart';
 import '../login/login_screen.dart';
 import '../perfis/widgets/rodape_paginacao_lista.dart';
 import '../sessao/dialogo_sair.dart';
+import '../sessao/rota_vitrine.dart';
 import '../sessao/sessao_cubit.dart';
 import 'acervo_cubit.dart';
 import 'acervo_state.dart';
@@ -91,14 +92,14 @@ class _CorpoAcervoState extends State<_CorpoAcervo> {
   }
 
   /// A sessão terminou (401 na lista): deixa a sessão anônima e abre o login
-  /// com o aviso, mantendo só a primeira rota (a vitrine) embaixo.
+  /// com o aviso, mantendo só a rota da vitrine embaixo.
   void _aoSessaoExpirar() {
     context.read<SessaoCubit>().marcarAnonima();
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute<void>(
         builder: (_) => const LoginScreen(aviso: avisoSessaoTerminou),
       ),
-      (rota) => rota.isFirst,
+      eRotaDaVitrine,
     );
   }
 
