@@ -3,7 +3,7 @@ status: complete
 phase: 07-perfis-p-blicos-da-empresa-e-do-corretor
 source: [07-VERIFICATION.md, 07.1-06-PLAN.md (Phase 07.1: integração da APP-07 com a API real)]
 started: 2026-11-19T00:00:00Z
-updated: 2026-11-21T00:11:49.557Z
+updated: 2026-11-21T00:52:48.957Z
 ---
 
 ## Current Test
