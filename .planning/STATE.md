@@ -3,11 +3,11 @@ gsd_state_version: "1.0"
 current_phase: 1
 current_phase_name: Localização, Escolha de Cidade e Contrato da API
 status: verifying
-stopped_at: Phase 07 complete, ready to verify Phase 1
-last_updated: "2026-11-21T01:06:59.932Z"
+stopped_at: Phase 8 context gathered
+last_updated: "2026-11-21T01:22:19.827Z"
 last_activity: 2026-11-20
 last_activity_desc: Phase 07 complete, transitioned to Phase 1
-state_head: fee602276514d30586eb77cd162c59558351b34d
+state_head: 65eff7e43c90111128c6adc5771f0e76e2374818
 progress:
   total_phases: 8
   completed_phases: 2
@@ -189,6 +189,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-20T22:05:00-03:00
-Stopped at: Phase 7 complete (UAT 5/5, verificação regenerada passed 7/7, 0 ameaças); APP-07 fechada — próximo: APP-08
-Resume file: None
+Last session: 2026-11-21T01:22:17.705Z
+Stopped at: Phase 8 context gathered
+Resume file: .planning/phases/08-login-e-rea-do-corretor-o-acervo/08-CONTEXT.md
