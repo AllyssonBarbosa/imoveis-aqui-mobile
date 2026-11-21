@@ -378,11 +378,11 @@ Plans:
   5. Imóvel de outra empresa não aparece nem forçando a consulta.
   6. Sem login, o app continua abrindo direto na vitrine.
 
-**Plans:** 12 plans
+**Plans:** 1/12 plans executed
 
 Plans:
 **Wave 1**
-- [ ] 08-01-PLAN.md — Web (feat/APP08): TRACER do acervo autenticado (login → token → `GET /api/imoveis/` paginado e enxuto, 10 chaves) + busca/situação por `FiltroImovelForm`, isolamento (AC-5), allowlist e README (API-10, ACV-01..04)
+- [x] 08-01-PLAN.md — Web (feat/APP08): TRACER do acervo autenticado (login → token → `GET /api/imoveis/` paginado e enxuto, 10 chaves) + busca/situação por `FiltroImovelForm`, isolamento (AC-5), allowlist e README (API-10, ACV-01..04)
 - [ ] 08-02-PLAN.md — App: `flutter_secure_storage` atrás de `ArmazenamentoToken`, `allowBackup=false`, segundo `Dio` `@Named('autenticado')` com `InterceptadorSessao` (token só na mesma origem, 401 → sessão expirada) e `ApiFalsa` gravando cabeçalhos; override do D-D sobre a nota do CLAUDE.md registrado (AUTH-02)
 
 **Wave 2** *(blocked on Wave 1 completion)*
