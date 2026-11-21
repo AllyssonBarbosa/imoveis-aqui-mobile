@@ -1,3 +1,5 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -91,11 +93,14 @@ class _CorpoAcervoState extends State<_CorpoAcervo> {
     context.read<AcervoCubit>().limparBusca();
   }
 
-  /// A sessão terminou (401 na lista): deixa a sessão anônima e abre o login
-  /// com o aviso, mantendo só a rota da vitrine embaixo.
-  void _aoSessaoExpirar() {
-    context.read<SessaoCubit>().marcarAnonima();
-    Navigator.of(context).pushAndRemoveUntil(
+  /// A sessão terminou (401 na lista): descarta o token local, deixa a sessão
+  /// anônima e abre o login com o aviso, mantendo só a rota da vitrine
+  /// embaixo.
+  Future<void> _aoSessaoExpirar() async {
+    final navegador = Navigator.of(context);
+    await context.read<SessaoCubit>().encerrarPorExpiracao();
+    if (!mounted) return;
+    navegador.pushAndRemoveUntil(
       MaterialPageRoute<void>(
         builder: (_) => const LoginScreen(aviso: avisoSessaoTerminou),
       ),
@@ -134,7 +139,7 @@ class _CorpoAcervoState extends State<_CorpoAcervo> {
       listenWhen: (anterior, atual) =>
           anterior.conteudo is! AcervoSessaoExpirada &&
           atual.conteudo is AcervoSessaoExpirada,
-      listener: (context, state) => _aoSessaoExpirar(),
+      listener: (context, state) => unawaited(_aoSessaoExpirar()),
       child: Scaffold(
         appBar: AppBar(
           title: const Text(tituloAcervo),

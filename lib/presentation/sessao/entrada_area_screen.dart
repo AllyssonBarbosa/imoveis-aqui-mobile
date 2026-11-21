@@ -1,3 +1,5 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -38,6 +40,7 @@ class _CorpoEntradaArea extends StatelessWidget {
 
   void _aoMudar(BuildContext context, EntradaAreaState estado) {
     final navegador = Navigator.of(context);
+    final sessao = context.read<SessaoCubit>();
     switch (estado) {
       case EntradaAreaPapel(:final papel):
         navegador.pushReplacement(
@@ -49,15 +52,27 @@ class _CorpoEntradaArea extends StatelessWidget {
           ),
         );
       case EntradaAreaSessaoExpirada():
-        context.read<SessaoCubit>().marcarAnonima();
-        navegador.pushReplacement(
-          MaterialPageRoute<void>(
-            builder: (_) => const LoginScreen(aviso: avisoSessaoTerminou),
-          ),
-        );
+        unawaited(_encerrarPorExpiracao(navegador, sessao));
       case EntradaAreaCarregando() || EntradaAreaErro():
         break;
     }
+  }
+
+  /// Descarta o token local, deixa a sessão anônima e só então troca a rota
+  /// pelo login com o aviso.
+  Future<void> _encerrarPorExpiracao(
+    NavigatorState navegador,
+    SessaoCubit sessao,
+  ) async {
+    await sessao.encerrarPorExpiracao();
+    if (!navegador.mounted) return;
+    unawaited(
+      navegador.pushReplacement(
+        MaterialPageRoute<void>(
+          builder: (_) => const LoginScreen(aviso: avisoSessaoTerminou),
+        ),
+      ),
+    );
   }
 
   @override

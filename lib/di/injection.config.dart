@@ -92,6 +92,8 @@ import 'package:imoveis_aqui/domain/usecases/buscar_imoveis_do_anunciante_usecas
     as _i427;
 import 'package:imoveis_aqui/domain/usecases/buscar_imoveis_usecase.dart'
     as _i213;
+import 'package:imoveis_aqui/domain/usecases/descartar_sessao_usecase.dart'
+    as _i551;
 import 'package:imoveis_aqui/domain/usecases/detectar_cidade_usecase.dart'
     as _i502;
 import 'package:imoveis_aqui/domain/usecases/entrar_usecase.dart' as _i411;
@@ -322,6 +324,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i587.AcervoCubit>(
       () => _i587.AcervoCubit(gh<_i89.BuscarAcervoUseCase>()),
     );
+    gh.factory<_i551.DescartarSessaoUseCase>(
+      () => _i551.DescartarSessaoUseCase(gh<_i550.AutenticacaoRepository>()),
+    );
     gh.factory<_i411.EntrarUseCase>(
       () => _i411.EntrarUseCase(gh<_i550.AutenticacaoRepository>()),
     );
@@ -337,14 +342,15 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i490.EntradaAreaCubit>(
       () => _i490.EntradaAreaCubit(gh<_i396.ObterPapelUseCase>()),
     );
-    gh.factory<_i81.LoginCubit>(
-      () => _i81.LoginCubit(gh<_i411.EntrarUseCase>()),
-    );
     gh.lazySingleton<_i231.SessaoCubit>(
       () => _i231.SessaoCubit(
         gh<_i560.LerSessaoUseCase>(),
         gh<_i986.SairUseCase>(),
+        gh<_i551.DescartarSessaoUseCase>(),
       ),
+    );
+    gh.factory<_i81.LoginCubit>(
+      () => _i81.LoginCubit(gh<_i411.EntrarUseCase>()),
     );
     return this;
   }

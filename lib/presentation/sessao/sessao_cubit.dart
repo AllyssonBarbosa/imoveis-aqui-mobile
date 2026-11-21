@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 
+import '../../domain/usecases/descartar_sessao_usecase.dart';
 import '../../domain/usecases/ler_sessao_usecase.dart';
 import '../../domain/usecases/sair_usecase.dart';
 import 'sessao_state.dart';
@@ -13,20 +14,19 @@ import 'sessao_state.dart';
 /// ao tocar em "Meu acervo".
 @lazySingleton
 class SessaoCubit extends Cubit<SessaoState> {
-  SessaoCubit(this._lerSessao, this._sair)
+  SessaoCubit(this._lerSessao, this._sair, this._descartarSessao)
     : super(const SessaoState.verificando());
 
   final LerSessaoUseCase _lerSessao;
   final SairUseCase _sair;
+  final DescartarSessaoUseCase _descartarSessao;
 
   /// Lê o aparelho e decide entre anônima e autenticada.
   Future<void> carregar() async {
     final temSessao = await _lerSessao();
     if (isClosed) return;
     emit(
-      temSessao
-          ? const SessaoState.autenticada()
-          : const SessaoState.anonima(),
+      temSessao ? const SessaoState.autenticada() : const SessaoState.anonima(),
     );
   }
 
@@ -40,6 +40,20 @@ class SessaoCubit extends Cubit<SessaoState> {
   void marcarAnonima() {
     if (isClosed) return;
     emit(const SessaoState.anonima());
+  }
+
+  /// A sessão deixou de valer (o servidor recusou o token, 401): descarta de
+  /// novo o token do aparelho — o interceptor pode ter falhado ao apagá-lo
+  /// (T-08-49) — e termina sempre anônimo.
+  ///
+  /// Sem `catch`, como em [sair]: [DescartarSessaoUseCase] não lança por
+  /// contrato, e o `finally` mantém o estado anônimo se isso um dia quebrar.
+  Future<void> encerrarPorExpiracao() async {
+    try {
+      await _descartarSessao();
+    } finally {
+      marcarAnonima();
+    }
   }
 
   /// Encerra a sessão e termina sempre anônimo (AC-2).

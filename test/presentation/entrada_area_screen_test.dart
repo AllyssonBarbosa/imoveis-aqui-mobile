@@ -36,7 +36,7 @@ void main() {
     sessao = _SessaoCubitFalso();
     when(() => entrada.carregar()).thenAnswer((_) async {});
     when(() => entrada.tentarNovamente()).thenAnswer((_) async {});
-    when(() => sessao.marcarAnonima()).thenReturn(null);
+    when(() => sessao.encerrarPorExpiracao()).thenAnswer((_) async {});
     whenListen(
       sessao,
       const Stream<SessaoState>.empty(),
@@ -176,7 +176,7 @@ void main() {
       );
       await tester.pump(const Duration(milliseconds: 500));
 
-      verify(() => sessao.marcarAnonima()).called(1);
+      verify(() => sessao.encerrarPorExpiracao()).called(1);
       expect(find.byType(LoginScreen), findsOneWidget);
       expect(find.text('Sua sessão terminou. Entre de novo.'), findsOneWidget);
       expect(find.byType(EntradaAreaScreen), findsNothing);

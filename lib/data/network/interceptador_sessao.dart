@@ -62,9 +62,9 @@ class InterceptadorSessao extends Interceptor {
         await _armazenamento.apagar();
       } on PlatformException {
         // Camada de dados, não UI: o armazenamento seguro pode falhar ao
-        // apagar. A sessão expirada é reportada do mesmo jeito, e o
-        // repositório descarta a sessão local de novo ao receber a falha
-        // (T-08-49).
+        // apagar. A sessão expirada é reportada do mesmo jeito, e quem a
+        // recebe (acervo, entrada) chama `SessaoCubit.encerrarPorExpiracao`,
+        // que descarta a sessão local de novo (T-08-49).
       }
     }
     handler.reject(err.copyWith(error: const SessaoExpiradaException()));

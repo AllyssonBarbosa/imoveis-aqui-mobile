@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/data/datasources/armazenamento_token.dart';
 import 'package:imoveis_aqui/data/datasources/autenticacao_datasource.dart';
 import 'package:imoveis_aqui/data/repositories/autenticacao_repository_impl.dart';
+import 'package:imoveis_aqui/domain/usecases/descartar_sessao_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/ler_sessao_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/sair_usecase.dart';
 import 'package:imoveis_aqui/presentation/sessao/sessao_cubit.dart';
@@ -15,6 +16,8 @@ class _LerSessaoFalso extends Mock implements LerSessaoUseCase {}
 
 class _SairFalso extends Mock implements SairUseCase {}
 
+class _DescartarSessaoFalso extends Mock implements DescartarSessaoUseCase {}
+
 class _DataSourceFalso extends Mock implements AutenticacaoDataSource {}
 
 class _ArmazenamentoFalso extends Mock implements ArmazenamentoToken {}
@@ -22,14 +25,17 @@ class _ArmazenamentoFalso extends Mock implements ArmazenamentoToken {}
 void main() {
   late _LerSessaoFalso lerSessao;
   late _SairFalso sair;
+  late _DescartarSessaoFalso descartarSessao;
 
   setUp(() {
     lerSessao = _LerSessaoFalso();
     sair = _SairFalso();
+    descartarSessao = _DescartarSessaoFalso();
     when(() => sair()).thenAnswer((_) async {});
+    when(() => descartarSessao()).thenAnswer((_) async {});
   });
 
-  SessaoCubit criar() => SessaoCubit(lerSessao, sair);
+  SessaoCubit criar() => SessaoCubit(lerSessao, sair, descartarSessao);
 
   test('estado inicial é verificando', () {
     final cubit = criar();
@@ -77,6 +83,41 @@ void main() {
     verify: (_) => verify(() => sair()).called(1),
   );
 
+  blocTest<SessaoCubit, SessaoState>(
+    'encerrarPorExpiracao descarta a sessão local e termina anônimo (WR-03)',
+    build: criar,
+    seed: () => const SessaoState.autenticada(),
+    act: (cubit) => cubit.encerrarPorExpiracao(),
+    expect: () => [const SessaoState.anonima()],
+    verify: (_) {
+      verify(() => descartarSessao()).called(1);
+      verifyNever(() => sair());
+    },
+  );
+
+  test(
+    'pilha real: 401 com apagar() lançando PlatformException, '
+    'encerrarPorExpiracao tenta apagar de novo e termina anônimo (WR-03)',
+    () async {
+      final armazenamento = _ArmazenamentoFalso();
+      when(() => armazenamento.apagar())
+          .thenThrow(PlatformException(code: 'falha'));
+      final cubit = SessaoCubit(
+        lerSessao,
+        sair,
+        DescartarSessaoUseCase(
+          AutenticacaoRepositoryImpl(_DataSourceFalso(), armazenamento),
+        ),
+      )..marcarAutenticada();
+
+      await expectLater(cubit.encerrarPorExpiracao(), completes);
+
+      expect(cubit.state, const SessaoState.anonima());
+      verify(() => armazenamento.apagar()).called(1);
+      await cubit.close();
+    },
+  );
+
   test('pilha real: servidor fora e apagar() lançando PlatformException, '
       'sair completa sem erro e termina anônimo', () async {
     final dataSource = _DataSourceFalso();
@@ -87,13 +128,13 @@ void main() {
         type: DioExceptionType.connectionError,
       ),
     );
-    when(
-      () => armazenamento.apagar(),
-    ).thenThrow(PlatformException(code: 'falha'));
+    when(() => armazenamento.apagar())
+        .thenThrow(PlatformException(code: 'falha'));
 
     final cubit = SessaoCubit(
       lerSessao,
       SairUseCase(AutenticacaoRepositoryImpl(dataSource, armazenamento)),
+      descartarSessao,
     )..marcarAutenticada();
     expect(cubit.state, const SessaoState.autenticada());
 

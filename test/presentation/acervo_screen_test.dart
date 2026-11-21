@@ -298,6 +298,7 @@ void main() {
     setUp(() {
       sessao = _SessaoCubitFalso();
       when(() => sessao.sair()).thenAnswer((_) async {});
+      when(() => sessao.encerrarPorExpiracao()).thenAnswer((_) async {});
       whenListen(
         sessao,
         const Stream<SessaoState>.empty(),
@@ -506,7 +507,7 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        verify(() => sessao.marcarAnonima()).called(1);
+        verify(() => sessao.encerrarPorExpiracao()).called(1);
         expect(find.byType(LoginScreen), findsOneWidget);
         expect(find.byType(AcervoScreen), findsNothing);
         expect(
