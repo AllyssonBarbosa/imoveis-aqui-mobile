@@ -1,6 +1,8 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:imoveis_aqui/di/injection.dart';
 import 'package:imoveis_aqui/domain/entities/imovel.dart';
 import 'package:imoveis_aqui/domain/entities/imovel_acervo.dart';
 import 'package:imoveis_aqui/domain/entities/situacao_imovel.dart';
@@ -8,10 +10,19 @@ import 'package:imoveis_aqui/presentation/acervo/acervo_cubit.dart';
 import 'package:imoveis_aqui/presentation/acervo/acervo_screen.dart';
 import 'package:imoveis_aqui/presentation/acervo/acervo_state.dart';
 import 'package:imoveis_aqui/presentation/acervo/widgets/cartao_imovel_acervo.dart';
+import 'package:imoveis_aqui/presentation/login/login_cubit.dart';
+import 'package:imoveis_aqui/presentation/login/login_screen.dart';
+import 'package:imoveis_aqui/presentation/login/login_state.dart';
 import 'package:imoveis_aqui/presentation/perfis/widgets/rodape_paginacao_lista.dart';
+import 'package:imoveis_aqui/presentation/sessao/sessao_cubit.dart';
+import 'package:imoveis_aqui/presentation/sessao/sessao_state.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _AcervoCubitFalso extends MockCubit<AcervoState> implements AcervoCubit {}
+
+class _SessaoCubitFalso extends MockCubit<SessaoState> implements SessaoCubit {}
+
+class _LoginCubitFalso extends MockCubit<LoginState> implements LoginCubit {}
 
 ImovelAcervo _imovel(int id, {bool naVitrine = true, bool meuImovel = true}) =>
     ImovelAcervo(
@@ -278,5 +289,135 @@ void main() {
 
       expect(abertos, isEmpty);
     });
+  });
+
+  group('Sair e sessão terminada (08-10)', () {
+    late _SessaoCubitFalso sessao;
+
+    setUp(() {
+      sessao = _SessaoCubitFalso();
+      when(() => sessao.sair()).thenAnswer((_) async {});
+      whenListen(
+        sessao,
+        const Stream<SessaoState>.empty(),
+        initialState: const SessaoState.autenticada(),
+      );
+    });
+
+    tearDown(() async {
+      await getIt.reset();
+    });
+
+    /// A vitrine falsa é a primeira rota; o acervo é empurrado por cima, com a
+    /// sessão falsa provida acima do `MaterialApp`.
+    Future<void> montarEmpilhado(
+      WidgetTester tester,
+      Stream<AcervoState> depois,
+    ) async {
+      whenListen(cubit, depois, initialState: carregada([_imovel(1)]));
+      await tester.pumpWidget(
+        BlocProvider<SessaoCubit>.value(
+          value: sessao,
+          child: MaterialApp(
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: TextButton(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => AcervoScreen(
+                        criarCubit: () => cubit,
+                        aoAbrirImovel: (context, imovel) async {},
+                      ),
+                    ),
+                  ),
+                  child: const Text('Vitrine'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('Vitrine'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('a AppBar tem a ação Sair com tooltip', (tester) async {
+      await montarEmpilhado(tester, const Stream<AcervoState>.empty());
+
+      expect(find.byIcon(Icons.logout), findsOneWidget);
+      expect(find.byTooltip('Sair'), findsOneWidget);
+    });
+
+    testWidgets('Sair pede confirmação e Cancelar não encerra a sessão', (
+      tester,
+    ) async {
+      await montarEmpilhado(tester, const Stream<AcervoState>.empty());
+
+      await tester.tap(find.byTooltip('Sair'));
+      await tester.pumpAndSettle();
+      expect(find.text('Sair da conta?'), findsOneWidget);
+
+      await tester.tap(find.text('Cancelar'));
+      await tester.pumpAndSettle();
+
+      verifyNever(() => sessao.sair());
+      expect(find.byType(AcervoScreen), findsOneWidget);
+    });
+
+    testWidgets('confirmar chama sair() e volta à primeira rota', (
+      tester,
+    ) async {
+      await montarEmpilhado(tester, const Stream<AcervoState>.empty());
+
+      await tester.tap(find.byTooltip('Sair'));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.widgetWithText(FilledButton, 'Sair'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      verify(() => sessao.sair()).called(1);
+      expect(find.byType(AcervoScreen), findsNothing);
+      expect(find.text('Vitrine'), findsOneWidget);
+    });
+
+    testWidgets(
+      'sessaoExpirada marca anônima e abre o login com o aviso, só com a vitrine embaixo',
+      (tester) async {
+        final login = _LoginCubitFalso();
+        whenListen(
+          login,
+          const Stream<LoginState>.empty(),
+          initialState: const LoginState.editando(),
+        );
+        getIt.registerFactory<LoginCubit>(() => login);
+
+        await montarEmpilhado(
+          tester,
+          Stream.value(
+            const AcervoState(conteudo: ConteudoAcervo.sessaoExpirada()),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        verify(() => sessao.marcarAnonima()).called(1);
+        expect(find.byType(LoginScreen), findsOneWidget);
+        expect(find.byType(AcervoScreen), findsNothing);
+        expect(
+          find.text('Sua sessão terminou. Entre de novo.'),
+          findsOneWidget,
+        );
+
+        // O "voltar" do login leva direto à vitrine: nada logado sobrou.
+        await tester.pageBack();
+        await tester.pumpAndSettle();
+
+        expect(find.text('Vitrine'), findsOneWidget);
+        expect(find.byType(AcervoScreen), findsNothing);
+      },
+    );
   });
 }

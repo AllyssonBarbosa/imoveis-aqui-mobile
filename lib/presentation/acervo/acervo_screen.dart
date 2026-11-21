@@ -4,7 +4,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../di/injection.dart';
 import '../detalhe_imovel/detalhe_imovel_screen.dart';
+import '../login/apresentacao_login.dart';
+import '../login/login_screen.dart';
 import '../perfis/widgets/rodape_paginacao_lista.dart';
+import '../sessao/dialogo_sair.dart';
+import '../sessao/sessao_cubit.dart';
 import 'acervo_cubit.dart';
 import 'acervo_state.dart';
 import 'apresentacao_acervo.dart';
@@ -16,8 +20,9 @@ import 'widgets/chips_situacao.dart';
 /// (D-09) e rolagem infinita na ordem do servidor (D-10). A tela só apresenta
 /// o que o [AcervoCubit] entrega — nenhuma regra, rede ou filtro aqui.
 ///
-/// Sair e a volta ao login quando a sessão termina são do 08-10; aqui o estado
-/// de sessão terminada só mostra o aviso.
+/// A `AppBar` tem Sair com confirmação; quando o servidor recusa o token (401)
+/// a sessão fica anônima e o login reabre com o aviso, deixando só a vitrine
+/// embaixo na pilha (T-08-54).
 class AcervoScreen extends StatelessWidget {
   const AcervoScreen({
     super.key,
@@ -85,6 +90,18 @@ class _CorpoAcervoState extends State<_CorpoAcervo> {
     context.read<AcervoCubit>().limparBusca();
   }
 
+  /// A sessão terminou (401 na lista): deixa a sessão anônima e abre o login
+  /// com o aviso, mantendo só a primeira rota (a vitrine) embaixo.
+  void _aoSessaoExpirar() {
+    context.read<SessaoCubit>().marcarAnonima();
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute<void>(
+        builder: (_) => const LoginScreen(aviso: avisoSessaoTerminou),
+      ),
+      (rota) => rota.isFirst,
+    );
+  }
+
   void _aoRolar() {
     if (!_controleDeRolagem.hasClients) return;
     final posicao = _controleDeRolagem.position;
@@ -112,111 +129,127 @@ class _CorpoAcervoState extends State<_CorpoAcervo> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text(tituloAcervo)),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SearchBar(
-              controller: _controleDeBusca,
-              hintText: dicaBuscaAcervo,
-              leading: const Icon(Icons.search),
-              trailing: [
-                ListenableBuilder(
-                  listenable: _controleDeBusca,
-                  builder: (context, _) {
-                    if (_controleDeBusca.text.isEmpty) {
-                      return const SizedBox.shrink();
-                    }
-                    return IconButton(
-                      tooltip: 'Limpar busca',
-                      icon: const Icon(Icons.clear),
-                      onPressed: _limparBusca,
-                    );
-                  },
-                ),
-              ],
-              onChanged: (texto) => context.read<AcervoCubit>().buscar(texto),
-            ),
-            const SizedBox(height: 8),
-            BlocBuilder<AcervoCubit, AcervoState>(
-              buildWhen: (anterior, atual) =>
-                  anterior.situacao != atual.situacao,
-              builder: (context, state) => ChipsSituacao(
-                selecionada: state.situacao,
-                aoEscolher: context.read<AcervoCubit>().escolherSituacao,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Expanded(
-              child: BlocConsumer<AcervoCubit, AcervoState>(
-                // Uma consulta nova (busca ou situação) volta ao topo; o
-                // estado `carregando` só reaparece nesses reinícios, nunca em
-                // `carregarMais()`.
-                listener: (context, state) {
-                  if (state.conteudo is AcervoCarregando &&
-                      _controleDeRolagem.hasClients) {
-                    _controleDeRolagem.jumpTo(0);
-                  }
-                },
-                builder: (context, state) {
-                  final conteudo = state.conteudo;
-                  _agendarCarregarMaisSeNaoPreencheATela(conteudo);
-                  return switch (conteudo) {
-                    AcervoCarregando() => const Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                    AcervoVazio() => const _MensagemDoAcervo(
-                      texto: textoAcervoVazio,
-                    ),
-                    AcervoSemResultado() => const _MensagemDoAcervo(
-                      texto: textoAcervoSemResultado,
-                    ),
-                    AcervoErro() => _MensagemDoAcervo(
-                      texto: textoErroAcervo,
-                      aoTentarDeNovo: () =>
-                          context.read<AcervoCubit>().tentarNovamente(),
-                    ),
-                    AcervoSessaoExpirada() => const _MensagemDoAcervo(
-                      texto: textoSessaoExpiradaAcervo,
-                    ),
-                    AcervoCarregada(
-                      :final itens,
-                      :final proximaPagina,
-                      :final carregandoMais,
-                      :final erroAoCarregarMais,
-                    ) =>
-                      ListView.builder(
-                        controller: _controleDeRolagem,
-                        itemCount: itens.length + 1,
-                        itemBuilder: (context, index) {
-                          if (index == itens.length) {
-                            return RodapePaginacaoLista(
-                              carregandoMais: carregandoMais,
-                              erroAoCarregarMais: erroAoCarregarMais,
-                              temProximaPagina: proximaPagina != null,
-                              aoTentarDeNovo: () =>
-                                  context.read<AcervoCubit>().tentarNovamente(),
-                            );
-                          }
-                          final imovel = itens[index];
-                          return CartaoImovelAcervo(
-                            key: ValueKey('imovel-acervo-${imovel.id}'),
-                            imovel: imovel,
-                            aoTocar: () => widget.aoAbrirImovel(
-                              context,
-                              imovel.paraPrevia(),
-                            ),
-                          );
-                        },
-                      ),
-                  };
-                },
-              ),
+    return BlocListener<AcervoCubit, AcervoState>(
+      listenWhen: (anterior, atual) =>
+          anterior.conteudo is! AcervoSessaoExpirada &&
+          atual.conteudo is AcervoSessaoExpirada,
+      listener: (context, state) => _aoSessaoExpirar(),
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text(tituloAcervo),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.logout),
+              tooltip: 'Sair',
+              onPressed: () => confirmarESair(context),
             ),
           ],
+        ),
+        body: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SearchBar(
+                controller: _controleDeBusca,
+                hintText: dicaBuscaAcervo,
+                leading: const Icon(Icons.search),
+                trailing: [
+                  ListenableBuilder(
+                    listenable: _controleDeBusca,
+                    builder: (context, _) {
+                      if (_controleDeBusca.text.isEmpty) {
+                        return const SizedBox.shrink();
+                      }
+                      return IconButton(
+                        tooltip: 'Limpar busca',
+                        icon: const Icon(Icons.clear),
+                        onPressed: _limparBusca,
+                      );
+                    },
+                  ),
+                ],
+                onChanged: (texto) => context.read<AcervoCubit>().buscar(texto),
+              ),
+              const SizedBox(height: 8),
+              BlocBuilder<AcervoCubit, AcervoState>(
+                buildWhen: (anterior, atual) =>
+                    anterior.situacao != atual.situacao,
+                builder: (context, state) => ChipsSituacao(
+                  selecionada: state.situacao,
+                  aoEscolher: context.read<AcervoCubit>().escolherSituacao,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Expanded(
+                child: BlocConsumer<AcervoCubit, AcervoState>(
+                  // Uma consulta nova (busca ou situação) volta ao topo; o
+                  // estado `carregando` só reaparece nesses reinícios, nunca em
+                  // `carregarMais()`.
+                  listener: (context, state) {
+                    if (state.conteudo is AcervoCarregando &&
+                        _controleDeRolagem.hasClients) {
+                      _controleDeRolagem.jumpTo(0);
+                    }
+                  },
+                  builder: (context, state) {
+                    final conteudo = state.conteudo;
+                    _agendarCarregarMaisSeNaoPreencheATela(conteudo);
+                    return switch (conteudo) {
+                      AcervoCarregando() => const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                      AcervoVazio() => const _MensagemDoAcervo(
+                        texto: textoAcervoVazio,
+                      ),
+                      AcervoSemResultado() => const _MensagemDoAcervo(
+                        texto: textoAcervoSemResultado,
+                      ),
+                      AcervoErro() => _MensagemDoAcervo(
+                        texto: textoErroAcervo,
+                        aoTentarDeNovo: () =>
+                            context.read<AcervoCubit>().tentarNovamente(),
+                      ),
+                      AcervoSessaoExpirada() => const _MensagemDoAcervo(
+                        texto: textoSessaoExpiradaAcervo,
+                      ),
+                      AcervoCarregada(
+                        :final itens,
+                        :final proximaPagina,
+                        :final carregandoMais,
+                        :final erroAoCarregarMais,
+                      ) =>
+                        ListView.builder(
+                          controller: _controleDeRolagem,
+                          itemCount: itens.length + 1,
+                          itemBuilder: (context, index) {
+                            if (index == itens.length) {
+                              return RodapePaginacaoLista(
+                                carregandoMais: carregandoMais,
+                                erroAoCarregarMais: erroAoCarregarMais,
+                                temProximaPagina: proximaPagina != null,
+                                aoTentarDeNovo: () => context
+                                    .read<AcervoCubit>()
+                                    .tentarNovamente(),
+                              );
+                            }
+                            final imovel = itens[index];
+                            return CartaoImovelAcervo(
+                              key: ValueKey('imovel-acervo-${imovel.id}'),
+                              imovel: imovel,
+                              aoTocar: () => widget.aoAbrirImovel(
+                                context,
+                                imovel.paraPrevia(),
+                              ),
+                            );
+                          },
+                        ),
+                    };
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
