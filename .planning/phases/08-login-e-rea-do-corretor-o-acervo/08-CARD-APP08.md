@@ -56,3 +56,20 @@ Repo da web: `C:\Users\allys\OneDrive\Área de Trabalho\Imoveis-aqui\Web` (NÃO 
 3. **Lista enxuta e paginada:** a rota devolve o acervo inteiro com o serializer completo; para o
    celular, paginação (padrão `PageNumberPagination` da APP-05) e campos de cartão.
 4. (Segurança, fora do texto do card) sem limite de tentativas no login e sem revogação do token.
+
+## Decisões do Allysson (2026-11-20, antes do discuss-phase — não perguntar de novo)
+
+- **D-A · Escopo web = necessário + segurança.** Esta fase constrói no repo da web (branch
+  `feat/APP08` do web, como a 07.1 fez com `feat/APP07`): endpoint "quem sou eu"
+  (`GET /api/auth/eu/` ou nome equivalente no padrão do repo), busca + situação + paginação na rota
+  do corretor reaproveitando `FiltroImovelForm(campos=["busca", "situacao"])`, lista enxuta para o
+  cartão, limite de tentativas no login e um "sair" que revoga o token no servidor (além de apagar
+  do aparelho).
+- **D-B · Gestor/administrador no app:** o login funciona e abre uma tela de aviso ("a área do
+  gestor ainda não está no app") com Sair. A APP-12 troca essa tela depois, sem mexer no login.
+- **D-C · Abertura com sessão guardada:** o app continua abrindo na vitrine para todo mundo; com
+  sessão, o botão do topo vira "Meu acervo" (sem sessão, "Entrar").
+- **D-D · Armazenamento do token:** `flutter_secure_storage` (Keychain/Keystore). A nota do
+  CLAUDE.md que o descartava valia só enquanto o app não guardava credencial.
+- **D-E · Rota de planejamento:** fluxo completo (`/gsd-discuss-phase 8` → pesquisa → padrões →
+  planejador → verificador).
