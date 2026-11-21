@@ -48,6 +48,8 @@ import 'package:imoveis_aqui/data/gateways/geocoding_gateway_impl.dart'
 import 'package:imoveis_aqui/data/gateways/geolocator_gateway_impl.dart'
     as _i777;
 import 'package:imoveis_aqui/data/network/interceptador_sessao.dart' as _i668;
+import 'package:imoveis_aqui/data/repositories/autenticacao_repository_impl.dart'
+    as _i214;
 import 'package:imoveis_aqui/data/repositories/cidade_repository_impl.dart'
     as _i912;
 import 'package:imoveis_aqui/data/repositories/imovel_detalhe_repository_impl.dart'
@@ -63,6 +65,8 @@ import 'package:imoveis_aqui/data/repositories/vitrine_anunciante_repository_imp
 import 'package:imoveis_aqui/di/modulo_rede.dart' as _i497;
 import 'package:imoveis_aqui/domain/gateways/geocoding_gateway.dart' as _i881;
 import 'package:imoveis_aqui/domain/gateways/geolocator_gateway.dart' as _i246;
+import 'package:imoveis_aqui/domain/repositories/autenticacao_repository.dart'
+    as _i550;
 import 'package:imoveis_aqui/domain/repositories/cidade_repository.dart'
     as _i146;
 import 'package:imoveis_aqui/domain/repositories/imovel_detalhe_repository.dart'
@@ -270,6 +274,12 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i14.ValidarCidadeAtendidaUseCase>(
       () => _i14.ValidarCidadeAtendidaUseCase(
         gh<_i54.ObterCidadesAtendidasUseCase>(),
+      ),
+    );
+    gh.lazySingleton<_i550.AutenticacaoRepository>(
+      () => _i214.AutenticacaoRepositoryImpl(
+        gh<_i887.AutenticacaoDataSource>(),
+        gh<_i288.ArmazenamentoToken>(),
       ),
     );
     gh.factory<_i765.CidadeSelecaoCubit>(
