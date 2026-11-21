@@ -12,6 +12,11 @@ import '../datasources/autenticacao_datasource.dart';
 /// [Duration] estourada nem um texto de dias na tela (T-08-29).
 const Duration _esperaMaxima = Duration(days: 1);
 
+/// Maior espera do pedido de Sair ao servidor (inclui conectar, enviar e
+/// receber). O `connectTimeout` do `Dio` autenticado é de 10 s e não pode ser
+/// reduzido por pedido, então o limite é imposto aqui, na [Future] inteira.
+const Duration esperaMaximaSair = Duration(seconds: 5);
+
 /// Lê o `Retry-After` (em segundos) de uma resposta 429. Nulo se o cabeçalho
 /// falta, não é um inteiro ou é negativo; limitado a 24 h.
 Duration? esperaDoLimite(DioException erro) {
@@ -49,10 +54,12 @@ class AutenticacaoRepositoryImpl implements AutenticacaoRepository {
   @override
   Future<void> sair() async {
     try {
-      await _dataSource.sair();
+      await _dataSource.sair().timeout(esperaMaximaSair);
     } on Exception {
-      // Melhor esforço: o servidor pode estar fora do ar ou já ter revogado o
-      // token (401). A saída local acontece de qualquer jeito, no `finally`.
+      // Melhor esforço: o servidor pode estar fora do ar, lento além de
+      // [esperaMaximaSair] (`TimeoutException` também é `Exception`) ou já ter
+      // revogado o token (401). A saída local acontece de qualquer jeito, no
+      // `finally`.
     } finally {
       await _apagarTokenLocal();
     }

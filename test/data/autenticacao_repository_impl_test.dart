@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/core/result.dart';
@@ -65,9 +68,8 @@ void main() {
 
   group('entrar', () {
     test('sucesso salva só o token devolvido e devolve Success', () async {
-      when(
-        () => datasource.entrar(email: 'a@b.com', senha: 'x'),
-      ).thenAnswer((_) async => 'token-novo');
+      when(() => datasource.entrar(email: 'a@b.com', senha: 'x'))
+          .thenAnswer((_) async => 'token-novo');
 
       final resultado = await entrar();
 
@@ -99,27 +101,29 @@ void main() {
       expect(falha.aguardar, const Duration(seconds: 120));
     });
 
-    test('429 sem retry-after, não numérico ou negativo traz aguardar nulo',
-        () async {
-      for (final valor in <List<String>?>[
-        null,
-        ['logo'],
-        ['-5'],
-        ['1.5'],
-        [''],
-      ]) {
-        entrarFalhaCom(
-          _erroHttp(
-            429,
-            cabecalhos: valor == null ? null : {'retry-after': valor},
-          ),
-        );
+    test(
+      '429 sem retry-after, não numérico ou negativo traz aguardar nulo',
+      () async {
+        for (final valor in <List<String>?>[
+          null,
+          ['logo'],
+          ['-5'],
+          ['1.5'],
+          [''],
+        ]) {
+          entrarFalhaCom(
+            _erroHttp(
+              429,
+              cabecalhos: valor == null ? null : {'retry-after': valor},
+            ),
+          );
 
-        final falha = _falha(await entrar()) as LimiteTentativasException;
+          final falha = _falha(await entrar()) as LimiteTentativasException;
 
-        expect(falha.aguardar, isNull, reason: 'valor: $valor');
-      }
-    });
+          expect(falha.aguardar, isNull, reason: 'valor: $valor');
+        }
+      },
+    );
 
     test('retry-after hostil (enorme) é limitado a 24 h', () async {
       entrarFalhaCom(
@@ -153,21 +157,23 @@ void main() {
       expect(_falha(await entrar()), isA<SemPermissaoException>());
     });
 
-    test('DioException com SessaoExpiradaException vira SessaoExpirada',
-        () async {
-      entrarFalhaCom(
-        DioException(
-          requestOptions: RequestOptions(path: '/x'),
-          response: Response<Object?>(
+    test(
+      'DioException com SessaoExpiradaException vira SessaoExpirada',
+      () async {
+        entrarFalhaCom(
+          DioException(
             requestOptions: RequestOptions(path: '/x'),
-            statusCode: 401,
+            response: Response<Object?>(
+              requestOptions: RequestOptions(path: '/x'),
+              statusCode: 401,
+            ),
+            error: const SessaoExpiradaException(),
           ),
-          error: const SessaoExpiradaException(),
-        ),
-      );
+        );
 
-      expect(_falha(await entrar()), isA<SessaoExpiradaException>());
-    });
+        expect(_falha(await entrar()), isA<SessaoExpiradaException>());
+      },
+    );
 
     test('SessaoExpiradaException direta vira SessaoExpirada', () async {
       entrarFalhaCom(const SessaoExpiradaException());
@@ -175,25 +181,27 @@ void main() {
       expect(_falha(await entrar()), isA<SessaoExpiradaException>());
     });
 
-    test('timeouts, sem conexão, 500 e 404 viram FalhaDeConexaoException',
-        () async {
-      final erros = <DioException>[
-        _erroDeTipo(DioExceptionType.connectionTimeout),
-        _erroDeTipo(DioExceptionType.connectionError),
-        _erroDeTipo(DioExceptionType.receiveTimeout),
-        _erroHttp(500),
-        _erroHttp(404),
-      ];
-      for (final erro in erros) {
-        entrarFalhaCom(erro);
+    test(
+      'timeouts, sem conexão, 500 e 404 viram FalhaDeConexaoException',
+      () async {
+        final erros = <DioException>[
+          _erroDeTipo(DioExceptionType.connectionTimeout),
+          _erroDeTipo(DioExceptionType.connectionError),
+          _erroDeTipo(DioExceptionType.receiveTimeout),
+          _erroHttp(500),
+          _erroHttp(404),
+        ];
+        for (final erro in erros) {
+          entrarFalhaCom(erro);
 
-        expect(
-          _falha(await entrar()),
-          isA<FalhaDeConexaoException>(),
-          reason: '$erro',
-        );
-      }
-    });
+          expect(
+            _falha(await entrar()),
+            isA<FalhaDeConexaoException>(),
+            reason: '$erro',
+          );
+        }
+      },
+    );
 
     test('TypeError do fromJson vira FormatException', () async {
       entrarFalhaCom(TypeError());
@@ -210,13 +218,14 @@ void main() {
 
     test('PlatformException ao salvar vira Failure', () async {
       final armazenamentoQuebrado = _ArmazenamentoMock();
-      when(
-        () => armazenamentoQuebrado.salvar(any()),
-      ).thenThrow(PlatformException(code: 'falha'));
-      when(
-        () => datasource.entrar(email: 'a@b.com', senha: 'x'),
-      ).thenAnswer((_) async => 'token');
-      final repo = AutenticacaoRepositoryImpl(datasource, armazenamentoQuebrado);
+      when(() => armazenamentoQuebrado.salvar(any()))
+          .thenThrow(PlatformException(code: 'falha'));
+      when(() => datasource.entrar(email: 'a@b.com', senha: 'x'))
+          .thenAnswer((_) async => 'token');
+      final repo = AutenticacaoRepositoryImpl(
+        datasource,
+        armazenamentoQuebrado,
+      );
 
       final resultado = await repo.entrar(email: 'a@b.com', senha: 'x');
 
@@ -245,9 +254,8 @@ void main() {
 
   group('obterPapel', () {
     test('devolve o Papel do EuModel', () async {
-      when(
-        () => datasource.obterEu(),
-      ).thenAnswer((_) async => const EuModel(perfil: 'GESTOR'));
+      when(() => datasource.obterEu())
+          .thenAnswer((_) async => const EuModel(perfil: 'GESTOR'));
 
       final resultado = await repositorio.obterPapel();
 
@@ -255,9 +263,8 @@ void main() {
     });
 
     test('perfil desconhecido vira FormatException', () async {
-      when(
-        () => datasource.obterEu(),
-      ).thenAnswer((_) async => const EuModel(perfil: 'DONO'));
+      when(() => datasource.obterEu())
+          .thenAnswer((_) async => const EuModel(perfil: 'DONO'));
 
       expect(_falha(await repositorio.obterPapel()), isA<FormatException>());
     });
@@ -315,11 +322,13 @@ void main() {
 
     test('apagar() lançando PlatformException: sair() não lança', () async {
       final armazenamentoQuebrado = _ArmazenamentoMock();
-      when(
-        () => armazenamentoQuebrado.apagar(),
-      ).thenThrow(PlatformException(code: 'falha'));
+      when(() => armazenamentoQuebrado.apagar())
+          .thenThrow(PlatformException(code: 'falha'));
       when(() => datasource.sair()).thenAnswer((_) async {});
-      final repo = AutenticacaoRepositoryImpl(datasource, armazenamentoQuebrado);
+      final repo = AutenticacaoRepositoryImpl(
+        datasource,
+        armazenamentoQuebrado,
+      );
 
       await repo.sair();
 
@@ -327,15 +336,36 @@ void main() {
       verify(() => armazenamentoQuebrado.apagar()).called(1);
     });
 
+    test('servidor que não responde: sair() completa em esperaMaximaSair e '
+        'apaga o token (WR-02)', () {
+      fakeAsync((relogio) {
+        // Pedido que nunca termina (conexão pendurada).
+        when(() => datasource.sair())
+            .thenAnswer((_) => Completer<void>().future);
+        var terminou = false;
+
+        repositorio.sair().then((_) => terminou = true);
+        relogio.elapse(esperaMaximaSair - const Duration(milliseconds: 1));
+        expect(terminou, isFalse);
+        expect(armazenamento.token, 'token-guardado');
+
+        relogio.elapse(const Duration(milliseconds: 1));
+        relogio.flushMicrotasks();
+        expect(terminou, isTrue);
+        expect(armazenamento.token, isNull);
+      });
+    });
+
     test('DataSource e apagar() falhando juntos: sair() não lança', () async {
       final armazenamentoQuebrado = _ArmazenamentoMock();
-      when(
-        () => armazenamentoQuebrado.apagar(),
-      ).thenThrow(PlatformException(code: 'falha'));
-      when(
-        () => datasource.sair(),
-      ).thenThrow(_erroDeTipo(DioExceptionType.connectionError));
-      final repo = AutenticacaoRepositoryImpl(datasource, armazenamentoQuebrado);
+      when(() => armazenamentoQuebrado.apagar())
+          .thenThrow(PlatformException(code: 'falha'));
+      when(() => datasource.sair())
+          .thenThrow(_erroDeTipo(DioExceptionType.connectionError));
+      final repo = AutenticacaoRepositoryImpl(
+        datasource,
+        armazenamentoQuebrado,
+      );
 
       await repo.sair();
 
@@ -365,10 +395,12 @@ void main() {
 
     test('descartarSessaoLocal com apagar() lançando não lança', () async {
       final armazenamentoQuebrado = _ArmazenamentoMock();
-      when(
-        () => armazenamentoQuebrado.apagar(),
-      ).thenThrow(PlatformException(code: 'falha'));
-      final repo = AutenticacaoRepositoryImpl(datasource, armazenamentoQuebrado);
+      when(() => armazenamentoQuebrado.apagar())
+          .thenThrow(PlatformException(code: 'falha'));
+      final repo = AutenticacaoRepositoryImpl(
+        datasource,
+        armazenamentoQuebrado,
+      );
 
       await repo.descartarSessaoLocal();
 

@@ -8,7 +8,10 @@ import 'autenticacao_datasource.dart';
 ///
 /// O login usa o [Dio] público de propósito: nunca leva um `Authorization`
 /// velho (T-08-27). `eu` e `sair` usam o [Dio] `'autenticado'`. O pedido de
-/// Sair espera no máximo 5 s, porque a saída local acontece de qualquer jeito.
+/// Sair não passa de 5 s porque a saída local acontece de qualquer jeito: os
+/// `Options` abaixo cobrem só enviar e receber; o limite total (inclusive o
+/// `connectTimeout` de 10 s do `Dio`) é imposto por quem chama, em
+/// `AutenticacaoRepositoryImpl.sair` (`esperaMaximaSair`).
 ///
 /// Fina de propósito: não captura `DioException` (o repositório traduz por
 /// status) e não loga — e-mail e senha nunca passam por log.
