@@ -11,7 +11,11 @@ import '../cidade_selecao/cidade_selecao_screen.dart';
 /// que aciona [CidadeSelecaoCubit.detectarCidade] — nunca em `initState`
 /// (RESEARCH Anti-Patterns).
 class PrimingScreen extends StatelessWidget {
-  const PrimingScreen({super.key});
+  const PrimingScreen({super.key, this.acaoSessao});
+
+  /// Ação opcional do topo da vitrine (botão "Entrar"/"Meu acervo", D-C),
+  /// repassada à [CidadeSelecaoScreen] que o CTA empurra.
+  final Widget? acaoSessao;
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +67,7 @@ class PrimingScreen extends StatelessWidget {
       MaterialPageRoute<void>(
         builder: (_) => BlocProvider<CidadeSelecaoCubit>.value(
           value: cubit,
-          child: const CidadeSelecaoScreen(),
+          child: CidadeSelecaoScreen(acaoSessao: acaoSessao),
         ),
       ),
     );
