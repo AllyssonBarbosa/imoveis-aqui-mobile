@@ -27,6 +27,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 5: Imóveis Real — Endpoint Público e Integração Final** - Endpoints públicos reais de lista e detalhe de imóveis e troca das DataSources mock pelas reais via DI. (completed 2026-11-16)
 - [x] **Phase 7: Perfis Públicos da Empresa e do Corretor** - Card APP 07: página da empresa e página do corretor com a vitrine do anunciante, dados da API de perfis públicos (WEB 02) e aviso para corretor desativado. (Fase 6 reservada ao card APP 06, de outro colega — fase N = card APP 0N.) (completed 2026-11-20)
 - [x] **Phase 07.1: Integração da APP-07 com a API real** (completed 2026-11-20)
+- [ ] **Phase 8: Login e Área do Corretor — o Acervo**
 
 ## Phase Details
 
@@ -362,3 +363,22 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 - [x] 07.1-06-PLAN.md — Contrato §13, REQUIREMENTS (D-17), README, COVERAGE da Phase 7, 07-UAT.md com dados reais do seed e gates finais dos dois repositórios (API-08, PERF-03, PERF-04)
+
+### Phase 8: Login e Área do Corretor — o Acervo
+
+**Goal:** Como corretor, eu quero entrar no aplicativo para ver os imóveis que eu e a imobiliária temos, de onde eu estiver. O login é do mesmo aplicativo — não existe app separado. Quem entra vê a área do seu papel; o visitante continua usando o app sem login, como antes. O corretor vê os imóveis dele e os da imobiliária, com busca e filtro por situação. Imóvel de outra empresa não aparece, de jeito nenhum. Card APP 08 (tarefa A08).
+**Requirements**: TBD
+**Depends on:** Phase 7. Externamente: WEB 01 (feito, na main da web) — `POST /api/auth/login/` (DRF Token), `Usuario.perfil` e o isolamento por empresa (`EmpresaScopedQuerySetMixin`).
+**Success Criteria** (what must be TRUE):
+
+  1. Login pelo aplicativo, com o token vindo da API.
+  2. A sessão fica guardada; sair apaga o token do aparelho.
+  3. Erro de login genérico, sem revelar se o e-mail existe.
+  4. Lista do acervo com os imóveis do corretor e os da imobiliária, com busca e filtro por situação.
+  5. Imóvel de outra empresa não aparece nem forçando a consulta.
+  6. Sem login, o app continua abrindo direto na vitrine.
+
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 8 to break down)

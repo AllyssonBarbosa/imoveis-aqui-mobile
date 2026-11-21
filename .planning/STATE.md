@@ -4,16 +4,16 @@ current_phase: 1
 current_phase_name: Localização, Escolha de Cidade e Contrato da API
 status: verifying
 stopped_at: Phase 07 complete, ready to verify Phase 1
-last_updated: "2026-11-21T01:01:48.298Z"
+last_updated: "2026-11-21T01:06:59.932Z"
 last_activity: 2026-11-20
 last_activity_desc: Phase 07 complete, transitioned to Phase 1
-state_head: 52cdf9ba2e4ceedfe3293188ae13579067523bac
+state_head: fee602276514d30586eb77cd162c59558351b34d
 progress:
-  total_phases: 7
+  total_phases: 8
   completed_phases: 2
   total_plans: 62
   completed_plans: 62
-  percent: 29
+  percent: 25
 ---
 
 # Project State
@@ -32,7 +32,7 @@ Plan: 4
 Status: Phase complete — ready for verification
 Last activity: 2026-11-20 — Phase 07 complete, transitioned to Phase 1
 
-Progress: [████████████████████] 62/62 plans (100%)
+Progress: [████████████████████] 62/62 plans ([███░░░░░░░] 25%)
 
 ## Performance Metrics
 
@@ -177,6 +177,7 @@ None yet.
 
 - Phase 7 added: Perfis Públicos da Empresa e do Corretor (card APP 07); número 7 escolhido para casar com o card — fase 6 reservada ao APP 06
 - Phase 07.1 inserted after Phase 7: Integração da APP-07 com a API real (merge da APP-05, perfis na API real, endpoint da vitrine do anunciante no Django) (URGENT)
+- Phase 8 added: Login e Área do Corretor — o Acervo (card APP 08, tarefa A08)
 
 ## Deferred Items
 
