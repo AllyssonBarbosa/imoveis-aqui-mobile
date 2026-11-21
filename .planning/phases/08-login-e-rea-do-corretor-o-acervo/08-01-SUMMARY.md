@@ -19,7 +19,7 @@ actuals:
   tasks: 2
   commits: 2
 plan_head_before: d9ddd8f0e69ee752c47e19cd36f4141944e963b5
-plan_head_after: d7d66cdc72e0b64fc9bc9dcf741599e25a25d2f8
+plan_head_after: ed251b1c72e0b64fc9bc9dcf741599e25a25d2f8
 
 tech-stack:
   added: []
@@ -149,8 +149,8 @@ status: complete
 
 Commits no repo WEB (`C:/projetos/imoveis-aqui`), branch local `feat/APP08` (criada de `main@d9ddd8f`), sem push:
 
-1. **Task 1: TRACER - acervo autenticado ponta a ponta** - `cd38de2` (feat)
-2. **Task 2: Busca + situacao, isolamento, allowlist, consultas fixas e README** - `d7d66cd` (feat)
+1. **Task 1: TRACER - acervo autenticado ponta a ponta** - `fe911fe` (feat)
+2. **Task 2: Busca + situacao, isolamento, allowlist, consultas fixas e README** - `ed251b1` (feat)
 
 **Plan metadata:** commit `docs(08-01)` no repo do app (SUMMARY + STATE/ROADMAP/REQUIREMENTS).
 
@@ -185,7 +185,7 @@ TDD: o RED foi visto nas duas tarefas antes da implementacao. Task 1: 10 erros (
 - **Issue:** `git commit` falhou com "Author identity unknown" (nem global nem por repo; nenhuma variavel `GIT_*` de identidade no ambiente).
 - **Fix:** os dois commits da web foram feitos com `-c user.name="Claude (GSD executor)" -c user.email="noreply@anthropic.com"` por comando, sem alterar nenhuma configuracao do git e sem usar a identidade pessoal do usuario. Os commits tem o trailer `Co-Authored-By`.
 - **Verification:** `git log` mostra os dois commits; se o usuario preferir a identidade dele, basta reescrever o autor antes de qualquer push (`git rebase -r d9ddd8f --exec 'git commit --amend --reset-author --no-edit'`, depois de configurar `user.name`/`user.email`).
-- **Commit:** `cd38de2`, `d7d66cd`
+- **Commit:** `fe911fe`, `ed251b1`
 
 **3. [Rule 3 - Blocking] Terminadores de linha misturados (CRLF/LF) no working tree da web**
 - **Found during:** Task 1 (edicao de `tests.py`)
@@ -228,7 +228,7 @@ None - no external service configuration required. (Os testes usam `DATABASE_URL
 
 ## Self-Check: PASSED
 
-- Commits `cd38de2` e `d7d66cd` presentes em `feat/APP08` (ancestrais de HEAD; `git rev-list --count d9ddd8f..HEAD` = 2).
+- Commits `fe911fe` e `ed251b1` presentes em `feat/APP08` (ancestrais de HEAD; `git rev-list --count d9ddd8f..HEAD` = 2).
 - Arquivos modificados existem: `Web/imoveis/api/views.py`, `Web/imoveis/api/serializers.py`, `Web/imoveis/tests.py`, `README.md` (repo web).
 
 ---
