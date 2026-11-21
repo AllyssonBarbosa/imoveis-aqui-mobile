@@ -27,12 +27,17 @@
       "number": "5",
       "name": "Imóveis Real — Endpoint Público e Integração Final",
       "status": "complete"
+    },
+    {
+      "number": "7",
+      "name": "Perfis Públicos da Empresa e do Corretor",
+      "status": "in_progress"
     }
   ],
   "next": {
-    "command": "/gsd:progress --next",
-    "label": "Advance to the next step (plan phase 1)",
-    "reason": "Phase 1 of 5 — needs a plan"
+    "command": "/gsd-progress --next",
+    "label": "Advance to the next step (verify)",
+    "reason": "Phase 7 of 7 · 14% · ready to verify"
   },
-  "updated_at": "2026-11-16T20:34:06.230Z"
+  "updated_at": "2026-11-19T10:09:17.527Z"
 }

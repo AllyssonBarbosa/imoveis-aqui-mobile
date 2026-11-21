@@ -5,12 +5,17 @@ Nenhuma fixture de wire é escrita à mão (D-02, D-18): o JSON é salvo exatame
 devolve (ensure_ascii=False, indent=2, quebra de linha final). Só biblioteca padrão.
 
 Uso:
-    python3 tool/capturar_fixtures_api.py [URL_BASE] [PASTA_SAIDA] [--grupo lista|detalhe|todos]
+    python3 tool/capturar_fixtures_api.py [URL_BASE] [PASTA_SAIDA]
+        [--grupo lista|detalhe|perfis|anunciante|todos]
 
 Padrões: URL_BASE=http://127.0.0.1:8000, PASTA_SAIDA=test/fixtures/api, --grupo=todos.
 Grupos: `lista` (cidades, listas de Campinas, bairros, características e o 400 de natureza);
 `detalhe` (um detalhe por natureza, o sem fotos, o sem corretor e o 404 fora da vitrine; lê a
-lista de Campinas ao vivo e NÃO reescreve as fixtures de lista); `todos` = `lista` e depois `detalhe`.
+lista de Campinas ao vivo e NÃO reescreve as fixtures de lista); `perfis` (perfil do corretor, perfil da
+empresa e o 404 de perfil; descobre os ids ao vivo pelo corretor responsável de um detalhe); `anunciante`
+(p1 e p2 da vitrine de imóveis do corretor e da empresa); `todos` = `lista`, `detalhe`, `perfis` e
+`anunciante`, nessa ordem. ATENÇÃO: `todos` reescreve as fixtures da lista e do detalhe (as URLs de foto
+mudam a cada banco novo); para acrescentar só perfis/anunciante rode `--grupo perfis` e `--grupo anunciante`.
 Sai com código 1 (e mensagem em português) quando alguma resposta esperada não é produzida.
 
 Procedimento de captura (NUNCA contra o banco do Web/.env; use um SQLite temporário):
@@ -29,6 +34,23 @@ Procedimento de captura (NUNCA contra o banco do Web/.env; use um SQLite tempor�
   4. Pare o servidor temporário e apague o SQLite temporário.
 
 Os ids são determinísticos para um banco novo semeado pelo mesmo comando.
+
+Procedimento no Windows (Git Bash; repo web em "$WEB", sempre entre aspas) — o venv do web é
+`Web\venv\Scripts\python.exe`:
+
+  1. CAPTURA="$(cygpath -m "${TMPDIR:-/tmp}")/imoveis_captura.sqlite3"; rm -f "$CAPTURA"
+     (caminho do SQLite com letra de drive e barras normais, nunca `/c/...`: o Django responde
+     "unable to open database file"). Em "$WEB/Web", com
+       DEBUG=True DATABASE_URL="sqlite:///$CAPTURA" PYTHONIOENCODING=utf-8
+     rode `./venv/Scripts/python.exe manage.py migrate --noinput` e
+     `./venv/Scripts/python.exe manage.py semear_vitrine_dev`.
+  2. Suba `./venv/Scripts/python.exe manage.py runserver 127.0.0.1:8000 --noreload` em segundo plano
+     com as mesmas variáveis e `ALLOWED_HOSTS=localhost,127.0.0.1,10.0.2.2`. A porta 8000 precisa
+     estar livre antes (nunca capture contra um servidor que já esteja ligado).
+  3. Na raiz do app: `python3 tool/capturar_fixtures_api.py http://127.0.0.1:8000 test/fixtures/api
+     --grupo perfis` e depois `--grupo anunciante`.
+  4. Encerre o servidor, confira que a porta 8000 ficou livre, apague o SQLite e confira que
+     `git -C "$WEB" status --porcelain` está vazio.
 """
 
 import argparse
@@ -184,7 +206,69 @@ def capturar_detalhe(base, pasta):
     salvar(pasta, "erro_404_detalhe", erro)
 
 
-GRUPOS = {"lista": capturar_lista, "detalhe": capturar_detalhe}
+def _anunciantes_ao_vivo(base):
+    """Ids `(id_corretor, id_empresa)` lidos ao vivo: o corretor responsável de um detalhe de Campinas."""
+    publico = f"{base}/api/publico"
+    itens, _ = _itens_de_campinas(base)
+    for item in itens:
+        detalhe = obter(f"{publico}/imoveis/{item['id']}/")
+        corretor = detalhe.get("corretor_responsavel")
+        if corretor and corretor.get("empresa_id") is not None:
+            return corretor["id"], corretor["empresa_id"]
+    raise ErroCaptura(
+        "Nenhum detalhe de Campinas (p1+p2) com corretor_responsavel e empresa (o seed rodou?)."
+    )
+
+
+def capturar_perfis(base, pasta):
+    """Perfil do corretor, perfil da empresa e o 404 de perfil inexistente."""
+    publico = f"{base}/api/publico"
+    id_corretor, id_empresa = _anunciantes_ao_vivo(base)
+
+    corretor = obter(f"{publico}/corretores/{id_corretor}/")
+    if corretor.get("id") != id_corretor or corretor.get("empresa_id") != id_empresa:
+        raise ErroCaptura("O perfil do corretor não bate com o corretor responsável do detalhe.")
+    salvar(pasta, "perfil_corretor", corretor)
+    print(f"  corretor = id {id_corretor}")
+
+    empresa = obter(f"{publico}/empresas/{id_empresa}/")
+    if empresa.get("id") != id_empresa or not empresa.get("cidades_atuacao"):
+        raise ErroCaptura("O perfil da empresa deveria ter o id pedido e cidades_atuacao.")
+    salvar(pasta, "perfil_empresa", empresa)
+    print(f"  empresa = id {id_empresa}")
+
+    erro = obter(f"{publico}/corretores/999999/", status_esperado=404)
+    if "detail" not in erro:
+        raise ErroCaptura("O 404 de perfil deveria trazer a chave `detail`.")
+    salvar(pasta, "erro_404_perfil", erro)
+
+
+def capturar_anunciante(base, pasta):
+    """Vitrine de imóveis do corretor e da empresa (p1 e p2 seguindo o `next` real)."""
+    publico = f"{base}/api/publico"
+    ids = dict(zip(("corretor", "empresa"), _anunciantes_ao_vivo(base)))
+
+    for recurso, plural in (("corretor", "corretores"), ("empresa", "empresas")):
+        p1 = obter(f"{publico}/{plural}/{ids[recurso]}/imoveis/")
+        if not p1.get("next") or not p1.get("results"):
+            raise ErroCaptura(
+                f"A vitrine do {recurso} deveria ter `next` e resultados na primeira página."
+            )
+        salvar(pasta, f"vitrine_{recurso}_p1", p1)
+
+        p2 = obter(p1["next"])
+        if not p2.get("previous"):
+            raise ErroCaptura(f"A segunda página da vitrine do {recurso} deveria apontar `previous`.")
+        salvar(pasta, f"vitrine_{recurso}_p2", p2)
+        print(f"  {recurso} = id {ids[recurso]} ({p1['count']} imóveis)")
+
+
+GRUPOS = {
+    "lista": capturar_lista,
+    "detalhe": capturar_detalhe,
+    "perfis": capturar_perfis,
+    "anunciante": capturar_anunciante,
+}
 
 
 def main():
@@ -195,9 +279,9 @@ def main():
     analisador.add_argument("pasta_saida", nargs="?", default="test/fixtures/api")
     analisador.add_argument(
         "--grupo",
-        choices=["lista", "detalhe", "todos"],
+        choices=["lista", "detalhe", "perfis", "anunciante", "todos"],
         default="todos",
-        help="`lista` (lista e opções), `detalhe` (detalhes) ou `todos` (lista e depois detalhe).",
+        help="`lista` (lista e opções), `detalhe`, `perfis`, `anunciante` ou `todos` (os quatro, nessa ordem).",
     )
     argumentos = analisador.parse_args()
 

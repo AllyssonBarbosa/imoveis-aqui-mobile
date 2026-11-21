@@ -5,7 +5,7 @@
 
 ## v1 Requirements
 
-Requisitos da primeira entrega (tarefas APP01, APP02, APP03, APP04 + os endpoints públicos que as habilitam). Cada um mapeia para uma fase do roadmap.
+Requisitos da primeira entrega (tarefas APP01, APP02, APP03, APP04, APP07 + os endpoints públicos que as habilitam). Cada um mapeia para uma fase do roadmap.
 
 ### Localização e escolha da cidade (APP01)
 
@@ -43,6 +43,15 @@ Requisitos da primeira entrega (tarefas APP01, APP02, APP03, APP04 + os endpoint
 - [x] **DET-05**: A página mostra descrição, características e o corretor responsável com foto; tocar no corretor abre a tela de perfil do corretor, cujo conteúdo completo é do APP 07.
 - [x] **DET-06**: Imóvel não encontrado (404) mostra "Este imóvel não está mais disponível" com volta à vitrine; os demais erros mostram "Tentar de novo".
 
+### Perfis públicos (APP07)
+
+- [ ] **PERF-01**: A página da empresa mostra logomarca, CRECI, apresentação, contato e cidades de atuação.
+- [ ] **PERF-02**: A página do corretor mostra foto, CRECI, apresentação e contato.
+- [x] **PERF-03**: As páginas da empresa e do corretor mostram a vitrine dos imóveis daquele anunciante (lista paginada por página — `GET /api/publico/corretores/<id>/imoveis/` e `/api/publico/empresas/<id>/imoveis/` —, recortada e ordenada no servidor).
+- [x] **PERF-04**: Os dados dos perfis vêm da API dos perfis públicos (`GET /api/publico/corretores/{id}/` e `GET /api/publico/empresas/{id}/`, WEB 02) por DataSource trocável, sem nada montado ou decidido no app.
+- [ ] **PERF-05**: Perfil de corretor desativado (404) mostra o aviso "Este corretor não está mais disponível", e não uma tela quebrada.
+- [ ] **PERF-06**: Dá para chegar ao perfil do corretor a partir da página do imóvel e à página da empresa a partir do perfil do corretor.
+
 ### API pública (endpoints que o app consome)
 
 - [x] **API-01**: Auditar a API atual e congelar por escrito o contrato de `/cidades` e `/imoveis` (nomes de campos, enums, nomes dos params de filtro, envelope de paginação) antes de codar APP02/APP03 ou o endpoint real.
@@ -51,6 +60,7 @@ Requisitos da primeira entrega (tarefas APP01, APP02, APP03, APP04 + os endpoint
 - [x] **API-04**: A camada de dados do app é trocável (DataSource mock/fixture honrando o contrato → DataSource real por DI), permitindo desenvolver APP02/APP03 antes de o endpoint real de imóveis existir.
 - [x] **API-06**: O contrato de `GET /api/publico/imoveis/{id}/` fica congelado por escrito no §11 do contrato da API + `imovel_detalhe.example.json`, e o app o consome por DataSource trocável (mock honrando o contrato).
 - [x] **API-07**: Endpoint real `GET /api/publico/imoveis/{id}/` público, só imóveis publicados, 404 igual para inexistente e não publicado, serializer com a allowlist do §11, e troca da DataSource do detalhe por DI.
+- [x] **API-08**: A vitrine do anunciante fica escrita como §13 do contrato (rotas `GET /api/publico/corretores/<id>/imoveis/` e `/api/publico/empresas/<id>/imoveis/`, `PageNumberPagination`, allowlist e limite de taxa da API pública) e o app a consome pela DataSource real (Dio), entregue pelo Django.
 
 ## v2 Requirements
 
@@ -110,13 +120,20 @@ Excluídos de propósito. Documentados para evitar scope creep.
 | API-06 | Phase 4 | Complete |
 | API-03 | Phase 5 | Complete |
 | API-07 | Phase 5 | Complete |
+| PERF-01 | Phase 7 | Pending |
+| PERF-02 | Phase 7 | Pending |
+| PERF-03 | Phase 7, Phase 07.1 | Complete |
+| PERF-04 | Phase 7, Phase 07.1 | Complete |
+| PERF-05 | Phase 7 | Pending |
+| PERF-06 | Phase 7 | Pending |
+| API-08 | Phase 7, Phase 07.1 | Complete |
 
 **Coverage:**
 
-- v1 requirements: 30 total
-- Mapped to phases: 30 (roadmap complete)
+- v1 requirements: 37 total
+- Mapped to phases: 37 (roadmap complete)
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-09-21*
-*Last updated: 2026-10-12 after adding Phase 4 requirement IDs (DET-01..06, API-06, API-07)*
+*Last updated: 2026-11-19 after Phase 07.1 (PERF-03, PERF-04 and API-08 now also traced to the real-API integration; texts aligned with contract §13)*

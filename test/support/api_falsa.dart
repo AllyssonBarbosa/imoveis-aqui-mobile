@@ -40,8 +40,14 @@ class _Falha {
 /// bairros capturados, as outras cidades recebem `[]`) e o catálogo de
 /// características. O detalhe (`/api/publico/imoveis/<id>/`) serve o
 /// `detalhe_*.json` capturado cujo `id` bate, senão 404 com
-/// `erro_404_detalhe.json`. Rota ainda não servida responde 404 com um objeto
-/// JSON vazio.
+/// `erro_404_detalhe.json`. Os perfis (`/api/publico/corretores/<id>/` e
+/// `/api/publico/empresas/<id>/`) servem `perfil_corretor.json` e
+/// `perfil_empresa.json` quando o id é o capturado; a vitrine do anunciante
+/// (`/api/publico/<corretores|empresas>/<id>/imoveis/`) serve
+/// `vitrine_<corretor|empresa>_p1.json` (p2 com `page=2`) para o id do perfil
+/// capturado. Id sem fixture nessas rotas responde 404 com
+/// `erro_404_perfil.json`, o mesmo `{detail}` que o Django devolve (o app nunca
+/// lê o texto). Rota ainda não servida responde 404 com um objeto JSON vazio.
 class ApiFalsa {
   ApiFalsa({this.latencia = Duration.zero});
 
@@ -126,6 +132,22 @@ class ApiFalsa {
           ? _corpoJson(lerFixtureApi('erro_404_detalhe.json'), 404)
           : _corpoJson(lerFixtureApi(fixture), 200);
     }
+    final perfil = _rotaDePerfil(uri.path);
+    if (perfil != null) {
+      final (:recurso, :id) = perfil;
+      return id == _idDaFixture('perfil_$recurso.json')
+          ? _corpoJson(lerFixtureApi('perfil_$recurso.json'), 200)
+          : _corpoJson(lerFixtureApi('erro_404_perfil.json'), 404);
+    }
+    final vitrine = _rotaDaVitrineDoAnunciante(uri.path);
+    if (vitrine != null) {
+      final (:recurso, :id) = vitrine;
+      if (id != _idDaFixture('perfil_$recurso.json')) {
+        return _corpoJson(lerFixtureApi('erro_404_perfil.json'), 404);
+      }
+      final pagina = uri.queryParameters['page'] == '2' ? 'p2' : 'p1';
+      return _corpoJson(lerFixtureApi('vitrine_${recurso}_$pagina.json'), 200);
+    }
     final cidadeDosBairros = _idDosBairros(uri.path);
     if (cidadeDosBairros != null) {
       return _corpoJson(
@@ -153,9 +175,8 @@ class ApiFalsa {
   /// Id da cidade de `/api/publico/cidades/<id>/imoveis/`, ou nulo se [caminho]
   /// não é essa rota.
   int? _idDaListaDeImoveis(String caminho) {
-    final casamento = RegExp(
-      r'^/api/publico/cidades/(\d+)/imoveis/$',
-    ).firstMatch(caminho);
+    final casamento = RegExp(r'^/api/publico/cidades/(\d+)/imoveis/$')
+        .firstMatch(caminho);
     if (casamento == null) return null;
     return int.parse(casamento.group(1)!);
   }
@@ -163,9 +184,8 @@ class ApiFalsa {
   /// Id do imóvel de `/api/publico/imoveis/<id>/`, ou nulo se [caminho] não é
   /// essa rota.
   int? _idDoDetalheDeImovel(String caminho) {
-    final casamento = RegExp(
-      r'^/api/publico/imoveis/(\d+)/$',
-    ).firstMatch(caminho);
+    final casamento = RegExp(r'^/api/publico/imoveis/(\d+)/$')
+        .firstMatch(caminho);
     if (casamento == null) return null;
     return int.parse(casamento.group(1)!);
   }
@@ -173,15 +193,16 @@ class ApiFalsa {
   /// Nome do `test/fixtures/api/detalhe_*.json` capturado cujo `id` é [id],
   /// ou nulo se nenhum bate.
   String? _fixtureDoDetalhe(int id) {
-    final arquivos = Directory('test/fixtures/api')
-        .listSync()
-        .whereType<File>()
-        .map((arquivo) => arquivo.uri.pathSegments.last)
-        .where(
-          (nome) => nome.startsWith('detalhe_') && nome.endsWith('.json'),
-        )
-        .toList()
-      ..sort();
+    final arquivos =
+        Directory('test/fixtures/api')
+            .listSync()
+            .whereType<File>()
+            .map((arquivo) => arquivo.uri.pathSegments.last)
+            .where(
+              (nome) => nome.startsWith('detalhe_') && nome.endsWith('.json'),
+            )
+            .toList()
+          ..sort();
     for (final nome in arquivos) {
       final corpo = lerFixtureApi(nome);
       if (corpo is Map<String, Object?> && corpo['id'] == id) return nome;
@@ -189,12 +210,45 @@ class ApiFalsa {
     return null;
   }
 
+  /// Recurso (`corretor` ou `empresa`) e id de
+  /// `/api/publico/corretores/<id>/` ou `/api/publico/empresas/<id>/`, ou nulo
+  /// se [caminho] não é essa rota.
+  ({String recurso, int id})? _rotaDePerfil(String caminho) {
+    final casamento = RegExp(r'^/api/publico/(corretores|empresas)/(\d+)/$')
+        .firstMatch(caminho);
+    if (casamento == null) return null;
+    return (
+      recurso: _recursoNoSingular(casamento.group(1)!),
+      id: int.parse(casamento.group(2)!),
+    );
+  }
+
+  /// Recurso e id de `/api/publico/<corretores|empresas>/<id>/imoveis/`, ou
+  /// nulo se [caminho] não é essa rota.
+  ({String recurso, int id})? _rotaDaVitrineDoAnunciante(String caminho) {
+    final casamento = RegExp(
+      r'^/api/publico/(corretores|empresas)/(\d+)/imoveis/$',
+    ).firstMatch(caminho);
+    if (casamento == null) return null;
+    return (
+      recurso: _recursoNoSingular(casamento.group(1)!),
+      id: int.parse(casamento.group(2)!),
+    );
+  }
+
+  String _recursoNoSingular(String plural) =>
+      plural == 'corretores' ? 'corretor' : 'empresa';
+
+  /// `id` da fixture de perfil capturada [fixture] (os ids nunca ficam fixos no
+  /// código: vêm do que o Django devolveu).
+  int _idDaFixture(String fixture) =>
+      (lerFixtureApi(fixture)! as Map<String, Object?>)['id']! as int;
+
   /// Id da cidade de `/api/publico/cidades/<id>/bairros/`, ou nulo se
   /// [caminho] não é essa rota.
   int? _idDosBairros(String caminho) {
-    final casamento = RegExp(
-      r'^/api/publico/cidades/(\d+)/bairros/$',
-    ).firstMatch(caminho);
+    final casamento = RegExp(r'^/api/publico/cidades/(\d+)/bairros/$')
+        .firstMatch(caminho);
     if (casamento == null) return null;
     return int.parse(casamento.group(1)!);
   }

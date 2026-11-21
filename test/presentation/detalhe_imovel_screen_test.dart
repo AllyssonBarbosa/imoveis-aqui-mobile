@@ -7,7 +7,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/domain/entities/cidade.dart';
 import 'package:imoveis_aqui/domain/entities/dados_natureza.dart';
 import 'package:imoveis_aqui/domain/entities/detalhe_imovel.dart';
+import 'package:imoveis_aqui/di/injection.dart';
 import 'package:imoveis_aqui/domain/entities/imovel.dart';
+import 'package:imoveis_aqui/domain/entities/perfil_corretor.dart';
 import 'package:imoveis_aqui/presentation/comum/imagem_rede.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_cubit.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_screen.dart';
@@ -16,10 +18,15 @@ import 'package:imoveis_aqui/presentation/detalhe_imovel/perfil_corretor_screen.
 import 'package:imoveis_aqui/presentation/detalhe_imovel/widgets/cartao_corretor.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/widgets/galeria_imovel.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/widgets/visualizador_fotos.dart';
+import 'package:imoveis_aqui/presentation/perfis/perfil_corretor_cubit.dart';
+import 'package:imoveis_aqui/presentation/perfis/perfil_state.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _DetalheImovelCubitFalso extends MockCubit<DetalheImovelState>
     implements DetalheImovelCubit {}
+
+class _PerfilCorretorCubitFalso extends MockCubit<PerfilState<PerfilCorretor>>
+    implements PerfilCorretorCubit {}
 
 /// Imagem determinística: uma caixa com a chave da própria url.
 Widget _caixaDaUrl(String url) =>
@@ -728,6 +735,18 @@ void main() {
     testWidgets('tocar no cartão abre o perfil com o nome do detalhe', (
       tester,
     ) async {
+      // O destino do toque resolve o Cubit do perfil no DI; aqui ele fica
+      // parado em "carregando" — só a prévia do detalhe importa neste teste.
+      final perfilCubit = _PerfilCorretorCubitFalso();
+      when(() => perfilCubit.carregar(any())).thenAnswer((_) async {});
+      whenListen(
+        perfilCubit,
+        const Stream<PerfilState<PerfilCorretor>>.empty(),
+        initialState: const PerfilState<PerfilCorretor>.carregando(),
+      );
+      getIt.registerFactory<PerfilCorretorCubit>(() => perfilCubit);
+      addTearDown(getIt.reset);
+
       await pumpEstado(
         tester,
         DetalheImovelState.carregado(comCorretor),

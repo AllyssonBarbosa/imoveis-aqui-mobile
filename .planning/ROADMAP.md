@@ -25,6 +25,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 3: Vitrine — Filtros Server-Side** - Filtros completos da vitrine (finalidade, natureza, faixas, características), chips ativos e paginação sempre consistente.
 - [ ] **Phase 4: Página do Imóvel — Galeria e Dados da Natureza** - Tela de detalhe (card APP 04): galeria a partir da capa, preços, corretor e bloco por natureza (casa, terreno, apartamento, lote), sobre mock seguindo o contrato de `GET /api/publico/imoveis/{id}/`.
 - [x] **Phase 5: Imóveis Real — Endpoint Público e Integração Final** - Endpoints públicos reais de lista e detalhe de imóveis e troca das DataSources mock pelas reais via DI. (completed 2026-11-16)
+- [ ] **Phase 7: Perfis Públicos da Empresa e do Corretor** - Card APP 07: página da empresa e página do corretor com a vitrine do anunciante, dados da API de perfis públicos (WEB 02) e aviso para corretor desativado. (Fase 6 reservada ao card APP 06, de outro colega — fase N = card APP 0N.)
+- [ ] **Phase 07.1: Integração da APP-07 com a API real**
 
 ## Phase Details
 
@@ -271,10 +273,58 @@ Plans:
 
 - [x] 05-22-PLAN.md — Contrato (tetos, mensagens 400, 429, riscos) + README da API + guarda do app para 400/429 + gates finais; check humano de fim de fase pendente (API-03, API-07)
 
+### Phase 7: Perfis Públicos da Empresa e do Corretor
+
+**Goal**: O visitante vê quem está anunciando para saber com quem vai negociar: a página da empresa traz logomarca, CRECI, apresentação, contato e cidades de atuação; a do corretor traz foto, CRECI, apresentação e contato; as duas mostram a vitrine dos imóveis daquele anunciante. Card APP 07 (tarefa A07).
+**Mode:** mvp
+**Depends on**: Phase 4 (cartão do corretor e tela de perfil do DET-05). Externamente: WEB 02 (feito, na main da web) para `GET /api/publico/corretores/{id}/` e `GET /api/publico/empresas/{id}/`. A vitrine do anunciante ainda não tem endpoint na web — esta fase a constrói sobre mock que segue um contrato escrito, como nas fases 2–4.
+**Requirements**: PERF-01, PERF-02, PERF-03, PERF-04, PERF-05, PERF-06, API-08
+**Success Criteria** (what must be TRUE):
+
+  1. Página da empresa com logomarca, CRECI, apresentação, contato e cidades de atuação.
+  2. Página do corretor com foto, CRECI, apresentação e contato.
+  3. As duas páginas mostram a vitrine dos imóveis daquele anunciante.
+  4. Os dados vêm da API dos perfis públicos (nada montado ou decidido no app).
+  5. Perfil de corretor desativado mostra um aviso, e não uma tela quebrada.
+  6. Dá para chegar ao perfil a partir da página do imóvel.
+
+**Plans**: 12/12 plans executed
+
+Plans:
+**Wave 1**
+- [x] 07-01-PLAN.md — Dados do perfil do corretor (domain/data): entidade, Model defensivo da WEB 02, mock coerente com o detalhe (7, 8, 9 + corretor 10 sem imóveis), repositório (PERF-04, PERF-02)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [x] 07-02-PLAN.md — TRACER: tocar no corretor da página do imóvel abre o perfil buscado por id (prévia na hora -> CRECI do mock por toda a pilha) + DI de produção (PERF-06, PERF-02, PERF-04)
+- [x] 07-03-PLAN.md — Registro de PERF-01..06/API-08 + adendo §12 do contrato + exemplos de wire dos perfis protegidos por teste de contrato (API-08, PERF-04)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [x] 07-04-PLAN.md — Corretor completo: 404 'Este corretor não está mais disponível' + 'Tentar de novo', apresentação e contato como texto (PERF-02, PERF-05)
+- [x] 07-05-PLAN.md — API real dos perfis (Dio) com 404/JSON ruim tipados no repositório + entidade/Model defensivo da empresa (PERF-04, PERF-05, PERF-01)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [x] 07-06-PLAN.md — Dados da vitrine do anunciante: AnuncianteRef, §12 no mock com cursor, repositório e use case (PERF-03, API-08)
+- [x] 07-07-PLAN.md — Corretor desativado reproduzível à mão: id reservado 99 via imóvel 337 + e2e até o aviso (PERF-05)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [x] 07-08-PLAN.md — Vitrine do anunciante na página do corretor: Cubit, sliver de ImovelCard, vazio (corretor 10) e erro com 'Tentar de novo' (PERF-03, API-08)
+- [x] 07-09-PLAN.md — Dados da empresa: fixture IMOBILIARIA/AUTONOMO = exemplo do §12, buscarEmpresa no mock, na remota e no repositório (PERF-01, PERF-04)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [x] 07-10-PLAN.md — Rolagem infinita da vitrine do anunciante: carregarMais, rodapés, página curta, corpo rolável compartilhado (PERF-03, API-08)
+
+**Wave 7** *(blocked on Wave 6 completion)*
+- [x] 07-11-PLAN.md — Página da empresa a partir do perfil do corretor ('Ver página do anunciante'): logomarca, nome, tipo, CRECI pela pilha de perfis (PERF-01, PERF-06, PERF-04)
+
+**Wave 8** *(blocked on Wave 7 completion)*
+- [x] 07-12-PLAN.md — Desfechos da empresa (404/erro/cartão ausente), empresa completa (apresentação, contato, cidades, vitrine), fluxo completo, guardas e human-check (PERF-01..PERF-06, API-08)
+
+**UI hint**: yes
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 7 → 07.1 (6 reservada ao APP 06)
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -283,3 +333,32 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 3. Vitrine — Filtros Server-Side | 5/5 | In Progress|  |
 | 4. Página do Imóvel — Galeria e Dados da Natureza | 8/8 | In Progress|  |
 | 5. Imóveis Real — Endpoint Público e Integração Final | 22/22 | Complete    | 2026-11-16 |
+| 7. Perfis Públicos da Empresa e do Corretor | 12/12 | In Progress | - |
+
+### Phase 07.1: Integração da APP-07 com a API real (INSERTED)
+
+**Goal:** Os perfis do corretor e da empresa e a vitrine do anunciante funcionam ponta a ponta com dados reais, sobre a `main` que já tem a APP-05: a branch `feat/APP07` recebe a `main` com os conflitos resolvidos, os perfis passam a usar a API real da WEB 02, e a vitrine do anunciante passa a vir de um endpoint novo no Django (imóveis por corretor e por empresa), no padrão da API pública da APP-05.
+**Requirements**: PERF-03, PERF-04, API-08
+**Success Criteria**:
+  1. `feat/APP07` contém a `main` atual (APP-05) com todos os conflitos resolvidos; `flutter analyze` limpo e `flutter test` verde.
+  2. O DI registra a DataSource real dos perfis (`GET /api/publico/corretores/{id}/` e `/empresas/{id}/`); nenhum mock de perfil ou de imóvel ativo no app.
+  3. O Django expõe a vitrine do anunciante (imóveis publicados de um corretor e de uma empresa) com a mesma paginação, allowlist e limite de taxa da API pública da APP-05, com testes no repositório web.
+  4. O app consome esse endpoint com a paginação nova; o adendo do contrato da vitrine do anunciante fica renumerado (o §12 da `main` passou a ser outro assunto) e alinhado ao que o Django entrega.
+  5. Com o Django rodando e `semear_vitrine_dev`, dá para ir de um imóvel real até o corretor, a empresa e a vitrine deles, e de volta a um imóvel.
+**Depends on:** Phase 7
+**Plans:** 6/6 plans executed
+
+Plans:
+**Wave 1**
+- [x] 07.1-01-PLAN.md — Merge de origin/main (APP-05) em feat/APP07 com os 10 conflitos resolvidos + TRACER: perfis e vitrine do anunciante nas DataSources Dio pelo DI de produção, zero mock em lib/ (PERF-04, PERF-03, API-08)
+- [x] 07.1-02-PLAN.md — Django (repo web, branch feat/APP07): rotas corretores/<id>/imoveis/ e empresas/<id>/imoveis/ no padrão da APP-05, D-11 (corretor de empresa inativa -> 404), site usando as mesmas consultas (D-19), testes (PERF-03, API-08)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [x] 07.1-03-PLAN.md — Wire real: captura dos perfis e da vitrine do anunciante do Django, ApiFalsa com as rotas novas, teste da DataSource remota, perfil_remote/contrato_perfis e exemplos do contrato copiados (PERF-04, PERF-03, API-08)
+- [x] 07.1-04-PLAN.md — Cubit da vitrine do anunciante sem id repetido ao anexar página + testes de tela/repositório da APP-07 sobre as entidades da main (PERF-03)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [x] 07.1-05-PLAN.md — Fluxos e2e da APP-07 portados para a ApiFalsa (perfil, empresa, rolagem infinita, 404, vazio) e suíte completa verde — SC-1 (PERF-03, PERF-04)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [x] 07.1-06-PLAN.md — Contrato §13, REQUIREMENTS (D-17), README, COVERAGE da Phase 7, 07-UAT.md com dados reais do seed e gates finais dos dois repositórios (API-08, PERF-03, PERF-04)

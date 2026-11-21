@@ -1,19 +1,19 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 1
-current_phase_name: Localização, Escolha de Cidade e Contrato da API
+current_phase: "07.1"
+current_phase_name: Integração da APP-07 com a API real (INSERTED)
 status: verifying
-stopped_at: Phase 05 complete; phases 1-4 executed but verification stale and UAT pending
-last_updated: "2026-11-16T20:34:06.212Z"
-last_activity: 2026-11-16
-last_activity_desc: Phase 05 complete, transitioned to Phase 1
-state_head: 149cf6e30218a2d0e6a4aa89644ce0374c4feb36
+stopped_at: Completed 07.1-06-PLAN.md
+last_updated: "2026-11-19T10:09:26.081Z"
+last_activity: 2026-11-18
+last_activity_desc: Phase 07.1 execution started
+state_head: ce8264d1e779a41393787de3f69505d69792cf37
 progress:
-  total_phases: 5
+  total_phases: 7
   completed_phases: 1
-  total_plans: 44
-  completed_plans: 44
-  percent: 20
+  total_plans: 62
+  completed_plans: 62
+  percent: 14
 ---
 
 # Project State
@@ -23,16 +23,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-21)
 
 **Core value:** A vitrine do app abre na cidade do usuário e mostra imóveis reais vindos da API, com a busca e o filtro resolvidos no servidor — o mesmo dado e a mesma regra do site, nunca recalculados dentro do aparelho.
-**Current focus:** Phase 05 — Imóveis Real — Endpoint Público e Integração Final
+**Current focus:** Phase 07.1 — Integração da APP-07 com a API real (INSERTED)
 
 ## Current Position
 
-Phase: 1 — Localização, Escolha de Cidade e Contrato da API
-Plan: 4/4 executados
-Status: Pendente de verificação (VERIFICATION stale, UAT em andamento) — mesmo caso das fases 2–4
-Last activity: 2026-11-16 — Phase 05 complete (UAT 1/1, SECURITY threats_open 0)
+Phase: 07.1 (Integração da APP-07 com a API real (INSERTED)) — EXECUTING
+Plan: 6 of 6
+Status: Phase complete — ready for verification
+Last activity: 2026-11-18 — Phase 07.1 execution started
 
-Progress: [██░░░░░░░░] 20%
+Progress: [█░░░░░░░░░] 14%
 
 ## Performance Metrics
 
@@ -95,6 +95,12 @@ Progress: [██░░░░░░░░] 20%
 | Phase 05 P20 | 10min | 2 tasks | 2 files |
 | Phase 05 P21 | 15min | 2 tasks | 7 files |
 | Phase 05 P22 | 20min | 2 tasks | 4 files |
+| Phase 07.1 P01 | 11 min | 2 tasks | 12 files |
+| Phase 07.1 P02 | 28 min | 2 tasks | 8 files |
+| Phase 07.1 P03 | 7 min | 2 tasks | 15 files |
+| Phase 07.1 P04 | 15 min | 2 tasks | 8 files |
+| Phase 07.1 P05 | 25min | 2 tasks | 1 files |
+| Phase 07.1 P06 | 25min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -140,6 +146,12 @@ Recent decisions affecting current work:
 - [Phase 05]: 05-19: preço e área têm tetos separados (9999999999.99 / 99999999.99); NUL, busca>200, bairro>20 itens ou >100 caracteres e número fora da allowlist ASCII viram 400 {campo: mensagem}
 - [Phase 05]: 05-20: filtro caracteristicas com teto de 20 ids distintos e tem-todas por uma subconsulta agregada na tabela M2M (CR-01); risco aceito de 21+ marcadas virar erro no app, a registrar no contrato pelo 05-22
 - [Phase 05]: 05-21: ThrottleVitrinePublica (balde unico por IP, 120/min via VITRINE_TAXA_ANONIMA, NUM_PROXIES=0) so nas 5 rotas publicas da vitrine; sem throttle global
+- [Phase 07.1]: 07.1-01: merge (nao rebase) de origin/main 43dd41d em feat/APP07; DataSource remota da vitrine do anunciante copia _lerEnvelope/_exigirMesmaOrigem do ImovelRemoteDataSource em vez de extrai-los; lib/ sem mock (PerfilRemoteDataSource ativo no DI)
+- [Phase 07.1]: 07.1-02: vitrine do anunciante no Django em rotas aninhadas corretores|empresas/<id>/imoveis/; 404 uniforme (texto do detail varia entre as rotas) e 200 vazio para anunciante ativo sem imoveis
+- [Phase 07.1]: 07.1-03: capturar so os grupos perfis e anunciante (nunca todos) para manter as 15 fixtures da APP-05 intactas; 404 da vitrine do anunciante reaproveita erro_404_perfil.json na ApiFalsa
+- [Phase 07.1]: 07.1-04: VitrineAnuncianteCubit descarta id ja listado ao anexar a proxima pagina (integridade da lista, ordem do servidor); teste 'pilha real' removido, garantia passa ao wire capturado e ao e2e do 07.1-05
+- [Phase 07.1]: 07.1-05: e2e dos perfis registra detalhe e perfis sobre o mesmo Dio da ApiFalsa (registrarDetalheEPerfis); rolagem infinita provada pelo estado do Cubit; grupo DI real da APP-07 nao portado (coberto por injection_perfis_test)
+- [Phase 07.1]: Contrato §13 registra o 404 de anunciante inexistente/inativo (muda o antigo nunca 404) e os PENDENTE WEB (f), (g), (h)
 
 ### Pending Todos
 
@@ -158,6 +170,11 @@ None yet.
 | 2 | Adicionar setup de ambiente Windows ao README | 2026-09-22 | b40437b | — |
 | 3 | Corrigir compileSdk 35→36 (plugins exigem 36+); verificado com build real no emulador | 2026-09-22 | 559486a | — |
 
+### Roadmap Evolution
+
+- Phase 7 added: Perfis Públicos da Empresa e do Corretor (card APP 07); número 7 escolhido para casar com o card — fase 6 reservada ao APP 06
+- Phase 07.1 inserted after Phase 7: Integração da APP-07 com a API real (merge da APP-05, perfis na API real, endpoint da vitrine do anunciante no Django) (URGENT)
+
 ## Deferred Items
 
 Items acknowledged and deferred at milestone close, most recent first:
@@ -168,6 +185,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-16
-Stopped at: Phase 05 complete; phases 1-4 aguardam verificação (VERIFICATION stale, UAT pendente)
+Last session: 2026-11-19T10:09:24.781Z
+Stopped at: Completed 07.1-06-PLAN.md
 Resume file: None

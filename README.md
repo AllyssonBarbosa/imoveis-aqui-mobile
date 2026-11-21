@@ -70,8 +70,13 @@ página do imóvel vêm da API real do repositório irmão (`../imoveis-aqui/Web
 `feat/APP05`: `GET /api/publico/cidades/`, `/api/publico/cidades/<id>/imoveis/`,
 `/api/publico/cidades/<id>/bairros/`, `/api/publico/caracteristicas/` e `/api/publico/imoveis/<id>/`.
 O app não tem mock de acervo: se a API falhar, a tela mostra o estado de erro com "Tentar de novo".
+Os perfis públicos (`GET /api/publico/corretores/<id>/` e `/api/publico/empresas/<id>/`) vêm da `main` da web;
+a vitrine do anunciante (`GET /api/publico/corretores/<id>/imoveis/` e `/api/publico/empresas/<id>/imoveis/`,
+20 por página, mesmo limite de taxa da vitrine da cidade) e a correção do perfil de corretor de empresa inativa
+(404) vêm da branch `feat/APP07` da web, até ela entrar na `main` dela.
 O formato das respostas está em
-`.planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/01-CONTRATO-API.md`.
+`.planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/01-CONTRATO-API.md` (§13 para perfis e
+vitrine do anunciante).
 
 ### Base URL da API (app)
 
@@ -92,7 +97,8 @@ o emulador Android:
 ### Subir o Django (`../imoveis-aqui/Web`)
 
 Na branch `feat/APP05` do repositório da API (ela traz a vitrine pública da W09 e as migrações
-`imoveis.0003` a `0006`):
+`imoveis.0003` a `0006`). Para testar a APP-07 (perfis e vitrine do anunciante), use a branch `feat/APP07` da web
+(ela parte da `main` atualizada, que já tem a APP-05):
 
 ```bash
 # a partir de ../imoveis-aqui/Web
@@ -114,7 +120,8 @@ cp .env.example .env               # preencha DATABASE_URL (Postgres) e confira 
 
 Os testes do app não usam JSON escrito à mão: `test/fixtures/api/` guarda respostas **capturadas** da
 API semeada (cidades, listas de Campinas, bairros, características, os quatro detalhes, os casos sem
-foto e sem corretor e os erros 400 e 404). Os exemplos do contrato
+foto e sem corretor e os erros 400 e 404), mais as sete da APP-07: perfil do corretor, perfil da empresa, o 404 de
+perfil e duas páginas (p1 e p2) da vitrine de cada anunciante. Os exemplos do contrato
 (`.planning/phases/01-.../contrato/*.example.json`) são cópias exatas delas, e
 `test/data/contrato_lista_test.dart` / `test/data/contrato_detalhe_test.dart` falham se divergirem.
 Para recapturar tudo (por exemplo, depois que a API mudar):
@@ -136,7 +143,10 @@ python3 tool/capturar_fixtures_api.py http://127.0.0.1:8000 test/fixtures/api --
 # 4. pare o servidor temporário e apague o SQLite temporário
 ```
 
-`--grupo todos` recaptura as 15 fixtures de uma vez (`lista` e `detalhe` capturam só o seu grupo).
+`--grupo todos` recaptura as 15 fixtures de uma vez (`lista` e `detalhe` capturam só o seu grupo). Os perfis
+e a vitrine do anunciante têm grupos próprios, `--grupo perfis` e `--grupo anunciante`, travados por
+`test/data/contrato_perfis_test.dart` e `test/data/vitrine_anunciante_remote_datasource_test.dart`. Ao capturá-los,
+**não** recapture os grupos da APP-05 junto: o sufixo aleatório das fotos do seed mudaria as fixtures já travadas.
 Depois, copie as fixtures para os exemplos do contrato (tabela no §12 do `01-CONTRATO-API.md`) e rode
 `flutter test`.
 
