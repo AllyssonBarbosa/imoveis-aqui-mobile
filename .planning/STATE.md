@@ -2,17 +2,17 @@
 gsd_state_version: "1.0"
 current_phase: 08
 current_phase_name: Login e Área do Corretor — o Acervo
-status: executing
-stopped_at: Completed 08-11-PLAN.md
-last_updated: "2026-11-21T15:17:35.501Z"
+status: verifying
+stopped_at: Completed 08-12-PLAN.md
+last_updated: "2026-11-21T15:26:14.399Z"
 last_activity: 2026-11-21
 last_activity_desc: Phase 08 execution started
-state_head: 9c63e28d77307dcbec93eae7293a2cf991f05b16
+state_head: bcfc3293b6814d4e46a2d9487bb8f2372c6e70ea
 progress:
   total_phases: 8
   completed_phases: 2
   total_plans: 74
-  completed_plans: 73
+  completed_plans: 74
   percent: 25
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-11-20)
 
 Phase: 08 (Login e Área do Corretor — o Acervo) — EXECUTING
 Plan: 12 of 12
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-11-21 — Phase 08 execution started
 
 Progress: [████████████████████] 62/62 plans ([███░░░░░░░] 25%)
@@ -114,6 +114,7 @@ Progress: [████████████████████] 62/62 p
 | Phase 08 P09 | 9 min | 3 tasks | 12 files |
 | Phase 08 P10 | 17min | 2 tasks | 14 files |
 | Phase 08 P11 | 22min | 2 tasks | 14 files |
+| Phase 08 P12 | 25min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -177,6 +178,7 @@ Recent decisions affecting current work:
 - [Phase 08]: 08-10: e-mail do login segue com trim, a senha nunca; confirmarESair captura Navigator e SessaoCubit antes do await do dialogo
 - [Phase 08]: 08-11: sem acaoSessao a VitrineScreen mantem o SeletorCidadeTopo como filho direto da Column; so com a acao ele entra numa Row com Expanded
 - [Phase 08]: 08-11: SessaoCubit carregado sem await no initState de ImoveisAquiApp e provido acima do MaterialApp (AC-6)
+- [Phase 08]: 08-12: pilha real dos fluxos ponta a ponta montada num helper compartilhado (test/support/pilha_real.dart) trocando so os dois Dio e o ArmazenamentoToken
 
 ### Pending Todos
 
@@ -212,6 +214,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-21T15:17:34.402Z
-Stopped at: Completed 08-11-PLAN.md
+Last session: 2026-11-21T15:26:13.260Z
+Stopped at: Completed 08-12-PLAN.md
 Resume file: None
