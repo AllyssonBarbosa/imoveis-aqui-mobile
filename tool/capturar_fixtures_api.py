@@ -6,16 +6,18 @@ devolve (ensure_ascii=False, indent=2, quebra de linha final). Só biblioteca pa
 
 Uso:
     python3 tool/capturar_fixtures_api.py [URL_BASE] [PASTA_SAIDA]
-        [--grupo lista|detalhe|perfis|anunciante|todos]
+        [--grupo lista|detalhe|perfis|anunciante|acervo|todos]
 
 Padrões: URL_BASE=http://127.0.0.1:8000, PASTA_SAIDA=test/fixtures/api, --grupo=todos.
 Grupos: `lista` (cidades, listas de Campinas, bairros, características e o 400 de natureza);
 `detalhe` (um detalhe por natureza, o sem fotos, o sem corretor e o 404 fora da vitrine; lê a
 lista de Campinas ao vivo e NÃO reescreve as fixtures de lista); `perfis` (perfil do corretor, perfil da
 empresa e o 404 de perfil; descobre os ids ao vivo pelo corretor responsável de um detalhe); `anunciante`
-(p1 e p2 da vitrine de imóveis do corretor e da empresa); `todos` = `lista`, `detalhe`, `perfis` e
-`anunciante`, nessa ordem. ATENÇÃO: `todos` reescreve as fixtures da lista e do detalhe (as URLs de foto
-mudam a cada banco novo); para acrescentar só perfis/anunciante rode `--grupo perfis` e `--grupo anunciante`.
+(p1 e p2 da vitrine de imóveis do corretor e da empresa); `acervo` (rotas autenticadas da Fase 8: login,
+eu, acervo do corretor em `GET /api/imoveis/` e o Sair; ver "Grupo acervo" abaixo); `todos` = `lista`,
+`detalhe`, `perfis`, `anunciante` e `acervo`, nessa ordem. ATENÇÃO: `todos` reescreve as fixtures da lista e
+do detalhe (as URLs de foto mudam a cada banco novo); para acrescentar só perfis/anunciante/acervo rode
+`--grupo perfis`, `--grupo anunciante` e `--grupo acervo` (nunca `todos`).
 Sai com código 1 (e mensagem em português) quando alguma resposta esperada não é produzida.
 
 Procedimento de captura (NUNCA contra o banco do Web/.env; use um SQLite temporário):
@@ -51,10 +53,27 @@ Procedimento no Windows (Git Bash; repo web em "$WEB", sempre entre aspas) — o
      --grupo perfis` e depois `--grupo anunciante`.
   4. Encerre o servidor, confira que a porta 8000 ficou livre, apague o SQLite e confira que
      `git -C "$WEB" status --porcelain` está vazio.
+
+Grupo acervo (credenciais NUNCA entram em arquivo: só por variável de ambiente):
+
+  Variáveis: CAPTURA_EMAIL_CORRETOR e CAPTURA_SENHA_CORRETOR (corretor da empresa demo da vitrine),
+  CAPTURA_EMAIL_OUTRA_EMPRESA e CAPTURA_SENHA_OUTRA_EMPRESA (corretor da segunda empresa, do
+  `seed_demo`) e CAPTURA_EMAIL_GESTOR e CAPTURA_SENHA_GESTOR (gestor, que deve receber 403 no acervo).
+
+  Passos extras no SQLite temporário (além de `migrate` e `semear_vitrine_dev`):
+    - rode também `manage.py seed_demo` (segunda empresa, gestor e administrador);
+    - o corretor da vitrine demo nasce SEM senha utilizável: gere uma senha descartável
+      (`python3 -c 'import secrets; print(secrets.token_urlsafe(18))'`), exporte-a em
+      CAPTURA_SENHA_CORRETOR e defina-a no SQLite temporário com `manage.py shell -c` lendo
+      `os.environ` (nunca na linha de comando em texto).
+  Redação do token: o 200 do login é gravado com o valor de `token` trocado por 40 zeros, depois de
+  conferir que a resposta tinha exatamente a chave `token`; a chave real fica só em memória e é
+  revogada no fim (Sair). Não há fixture de 429 (não é capturável de forma determinística).
 """
 
 import argparse
 import json
+import os
 import sys
 import urllib.error
 import urllib.parse
@@ -66,9 +85,34 @@ class ErroCaptura(Exception):
     """Resposta inesperada da API durante a captura."""
 
 
-def obter(url, status_esperado=200):
-    """GET em `url`; devolve o JSON já decodificado. Exige `status_esperado`."""
-    requisicao = urllib.request.Request(url, headers={"Accept": "application/json"})
+def obter(url, status_esperado=200, token=None):
+    """GET em `url`; devolve o JSON já decodificado. Exige `status_esperado`.
+
+    Com `token`, manda `Authorization: Token <token>` (rotas autenticadas da Fase 8).
+    """
+    cabecalhos = {"Accept": "application/json"}
+    if token:
+        cabecalhos["Authorization"] = f"Token {token}"
+    requisicao = urllib.request.Request(url, headers=cabecalhos)
+    return _executar(requisicao, url, status_esperado)
+
+
+def postar(url, corpo, token=None, status_esperado=200):
+    """POST de `corpo` como JSON em `url`; devolve o JSON decodificado (ou `None` se o corpo vier vazio, 204)."""
+    cabecalhos = {"Accept": "application/json", "Content-Type": "application/json"}
+    if token:
+        cabecalhos["Authorization"] = f"Token {token}"
+    requisicao = urllib.request.Request(
+        url,
+        data=json.dumps(corpo).encode("utf-8"),
+        headers=cabecalhos,
+        method="POST",
+    )
+    return _executar(requisicao, url, status_esperado)
+
+
+def _executar(requisicao, url, status_esperado):
+    """Envia a requisição e confere o status; decodifica o JSON (corpo vazio vira `None`)."""
     try:
         with urllib.request.urlopen(requisicao, timeout=30) as resposta:
             status = resposta.status
@@ -80,6 +124,8 @@ def obter(url, status_esperado=200):
         raise ErroCaptura(f"Não foi possível acessar {url}: {erro.reason}") from erro
     if status != status_esperado:
         raise ErroCaptura(f"{url} respondeu {status}; esperado {status_esperado}.")
+    if not corpo.strip():
+        return None
     try:
         return json.loads(corpo)
     except json.JSONDecodeError as erro:
@@ -263,11 +309,111 @@ def capturar_anunciante(base, pasta):
         print(f"  {recurso} = id {ids[recurso]} ({p1['count']} imóveis)")
 
 
+TOKEN_REDIGIDO = "0" * 40
+
+
+def _credencial(nome):
+    """Lê a credencial da variável de ambiente `nome`; sem ela a captura para (nada de senha em arquivo)."""
+    valor = os.environ.get(nome)
+    if not valor:
+        raise ErroCaptura(
+            f"defina a variável {nome}; credenciais nunca vão para arquivo."
+        )
+    return valor
+
+
+def _entrar(base, nome_email, nome_senha):
+    """Login pela API; devolve a chave (só em memória). Exige o corpo exatamente `{token}`."""
+    resposta = postar(
+        f"{base}/api/auth/login/",
+        {"email": _credencial(nome_email), "password": _credencial(nome_senha)},
+    )
+    if not isinstance(resposta, dict) or set(resposta) != {"token"} or not resposta["token"]:
+        raise ErroCaptura("O 200 do login deveria ter exatamente a chave `token`, não vazia.")
+    return resposta["token"]
+
+
+def capturar_acervo(base, pasta):
+    """Login, eu, acervo do corretor (p1, p2, busca, situação vazia), outra empresa, gestor (403) e Sair."""
+    auth = f"{base}/api/auth"
+    imoveis = f"{base}/api/imoveis/"
+
+    erro_401 = obter(f"{auth}/eu/", status_esperado=401)
+    if "detail" not in erro_401:
+        raise ErroCaptura("O 401 deveria trazer a chave `detail`.")
+    salvar(pasta, "erro_401", erro_401)
+
+    erro_400 = postar(
+        f"{auth}/login/",
+        {"email": _credencial("CAPTURA_EMAIL_CORRETOR"), "password": "senha-errada-captura"},
+        status_esperado=400,
+    )
+    if not isinstance(erro_400, dict) or not erro_400:
+        raise ErroCaptura("O 400 do login deveria trazer um objeto de erro.")
+    salvar(pasta, "erro_400_login", erro_400)
+
+    token_corretor = _entrar(base, "CAPTURA_EMAIL_CORRETOR", "CAPTURA_SENHA_CORRETOR")
+    # a chave real nunca vai para arquivo: a fixture guarda só o formato `{token}`
+    salvar(pasta, "login_200", {"token": TOKEN_REDIGIDO})
+
+    eu_corretor = obter(f"{auth}/eu/", token=token_corretor)
+    if eu_corretor.get("perfil") != "CORRETOR":
+        raise ErroCaptura("O `eu` do corretor deveria ter perfil CORRETOR.")
+    salvar(pasta, "eu_corretor", eu_corretor)
+
+    p1 = obter(imoveis, token=token_corretor)
+    if not p1.get("next") or len(p1.get("results", [])) != 20:
+        raise ErroCaptura("A p1 do acervo deveria ter `next` e 20 resultados (seed com 36 imóveis).")
+    salvar(pasta, "acervo_p1", p1)
+
+    p2 = obter(p1["next"], token=token_corretor)
+    if not p2.get("previous"):
+        raise ErroCaptura("A segunda página do acervo deveria apontar `previous`.")
+    salvar(pasta, "acervo_p2", p2)
+
+    busca = obter(
+        f"{imoveis}?{urllib.parse.urlencode({'busca': 'DEV-CAMPINAS-14'})}", token=token_corretor
+    )
+    if busca.get("count") != 1:
+        raise ErroCaptura("A busca por DEV-CAMPINAS-14 deveria devolver exatamente 1 imóvel.")
+    salvar(pasta, "acervo_busca", busca)
+
+    vazia = obter(
+        f"{imoveis}?{urllib.parse.urlencode({'situacao': 'VENDIDO'})}", token=token_corretor
+    )
+    if vazia.get("count") != 0:
+        raise ErroCaptura("situacao=VENDIDO deveria devolver count 0 para o corretor da empresa demo.")
+    salvar(pasta, "acervo_situacao_vazia", vazia)
+
+    token_outra = _entrar(base, "CAPTURA_EMAIL_OUTRA_EMPRESA", "CAPTURA_SENHA_OUTRA_EMPRESA")
+    outra = obter(imoveis, token=token_outra)
+    if any(item["codigo"].startswith("DEV-") for item in outra.get("results", [])):
+        raise ErroCaptura("O acervo da outra empresa não pode trazer imóvel da empresa demo (DEV-*).")
+    salvar(pasta, "acervo_outra_empresa", outra)
+
+    token_gestor = _entrar(base, "CAPTURA_EMAIL_GESTOR", "CAPTURA_SENHA_GESTOR")
+    eu_gestor = obter(f"{auth}/eu/", token=token_gestor)
+    if eu_gestor.get("perfil") != "GESTOR":
+        raise ErroCaptura("O `eu` do gestor deveria ter perfil GESTOR.")
+    salvar(pasta, "eu_gestor", eu_gestor)
+
+    erro_403 = obter(imoveis, status_esperado=403, token=token_gestor)
+    if "detail" not in erro_403:
+        raise ErroCaptura("O 403 do acervo deveria trazer a chave `detail`.")
+    salvar(pasta, "erro_403_acervo", erro_403)
+
+    # só confere (não salva): o Sair revoga a chave do corretor e a mesma chave passa a dar 401
+    postar(f"{auth}/sair/", {}, token=token_corretor, status_esperado=204)
+    obter(f"{auth}/eu/", status_esperado=401, token=token_corretor)
+    print("  Sair conferido (204 e a mesma chave passou a dar 401)")
+
+
 GRUPOS = {
     "lista": capturar_lista,
     "detalhe": capturar_detalhe,
     "perfis": capturar_perfis,
     "anunciante": capturar_anunciante,
+    "acervo": capturar_acervo,
 }
 
 
@@ -279,9 +425,9 @@ def main():
     analisador.add_argument("pasta_saida", nargs="?", default="test/fixtures/api")
     analisador.add_argument(
         "--grupo",
-        choices=["lista", "detalhe", "perfis", "anunciante", "todos"],
+        choices=["lista", "detalhe", "perfis", "anunciante", "acervo", "todos"],
         default="todos",
-        help="`lista` (lista e opções), `detalhe`, `perfis`, `anunciante` ou `todos` (os quatro, nessa ordem).",
+        help="`lista` (lista e opções), `detalhe`, `perfis`, `anunciante`, `acervo` ou `todos` (os cinco, nessa ordem; nunca use `todos` só para acrescentar o acervo).",
     )
     argumentos = analisador.parse_args()
 

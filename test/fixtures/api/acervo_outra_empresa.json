@@ -1,0 +1,19 @@
+{
+  "count": 1,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": 37,
+      "codigo": "DEMO-CASA-01",
+      "titulo": "Casa de demonstração com 3 quartos",
+      "finalidade": "VENDA",
+      "preco_venda": "350000.00",
+      "preco_aluguel": null,
+      "foto_capa": null,
+      "situacao": "VENDIDO",
+      "meu_imovel": true,
+      "na_vitrine": false
+    }
+  ]
+}
