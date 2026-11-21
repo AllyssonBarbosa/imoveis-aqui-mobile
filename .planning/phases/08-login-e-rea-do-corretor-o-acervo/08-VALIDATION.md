@@ -1,0 +1,79 @@
+---
+phase: "08"
+slug: "login-e-rea-do-corretor-o-acervo"
+# status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6)
+# audit-milestone §5.5 distinguishes NOT-VALIDATED (draft) from PARTIAL (validated + nyquist_compliant: false) (#2117)
+status: draft
+nyquist_compliant: false
+wave_0_complete: false
+created: "2026-11-20"
+---
+
+# Phase 08 — Validation Strategy
+
+> Per-phase validation contract for feedback sampling during execution.
+> Fonte: `08-RESEARCH.md` § Validation Architecture.
+
+---
+
+## Test Infrastructure
+
+| Property | Value |
+|----------|-------|
+| **Framework** | Web: Django `manage.py test` (Django 5.2.17 + DRF 3.18.1, `APITestCase`) · App: `flutter_test` + `bloc_test ^10.0.0` + `mocktail ^1.0.5` |
+| **Config file** | Web: nenhum extra (`config/settings.py` troca o hasher só em `test`) · App: `analysis_options.yaml` (`flutter_lints`) |
+| **Quick run command** | Web: `cd "/c/Users/allys/OneDrive/Área de Trabalho/Imoveis-aqui/Web" && DATABASE_URL="sqlite://:memory:" ./venv/Scripts/python.exe manage.py test <app.tests.Classe> --noinput` · App: `flutter test <arquivo>_test.dart` |
+| **Full suite command** | Web: `cd "/c/Users/allys/OneDrive/Área de Trabalho/Imoveis-aqui/Web" && DATABASE_URL="sqlite://:memory:" ./venv/Scripts/python.exe manage.py test --noinput` (linha de base 695 testes) · App: `flutter analyze lib` + `flutter test` (linha de base 774 testes) |
+| **Estimated runtime** | Web ~18 s · App ~60 s |
+
+---
+
+## Sampling Rate
+
+- **After every task commit:** comando rápido do arquivo tocado (web: classe de teste; app: arquivo de teste) + `flutter analyze lib` se tocou `lib/`
+- **After every plan wave:** suíte completa dos dois repos, rodada à mão (D-18: o gate pós-merge do GSD vê `ios/Runner.xcodeproj` e pula os testes Flutter)
+- **Before `/gsd-verify-work`:** `manage.py test` 695+N verde, `flutter analyze lib` limpo, `flutter test` 774+N verde
+- **Max feedback latency:** 60 seconds
+
+---
+
+## Per-Task Verification Map
+
+| Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
+|---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
+| 08-XX-XX | XX | X | (preenchido a partir dos PLANs) | T-08-NN / — | — | — | — | ❌ W0 | ⬜ pending |
+
+*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+
+---
+
+## Wave 0 Requirements
+
+- [ ] `test/support/armazenamento_token_em_memoria.dart` — fake de `ArmazenamentoToken` (nenhum teste toca o canal de plataforma)
+- [ ] `test/support/api_falsa.dart` — gravar cabeçalhos (`options.headers`), rotas `eu`/`acervo`/`login`/`sair` com fixtures novas e 401 sem `Authorization`
+- [ ] `tool/capturar_fixtures_api.py` — grupo `acervo` e fixtures `acervo_*.json`, `eu_corretor.json`, `erro_400_login.json`, `erro_401.json`
+- [ ] Web: `AcervoApiTests`, `AcervoAllowlistExataTests` (`imoveis/tests.py`), `EuApiTests`, `SairApiTests`, `LoginLimiteDeTentativasTests` (`contas/tests.py`); ajustar `test_lista_apenas_da_propria_empresa`
+- [ ] Helper de `SessaoCubit` falso (`MockCubit`) para `test/main_launch_routing_test.dart`
+- [ ] `flutter pub add flutter_secure_storage` + `dart run build_runner build -d`
+
+---
+
+## Manual-Only Verifications
+
+| Behavior | Requirement | Why Manual | Test Instructions |
+|----------|-------------|------------|-------------------|
+| Login, acervo, busca/situação, Sair e tela de aviso no emulador contra o Django real | AC-1..AC-6 | Fluxo ponta a ponta com servidor real e armazenamento seguro do aparelho | `runserver 0.0.0.0:8000` com `10.0.2.2` no `ALLOWED_HOSTS`; dados: `seed_demo` + `semear_vitrine_dev` + `set_password` (receita no RESEARCH) |
+| Token no Keychain do iOS | AUTH-01/AUTH-02 | Exige Mac (entitlements `keychain-access-groups`) | Checkpoint humano num Mac M1 |
+
+---
+
+## Validation Sign-Off
+
+- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
+- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
+- [ ] Wave 0 covers all MISSING references
+- [ ] No watch-mode flags
+- [ ] Feedback latency < 60s
+- [ ] `nyquist_compliant: true` set in frontmatter
+
+**Approval:** pending
