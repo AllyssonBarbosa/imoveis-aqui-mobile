@@ -378,7 +378,7 @@ Plans:
   5. Imóvel de outra empresa não aparece nem forçando a consulta.
   6. Sem login, o app continua abrindo direto na vitrine.
 
-**Plans:** 4/12 plans executed
+**Plans:** 5/12 plans executed
 
 Plans:
 **Wave 1**
@@ -392,7 +392,7 @@ Plans:
 - [x] 08-04-PLAN.md — Wire real: grupo `acervo` em `tool/capturar_fixtures_api.py`, fixtures capturadas, §14 do contrato e `contrato_acervo_test.dart` (API-09)
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 08-05-PLAN.md — App: autenticação na camada de dados (DataSource login/eu/sair, `EuModel` → `Papel`, falhas tipadas 400/429/403/rede/401, repositório cujo sair/descarte nunca lançam) (AUTH-01, AUTH-02, AUTH-03, AUTH-05)
+- [x] 08-05-PLAN.md — App: autenticação na camada de dados (DataSource login/eu/sair, `EuModel` → `Papel`, falhas tipadas 400/429/403/rede/401, repositório cujo sair/descarte nunca lançam) (AUTH-01, AUTH-02, AUTH-03, AUTH-05)
 - [ ] 08-06-PLAN.md — App: acervo no domínio e nos Models (entidades `ImovelAcervo`/`PaginaAcervo`/`ConsultaAcervo`, Models das 10 chaves, fixtures lidas pelos Models) (ACV-01, ACV-04)
 
 **Wave 5** *(blocked on Wave 4 completion)*

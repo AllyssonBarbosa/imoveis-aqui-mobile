@@ -54,7 +54,7 @@ Requisitos da primeira entrega (tarefas APP01, APP02, APP03, APP04, APP07, APP08
 
 ### Login e acervo (APP08)
 
-- [ ] **AUTH-01**: O corretor entra no app com e-mail e senha, no mesmo aplicativo (sem app separado); o token vem de `POST /api/auth/login/`.
+- [x] **AUTH-01**: O corretor entra no app com e-mail e senha, no mesmo aplicativo (sem app separado); o token vem de `POST /api/auth/login/`.
 - [x] **AUTH-02**: A sessão fica guardada no aparelho em `flutter_secure_storage`; Sair apaga o token do aparelho mesmo se a rede falhar e o revoga no servidor (`POST /api/auth/sair/`).
 - [x] **AUTH-03**: O erro de login é genérico: o app mostra o texto fixo "E-mail ou senha inválidos." e nenhum texto revela se o e-mail existe; limite de tentativas (429) e falha de rede têm mensagens próprias, vindas de falhas tipadas na camada de dados.
 - [ ] **AUTH-04**: Sem login o app continua abrindo direto na vitrine; o botão do topo mostra "Entrar" ou "Meu acervo" conforme a sessão guardada, sem atrasar a abertura.
@@ -142,7 +142,7 @@ Excluídos de propósito. Documentados para evitar scope creep.
 | PERF-05 | Phase 7 | Complete |
 | PERF-06 | Phase 7 | Complete |
 | API-08 | Phase 7, Phase 07.1 | Complete |
-| AUTH-01 | Phase 8 | Pending |
+| AUTH-01 | Phase 8 | Complete |
 | AUTH-02 | Phase 8 | Complete |
 | AUTH-03 | Phase 8 | Complete |
 | AUTH-04 | Phase 8 | Pending |
