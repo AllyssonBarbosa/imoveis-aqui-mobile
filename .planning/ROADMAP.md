@@ -25,7 +25,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 3: Vitrine — Filtros Server-Side** - Filtros completos da vitrine (finalidade, natureza, faixas, características), chips ativos e paginação sempre consistente.
 - [ ] **Phase 4: Página do Imóvel — Galeria e Dados da Natureza** - Tela de detalhe (card APP 04): galeria a partir da capa, preços, corretor e bloco por natureza (casa, terreno, apartamento, lote), sobre mock seguindo o contrato de `GET /api/publico/imoveis/{id}/`.
 - [x] **Phase 5: Imóveis Real — Endpoint Público e Integração Final** - Endpoints públicos reais de lista e detalhe de imóveis e troca das DataSources mock pelas reais via DI. (completed 2026-11-16)
-- [ ] **Phase 7: Perfis Públicos da Empresa e do Corretor** - Card APP 07: página da empresa e página do corretor com a vitrine do anunciante, dados da API de perfis públicos (WEB 02) e aviso para corretor desativado. (Fase 6 reservada ao card APP 06, de outro colega — fase N = card APP 0N.)
+- [x] **Phase 7: Perfis Públicos da Empresa e do Corretor** - Card APP 07: página da empresa e página do corretor com a vitrine do anunciante, dados da API de perfis públicos (WEB 02) e aviso para corretor desativado. (Fase 6 reservada ao card APP 06, de outro colega — fase N = card APP 0N.) (completed 2026-11-20)
 - [x] **Phase 07.1: Integração da APP-07 com a API real** (completed 2026-11-20)
 
 ## Phase Details
@@ -288,7 +288,7 @@ Plans:
   5. Perfil de corretor desativado mostra um aviso, e não uma tela quebrada.
   6. Dá para chegar ao perfil a partir da página do imóvel.
 
-**Plans**: 12/12 plans executed
+**Plans**: 12/12 plans complete
 
 Plans:
 **Wave 1**
@@ -333,7 +333,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 7 → 07.1 (6 res
 | 3. Vitrine — Filtros Server-Side | 5/5 | In Progress|  |
 | 4. Página do Imóvel — Galeria e Dados da Natureza | 8/8 | In Progress|  |
 | 5. Imóveis Real — Endpoint Público e Integração Final | 22/22 | Complete    | 2026-11-16 |
-| 7. Perfis Públicos da Empresa e do Corretor | 12/12 | In Progress | - |
+| 7. Perfis Públicos da Empresa e do Corretor | 12/12 | Complete    | 2026-11-20 |
 
 ### Phase 07.1: Integração da APP-07 com a API real (INSERTED)
 

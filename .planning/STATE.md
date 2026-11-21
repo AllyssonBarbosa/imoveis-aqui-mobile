@@ -3,17 +3,17 @@ gsd_state_version: "1.0"
 current_phase: 1
 current_phase_name: Localização, Escolha de Cidade e Contrato da API
 status: verifying
-stopped_at: Phase 07.1 complete, ready to verify Phase 1
-last_updated: "2026-11-21T00:47:58.505Z"
+stopped_at: Phase 07 complete, ready to verify Phase 1
+last_updated: "2026-11-21T01:01:48.298Z"
 last_activity: 2026-11-20
-last_activity_desc: Phase 07.1 complete, transitioned to Phase 1
-state_head: 5cc9c16347d634ccd4b61360377b09551255ffe5
+last_activity_desc: Phase 07 complete, transitioned to Phase 1
+state_head: 52cdf9ba2e4ceedfe3293188ae13579067523bac
 progress:
   total_phases: 7
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 62
   completed_plans: 62
-  percent: 14
+  percent: 29
 ---
 
 # Project State
@@ -23,14 +23,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-11-20)
 
 **Core value:** A vitrine do app abre na cidade do usuário e mostra imóveis reais vindos da API, com a busca e o filtro resolvidos no servidor — o mesmo dado e a mesma regra do site, nunca recalculados dentro do aparelho.
-**Current focus:** Phase 7 — Perfis Públicos da Empresa e do Corretor (UAT 5/5 e SECURITY prontos; falta a transição via `/gsd-verify-work 07`). Fases 1–4 seguem sem transição no ROADMAP, por isso a posição abaixo aponta para a Phase 1.
+**Current focus:** APP-07 fechada (Phases 7 e 07.1 completas). Próximo trabalho: APP-08 (branch `feat/APP08`). Fases 1–4 seguem sem transição no ROADMAP, por isso a posição abaixo aponta para a Phase 1.
 
 ## Current Position
 
 Phase: 1 — Localização, Escolha de Cidade e Contrato da API
 Plan: 4
 Status: Phase complete — ready for verification
-Last activity: 2026-11-20 — Phase 07.1 complete, transitioned to Phase 1
+Last activity: 2026-11-20 — Phase 07 complete, transitioned to Phase 1
 
 Progress: [████████████████████] 62/62 plans (100%)
 
@@ -38,7 +38,7 @@ Progress: [████████████████████] 62/62 p
 
 **Velocity:**
 
-- Total plans completed: 28
+- Total plans completed: 40
 - Average duration: - min
 - Total execution time: 0 hours
 
@@ -48,6 +48,7 @@ Progress: [████████████████████] 62/62 p
 |-------|-------|-------|----------|
 | 05 | 22 | - | - |
 | 07.1 | 6 | - | - |
+| 07 | 12 | - | - |
 
 **Recent Trend:**
 
@@ -187,6 +188,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-20T21:50:00-03:00
-Stopped at: Phase 07.1 complete (UAT 1/1, verificação passed, 0 ameaças abertas); próximo: /gsd-verify-work 07
+Last session: 2026-11-20T22:05:00-03:00
+Stopped at: Phase 7 complete (UAT 5/5, verificação regenerada passed 7/7, 0 ameaças); APP-07 fechada — próximo: APP-08
 Resume file: None

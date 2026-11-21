@@ -27,6 +27,10 @@ recalculados dentro do aparelho.
 - ✓ **PERF-03** — Vitrine do anunciante (corretor e empresa) paginada e recortada no servidor, via `GET /api/publico/corretores/<id>/imoveis/` e `/api/publico/empresas/<id>/imoveis/` — Phase 07.1
 - ✓ **PERF-04** — Perfis do corretor e da empresa vindos da API real (WEB 02) por DataSource trocável, sem mock em `lib/` — Phase 07.1
 - ✓ **API-08** — Vitrine do anunciante escrita no §13 do contrato e entregue pelo Django, com allowlist e limite de taxa da API pública — Phase 07.1
+- ✓ **PERF-01** — Página da empresa com logomarca, CRECI, apresentação, contato e cidades de atuação — Phase 7 (UAT 5/5 na API real)
+- ✓ **PERF-02** — Página do corretor com foto, CRECI, apresentação e contato — Phase 7
+- ✓ **PERF-05** — Corretor desativado (404) mostra "Este corretor não está mais disponível", não uma tela quebrada — Phase 7
+- ✓ **PERF-06** — Perfil do corretor a partir da página do imóvel e página da empresa a partir do perfil do corretor — Phase 7
 
 ### Active
 
@@ -82,6 +86,8 @@ recalculados dentro do aparelho.
 | Vitrine do anunciante como endpoint próprio no Django (rotas aninhadas `corretores\|empresas/<id>/imoveis/`), no padrão da API pública da APP-05 | O app não recorta a vitrine; o servidor decide o que é do anunciante, com a mesma allowlist, paginação e limite de taxa | ✓ Good — Phase 07.1 (17 testes direcionados no web, UAT real no emulador) |
 | Anunciante inexistente ou inativo responde 404 uniforme; ativo sem imóveis responde 200 vazio | Não vaza se o anunciante existe; o app mostra o aviso de indisponível | ✓ Good — Phase 07.1 (§13 do contrato) |
 | `feat/APP07` recebeu a `main` por merge, não rebase | Preservar o histórico já enviado e resolver os 10 conflitos uma vez | ✓ Good — Phase 07.1 (merge 9c2252a) |
+| Contato do anunciante só como texto selecionável, sem botão de ligar/WhatsApp/e-mail | Ações de contato e o registro do contato são da APP 06 / CON-01, com regra no servidor | ✓ Good — Phase 7 (UAT 2) |
+| Rótulo neutro "Ver página do anunciante" no cartão da empresa | Vale para imobiliária e construtora sem o app decidir o tipo no texto | ✓ Good — Phase 7 (suposição A7 aprovada no UAT 5) |
 
 ## Evolution
 
@@ -101,4 +107,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-11-20 after Phase 07.1*
+*Last updated: 2026-11-20 after Phase 7*

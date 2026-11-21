@@ -31,13 +31,13 @@
     {
       "number": "7",
       "name": "Perfis Públicos da Empresa e do Corretor",
-      "status": "in_progress"
+      "status": "complete"
     }
   ],
   "next": {
     "command": "/gsd-progress --next",
     "label": "Advance to the next step (verify)",
-    "reason": "Phase 1 of 7 · 14% · ready to verify"
+    "reason": "Phase 1 of 7 · 29% · ready to verify"
   },
-  "updated_at": "2026-11-21T00:47:58.585Z"
+  "updated_at": "2026-11-21T01:01:48.386Z"
 }
