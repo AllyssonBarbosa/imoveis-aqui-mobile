@@ -116,6 +116,7 @@ import 'package:imoveis_aqui/domain/usecases/salvar_cidade_usecase.dart'
     as _i589;
 import 'package:imoveis_aqui/domain/usecases/validar_cidade_atendida_usecase.dart'
     as _i14;
+import 'package:imoveis_aqui/presentation/acervo/acervo_cubit.dart' as _i587;
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_cubit.dart'
     as _i765;
 import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_cubit.dart'
@@ -314,6 +315,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i89.BuscarAcervoUseCase>(
       () => _i89.BuscarAcervoUseCase(gh<_i268.AcervoRepository>()),
+    );
+    gh.factory<_i587.AcervoCubit>(
+      () => _i587.AcervoCubit(gh<_i89.BuscarAcervoUseCase>()),
     );
     gh.factory<_i411.EntrarUseCase>(
       () => _i411.EntrarUseCase(gh<_i550.AutenticacaoRepository>()),
