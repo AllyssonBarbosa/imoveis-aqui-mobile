@@ -60,10 +60,10 @@ Requisitos da primeira entrega (tarefas APP01, APP02, APP03, APP04, APP07, APP08
 - [x] **AUTH-04**: Sem login o app continua abrindo direto na vitrine; o botão do topo mostra "Entrar" ou "Meu acervo" conforme a sessão guardada, sem atrasar a abertura.
 - [x] **AUTH-05**: Quem entra vê a área do seu papel, lido de `GET /api/auth/eu/`: o corretor vai ao acervo; gestor e administrador veem uma tela de aviso com Sair; sessão expirada (401) volta ao login com aviso.
 - [x] **AUTH-06**: O servidor limita as tentativas de login por e-mail e por IP (429 com `Retry-After`), sem revelar se o e-mail existe.
-- [ ] **ACV-01**: O corretor vê o acervo — os imóveis dele e os da imobiliária — numa lista paginada com rolagem infinita, em cartão compacto (código, título, preço, situação e a marca "Seu" calculada no servidor).
-- [ ] **ACV-02**: Busca por código ou título e filtro por situação (Todas, Disponível, Reservado, Vendido, Alugado) resolvidos no servidor com a regra do painel do site (`FiltroImovelForm`); busca e situação se combinam.
-- [ ] **ACV-03**: Imóvel de outra empresa não aparece no acervo nem forçando a consulta (busca, situação, parâmetros extras ou id), garantido e testado no Django; gestor e administrador não acessam a lista e sem token a resposta é 401.
-- [ ] **ACV-04**: O toque num cartão do acervo só abre a página do imóvel quando o servidor diz que ele está na vitrine (`na_vitrine`); senão o cartão não reage.
+- [x] **ACV-01**: O corretor vê o acervo — os imóveis dele e os da imobiliária — numa lista paginada com rolagem infinita, em cartão compacto (código, título, preço, situação e a marca "Seu" calculada no servidor).
+- [x] **ACV-02**: Busca por código ou título e filtro por situação (Todas, Disponível, Reservado, Vendido, Alugado) resolvidos no servidor com a regra do painel do site (`FiltroImovelForm`); busca e situação se combinam.
+- [x] **ACV-03**: Imóvel de outra empresa não aparece no acervo nem forçando a consulta (busca, situação, parâmetros extras ou id), garantido e testado no Django; gestor e administrador não acessam a lista e sem token a resposta é 401.
+- [x] **ACV-04**: O toque num cartão do acervo só abre a página do imóvel quando o servidor diz que ele está na vitrine (`na_vitrine`); senão o cartão não reage.
 - [x] **API-09**: O §14 de `01-CONTRATO-API.md` congela login, "quem sou eu", Sair e a lista do acervo (parâmetros, envelope, as 10 chaves do item, 400/401/403/404/429 e o efeito do Sair nos outros aparelhos), com fixtures capturadas do Django e testes de contrato nos dois repositórios.
 - [x] **API-10**: A web entrega, com testes, `GET /api/auth/eu/`, `POST /api/auth/sair/`, o limite de tentativas no login e a lista do acervo paginada, filtrada e enxuta em `GET /api/imoveis/`.
 
@@ -148,10 +148,10 @@ Excluídos de propósito. Documentados para evitar scope creep.
 | AUTH-04 | Phase 8 | Complete |
 | AUTH-05 | Phase 8 | Complete |
 | AUTH-06 | Phase 8 | Complete |
-| ACV-01 | Phase 8 | Pending |
-| ACV-02 | Phase 8 | Pending |
-| ACV-03 | Phase 8 | Pending |
-| ACV-04 | Phase 8 | Pending |
+| ACV-01 | Phase 8 | Complete |
+| ACV-02 | Phase 8 | Complete |
+| ACV-03 | Phase 8 | Complete |
+| ACV-04 | Phase 8 | Complete |
 | API-09 | Phase 8 | Complete |
 | API-10 | Phase 8 | Complete |
 
@@ -163,4 +163,4 @@ Excluídos de propósito. Documentados para evitar scope creep.
 
 ---
 *Requirements defined: 2026-09-21*
-*Last updated: 2026-11-20 after Phase 8 planning (AUTH-01..06, ACV-01..04, API-09 and API-10 registered for card APP 08, D-16)*
+*Last updated: 2026-11-21 after Phase 8 execution (AUTH-01..06, ACV-01..04, API-09 and API-10 complete for card APP 08, D-16)*
