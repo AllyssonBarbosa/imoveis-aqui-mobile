@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 08
 current_phase_name: Login e Área do Corretor — o Acervo
 status: executing
-stopped_at: Completed 08-10-PLAN.md
-last_updated: "2026-11-21T15:08:29.930Z"
+stopped_at: Completed 08-11-PLAN.md
+last_updated: "2026-11-21T15:17:35.501Z"
 last_activity: 2026-11-21
 last_activity_desc: Phase 08 execution started
-state_head: ff50ce11047c4c7c6ec8cd116125526da94815b5
+state_head: 9c63e28d77307dcbec93eae7293a2cf991f05b16
 progress:
   total_phases: 8
   completed_phases: 2
   total_plans: 74
-  completed_plans: 72
+  completed_plans: 73
   percent: 25
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-11-20)
 ## Current Position
 
 Phase: 08 (Login e Área do Corretor — o Acervo) — EXECUTING
-Plan: 11 of 12
+Plan: 12 of 12
 Status: Ready to execute
 Last activity: 2026-11-21 — Phase 08 execution started
 
@@ -113,6 +113,7 @@ Progress: [████████████████████] 62/62 p
 | Phase 08 P08 | 22 min | 2 tasks | 11 files |
 | Phase 08 P09 | 9 min | 3 tasks | 12 files |
 | Phase 08 P10 | 17min | 2 tasks | 14 files |
+| Phase 08 P11 | 22min | 2 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -174,6 +175,8 @@ Recent decisions affecting current work:
 - [Phase 08]: 08-08: FormatException de finalidade desconhecida do Model passa como Failure pelo ramo generico do AcervoRepositoryImpl; a guarda de origem do next usa mesmaOrigem (08-02)
 - [Phase 08]: 08-09: busca do acervo a partir de 1 caractere (A7), 400 ms; termoBusca do AcervoState e String vazia; sessao terminada vira variante propria sessaoExpirada
 - [Phase 08]: 08-10: e-mail do login segue com trim, a senha nunca; confirmarESair captura Navigator e SessaoCubit antes do await do dialogo
+- [Phase 08]: 08-11: sem acaoSessao a VitrineScreen mantem o SeletorCidadeTopo como filho direto da Column; so com a acao ele entra numa Row com Expanded
+- [Phase 08]: 08-11: SessaoCubit carregado sem await no initState de ImoveisAquiApp e provido acima do MaterialApp (AC-6)
 
 ### Pending Todos
 
@@ -209,6 +212,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-21T15:08:28.766Z
-Stopped at: Completed 08-10-PLAN.md
+Last session: 2026-11-21T15:17:34.402Z
+Stopped at: Completed 08-11-PLAN.md
 Resume file: None

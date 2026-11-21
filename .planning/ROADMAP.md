@@ -378,7 +378,7 @@ Plans:
   5. Imóvel de outra empresa não aparece nem forçando a consulta.
   6. Sem login, o app continua abrindo direto na vitrine.
 
-**Plans:** 10/12 plans executed
+**Plans:** 11/12 plans executed
 
 Plans:
 **Wave 1**
@@ -408,7 +408,7 @@ Plans:
 - [x] 08-10-PLAN.md — App: tela de login (textos fixos D-03/D-04, roteamento pelo papel), tela de aviso do gestor/administrador com Sair, e Sair + 401 na tela do acervo (AUTH-01, AUTH-02, AUTH-03, AUTH-05)
 
 **Wave 9** *(blocked on Wave 8 completion)*
-- [ ] 08-11-PLAN.md — App: "Meu acervo" roteando pelo papel (401 da entrada → login com aviso) e botão "Entrar"/"Meu acervo" no topo da vitrine sem atrasar a abertura (AUTH-04, AUTH-05)
+- [x] 08-11-PLAN.md — App: "Meu acervo" roteando pelo papel (401 da entrada → login com aviso) e botão "Entrar"/"Meu acervo" no topo da vitrine sem atrasar a abertura (AUTH-04, AUTH-05)
 
 **Wave 10** *(blocked on Wave 9 completion)*
 - [ ] 08-12-PLAN.md — Fluxos ponta a ponta sobre a `ApiFalsa`, README do app, REQUIREMENTS e gates finais dos dois repositórios + human-check (emulador, iOS no Mac, taxas, autorização da nota do CLAUDE.md) (AUTH-01..06, ACV-01..04, API-09, API-10)
