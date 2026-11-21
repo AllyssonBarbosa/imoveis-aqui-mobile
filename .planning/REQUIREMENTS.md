@@ -5,7 +5,7 @@
 
 ## v1 Requirements
 
-Requisitos da primeira entrega (tarefas APP01, APP02, APP03, APP04, APP07 + os endpoints públicos que as habilitam). Cada um mapeia para uma fase do roadmap.
+Requisitos da primeira entrega (tarefas APP01, APP02, APP03, APP04, APP07, APP08 + os endpoints da API que as habilitam). Cada um mapeia para uma fase do roadmap.
 
 ### Localização e escolha da cidade (APP01)
 
@@ -51,6 +51,21 @@ Requisitos da primeira entrega (tarefas APP01, APP02, APP03, APP04, APP07 + os e
 - [x] **PERF-04**: Os dados dos perfis vêm da API dos perfis públicos (`GET /api/publico/corretores/{id}/` e `GET /api/publico/empresas/{id}/`, WEB 02) por DataSource trocável, sem nada montado ou decidido no app.
 - [x] **PERF-05**: Perfil de corretor desativado (404) mostra o aviso "Este corretor não está mais disponível", e não uma tela quebrada.
 - [x] **PERF-06**: Dá para chegar ao perfil do corretor a partir da página do imóvel e à página da empresa a partir do perfil do corretor.
+
+### Login e acervo (APP08)
+
+- [ ] **AUTH-01**: O corretor entra no app com e-mail e senha, no mesmo aplicativo (sem app separado); o token vem de `POST /api/auth/login/`.
+- [ ] **AUTH-02**: A sessão fica guardada no aparelho em `flutter_secure_storage`; Sair apaga o token do aparelho mesmo se a rede falhar e o revoga no servidor (`POST /api/auth/sair/`).
+- [ ] **AUTH-03**: O erro de login é genérico: o app mostra o texto fixo "E-mail ou senha inválidos." e nenhum texto revela se o e-mail existe; limite de tentativas (429) e falha de rede têm mensagens próprias, vindas de falhas tipadas na camada de dados.
+- [ ] **AUTH-04**: Sem login o app continua abrindo direto na vitrine; o botão do topo mostra "Entrar" ou "Meu acervo" conforme a sessão guardada, sem atrasar a abertura.
+- [ ] **AUTH-05**: Quem entra vê a área do seu papel, lido de `GET /api/auth/eu/`: o corretor vai ao acervo; gestor e administrador veem uma tela de aviso com Sair; sessão expirada (401) volta ao login com aviso.
+- [ ] **AUTH-06**: O servidor limita as tentativas de login por e-mail e por IP (429 com `Retry-After`), sem revelar se o e-mail existe.
+- [ ] **ACV-01**: O corretor vê o acervo — os imóveis dele e os da imobiliária — numa lista paginada com rolagem infinita, em cartão compacto (código, título, preço, situação e a marca "Seu" calculada no servidor).
+- [ ] **ACV-02**: Busca por código ou título e filtro por situação (Todas, Disponível, Reservado, Vendido, Alugado) resolvidos no servidor com a regra do painel do site (`FiltroImovelForm`); busca e situação se combinam.
+- [ ] **ACV-03**: Imóvel de outra empresa não aparece no acervo nem forçando a consulta (busca, situação, parâmetros extras ou id), garantido e testado no Django; gestor e administrador não acessam a lista e sem token a resposta é 401.
+- [ ] **ACV-04**: O toque num cartão do acervo só abre a página do imóvel quando o servidor diz que ele está na vitrine (`na_vitrine`); senão o cartão não reage.
+- [ ] **API-09**: O §14 de `01-CONTRATO-API.md` congela login, "quem sou eu", Sair e a lista do acervo (parâmetros, envelope, as 10 chaves do item, 400/401/403/404/429 e o efeito do Sair nos outros aparelhos), com fixtures capturadas do Django e testes de contrato nos dois repositórios.
+- [ ] **API-10**: A web entrega, com testes, `GET /api/auth/eu/`, `POST /api/auth/sair/`, o limite de tentativas no login e a lista do acervo paginada, filtrada e enxuta em `GET /api/imoveis/`.
 
 ### API pública (endpoints que o app consome)
 
@@ -127,13 +142,25 @@ Excluídos de propósito. Documentados para evitar scope creep.
 | PERF-05 | Phase 7 | Complete |
 | PERF-06 | Phase 7 | Complete |
 | API-08 | Phase 7, Phase 07.1 | Complete |
+| AUTH-01 | Phase 8 | Pending |
+| AUTH-02 | Phase 8 | Pending |
+| AUTH-03 | Phase 8 | Pending |
+| AUTH-04 | Phase 8 | Pending |
+| AUTH-05 | Phase 8 | Pending |
+| AUTH-06 | Phase 8 | Pending |
+| ACV-01 | Phase 8 | Pending |
+| ACV-02 | Phase 8 | Pending |
+| ACV-03 | Phase 8 | Pending |
+| ACV-04 | Phase 8 | Pending |
+| API-09 | Phase 8 | Pending |
+| API-10 | Phase 8 | Pending |
 
 **Coverage:**
 
-- v1 requirements: 37 total
-- Mapped to phases: 37 (roadmap complete)
+- v1 requirements: 49 total
+- Mapped to phases: 49 (roadmap complete)
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-09-21*
-*Last updated: 2026-11-19 after Phase 07.1 (PERF-03, PERF-04 and API-08 now also traced to the real-API integration; texts aligned with contract §13)*
+*Last updated: 2026-11-20 after Phase 8 planning (AUTH-01..06, ACV-01..04, API-09 and API-10 registered for card APP 08, D-16)*

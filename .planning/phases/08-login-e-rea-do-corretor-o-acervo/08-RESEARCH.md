@@ -679,21 +679,30 @@ def test_busca_e_situacao_nao_vazam_imovel_de_outra_empresa(self):
 | A6 | Limitar o Sair a ~5 s de espera é suficiente | Code Examples | Revogação perdida em rede lenta (a saída local ocorre de qualquer jeito) |
 | A7 | Mínimo de 1 caractere na busca do acervo (vs 2 da vitrine) é melhor para códigos | Pattern 9 | Mais requisições por tecla; o debounce de 400 ms mitiga |
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+> Todas resolvidas no planejamento (itens de Claude's Discretion do CONTEXT). As decisões abaixo são as que os planos
+> 08-01..08-12 adotaram; os valores das taxas continuam confirmáveis pelo usuário no human-check de fim de fase (08-12),
+> sem mudança de código (variáveis de ambiente).
 
 1. **Taxa do limite de tentativas (A1).**
    - What we know: DRF limita a períodos `s/m/h/d`; padrão da vitrine é 120/min por IP.
    - What's unclear: tolerância do produto a bloqueio de até 60 min.
    - Recommendation: `10/hour` por e-mail e `30/hour` por IP, configuráveis; confirmar com o Allysson no plano.
+   - RESOLVED: `10/hour` por e-mail (`LOGIN_TAXA_POR_EMAIL`, chave SHA-256 do e-mail normalizado) e `30/hour` por IP (`LOGIN_TAXA_POR_IP`), configuráveis por `.env` e validadas na partida (08-03); o app arredonda o `Retry-After` para minutos (08-10). Confirmação dos valores no human-check do 08-12 (item 4).
 2. **Confirmar que a frente web aceita mudar `GET /api/imoveis/` (A2).**
    - What we know: nenhum consumidor encontrado.
    - What's unclear: trabalho em andamento de colegas.
    - Recommendation: seguir a regra do CONTEXT (adaptar `list`), avisar no PR da web; plano B barato é `@action(detail=False, url_path="acervo")` no mesmo viewset.
+   - RESOLVED: adaptar `ImovelViewSet.list` (paginação, `FiltroImovelForm`, serializer enxuto só na listagem), sem rota nova (08-01) — a condição da regra do CONTEXT (só o app consome a lista) foi confirmada pela busca nos templates, no estático, no site público e nas branches remotas. A mudança de formato fica escrita no README da web, no §14.8 e no PR da web (quando o push for autorizado); o plano B `@action(detail=False, url_path="acervo")` fica registrado no 08-01 caso a frente web reclame.
 3. **Emenda ao D-13: incluir `finalidade` no item do acervo.**
    - Recommendation: incluir (10 chaves) e registrar no §14.
+   - RESOLVED: incluída (10 chaves) no `ImovelAcervoSerializer` (08-01) e registrada como "emenda ao D-13" no §14.5 (08-04).
 4. **Nomes dos booleanos (`meu_imovel`, `na_vitrine`).**
    - Recommendation: congelar estes dois no §14.
+   - RESOLVED: `meu_imovel` e `na_vitrine`, calculados no Django (08-01), congelados no §14.5 e travados por `AcervoAllowlistExataTests` (web) e `contrato_acervo_test.dart` (app, 08-04).
 5. **iOS Keychain (A3):** exige uma passada num Mac (checkpoint humano no fim da fase).
+   - RESOLVED: sem `.entitlements` e sem editar o `project.pbxproj` a partir do Windows (o app não usa App Group; o Keychain usa o grupo padrão do app) — decisão do 08-02. A persistência é verificada num Mac M1 no human-check do 08-12 (item 7), com o caminho de correção (capability Keychain Sharing pelo Xcode) já escrito lá.
 
 ## Environment Availability
 

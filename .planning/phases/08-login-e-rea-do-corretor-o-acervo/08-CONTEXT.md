@@ -33,7 +33,7 @@ outra empresa não aparece nem forçando · AC-6 sem login o app continua abrind
 ## Implementation Decisions
 
 ### Travadas no card, antes da discussão (D-A..D-E — não perguntar de novo)
-- **D-A · Escopo web = necessário + segurança.** No repo web, branch `feat/APP08`: endpoint "quem
+- **D-A · Escopo web = necessário + segurança:** No repo web, branch `feat/APP08`: endpoint "quem
   sou eu", busca + situação + paginação na rota do corretor reaproveitando
   `FiltroImovelForm(campos=["busca", "situacao"])`, lista enxuta para o cartão, limite de tentativas
   no login, e um Sair que revoga o token no servidor (além de apagar do aparelho).
@@ -41,7 +41,7 @@ outra empresa não aparece nem forçando · AC-6 sem login o app continua abrind
   gestor ainda não está no app") com Sair. A APP-12 troca essa tela depois, sem mexer no login.
 - **D-C · Abertura:** o app continua abrindo na vitrine para todo mundo; com sessão, o botão do topo
   vira "Meu acervo"; sem sessão, "Entrar".
-- **D-D · Token em `flutter_secure_storage`** (Keychain/Keystore). A nota do CLAUDE.md que descartava
+- **D-D · Token em `flutter_secure_storage`:** (Keychain/Keystore). A nota do CLAUDE.md que descartava
   o pacote valia só enquanto o app não guardava credencial.
 - **D-E · Fluxo completo de planejamento:** pesquisa → padrões → planejador → verificador.
 

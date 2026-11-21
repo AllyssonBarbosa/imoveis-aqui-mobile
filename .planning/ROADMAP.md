@@ -367,7 +367,7 @@ Plans:
 ### Phase 8: Login e Área do Corretor — o Acervo
 
 **Goal:** Como corretor, eu quero entrar no aplicativo para ver os imóveis que eu e a imobiliária temos, de onde eu estiver. O login é do mesmo aplicativo — não existe app separado. Quem entra vê a área do seu papel; o visitante continua usando o app sem login, como antes. O corretor vê os imóveis dele e os da imobiliária, com busca e filtro por situação. Imóvel de outra empresa não aparece, de jeito nenhum. Card APP 08 (tarefa A08).
-**Requirements**: TBD
+**Requirements**: AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05, AUTH-06, ACV-01, ACV-02, ACV-03, ACV-04, API-09, API-10
 **Depends on:** Phase 7. Externamente: WEB 01 (feito, na main da web) — `POST /api/auth/login/` (DRF Token), `Usuario.perfil` e o isolamento por empresa (`EmpresaScopedQuerySetMixin`).
 **Success Criteria** (what must be TRUE):
 
@@ -378,7 +378,37 @@ Plans:
   5. Imóvel de outra empresa não aparece nem forçando a consulta.
   6. Sem login, o app continua abrindo direto na vitrine.
 
-**Plans:** 0 plans
+**Plans:** 12 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 8 to break down)
+**Wave 1**
+- [ ] 08-01-PLAN.md — Web (feat/APP08): TRACER do acervo autenticado (login → token → `GET /api/imoveis/` paginado e enxuto, 10 chaves) + busca/situação por `FiltroImovelForm`, isolamento (AC-5), allowlist e README (API-10, ACV-01..04)
+- [ ] 08-02-PLAN.md — App: `flutter_secure_storage` atrás de `ArmazenamentoToken`, `allowBackup=false`, segundo `Dio` `@Named('autenticado')` com `InterceptadorSessao` (token só na mesma origem, 401 → sessão expirada) e `ApiFalsa` gravando cabeçalhos; override do D-D sobre a nota do CLAUDE.md registrado (AUTH-02)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 08-03-PLAN.md — Web: login endurecido (`authentication_classes=[]`, limite por e-mail e por IP com `Retry-After`), `GET /api/auth/eu/` e `POST /api/auth/sair/` com testes e README (AUTH-06, AUTH-05, AUTH-02, AUTH-03, API-10)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 08-04-PLAN.md — Wire real: grupo `acervo` em `tool/capturar_fixtures_api.py`, fixtures capturadas, §14 do contrato e `contrato_acervo_test.dart` (API-09)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 08-05-PLAN.md — App: autenticação na camada de dados (DataSource login/eu/sair, `EuModel` → `Papel`, falhas tipadas 400/429/403/rede/401, repositório cujo sair/descarte nunca lançam) (AUTH-01, AUTH-02, AUTH-03, AUTH-05)
+- [ ] 08-06-PLAN.md — App: acervo no domínio e nos Models (entidades `ImovelAcervo`/`PaginaAcervo`/`ConsultaAcervo`, Models das 10 chaves, fixtures lidas pelos Models) (ACV-01, ACV-04)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 08-07-PLAN.md — App: use cases Entrar/ObterPapel/Sair/LerSessao e `SessaoCubit` singleton (Sair sempre anônimo, rollback do login que nunca lança) (AUTH-01, AUTH-02, AUTH-04, AUTH-05)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [ ] 08-08-PLAN.md — App: acervo na camada de dados (parâmetros da consulta, DataSource no Dio autenticado com `next` só na mesma origem, repositório e `BuscarAcervoUseCase`) (ACV-01, ACV-02, ACV-04)
+
+**Wave 7** *(blocked on Wave 6 completion)*
+- [ ] 08-09-PLAN.md — App: `AcervoCubit` (busca 400 ms, chips de situação, rolagem) + cartão compacto, chips e `AcervoScreen` (ACV-01, ACV-02, ACV-04)
+
+**Wave 8** *(blocked on Wave 7 completion)*
+- [ ] 08-10-PLAN.md — App: tela de login (textos fixos D-03/D-04, roteamento pelo papel), tela de aviso do gestor/administrador com Sair, e Sair + 401 na tela do acervo (AUTH-01, AUTH-02, AUTH-03, AUTH-05)
+
+**Wave 9** *(blocked on Wave 8 completion)*
+- [ ] 08-11-PLAN.md — App: "Meu acervo" roteando pelo papel (401 da entrada → login com aviso) e botão "Entrar"/"Meu acervo" no topo da vitrine sem atrasar a abertura (AUTH-04, AUTH-05)
+
+**Wave 10** *(blocked on Wave 9 completion)*
+- [ ] 08-12-PLAN.md — Fluxos ponta a ponta sobre a `ApiFalsa`, README do app, REQUIREMENTS e gates finais dos dois repositórios + human-check (emulador, iOS no Mac, taxas, autorização da nota do CLAUDE.md) (AUTH-01..06, ACV-01..04, API-09, API-10)
