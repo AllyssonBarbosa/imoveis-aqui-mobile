@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 08
 current_phase_name: Login e Área do Corretor — o Acervo
 status: executing
-stopped_at: Completed 08-07-PLAN.md
-last_updated: "2026-11-21T14:42:39.288Z"
+stopped_at: Completed 08-08-PLAN.md
+last_updated: "2026-11-21T14:49:00.102Z"
 last_activity: 2026-11-21
 last_activity_desc: Phase 08 execution started
-state_head: 4a2093b3e3663299787f4a8928118a8885427a6a
+state_head: 99af1e7d8c18febc59c34fac1c2870d0a1061a2e
 progress:
   total_phases: 8
   completed_phases: 2
   total_plans: 74
-  completed_plans: 69
+  completed_plans: 70
   percent: 25
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-11-20)
 ## Current Position
 
 Phase: 08 (Login e Área do Corretor — o Acervo) — EXECUTING
-Plan: 8 of 12
+Plan: 9 of 12
 Status: Ready to execute
 Last activity: 2026-11-21 — Phase 08 execution started
 
@@ -110,6 +110,7 @@ Progress: [████████████████████] 62/62 p
 | Phase 08 P05 | 20 min | 2 tasks | 13 files |
 | Phase 08 P06 | 4 min | 2 tasks | 13 files |
 | Phase 08 P07 | 15 min | 2 tasks | 11 files |
+| Phase 08 P08 | 22 min | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -168,6 +169,7 @@ Recent decisions affecting current work:
 - [Phase 08]: 08-05: Retry-After limitado a 24 h em esperaDoLimite (valor hostil nao estoura Duration)
 - [Phase 08]: 08-06: ConsultaAcervo.copyWith usa limparSituacao para voltar a Todas; PaginaAcervo copia itens com List.unmodifiable; meuImovel/naVitrine so lidos do servidor (D-06, D-07)
 - [Phase 08]: 08-07: SessaoCubit.sair() usa try/finally sem catch; a garantia de nao lancar vem do repositorio e o estado anonimo e emitido depois do descarte do token
+- [Phase 08]: 08-08: FormatException de finalidade desconhecida do Model passa como Failure pelo ramo generico do AcervoRepositoryImpl; a guarda de origem do next usa mesmaOrigem (08-02)
 
 ### Pending Todos
 
@@ -203,6 +205,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-21T14:42:38.298Z
-Stopped at: Completed 08-07-PLAN.md
+Last session: 2026-11-21T14:48:59.123Z
+Stopped at: Completed 08-08-PLAN.md
 Resume file: None
