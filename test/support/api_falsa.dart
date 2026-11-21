@@ -3,6 +3,8 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
+import 'package:imoveis_aqui/data/network/interceptador_sessao.dart';
+import 'package:imoveis_aqui/di/modulo_rede.dart';
 
 /// Base URL do servidor de captura das fixtures (os `next`/`previous` das
 /// fixtures de lista são absolutos nesta origem — 05-06).
@@ -13,6 +15,30 @@ const String urlBaseApiFalsa = 'http://127.0.0.1:8000';
 Object? lerFixtureApi(String nomeArquivo) {
   final arquivo = File('test/fixtures/api/$nomeArquivo');
   return jsonDecode(arquivo.readAsStringSync());
+}
+
+/// Uma requisição como a [ApiFalsa] a recebeu: URL, método e cabeçalhos (cópia
+/// do que o Dio mandou, depois de passar pelos interceptors).
+class RequisicaoGravada {
+  RequisicaoGravada({
+    required this.uri,
+    required this.metodo,
+    required Map<String, Object?> cabecalhos,
+  }) : cabecalhos = Map.unmodifiable(cabecalhos);
+
+  final Uri uri;
+  final String metodo;
+  final Map<String, Object?> cabecalhos;
+
+  /// Valor do cabeçalho [nome] (sem diferenciar maiúsculas), ou nulo.
+  String? cabecalho(String nome) {
+    for (final entrada in cabecalhos.entries) {
+      if (entrada.key.toLowerCase() == nome.toLowerCase()) {
+        return entrada.value?.toString();
+      }
+    }
+    return null;
+  }
 }
 
 class _Sobrescrita {
@@ -48,6 +74,9 @@ class _Falha {
 /// capturado. Id sem fixture nessas rotas responde 404 com
 /// `erro_404_perfil.json`, o mesmo `{detail}` que o Django devolve (o app nunca
 /// lê o texto). Rota ainda não servida responde 404 com um objeto JSON vazio.
+/// Cada requisição é gravada com método e cabeçalhos ([requisicoesGravadas]),
+/// e [criarDioAutenticado] monta o mesmo `Dio` autenticado da produção sobre a
+/// rede falsa, para provar o que o app envia (ex.: `Authorization`).
 class ApiFalsa {
   ApiFalsa({this.latencia = Duration.zero});
 
@@ -55,11 +84,16 @@ class ApiFalsa {
   final Duration latencia;
 
   final List<Uri> _requisicoes = [];
+  final List<RequisicaoGravada> _gravadas = [];
   final List<_Sobrescrita> _sobrescritas = [];
   final List<_Falha> _falhas = [];
 
   /// Todas as URIs requisitadas, na ordem.
   List<Uri> get requisicoes => List.unmodifiable(_requisicoes);
+
+  /// Todas as requisições com método e cabeçalhos, na ordem.
+  List<RequisicaoGravada> get requisicoesGravadas =>
+      List.unmodifiable(_gravadas);
 
   /// Última requisição à lista de imóveis de uma cidade
   /// (`/api/publico/cidades/<id>/imoveis/`), ou nulo se ainda não houve.
@@ -97,8 +131,27 @@ class ApiFalsa {
     return dio;
   }
 
-  Future<ResponseBody> _atender(Uri uri) async {
+  /// O `Dio` autenticado de produção ([construirDioAutenticado]) com o
+  /// [interceptador] dado, trocando só o adaptador pela rede falsa.
+  Dio criarDioAutenticado(InterceptadorSessao interceptador) {
+    final dio = construirDioAutenticado(
+      urlBase: urlBaseApiFalsa,
+      interceptador: interceptador,
+    );
+    dio.httpClientAdapter = _AdaptadorApiFalsa(this);
+    return dio;
+  }
+
+  Future<ResponseBody> _atender(RequestOptions opcoes) async {
+    final uri = opcoes.uri;
     _requisicoes.add(uri);
+    _gravadas.add(
+      RequisicaoGravada(
+        uri: uri,
+        metodo: opcoes.method,
+        cabecalhos: Map<String, Object?>.of(opcoes.headers),
+      ),
+    );
     if (latencia > Duration.zero) await Future<void>.delayed(latencia);
 
     for (final falha in _falhas) {
@@ -284,7 +337,7 @@ class _AdaptadorApiFalsa implements HttpClientAdapter {
     Stream<Uint8List>? requestStream,
     Future<void>? cancelFuture,
   ) {
-    return _api._atender(options.uri);
+    return _api._atender(options);
   }
 
   @override

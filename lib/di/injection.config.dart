@@ -43,6 +43,7 @@ import 'package:imoveis_aqui/data/gateways/geocoding_gateway_impl.dart'
     as _i506;
 import 'package:imoveis_aqui/data/gateways/geolocator_gateway_impl.dart'
     as _i777;
+import 'package:imoveis_aqui/data/network/interceptador_sessao.dart' as _i668;
 import 'package:imoveis_aqui/data/repositories/cidade_repository_impl.dart'
     as _i912;
 import 'package:imoveis_aqui/data/repositories/imovel_detalhe_repository_impl.dart'
@@ -225,6 +226,13 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i441.ObterCaracteristicasUseCase>(
       () =>
           _i441.ObterCaracteristicasUseCase(gh<_i987.OpcoesFiltroRepository>()),
+    );
+    gh.factory<_i668.InterceptadorSessao>(
+      () => _i668.InterceptadorSessao(gh<_i288.ArmazenamentoToken>()),
+    );
+    gh.lazySingleton<_i361.Dio>(
+      () => moduloRede.dioAutenticado(gh<_i668.InterceptadorSessao>()),
+      instanceName: 'autenticado',
     );
     gh.factory<_i1060.ObterCidadeSalvaUseCase>(
       () => _i1060.ObterCidadeSalvaUseCase(gh<_i146.CidadeRepository>()),
