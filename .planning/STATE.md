@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 08
 current_phase_name: Login e Área do Corretor — o Acervo
 status: executing
-stopped_at: Completed 08-01-PLAN.md
-last_updated: "2026-11-21T12:58:37.158Z"
+stopped_at: Completed 08-02-PLAN.md
+last_updated: "2026-11-21T13:11:51.090Z"
 last_activity: 2026-11-21
 last_activity_desc: Phase 08 execution started
-state_head: 6a3676617f50bbee204e90b179068b7264cfaea4
+state_head: 7a81892fcab7841e892af781cf1504ed202b90ab
 progress:
   total_phases: 8
   completed_phases: 2
   total_plans: 74
-  completed_plans: 63
+  completed_plans: 64
   percent: 25
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-11-20)
 ## Current Position
 
 Phase: 08 (Login e Área do Corretor — o Acervo) — EXECUTING
-Plan: 2 of 12
+Plan: 3 of 12
 Status: Ready to execute
 Last activity: 2026-11-21 — Phase 08 execution started
 
@@ -104,6 +104,7 @@ Progress: [████████████████████] 62/62 p
 | Phase 07.1 P05 | 25min | 2 tasks | 1 files |
 | Phase 07.1 P06 | 25min | 3 tasks | 5 files |
 | Phase 08 P01 | 5 min | 2 tasks | 4 files |
+| Phase 08 P02 | 10 min | 2 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -156,6 +157,7 @@ Recent decisions affecting current work:
 - [Phase 07.1]: 07.1-05: e2e dos perfis registra detalhe e perfis sobre o mesmo Dio da ApiFalsa (registrarDetalheEPerfis); rolagem infinita provada pelo estado do Cubit; grupo DI real da APP-07 nao portado (coberto por injection_perfis_test)
 - [Phase 07.1]: Contrato §13 registra o 404 de anunciante inexistente/inativo (muda o antigo nunca 404) e os PENDENTE WEB (f), (g), (h)
 - [Phase 08]: 08-01: rota do acervo = ImovelViewSet.list adaptado (envelope paginado 20/pagina, 10 chaves com emenda finalidade, ordem -criado_em/-pk); filtro invalido anula todos os filtros como no site
+- [Phase 08]: 08-02: token da API no Keychain/Keystore atras de ArmazenamentoToken; Dio @Named('autenticado') leva Authorization so na mesma origem, 401 vira SessaoExpiradaException com compare-and-delete; iOS sem entitlements ate o human-check do 08-12
 
 ### Pending Todos
 
@@ -191,6 +193,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-21T12:58:36.470Z
-Stopped at: Completed 08-01-PLAN.md
+Last session: 2026-11-21T13:11:50.301Z
+Stopped at: Completed 08-02-PLAN.md
 Resume file: None
