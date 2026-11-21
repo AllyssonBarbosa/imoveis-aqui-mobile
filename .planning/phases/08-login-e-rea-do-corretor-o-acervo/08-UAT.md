@@ -2,22 +2,22 @@
 status: testing
 phase: 08-login-e-rea-do-corretor-o-acervo
 source: [08-VERIFICATION.md]
-started: 2026-11-21T15:51:48Z
-updated: 2026-11-21T15:51:48Z
+started: 2026-11-21T16:06:16Z
+updated: 2026-11-21T16:06:16Z
 ---
 
 ## Current Test
 
 number: 1
-name: Emulador Android contra o Django real da feat/APP08: abrir sem login, Entrar como corretor, ver Meu acervo, buscar, filtrar por situação, Sair
+name: Emulador Android contra o Django real da feat/APP08: abrir sem login, Entrar como corretor, ver Meu acervo, buscar, filtrar por situação, Sair. Repetir o Sair no primeiro uso (sem cidade salva) e com cidade salva
 expected: |
-  Abre na vitrine com o botão Entrar; o corretor cai em Meu acervo; fechar e reabrir mantém Meu acervo; Sair devolve ao anônimo e apaga o token
+  Abre na vitrine com o botão Entrar; o corretor cai em Meu acervo; fechar e reabrir mantém Meu acervo; Sair devolve ao anônimo, apaga o token e volta à vitrine (no primeiro uso, não ao priming); Sair com a rede cortada termina em até cerca de 5 s
 awaiting: user response
 
 ## Tests
 
-### 1. Emulador Android contra o Django real da feat/APP08: abrir sem login, Entrar como corretor, ver Meu acervo, buscar, filtrar por situação, Sair
-expected: Abre na vitrine com o botão Entrar; o corretor cai em Meu acervo; fechar e reabrir mantém Meu acervo; Sair devolve ao anônimo e apaga o token
+### 1. Emulador Android contra o Django real da feat/APP08: abrir sem login, Entrar como corretor, ver Meu acervo, buscar, filtrar por situação, Sair. Repetir o Sair no primeiro uso (sem cidade salva) e com cidade salva
+expected: Abre na vitrine com o botão Entrar; o corretor cai em Meu acervo; fechar e reabrir mantém Meu acervo; Sair devolve ao anônimo, apaga o token e volta à vitrine (no primeiro uso, não ao priming); Sair com a rede cortada termina em até cerca de 5 s
 result: [pending]
 
 ### 2. Token no Keychain do iOS num Mac M1 (entrar, fechar e reabrir no simulador)
@@ -32,8 +32,8 @@ result: [pending]
 expected: Mensagem 'Muitas tentativas. Tente de novo em N minutos.' e valores de taxa aceitos pelo time
 result: [pending]
 
-### 5. Sair em dois aparelhos (token único por usuário)
-expected: O outro aparelho volta ao login com 'Sua sessão terminou. Entre de novo.' ao tocar em Meu acervo
+### 5. Sair em dois aparelhos (token único por usuário). Conferir também que, ao expirar a sessão (401), o app volta à vitrine com o login e o aviso, sem reoferecer Meu acervo
+expected: O outro aparelho volta ao login com 'Sua sessão terminou. Entre de novo.' ao tocar em Meu acervo; depois, a vitrine mostra Entrar (e não Meu acervo)
 result: [pending]
 
 ### 6. Aparência (login, aviso, acervo, cartão compacto), autofill do gerenciador de senhas e o botão do topo em 360 dp
