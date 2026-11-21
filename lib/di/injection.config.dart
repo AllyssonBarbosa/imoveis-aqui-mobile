@@ -128,6 +128,8 @@ import 'package:imoveis_aqui/presentation/perfis/perfil_empresa_cubit.dart'
     as _i723;
 import 'package:imoveis_aqui/presentation/perfis/vitrine_anunciante_cubit.dart'
     as _i325;
+import 'package:imoveis_aqui/presentation/sessao/entrada_area_cubit.dart'
+    as _i490;
 import 'package:imoveis_aqui/presentation/sessao/sessao_cubit.dart' as _i231;
 import 'package:imoveis_aqui/presentation/vitrine/opcoes_filtro_cubit.dart'
     as _i1002;
@@ -331,6 +333,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i986.SairUseCase>(
       () => _i986.SairUseCase(gh<_i550.AutenticacaoRepository>()),
+    );
+    gh.factory<_i490.EntradaAreaCubit>(
+      () => _i490.EntradaAreaCubit(gh<_i396.ObterPapelUseCase>()),
     );
     gh.factory<_i81.LoginCubit>(
       () => _i81.LoginCubit(gh<_i411.EntrarUseCase>()),
