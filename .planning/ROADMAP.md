@@ -378,7 +378,7 @@ Plans:
   5. Imóvel de outra empresa não aparece nem forçando a consulta.
   6. Sem login, o app continua abrindo direto na vitrine.
 
-**Plans:** 6/12 plans executed
+**Plans:** 7/12 plans executed
 
 Plans:
 **Wave 1**
@@ -396,7 +396,7 @@ Plans:
 - [x] 08-06-PLAN.md — App: acervo no domínio e nos Models (entidades `ImovelAcervo`/`PaginaAcervo`/`ConsultaAcervo`, Models das 10 chaves, fixtures lidas pelos Models) (ACV-01, ACV-04)
 
 **Wave 5** *(blocked on Wave 4 completion)*
-- [ ] 08-07-PLAN.md — App: use cases Entrar/ObterPapel/Sair/LerSessao e `SessaoCubit` singleton (Sair sempre anônimo, rollback do login que nunca lança) (AUTH-01, AUTH-02, AUTH-04, AUTH-05)
+- [x] 08-07-PLAN.md — App: use cases Entrar/ObterPapel/Sair/LerSessao e `SessaoCubit` singleton (Sair sempre anônimo, rollback do login que nunca lança) (AUTH-01, AUTH-02, AUTH-04, AUTH-05)
 
 **Wave 6** *(blocked on Wave 5 completion)*
 - [ ] 08-08-PLAN.md — App: acervo na camada de dados (parâmetros da consulta, DataSource no Dio autenticado com `next` só na mesma origem, repositório e `BuscarAcervoUseCase`) (ACV-01, ACV-02, ACV-04)

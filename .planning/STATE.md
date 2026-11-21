@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 08
 current_phase_name: Login e Área do Corretor — o Acervo
 status: executing
-stopped_at: Completed 08-06-PLAN.md
-last_updated: "2026-11-21T14:37:06.859Z"
+stopped_at: Completed 08-07-PLAN.md
+last_updated: "2026-11-21T14:42:39.288Z"
 last_activity: 2026-11-21
 last_activity_desc: Phase 08 execution started
-state_head: 1e626ffd724c5e1a2b1990976047f4f7ae6b707b
+state_head: 4a2093b3e3663299787f4a8928118a8885427a6a
 progress:
   total_phases: 8
   completed_phases: 2
   total_plans: 74
-  completed_plans: 68
+  completed_plans: 69
   percent: 25
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-11-20)
 ## Current Position
 
 Phase: 08 (Login e Área do Corretor — o Acervo) — EXECUTING
-Plan: 7 of 12
+Plan: 8 of 12
 Status: Ready to execute
 Last activity: 2026-11-21 — Phase 08 execution started
 
@@ -109,6 +109,7 @@ Progress: [████████████████████] 62/62 p
 | Phase 08 P04 | 20 min | 2 tasks | 17 files |
 | Phase 08 P05 | 20 min | 2 tasks | 13 files |
 | Phase 08 P06 | 4 min | 2 tasks | 13 files |
+| Phase 08 P07 | 15 min | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -166,6 +167,7 @@ Recent decisions affecting current work:
 - [Phase 08]: 08-04: login_200.json versionado com token trocado por 40 zeros; sem fixture de 429 (nao deterministico); credenciais da captura so por ambiente
 - [Phase 08]: 08-05: Retry-After limitado a 24 h em esperaDoLimite (valor hostil nao estoura Duration)
 - [Phase 08]: 08-06: ConsultaAcervo.copyWith usa limparSituacao para voltar a Todas; PaginaAcervo copia itens com List.unmodifiable; meuImovel/naVitrine so lidos do servidor (D-06, D-07)
+- [Phase 08]: 08-07: SessaoCubit.sair() usa try/finally sem catch; a garantia de nao lancar vem do repositorio e o estado anonimo e emitido depois do descarte do token
 
 ### Pending Todos
 
@@ -201,6 +203,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-21T14:37:05.775Z
-Stopped at: Completed 08-06-PLAN.md
+Last session: 2026-11-21T14:42:38.298Z
+Stopped at: Completed 08-07-PLAN.md
 Resume file: None

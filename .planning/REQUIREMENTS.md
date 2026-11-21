@@ -57,7 +57,7 @@ Requisitos da primeira entrega (tarefas APP01, APP02, APP03, APP04, APP07, APP08
 - [x] **AUTH-01**: O corretor entra no app com e-mail e senha, no mesmo aplicativo (sem app separado); o token vem de `POST /api/auth/login/`.
 - [x] **AUTH-02**: A sessão fica guardada no aparelho em `flutter_secure_storage`; Sair apaga o token do aparelho mesmo se a rede falhar e o revoga no servidor (`POST /api/auth/sair/`).
 - [x] **AUTH-03**: O erro de login é genérico: o app mostra o texto fixo "E-mail ou senha inválidos." e nenhum texto revela se o e-mail existe; limite de tentativas (429) e falha de rede têm mensagens próprias, vindas de falhas tipadas na camada de dados.
-- [ ] **AUTH-04**: Sem login o app continua abrindo direto na vitrine; o botão do topo mostra "Entrar" ou "Meu acervo" conforme a sessão guardada, sem atrasar a abertura.
+- [x] **AUTH-04**: Sem login o app continua abrindo direto na vitrine; o botão do topo mostra "Entrar" ou "Meu acervo" conforme a sessão guardada, sem atrasar a abertura.
 - [x] **AUTH-05**: Quem entra vê a área do seu papel, lido de `GET /api/auth/eu/`: o corretor vai ao acervo; gestor e administrador veem uma tela de aviso com Sair; sessão expirada (401) volta ao login com aviso.
 - [x] **AUTH-06**: O servidor limita as tentativas de login por e-mail e por IP (429 com `Retry-After`), sem revelar se o e-mail existe.
 - [ ] **ACV-01**: O corretor vê o acervo — os imóveis dele e os da imobiliária — numa lista paginada com rolagem infinita, em cartão compacto (código, título, preço, situação e a marca "Seu" calculada no servidor).
@@ -145,7 +145,7 @@ Excluídos de propósito. Documentados para evitar scope creep.
 | AUTH-01 | Phase 8 | Complete |
 | AUTH-02 | Phase 8 | Complete |
 | AUTH-03 | Phase 8 | Complete |
-| AUTH-04 | Phase 8 | Pending |
+| AUTH-04 | Phase 8 | Complete |
 | AUTH-05 | Phase 8 | Complete |
 | AUTH-06 | Phase 8 | Complete |
 | ACV-01 | Phase 8 | Pending |
