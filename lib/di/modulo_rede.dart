@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:injectable/injectable.dart';
 
 /// Base URL da API Django, configurável via `--dart-define=API_BASE_URL=...`
@@ -29,4 +30,9 @@ abstract class ModuloRede {
       responseType: ResponseType.json,
     ),
   );
+
+  /// Keychain/Keystore do aparelho, onde só o token da API é guardado (D-D).
+  /// Opções padrão do 11.x.
+  @lazySingleton
+  FlutterSecureStorage get armazenamentoSeguro => const FlutterSecureStorage();
 }

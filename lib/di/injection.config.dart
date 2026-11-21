@@ -11,7 +11,12 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 
 import 'package:dio/dio.dart' as _i361;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart' as _i558;
 import 'package:get_it/get_it.dart' as _i174;
+import 'package:imoveis_aqui/data/datasources/armazenamento_token.dart'
+    as _i288;
+import 'package:imoveis_aqui/data/datasources/armazenamento_token_seguro.dart'
+    as _i179;
 import 'package:imoveis_aqui/data/datasources/cidade_prefs_datasource.dart'
     as _i94;
 import 'package:imoveis_aqui/data/datasources/cidade_remote_datasource.dart'
@@ -118,6 +123,9 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i94.CidadePrefsDataSource(),
     );
     gh.lazySingleton<_i361.Dio>(() => moduloRede.dio);
+    gh.lazySingleton<_i558.FlutterSecureStorage>(
+      () => moduloRede.armazenamentoSeguro,
+    );
     gh.lazySingleton<_i59.SessaoFiltrosVitrine>(
       () => _i59.SessaoFiltrosVitrine(),
     );
@@ -164,6 +172,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i213.BuscarImoveisUseCase>(
       () => _i213.BuscarImoveisUseCase(gh<_i970.ImovelRepository>()),
+    );
+    gh.lazySingleton<_i288.ArmazenamentoToken>(
+      () => _i179.ArmazenamentoTokenSeguro(gh<_i558.FlutterSecureStorage>()),
     );
     gh.lazySingleton<_i987.OpcoesFiltroRepository>(
       () =>
