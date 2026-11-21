@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 08
 current_phase_name: Login e Área do Corretor — o Acervo
 status: executing
-stopped_at: Completed 08-03-PLAN.md
-last_updated: "2026-11-21T13:18:55.262Z"
+stopped_at: Completed 08-04-PLAN.md
+last_updated: "2026-11-21T13:27:13.530Z"
 last_activity: 2026-11-21
 last_activity_desc: Phase 08 execution started
-state_head: bd8a1cc5c79efc881b1d5bff91fdeef0334b4be2
+state_head: 9305478c87efdac1d8c962e0be1d4c1f0b433b36
 progress:
   total_phases: 8
   completed_phases: 2
   total_plans: 74
-  completed_plans: 65
+  completed_plans: 66
   percent: 25
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-11-20)
 ## Current Position
 
 Phase: 08 (Login e Área do Corretor — o Acervo) — EXECUTING
-Plan: 4 of 12
+Plan: 5 of 12
 Status: Ready to execute
 Last activity: 2026-11-21 — Phase 08 execution started
 
@@ -106,6 +106,7 @@ Progress: [████████████████████] 62/62 p
 | Phase 08 P01 | 5 min | 2 tasks | 4 files |
 | Phase 08 P02 | 10 min | 2 tasks | 14 files |
 | Phase 08 P03 | 15 min | 2 tasks | 8 files |
+| Phase 08 P04 | 20 min | 2 tasks | 17 files |
 
 ## Accumulated Context
 
@@ -160,6 +161,7 @@ Recent decisions affecting current work:
 - [Phase 08]: 08-01: rota do acervo = ImovelViewSet.list adaptado (envelope paginado 20/pagina, 10 chaves com emenda finalidade, ordem -criado_em/-pk); filtro invalido anula todos os filtros como no site
 - [Phase 08]: 08-02: token da API no Keychain/Keystore atras de ArmazenamentoToken; Dio @Named('autenticado') leva Authorization so na mesma origem, 401 vira SessaoExpiradaException com compare-and-delete; iOS sem entitlements ate o human-check do 08-12
 - [Phase 08]: 08-03: login da API limitado por e-mail (SHA-256) e IP, 10/hour e 30/hour por .env (A1, confirmar no 08-12); eu devolve so {perfil}; Sair apaga o token unico do usuario (desconecta todos os aparelhos)
+- [Phase 08]: 08-04: login_200.json versionado com token trocado por 40 zeros; sem fixture de 429 (nao deterministico); credenciais da captura so por ambiente
 
 ### Pending Todos
 
@@ -195,6 +197,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-21T13:18:54.259Z
-Stopped at: Completed 08-03-PLAN.md
+Last session: 2026-11-21T13:27:12.741Z
+Stopped at: Completed 08-04-PLAN.md
 Resume file: None
