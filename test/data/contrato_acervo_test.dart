@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:imoveis_aqui/data/models/acervo_envelope_model.dart';
 
 import '../support/api_falsa.dart';
 
@@ -11,8 +12,8 @@ import '../support/api_falsa.dart';
 /// Django da `feat/APP08` da web (`test/fixtures/api/`, nenhum wire escrito à
 /// mão), e o conjunto de chaves de cada objeto é o travado pelos serializers
 /// do servidor. Chave nova ou perdida no Django quebra este teste: sem drift
-/// silencioso entre os dois repositórios. Ainda não há Models aqui; o parse
-/// das fixtures pelos Models vem num plano seguinte.
+/// silencioso entre os dois repositórios. Um grupo à parte confere que
+/// os Models do app leem toda fixture sem erro.
 ///
 /// Os exemplos vivem no diretório da Fase 1. Se esse diretório for um dia
 /// arquivado, mova os três `*.example.json` e corrija [_pastaContrato].
@@ -226,5 +227,18 @@ void main() {
       expect(demo.every((codigo) => codigo.startsWith('DEV-')), isTrue);
       expect(outra.any((codigo) => codigo.startsWith('DEV-')), isFalse);
     });
+  });
+
+  group('Models do acervo leem toda fixture capturada', () {
+    for (final nome in _fixturesDoAcervo) {
+      test('$nome passa pelo AcervoEnvelopeModel sem erro', () {
+        final bruto = _fixture(nome);
+        final pagina = AcervoEnvelopeModel.fromJson(bruto).paraPagina();
+
+        expect(pagina.itens, hasLength(_itens(nome).length));
+        expect(pagina.proximaPagina, bruto['next']);
+        expect({for (final item in pagina.itens) item.codigo}, _codigos(nome));
+      });
+    }
   });
 }
