@@ -80,7 +80,10 @@ class _Falha {
 /// lê o texto). As rotas de autenticação: `POST /api/auth/login/` serve
 /// `login_200.json`; `GET /api/auth/eu/` serve `eu_corretor.json` e
 /// `POST /api/auth/sair/` responde 204, ambos só com `Authorization: Token ...`
-/// (senão 401 com `erro_401.json`). Rota ainda não servida responde 404 com um objeto JSON vazio.
+/// (senão 401 com `erro_401.json`). O acervo do corretor (`GET /api/imoveis/`)
+/// também exige o token (senão 401) e serve `acervo_p1.json` (`acervo_p2.json`
+/// com `page=2`, `acervo_busca.json` com `busca` não vazia e
+/// `acervo_situacao_vazia.json` com `situacao=VENDIDO`). Rota ainda não servida responde 404 com um objeto JSON vazio.
 /// Cada requisição é gravada com método e cabeçalhos ([requisicoesGravadas]),
 /// e [criarDioAutenticado] monta o mesmo `Dio` autenticado da produção sobre a
 /// rede falsa, para provar o que o app envia (ex.: `Authorization`).
@@ -198,6 +201,22 @@ class ApiFalsa {
       return _temToken(opcoes)
           ? _semCorpo(204)
           : _corpoJson(lerFixtureApi('erro_401.json'), 401);
+    }
+    if (uri.path == '/api/imoveis/' && opcoes.method == 'GET') {
+      if (!_temToken(opcoes)) {
+        return _corpoJson(lerFixtureApi('erro_401.json'), 401);
+      }
+      final String fixture;
+      if (uri.queryParameters['page'] == '2') {
+        fixture = 'acervo_p2.json';
+      } else if ((uri.queryParameters['busca'] ?? '').isNotEmpty) {
+        fixture = 'acervo_busca.json';
+      } else if (uri.queryParameters['situacao'] == 'VENDIDO') {
+        fixture = 'acervo_situacao_vazia.json';
+      } else {
+        fixture = 'acervo_p1.json';
+      }
+      return _corpoJson(lerFixtureApi(fixture), 200);
     }
     final idDoDetalhe = _idDoDetalheDeImovel(uri.path);
     if (idDoDetalhe != null) {

@@ -13,6 +13,9 @@
 import 'package:dio/dio.dart' as _i361;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart' as _i558;
 import 'package:get_it/get_it.dart' as _i174;
+import 'package:imoveis_aqui/data/datasources/acervo_datasource.dart' as _i744;
+import 'package:imoveis_aqui/data/datasources/acervo_remote_datasource.dart'
+    as _i659;
 import 'package:imoveis_aqui/data/datasources/armazenamento_token.dart'
     as _i288;
 import 'package:imoveis_aqui/data/datasources/armazenamento_token_seguro.dart'
@@ -273,6 +276,11 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i887.AutenticacaoDataSource>(
       () => _i652.AutenticacaoRemoteDataSource(
         gh<_i361.Dio>(),
+        gh<_i361.Dio>(instanceName: 'autenticado'),
+      ),
+    );
+    gh.lazySingleton<_i744.AcervoDataSource>(
+      () => _i659.AcervoRemoteDataSource(
         gh<_i361.Dio>(instanceName: 'autenticado'),
       ),
     );
