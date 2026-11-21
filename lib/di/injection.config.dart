@@ -51,6 +51,8 @@ import 'package:imoveis_aqui/data/gateways/geocoding_gateway_impl.dart'
 import 'package:imoveis_aqui/data/gateways/geolocator_gateway_impl.dart'
     as _i777;
 import 'package:imoveis_aqui/data/network/interceptador_sessao.dart' as _i668;
+import 'package:imoveis_aqui/data/repositories/acervo_repository_impl.dart'
+    as _i443;
 import 'package:imoveis_aqui/data/repositories/autenticacao_repository_impl.dart'
     as _i214;
 import 'package:imoveis_aqui/data/repositories/cidade_repository_impl.dart'
@@ -68,6 +70,8 @@ import 'package:imoveis_aqui/data/repositories/vitrine_anunciante_repository_imp
 import 'package:imoveis_aqui/di/modulo_rede.dart' as _i497;
 import 'package:imoveis_aqui/domain/gateways/geocoding_gateway.dart' as _i881;
 import 'package:imoveis_aqui/domain/gateways/geolocator_gateway.dart' as _i246;
+import 'package:imoveis_aqui/domain/repositories/acervo_repository.dart'
+    as _i268;
 import 'package:imoveis_aqui/domain/repositories/autenticacao_repository.dart'
     as _i550;
 import 'package:imoveis_aqui/domain/repositories/cidade_repository.dart'
@@ -82,6 +86,8 @@ import 'package:imoveis_aqui/domain/repositories/perfil_repository.dart'
     as _i195;
 import 'package:imoveis_aqui/domain/repositories/vitrine_anunciante_repository.dart'
     as _i868;
+import 'package:imoveis_aqui/domain/usecases/buscar_acervo_usecase.dart'
+    as _i89;
 import 'package:imoveis_aqui/domain/usecases/buscar_imoveis_do_anunciante_usecase.dart'
     as _i427;
 import 'package:imoveis_aqui/domain/usecases/buscar_imoveis_usecase.dart'
@@ -289,6 +295,9 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i54.ObterCidadesAtendidasUseCase>(),
       ),
     );
+    gh.lazySingleton<_i268.AcervoRepository>(
+      () => _i443.AcervoRepositoryImpl(gh<_i744.AcervoDataSource>()),
+    );
     gh.lazySingleton<_i550.AutenticacaoRepository>(
       () => _i214.AutenticacaoRepositoryImpl(
         gh<_i887.AutenticacaoDataSource>(),
@@ -302,6 +311,9 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i502.DetectarCidadeUseCase>(),
         gh<_i14.ValidarCidadeAtendidaUseCase>(),
       ),
+    );
+    gh.factory<_i89.BuscarAcervoUseCase>(
+      () => _i89.BuscarAcervoUseCase(gh<_i268.AcervoRepository>()),
     );
     gh.factory<_i411.EntrarUseCase>(
       () => _i411.EntrarUseCase(gh<_i550.AutenticacaoRepository>()),
