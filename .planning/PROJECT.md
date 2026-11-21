@@ -24,7 +24,9 @@ recalculados dentro do aparelho.
 
 ### Validated
 
-(None yet — ship to validate)
+- ✓ **PERF-03** — Vitrine do anunciante (corretor e empresa) paginada e recortada no servidor, via `GET /api/publico/corretores/<id>/imoveis/` e `/api/publico/empresas/<id>/imoveis/` — Phase 07.1
+- ✓ **PERF-04** — Perfis do corretor e da empresa vindos da API real (WEB 02) por DataSource trocável, sem mock em `lib/` — Phase 07.1
+- ✓ **API-08** — Vitrine do anunciante escrita no §13 do contrato e entregue pelo Django, com allowlist e limite de taxa da API pública — Phase 07.1
 
 ### Active
 
@@ -77,6 +79,9 @@ recalculados dentro do aparelho.
 | Cidade escolhida guardada localmente no aparelho | Vitrine sem login; sem conta e sem senha (card APP01) | — Pending |
 | Filtro e busca server-side | Filtrar no celular exigiria baixar o acervo inteiro — não escala e gasta o dado do visitante (card APP03) | — Pending |
 | Paleta Verde e Branco via `ColorScheme.fromSeed` | Decisão da equipe + diretriz Material 3 | — Pending |
+| Vitrine do anunciante como endpoint próprio no Django (rotas aninhadas `corretores\|empresas/<id>/imoveis/`), no padrão da API pública da APP-05 | O app não recorta a vitrine; o servidor decide o que é do anunciante, com a mesma allowlist, paginação e limite de taxa | ✓ Good — Phase 07.1 (17 testes direcionados no web, UAT real no emulador) |
+| Anunciante inexistente ou inativo responde 404 uniforme; ativo sem imóveis responde 200 vazio | Não vaza se o anunciante existe; o app mostra o aviso de indisponível | ✓ Good — Phase 07.1 (§13 do contrato) |
+| `feat/APP07` recebeu a `main` por merge, não rebase | Preservar o histórico já enviado e resolver os 10 conflitos uma vez | ✓ Good — Phase 07.1 (merge 9c2252a) |
 
 ## Evolution
 
@@ -96,4 +101,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-21 after initialization*
+*Last updated: 2026-11-20 after Phase 07.1*

@@ -1,13 +1,13 @@
 ---
 gsd_state_version: "1.0"
-current_phase: "07.1"
-current_phase_name: Integração da APP-07 com a API real (INSERTED)
+current_phase: 1
+current_phase_name: Localização, Escolha de Cidade e Contrato da API
 status: verifying
-stopped_at: Completed 07.1-06-PLAN.md
-last_updated: "2026-11-19T10:09:26.081Z"
-last_activity: 2026-11-18
-last_activity_desc: Phase 07.1 execution started
-state_head: ce8264d1e779a41393787de3f69505d69792cf37
+stopped_at: Phase 07.1 complete, ready to verify Phase 1
+last_updated: "2026-11-21T00:47:58.505Z"
+last_activity: 2026-11-20
+last_activity_desc: Phase 07.1 complete, transitioned to Phase 1
+state_head: 5cc9c16347d634ccd4b61360377b09551255ffe5
 progress:
   total_phases: 7
   completed_phases: 1
@@ -20,25 +20,25 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-09-21)
+See: .planning/PROJECT.md (updated 2026-11-20)
 
 **Core value:** A vitrine do app abre na cidade do usuário e mostra imóveis reais vindos da API, com a busca e o filtro resolvidos no servidor — o mesmo dado e a mesma regra do site, nunca recalculados dentro do aparelho.
-**Current focus:** Phase 07.1 — Integração da APP-07 com a API real (INSERTED)
+**Current focus:** Phase 7 — Perfis Públicos da Empresa e do Corretor (UAT 5/5 e SECURITY prontos; falta a transição via `/gsd-verify-work 07`). Fases 1–4 seguem sem transição no ROADMAP, por isso a posição abaixo aponta para a Phase 1.
 
 ## Current Position
 
-Phase: 07.1 (Integração da APP-07 com a API real (INSERTED)) — EXECUTING
-Plan: 6 of 6
+Phase: 1 — Localização, Escolha de Cidade e Contrato da API
+Plan: 4
 Status: Phase complete — ready for verification
-Last activity: 2026-11-18 — Phase 07.1 execution started
+Last activity: 2026-11-20 — Phase 07.1 complete, transitioned to Phase 1
 
-Progress: [█░░░░░░░░░] 14%
+Progress: [████████████████████] 62/62 plans (100%)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 22
+- Total plans completed: 28
 - Average duration: - min
 - Total execution time: 0 hours
 
@@ -47,6 +47,7 @@ Progress: [█░░░░░░░░░] 14%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 05 | 22 | - | - |
+| 07.1 | 6 | - | - |
 
 **Recent Trend:**
 
@@ -160,6 +161,7 @@ None yet.
 ### Blockers/Concerns
 
 - [Phase 5]: Externally blocked on the `Imóvel` model (owned by teammate E2 in `../imoveis-aqui/Web`) — Phases 1-3 do not require it (mock-first build), but Phase 5 cannot complete until that model lands.
+- [Phase 07.1]: PENDENTE WEB no §13.7 do contrato (D-20): limite de taxa nas views de perfil e extensão do seed — aceito fora do escopo do app, depende da frente web.
 - [Phase 1]: API-AUDIT needs live coordination with the teammate on exact `Imóvel` field names/enum values (natureza, finalidade, características shape, quartos/suítes/vagas exact-vs-range semantics) — not resolvable from docs alone.
 
 ### Quick Tasks Completed
@@ -185,6 +187,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-19T10:09:24.781Z
-Stopped at: Completed 07.1-06-PLAN.md
+Last session: 2026-11-20T21:50:00-03:00
+Stopped at: Phase 07.1 complete (UAT 1/1, verificação passed, 0 ameaças abertas); próximo: /gsd-verify-work 07
 Resume file: None

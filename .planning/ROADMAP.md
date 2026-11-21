@@ -26,7 +26,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 4: Página do Imóvel — Galeria e Dados da Natureza** - Tela de detalhe (card APP 04): galeria a partir da capa, preços, corretor e bloco por natureza (casa, terreno, apartamento, lote), sobre mock seguindo o contrato de `GET /api/publico/imoveis/{id}/`.
 - [x] **Phase 5: Imóveis Real — Endpoint Público e Integração Final** - Endpoints públicos reais de lista e detalhe de imóveis e troca das DataSources mock pelas reais via DI. (completed 2026-11-16)
 - [ ] **Phase 7: Perfis Públicos da Empresa e do Corretor** - Card APP 07: página da empresa e página do corretor com a vitrine do anunciante, dados da API de perfis públicos (WEB 02) e aviso para corretor desativado. (Fase 6 reservada ao card APP 06, de outro colega — fase N = card APP 0N.)
-- [ ] **Phase 07.1: Integração da APP-07 com a API real**
+- [x] **Phase 07.1: Integração da APP-07 com a API real** (completed 2026-11-20)
 
 ## Phase Details
 
@@ -346,7 +346,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 7 → 07.1 (6 res
   4. O app consome esse endpoint com a paginação nova; o adendo do contrato da vitrine do anunciante fica renumerado (o §12 da `main` passou a ser outro assunto) e alinhado ao que o Django entrega.
   5. Com o Django rodando e `semear_vitrine_dev`, dá para ir de um imóvel real até o corretor, a empresa e a vitrine deles, e de volta a um imóvel.
 **Depends on:** Phase 7
-**Plans:** 6/6 plans executed
+**Plans:** 6/6 plans complete
 
 Plans:
 **Wave 1**
