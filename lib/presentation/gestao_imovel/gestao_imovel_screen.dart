@@ -3,11 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../di/injection.dart';
 import '../../domain/entities/imovel_acervo.dart';
-import '../../domain/entities/imovel_gestao.dart';
-import '../acervo/apresentacao_acervo.dart';
+import '../detalhe_imovel/detalhe_imovel_screen.dart';
 import 'apresentacao_gestao.dart';
 import 'gestao_imovel_cubit.dart';
 import 'gestao_imovel_state.dart';
+import 'widgets/cabecalho_gestao.dart';
+import 'widgets/secao_situacao.dart';
 
 /// Assinatura de quem abre a gestão de um imóvel a partir do acervo —
 /// `AcervoScreen` recebe uma por parâmetro (padrão [abrirGestaoImovel]) para
@@ -43,56 +44,80 @@ Future<void> abrirGestaoImovel(
 }
 
 /// Tela de gestão do imóvel (SIT-07): a `AppBar` leva o código do imóvel e o
-/// corpo mostra o desfecho da leitura — `switch` exaustivo sobre
-/// [ConteudoImovelGestao], sem ramo abrangente. Nenhuma regra, rede ou
-/// `try/catch` aqui: só apresenta o que o [GestaoImovelCubit] entrega.
+/// corpo é uma lista com o cabeçalho (foto, código, título, preço — D-03) e,
+/// por `switch` exaustivo sobre [ConteudoImovelGestao], o indicador, o erro ou
+/// a situação. Nenhuma regra, rede ou `try/catch` aqui: só apresenta o que o
+/// [GestaoImovelCubit] entrega.
 class GestaoImovelScreen extends StatelessWidget {
-  const GestaoImovelScreen({super.key, required this.previa});
+  const GestaoImovelScreen({
+    super.key,
+    required this.previa,
+    this.aoVerNaVitrine = abrirDetalheImovel,
+    @visibleForTesting this.construirImagemDeRede,
+  });
 
-  /// O imóvel como o cartão do acervo o tinha (código para o título da tela).
+  /// O imóvel como o cartão do acervo o tinha: código, foto de capa, título,
+  /// preço (enquanto o servidor responde) e `naVitrine` (D-02).
   final ImovelAcervo previa;
+
+  /// Abre a página pública do imóvel (padrão [abrirDetalheImovel]); só é
+  /// chamada a partir de "Ver na vitrine".
+  final AoAbrirImovel aoVerNaVitrine;
+
+  /// Ponto de extensão só para teste (ver `ImagemRede`); em produção `null`.
+  final Widget Function(String url)? construirImagemDeRede;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(previa.codigo)),
       body: BlocBuilder<GestaoImovelCubit, GestaoImovelState>(
-        builder: (context, state) => switch (state.imovel) {
-          ImovelGestaoCarregando() => const Center(
-            child: CircularProgressIndicator(),
-          ),
-          ImovelGestaoErro() => _ErroDaGestao(
-            aoTentarDeNovo: () =>
-                context.read<GestaoImovelCubit>().tentarNovamente(),
-          ),
-          ImovelGestaoCarregado(:final imovel) => _CorpoDaGestao(
-            imovel: imovel,
-          ),
+        builder: (context, state) {
+          final conteudo = state.imovel;
+          return ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              CabecalhoGestao(
+                previa: previa,
+                imovel: switch (conteudo) {
+                  ImovelGestaoCarregado(:final imovel) => imovel,
+                  ImovelGestaoCarregando() || ImovelGestaoErro() => null,
+                },
+                construirImagemDeRede: construirImagemDeRede,
+              ),
+              const SizedBox(height: 16),
+              ...switch (conteudo) {
+                ImovelGestaoCarregando() => const [
+                  Center(child: CircularProgressIndicator()),
+                ],
+                ImovelGestaoErro() => [
+                  _ErroDaGestao(
+                    aoTentarDeNovo: () =>
+                        context.read<GestaoImovelCubit>().tentarNovamente(),
+                  ),
+                ],
+                ImovelGestaoCarregado(:final imovel) => [
+                  SecaoSituacao(imovel: imovel),
+                  // D-02: só o que o servidor disse no cartão (na_vitrine);
+                  // o app nunca olha publicado nem situação para isso.
+                  if (previa.naVitrine) ...[
+                    const SizedBox(height: 16),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: OutlinedButton.icon(
+                        onPressed: () =>
+                            aoVerNaVitrine(context, previa.paraPrevia()),
+                        icon: const Icon(Icons.storefront),
+                        label: const Text(rotuloVerNaVitrine),
+                      ),
+                    ),
+                  ],
+                ],
+              },
+            ],
+          );
         },
       ),
-    );
-  }
-}
-
-/// Imóvel lido: título e a situação atual que o servidor mandou.
-class _CorpoDaGestao extends StatelessWidget {
-  const _CorpoDaGestao({required this.imovel});
-
-  final ImovelGestao imovel;
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final situacao = imovel.situacao;
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        Text(imovel.titulo, style: textTheme.titleLarge),
-        if (situacao != null) ...[
-          const SizedBox(height: 8),
-          Text(rotuloSituacao(situacao), style: textTheme.titleMedium),
-        ],
-      ],
     );
   }
 }
@@ -105,25 +130,19 @@ class _ErroDaGestao extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              textoErroGestao,
-              style: Theme.of(context).textTheme.bodyLarge,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            FilledButton(
-              onPressed: aoTentarDeNovo,
-              child: const Text(rotuloTentarDeNovo),
-            ),
-          ],
+    return Column(
+      children: [
+        Text(
+          textoErroGestao,
+          style: Theme.of(context).textTheme.bodyLarge,
+          textAlign: TextAlign.center,
         ),
-      ),
+        const SizedBox(height: 16),
+        FilledButton(
+          onPressed: aoTentarDeNovo,
+          child: const Text(rotuloTentarDeNovo),
+        ),
+      ],
     );
   }
 }

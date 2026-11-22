@@ -44,6 +44,7 @@ void main() {
     );
     expect(find.text(titulo), findsOneWidget);
     expect(find.text('Disponível'), findsOneWidget);
+    expect(find.textContaining('desde '), findsOneWidget);
 
     final leituras = pilha.api.requisicoesGravadas.where(
       (p) => p.uri.path == '/api/imoveis/$id/',
