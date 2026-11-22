@@ -119,7 +119,9 @@ class _Falha {
 /// primeiro `imovel_gestao_*.json` (ordem alfabética) cujo `id` bate, senão 404
 /// com `erro_404_imovel.json`. O histórico de situações
 /// (`GET /api/imoveis/<id>/historico/`) também exige o token (senão 401) e serve
-/// `historico_vazio.json` (os testes trocam por `responder`). O contato
+/// `historico_vazio.json` (os testes trocam por `responder`). A mudança de
+/// situação (`POST /api/imoveis/<id>/situacao/`) responde 405 fora do POST, 401
+/// sem token e 200 `situacao_200.json` com token. O contato
 /// (`POST /api/publico/imoveis/<id>/contato/`) responde 201 com
 /// `contato_201_<canal>.json` quando o `canal` do corpo está em
 /// `canais_contato` do detalhe do id, 400 com `erro_400_canal_contato.json`
@@ -289,6 +291,15 @@ class ApiFalsa {
           ? _corpoJson(lerFixtureApi('historico_vazio.json'), 200)
           : _corpoJson(lerFixtureApi('erro_401.json'), 401);
     }
+    final idDaSituacao = _idDaSituacaoDeImovel(uri.path);
+    if (idDaSituacao != null) {
+      if (opcoes.method != 'POST') {
+        return _corpoJson(const <String, Object?>{}, 405);
+      }
+      return _temToken(opcoes)
+          ? _corpoJson(lerFixtureApi('situacao_200.json'), 200)
+          : _corpoJson(lerFixtureApi('erro_401.json'), 401);
+    }
     final idDaGestao = _idDoImovelDeGestao(uri.path);
     if (idDaGestao != null && opcoes.method == 'GET') {
       if (!_temToken(opcoes)) {
@@ -402,6 +413,15 @@ class ApiFalsa {
   /// histórico de situações), ou nulo se [caminho] não é essa rota.
   int? _idDoHistoricoDeImovel(String caminho) {
     final casamento = RegExp(r'^/api/imoveis/(\d+)/historico/$')
+        .firstMatch(caminho);
+    if (casamento == null) return null;
+    return int.parse(casamento.group(1)!);
+  }
+
+  /// Id do imóvel de `/api/imoveis/<id>/situacao/` (rota autenticada da
+  /// mudança de situação), ou nulo se [caminho] não é essa rota.
+  int? _idDaSituacaoDeImovel(String caminho) {
+    final casamento = RegExp(r'^/api/imoveis/(\d+)/situacao/$')
         .firstMatch(caminho);
     if (casamento == null) return null;
     return int.parse(casamento.group(1)!);

@@ -8,6 +8,7 @@ import 'package:imoveis_aqui/domain/entities/imovel_gestao.dart';
 import 'package:imoveis_aqui/domain/entities/mudanca_situacao.dart';
 import 'package:imoveis_aqui/domain/entities/situacao_imovel.dart';
 import 'package:imoveis_aqui/domain/repositories/falhas_autenticacao.dart';
+import 'package:imoveis_aqui/domain/usecases/mudar_situacao_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/obter_historico_situacao_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/obter_imovel_gestao_usecase.dart';
 
@@ -199,6 +200,155 @@ void main() {
             (e) => e.error,
             'error',
             isA<SessaoExpiradaException>(),
+          ),
+        ),
+      );
+    });
+  });
+
+  group('mudar situação — pilha de dados (UseCase → Repository → DataSource '
+      '→ ApiFalsa)', () {
+    MudarSituacaoUseCase criarUseCase(ArmazenamentoTokenEmMemoria armazenamento) =>
+        MudarSituacaoUseCase(
+          GestaoImovelRepositoryImpl(criarDataSource(armazenamento)),
+        );
+
+    test('MudarSituacaoUseCase(36, reservado) faz POST /api/imoveis/36/situacao/ '
+        'com o token e o corpo exato {situacao: RESERVADO}', () async {
+      final useCase = criarUseCase(ArmazenamentoTokenEmMemoria('token-de-teste'));
+
+      final resultado = await useCase(36, SituacaoImovel.reservado);
+
+      expect(resultado, isA<Success<void>>());
+      final pedido = api.requisicoesGravadas.single;
+      expect(pedido.metodo, 'POST');
+      expect(pedido.uri.path, '/api/imoveis/36/situacao/');
+      expect(pedido.cabecalho('Authorization'), 'Token token-de-teste');
+      final chamada = api.chamadas.single;
+      expect(chamada.corpo, {'situacao': 'RESERVADO'});
+    });
+
+    test('a observação vai sem espaços nas pontas', () async {
+      final useCase = criarUseCase(ArmazenamentoTokenEmMemoria('token-de-teste'));
+
+      final resultado = await useCase(
+        36,
+        SituacaoImovel.reservado,
+        observacao: '  Sinal pago  ',
+      );
+
+      expect(resultado, isA<Success<void>>());
+      expect(api.chamadas.single.corpo, {
+        'situacao': 'RESERVADO',
+        'observacao': 'Sinal pago',
+      });
+    });
+
+    test('observação só com espaços não manda a chave observacao', () async {
+      final useCase = criarUseCase(ArmazenamentoTokenEmMemoria('token-de-teste'));
+
+      await useCase(36, SituacaoImovel.vendido, observacao: '   ');
+
+      final corpo = api.chamadas.single.corpo! as Map<String, Object?>;
+      expect(corpo, {'situacao': 'VENDIDO'});
+      expect(corpo.containsKey('observacao'), isFalse);
+    });
+
+    test('o corpo não leva data nem autor (D-05)', () async {
+      final useCase = criarUseCase(ArmazenamentoTokenEmMemoria('token-de-teste'));
+
+      await useCase(36, SituacaoImovel.alugado, observacao: 'Contrato novo');
+
+      final corpo = api.chamadas.single.corpo! as Map<String, Object?>;
+      expect(corpo.keys, unorderedEquals(['situacao', 'observacao']));
+    });
+
+    test('200 com corpo inesperado ({}) continua Success: o 200 não é '
+        'parseado (D-10)', () async {
+      api.responder(
+        (uri) => uri.path == '/api/imoveis/36/situacao/',
+        status: 200,
+        corpo: <String, Object?>{},
+      );
+      final useCase = criarUseCase(ArmazenamentoTokenEmMemoria('token-de-teste'));
+
+      final resultado = await useCase(36, SituacaoImovel.reservado);
+
+      expect(resultado, isA<Success<void>>());
+    });
+
+    test('200 com corpo que não é objeto também continua Success', () async {
+      api.responder(
+        (uri) => uri.path == '/api/imoveis/36/situacao/',
+        status: 200,
+        corpo: <Object?>['qualquer coisa'],
+      );
+      final useCase = criarUseCase(ArmazenamentoTokenEmMemoria('token-de-teste'));
+
+      final resultado = await useCase(36, SituacaoImovel.reservado);
+
+      expect(resultado, isA<Success<void>>());
+    });
+
+    test('ApiFalsa: POST sem token é 401 (SessaoExpiradaException)', () async {
+      final useCase = criarUseCase(ArmazenamentoTokenEmMemoria());
+
+      final resultado = await useCase(36, SituacaoImovel.reservado);
+
+      expect(resultado, isA<Failure<void>>());
+      expect((resultado as Failure<void>).erro, isA<SessaoExpiradaException>());
+    });
+
+    test('ApiFalsa: GET /api/imoveis/36/situacao/ é 405', () async {
+      final dio = api.criarDioAutenticado(
+        InterceptadorSessao(ArmazenamentoTokenEmMemoria('token-de-teste')),
+      );
+
+      await expectLater(
+        dio.get<Object?>('/api/imoveis/36/situacao/'),
+        throwsA(
+          isA<DioException>().having(
+            (e) => e.response?.statusCode,
+            'status',
+            405,
+          ),
+        ),
+      );
+    });
+  });
+
+  group('GestaoImovelRemoteDataSource.mudarSituacao', () {
+    test('POST com o código do Django e sem observacao quando vazia',
+        () async {
+      final datasource = criarDataSource(
+        ArmazenamentoTokenEmMemoria('token-de-teste'),
+      );
+
+      await datasource.mudarSituacao(36, SituacaoImovel.disponivel, '');
+
+      final chamada = api.chamadas.single;
+      expect(chamada.metodo, 'POST');
+      expect(chamada.uri.path, '/api/imoveis/36/situacao/');
+      expect(chamada.corpo, {'situacao': 'DISPONIVEL'});
+    });
+
+    test('400 sobe como DioException (o repositório traduz)', () async {
+      api.responder(
+        (uri) => uri.path == '/api/imoveis/36/situacao/',
+        status: 400,
+        fixture: 'erro_400_mesma_situacao.json',
+      );
+      final datasource = criarDataSource(
+        ArmazenamentoTokenEmMemoria('token-de-teste'),
+      );
+
+      await expectLater(
+        datasource.mudarSituacao(36, SituacaoImovel.reservado, ''),
+        throwsA(
+          isA<DioException>().having(
+            (e) => e.response?.statusCode,
+            'status',
+            400,
           ),
         ),
       );

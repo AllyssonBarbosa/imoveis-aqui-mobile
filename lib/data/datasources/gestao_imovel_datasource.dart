@@ -1,3 +1,4 @@
+import '../../domain/entities/situacao_imovel.dart';
 import '../models/imovel_gestao_model.dart';
 import '../models/mudanca_situacao_model.dart';
 
@@ -13,4 +14,9 @@ abstract class GestaoImovelDataSource {
   /// ordem recebida. Falhas HTTP sobem como `DioException`; corpo que não é
   /// lista ou item que não é objeto sobe como `FormatException`.
   Future<List<MudancaSituacaoModel>> obterHistorico(int id);
+
+  /// Pede a mudança do imóvel [id] para [nova] (`POST /api/imoveis/{id}/
+  /// situacao/`). [observacao] só vai no corpo quando não é vazia. O corpo do
+  /// 200 é ignorado de propósito (D-10). Falhas HTTP sobem como `DioException`.
+  Future<void> mudarSituacao(int id, SituacaoImovel nova, String observacao);
 }

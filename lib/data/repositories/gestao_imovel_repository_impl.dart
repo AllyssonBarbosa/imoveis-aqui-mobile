@@ -4,6 +4,7 @@ import 'package:injectable/injectable.dart';
 import '../../core/result.dart';
 import '../../domain/entities/imovel_gestao.dart';
 import '../../domain/entities/mudanca_situacao.dart';
+import '../../domain/entities/situacao_imovel.dart';
 import '../../domain/repositories/falhas_autenticacao.dart';
 import '../../domain/repositories/gestao_imovel_repository.dart';
 import '../../domain/repositories/imovel_detalhe_repository.dart';
@@ -31,6 +32,17 @@ class GestaoImovelRepositoryImpl implements GestaoImovelRepository {
       for (final item in await _dataSource.obterHistorico(id))
         item.paraEntidade(),
     ]),
+  );
+
+  @override
+  Future<Result<void>> mudarSituacao(
+    int id,
+    SituacaoImovel nova, {
+    String observacao = '',
+  }) => _executar<void>(
+    // Sem nova tentativa automática: um POST com tempo esgotado pode ter
+    // gravado, e o servidor é o árbitro do reenvio do usuário.
+    () => _dataSource.mudarSituacao(id, nova, observacao),
   );
 
   /// Cadeia única de tradução de erros. A ordem importa: a sessão expirada
