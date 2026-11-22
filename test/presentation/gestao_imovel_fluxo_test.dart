@@ -342,6 +342,51 @@ void main() {
       pilha.conferirCabecalhosDeAutorizacao();
     });
 
+    testWidgets('a observação digitada vai no corpo do POST e, depois da '
+        'releitura, aparece no histórico (D-10, AC-1)', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final pilha = await abrirGestao(tester);
+
+      await tester.tap(find.text('Mudar situação'));
+      await assentar(tester);
+      expect(find.text('Observação (opcional)'), findsOneWidget);
+      expect(find.text('Data: hoje'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('chip-mudar-reservado')));
+      await tester.pump();
+      await tester.enterText(
+        find.byType(TextField),
+        'Reservado na conversa com o cliente.',
+      );
+      await tester.pump();
+
+      pilha.api.responder(
+        (uri) => uri.path == '/api/imoveis/$id/',
+        status: 200,
+        fixture: 'imovel_gestao_reservado.json',
+      );
+      pilha.api.responder(
+        (uri) => uri.path == '/api/imoveis/$id/historico/',
+        status: 200,
+        fixture: 'historico_um_item.json',
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Confirmar'));
+      await assentar(tester, quadros: 12);
+
+      // O app não manda data nem autor: só a situação e a observação (D-05).
+      expect(
+        pilha.api.chamadas.where((c) => c.metodo == 'POST').single.corpo,
+        <String, Object?>{
+          'situacao': 'RESERVADO',
+          'observacao': 'Reservado na conversa com o cliente.',
+        },
+      );
+      expect(find.text('Confirmar'), findsNothing);
+      expect(find.text('Disponível → Reservado'), findsOneWidget);
+      expect(find.text('Reservado na conversa com o cliente.'), findsOneWidget);
+      pilha.conferirCabecalhosDeAutorizacao();
+    });
+
     testWidgets('toque duplo no Confirmar manda um POST só (T-09-07)', (
       tester,
     ) async {

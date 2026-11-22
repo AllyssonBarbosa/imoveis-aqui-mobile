@@ -40,6 +40,22 @@ const String tituloFolhaMudarSituacao = 'Mudar situação';
 /// Rótulo do botão que confirma a mudança na folha.
 const String rotuloConfirmar = 'Confirmar';
 
+/// Rótulo do campo de observação da folha (D-06: a observação é opcional).
+const String rotuloObservacao = 'Observação (opcional)';
+
+/// Dica do campo de observação — a mesma do `SituacaoForm` do site (D-06).
+const String dicaObservacao =
+    'Ex.: reservado para o cliente João até a assinatura.';
+
+/// "Data: hoje" na folha: só informa. A data gravada é a do servidor
+/// (`alterado_em`) e o app nunca envia data (D-05).
+const String textoDataHoje = 'Data: hoje';
+
+/// Limite de caracteres da observação no campo (D-17): decisão do usuário em
+/// 2026-11-22, exceção à D-06, como proteção de interface (T-09-09). O servidor
+/// não limita o tamanho (§16.6), então o limite vive só na tela.
+const int limiteObservacao = 500;
+
 /// Falha genérica do pedido de mudança; nunca mostra o corpo do erro do
 /// servidor (T-09-05). A mensagem do servidor na folha vem no 09-12.
 const String textoFalhaAoMudar =

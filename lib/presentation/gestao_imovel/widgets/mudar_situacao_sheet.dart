@@ -30,10 +30,35 @@ Future<void> mostrarMudarSituacaoSheet(
 }
 
 /// Corpo da folha: título, chips de escolha única das quatro situações (a atual
-/// desabilitada) e o `FilledButton` "Confirmar". A observação, o "Data: hoje" e
-/// o envio protegido entram nesta mesma folha no 09-11.
-class _FolhaMudarSituacao extends StatelessWidget {
+/// desabilitada), a observação opcional com limite de [limiteObservacao]
+/// caracteres (D-06, D-17), o "Data: hoje" informativo (D-05) e o
+/// `FilledButton` "Confirmar".
+///
+/// É dona do `TextEditingController` da observação, que só existe em memória:
+/// nada vai para disco nem para log (T-09-06). Como a folha não fecha numa
+/// falha, o texto digitado sobrevive para a nova tentativa (D-10).
+class _FolhaMudarSituacao extends StatefulWidget {
   const _FolhaMudarSituacao();
+
+  @override
+  State<_FolhaMudarSituacao> createState() => _FolhaMudarSituacaoState();
+}
+
+class _FolhaMudarSituacaoState extends State<_FolhaMudarSituacao> {
+  final TextEditingController _controleObservacao = TextEditingController();
+
+  @override
+  void dispose() {
+    _controleObservacao.dispose();
+    super.dispose();
+  }
+
+  /// Pede a mudança com a observação como o corretor digitou (o `trim` e a
+  /// omissão da observação vazia ficam no DataSource, 09-09).
+  void _confirmar(BuildContext context) {
+    final cubit = context.read<MudarSituacaoCubit>();
+    cubit.confirmar(observacao: _controleObservacao.text);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -78,6 +103,24 @@ class _FolhaMudarSituacao extends StatelessWidget {
                       ),
                   ],
                 ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _controleObservacao,
+                  maxLength: limiteObservacao,
+                  minLines: 2,
+                  maxLines: 4,
+                  decoration: const InputDecoration(
+                    labelText: rotuloObservacao,
+                    hintText: dicaObservacao,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  textoDataHoje,
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
                 if (state.envio is EnvioFalhou) ...[
                   const SizedBox(height: 12),
                   Text(
@@ -92,7 +135,7 @@ class _FolhaMudarSituacao extends StatelessWidget {
                   width: double.infinity,
                   child: FilledButton(
                     onPressed: state.podeConfirmar
-                        ? () => context.read<MudarSituacaoCubit>().confirmar()
+                        ? () => _confirmar(context)
                         : null,
                     child: const Text(rotuloConfirmar),
                   ),
