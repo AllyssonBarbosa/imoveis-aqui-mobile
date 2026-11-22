@@ -58,6 +58,35 @@ void main() {
   });
 
   testWidgets(
+    'falha na primeira carga mostra o texto fixo e "Tentar de novo" repete o '
+    'GET e recupera a tela',
+    (tester) async {
+      final pilha = await PilhaReal.preparar(token: tokenDasFixtures);
+      await pilha.entrarNoAcervo(tester);
+      pilha.api.falharProximas('/api/imoveis/$id/', status: 500);
+
+      await tester.tap(find.text(codigo));
+      await assentar(tester);
+
+      expect(find.text('Não foi possível carregar o imóvel.'), findsOneWidget);
+      expect(find.text('Tentar de novo'), findsOneWidget);
+      expect(find.text('Disponível'), findsNothing);
+
+      await tester.tap(find.text('Tentar de novo'));
+      await assentar(tester);
+
+      expect(find.text('Não foi possível carregar o imóvel.'), findsNothing);
+      expect(find.text(titulo), findsOneWidget);
+      expect(find.text('Disponível'), findsOneWidget);
+      final leituras = pilha.api.requisicoesGravadas.where(
+        (p) => p.uri.path == '/api/imoveis/$id/',
+      );
+      expect(leituras, hasLength(2));
+      pilha.conferirCabecalhosDeAutorizacao();
+    },
+  );
+
+  testWidgets(
     'tocar em um cartão que o servidor diz não estar na vitrine também abre '
     'a gestão (D-02)',
     (tester) async {
