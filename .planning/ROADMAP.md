@@ -483,7 +483,7 @@ Plans:
   5. A vitrine reflete a mudança na consulta seguinte (o servidor decide a publicação; verificado no UAT).
   6. Só quem o servidor autoriza consegue mudar: pelo app, só o corretor responsável (botão só com `pode_mudar_situacao`; quem forçar recebe 403); o gestor da empresa continua mudando pela web e a área dele no app é da APP-12 (D-07 da fase).
 
-**Plans:** 5/13 plans executed
+**Plans:** 6/13 plans executed
 
 Plans:
 **Wave 1**
@@ -502,7 +502,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 09-06-PLAN.md — Dados do histórico: `GET /api/imoveis/{id}/historico/` até a lista de domínio na ordem do servidor, rota da `ApiFalsa` e falhas tipadas (SIT-03)
+- [x] 09-06-PLAN.md — Dados do histórico: `GET /api/imoveis/{id}/historico/` até a lista de domínio na ordem do servidor, rota da `ApiFalsa` e falhas tipadas (SIT-03)
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
