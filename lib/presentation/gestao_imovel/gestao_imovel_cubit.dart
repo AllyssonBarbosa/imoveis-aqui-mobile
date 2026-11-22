@@ -2,7 +2,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 
 import '../../core/result.dart';
+import '../../domain/entities/imovel_gestao.dart';
 import '../../domain/entities/mudanca_situacao.dart';
+import '../../domain/repositories/falhas_autenticacao.dart';
+import '../../domain/repositories/imovel_detalhe_repository.dart';
 import '../../domain/usecases/obter_historico_situacao_usecase.dart';
 import '../../domain/usecases/obter_imovel_gestao_usecase.dart';
 import 'gestao_imovel_state.dart';
@@ -46,11 +49,10 @@ class GestaoImovelCubit extends Cubit<GestaoImovelState> {
 
     emit(
       state.copyWith(
-        imovel: switch (resultadoDoImovel) {
-          Success(:final data) => ConteudoImovelGestao.carregado(data),
-          Failure() => const ConteudoImovelGestao.erro(),
-          Loading() => state.imovel,
-        },
+        imovel: _paraConteudoDoImovel(
+          resultadoDoImovel,
+          historicoSessaoExpirada: _sessaoExpirou(resultadoDoHistorico),
+        ),
         historico: _paraConteudo(resultadoDoHistorico),
       ),
     );
@@ -82,8 +84,41 @@ class GestaoImovelCubit extends Cubit<GestaoImovelState> {
         isClosed) {
       return;
     }
-    emit(state.copyWith(historico: _paraConteudo(resultado)));
+    emit(
+      state.copyWith(
+        imovel: _sessaoExpirou(resultado)
+            ? const ConteudoImovelGestao.sessaoExpirada()
+            : state.imovel,
+        historico: _paraConteudo(resultado),
+      ),
+    );
   }
+
+  /// Mapeamento único do desfecho da leitura do imóvel, decidido só pelo TIPO
+  /// da falha (D-10): 401 vale para a tela toda — também quando vem só do
+  /// histórico ([historicoSessaoExpirada]) —, 404 é "fora do acervo" e o resto
+  /// é erro genérico.
+  ConteudoImovelGestao _paraConteudoDoImovel(
+    Result<ImovelGestao> resultado, {
+    required bool historicoSessaoExpirada,
+  }) {
+    if (historicoSessaoExpirada) {
+      return const ConteudoImovelGestao.sessaoExpirada();
+    }
+    return switch (resultado) {
+      Success(:final data) => ConteudoImovelGestao.carregado(data),
+      Failure(:final erro) when erro is SessaoExpiradaException =>
+        const ConteudoImovelGestao.sessaoExpirada(),
+      Failure(:final erro) when erro is ImovelNaoEncontradoException =>
+        const ConteudoImovelGestao.naoEncontrado(),
+      Failure() => const ConteudoImovelGestao.erro(),
+      Loading() => state.imovel,
+    };
+  }
+
+  bool _sessaoExpirou(Result<List<MudancaSituacao>> resultado) =>
+      resultado is Failure<List<MudancaSituacao>> &&
+      resultado.erro is SessaoExpiradaException;
 
   ConteudoHistorico _paraConteudo(Result<List<MudancaSituacao>> resultado) =>
       switch (resultado) {

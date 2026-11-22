@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/data/models/imovel_gestao_model.dart';
+import 'package:imoveis_aqui/di/injection.dart';
 import 'package:imoveis_aqui/domain/entities/imovel.dart';
 import 'package:imoveis_aqui/domain/entities/imovel_acervo.dart';
 import 'package:imoveis_aqui/domain/entities/imovel_gestao.dart';
@@ -11,6 +12,11 @@ import 'package:imoveis_aqui/presentation/gestao_imovel/apresentacao_gestao.dart
 import 'package:imoveis_aqui/presentation/gestao_imovel/gestao_imovel_cubit.dart';
 import 'package:imoveis_aqui/presentation/gestao_imovel/gestao_imovel_screen.dart';
 import 'package:imoveis_aqui/presentation/gestao_imovel/gestao_imovel_state.dart';
+import 'package:imoveis_aqui/presentation/login/login_cubit.dart';
+import 'package:imoveis_aqui/presentation/login/login_screen.dart';
+import 'package:imoveis_aqui/presentation/login/login_state.dart';
+import 'package:imoveis_aqui/presentation/sessao/sessao_cubit.dart';
+import 'package:imoveis_aqui/presentation/sessao/sessao_state.dart';
 import 'package:imoveis_aqui/presentation/vitrine/apresentacao_imovel.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -18,6 +24,10 @@ import '../support/api_falsa.dart';
 
 class _GestaoImovelCubitFalso extends MockCubit<GestaoImovelState>
     implements GestaoImovelCubit {}
+
+class _SessaoCubitFalso extends MockCubit<SessaoState> implements SessaoCubit {}
+
+class _LoginCubitFalso extends MockCubit<LoginState> implements LoginCubit {}
 
 ImovelAcervo _previa({bool naVitrine = true}) => ImovelAcervo(
   id: 36,
@@ -38,38 +48,50 @@ ImovelGestao _imovelDaFixture() => ImovelGestaoModel.fromJson(
 
 void main() {
   late _GestaoImovelCubitFalso cubit;
+  late _SessaoCubitFalso sessao;
   late List<Imovel> abertosNaVitrine;
 
   setUp(() {
     cubit = _GestaoImovelCubitFalso();
+    sessao = _SessaoCubitFalso();
+    when(() => sessao.encerrarPorExpiracao()).thenAnswer((_) async {});
+    whenListen(
+      sessao,
+      const Stream<SessaoState>.empty(),
+      initialState: const SessaoState.autenticada(),
+    );
     abertosNaVitrine = [];
     when(() => cubit.tentarNovamente()).thenAnswer((_) async {});
     when(() => cubit.tentarNovamenteHistorico()).thenAnswer((_) async {});
+  });
+
+  tearDown(() async {
+    await getIt.reset();
   });
 
   Future<void> montar(
     WidgetTester tester,
     GestaoImovelState estado, {
     ImovelAcervo? previa,
+    Stream<GestaoImovelState> depois = const Stream<GestaoImovelState>.empty(),
   }) async {
     // Tela de celular: com a foto 16:9 na largura padrão do teste (800) o
     // corpo passaria da área visível e o `ListView` não construiria o resto.
     await tester.binding.setSurfaceSize(const Size(400, 900));
     addTearDown(() => tester.binding.setSurfaceSize(null));
-    whenListen(
-      cubit,
-      const Stream<GestaoImovelState>.empty(),
-      initialState: estado,
-    );
+    whenListen(cubit, depois, initialState: estado);
     await tester.pumpWidget(
-      MaterialApp(
-        home: BlocProvider<GestaoImovelCubit>.value(
-          value: cubit,
-          child: GestaoImovelScreen(
-            previa: previa ?? _previa(),
-            aoVerNaVitrine: (context, imovel) async =>
-                abertosNaVitrine.add(imovel),
-            construirImagemDeRede: (url) => Text('FOTO:$url'),
+      BlocProvider<SessaoCubit>.value(
+        value: sessao,
+        child: MaterialApp(
+          home: BlocProvider<GestaoImovelCubit>.value(
+            value: cubit,
+            child: GestaoImovelScreen(
+              previa: previa ?? _previa(),
+              aoVerNaVitrine: (context, imovel) async =>
+                  abertosNaVitrine.add(imovel),
+              construirImagemDeRede: (url) => Text('FOTO:$url'),
+            ),
           ),
         ),
       ),
@@ -184,5 +206,68 @@ void main() {
 
     verify(() => cubit.tentarNovamenteHistorico()).called(1);
     verifyNever(() => cubit.tentarNovamente());
+  });
+
+  testWidgets('não encontrado: texto fixo em português, sem "Tentar de novo" '
+      'e sem texto em inglês (D-10, T-09-05)', (tester) async {
+    await montar(
+      tester,
+      const GestaoImovelState(imovel: ConteudoImovelGestao.naoEncontrado()),
+    );
+
+    expect(
+      find.text('Este imóvel não está mais no seu acervo.'),
+      findsOneWidget,
+    );
+    expect(find.text('Tentar de novo'), findsNothing);
+    expect(find.text('Não foi possível carregar o imóvel.'), findsNothing);
+    expect(find.textContaining('No Imovel matches'), findsNothing);
+    expect(find.textContaining('Not found'), findsNothing);
+  });
+
+  testWidgets('transição para sessão expirada chama encerrarPorExpiracao() e '
+      'abre o login com o aviso, só com a rota de baixo', (tester) async {
+    final login = _LoginCubitFalso();
+    whenListen(
+      login,
+      const Stream<LoginState>.empty(),
+      initialState: const LoginState.editando(),
+    );
+    getIt.registerFactory<LoginCubit>(() => login);
+
+    await montar(
+      tester,
+      const GestaoImovelState(),
+      depois: Stream.value(
+        const GestaoImovelState(imovel: ConteudoImovelGestao.sessaoExpirada()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    verify(() => sessao.encerrarPorExpiracao()).called(1);
+    expect(find.byType(LoginScreen), findsOneWidget);
+    expect(find.byType(GestaoImovelScreen), findsNothing);
+    expect(find.text('Sua sessão terminou. Entre de novo.'), findsOneWidget);
+  });
+
+  testWidgets('sessão já expirada quando a tela abre também volta ao login '
+      '(resposta chegou antes do primeiro quadro)', (tester) async {
+    final login = _LoginCubitFalso();
+    whenListen(
+      login,
+      const Stream<LoginState>.empty(),
+      initialState: const LoginState.editando(),
+    );
+    getIt.registerFactory<LoginCubit>(() => login);
+
+    await montar(
+      tester,
+      const GestaoImovelState(imovel: ConteudoImovelGestao.sessaoExpirada()),
+    );
+    await tester.pumpAndSettle();
+
+    verify(() => sessao.encerrarPorExpiracao()).called(1);
+    expect(find.byType(LoginScreen), findsOneWidget);
+    expect(find.byType(GestaoImovelScreen), findsNothing);
   });
 }

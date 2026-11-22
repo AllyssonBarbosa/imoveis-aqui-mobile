@@ -189,6 +189,66 @@ void main() {
     expect(lidosDoHistorico, hasLength(2));
     pilha.conferirCabecalhosDeAutorizacao();
   });
+
+  testWidgets(
+    '401 na leitura do imóvel leva ao login com "Sua sessão terminou. '
+    'Entre de novo." e apaga o token (D-10, T-09-08)',
+    (tester) async {
+      final pilha = await PilhaReal.preparar(token: tokenDasFixtures);
+      await pilha.entrarNoAcervo(tester);
+      pilha.api.responder(
+        (uri) => uri.path == '/api/imoveis/$id/',
+        status: 401,
+        fixture: 'erro_401.json',
+      );
+
+      await tester.tap(find.text(codigo));
+      await assentar(tester, quadros: 12);
+      expect(find.text('Sua sessão terminou. Entre de novo.'), findsOneWidget);
+      expect(find.byType(GestaoImovelScreen), findsNothing);
+      expect(pilha.armazenamento.token, isNull);
+    },
+  );
+
+  testWidgets('401 só na leitura do histórico também leva ao login e apaga o '
+      'token', (tester) async {
+    final pilha = await PilhaReal.preparar(token: tokenDasFixtures);
+    await pilha.entrarNoAcervo(tester);
+    pilha.api.responder(
+      (uri) => uri.path == '/api/imoveis/$id/historico/',
+      status: 401,
+      fixture: 'erro_401.json',
+    );
+
+    await tester.tap(find.text(codigo));
+    await assentar(tester, quadros: 12);
+
+    expect(find.text('Sua sessão terminou. Entre de novo.'), findsOneWidget);
+    expect(pilha.armazenamento.token, isNull);
+  });
+
+  testWidgets('404 na leitura do imóvel mostra o texto fixo em português e '
+      'nenhum texto em inglês (D-10, T-09-05)', (tester) async {
+    final pilha = await PilhaReal.preparar(token: tokenDasFixtures);
+    await pilha.entrarNoAcervo(tester);
+    pilha.api.responder(
+      (uri) => uri.path == '/api/imoveis/$id/',
+      status: 404,
+      fixture: 'erro_404_imovel.json',
+    );
+
+    await tester.tap(find.text(codigo));
+    await assentar(tester);
+
+    expect(
+      find.text('Este imóvel não está mais no seu acervo.'),
+      findsOneWidget,
+    );
+    expect(find.text('Tentar de novo'), findsNothing);
+    expect(find.textContaining('No Imovel'), findsNothing);
+    expect(find.textContaining('Not found'), findsNothing);
+    expect(pilha.armazenamento.token, tokenDasFixtures);
+  });
 }
 
 /// `acervo_p1.json` com `na_vitrine` falso em todos os itens e sem próxima

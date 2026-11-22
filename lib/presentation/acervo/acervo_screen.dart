@@ -6,12 +6,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../di/injection.dart';
 import '../gestao_imovel/gestao_imovel_screen.dart';
-import '../login/apresentacao_login.dart';
-import '../login/login_screen.dart';
 import '../perfis/widgets/rodape_paginacao_lista.dart';
 import '../sessao/dialogo_sair.dart';
-import '../sessao/rota_vitrine.dart';
-import '../sessao/sessao_cubit.dart';
+import '../sessao/sessao_expirada.dart';
 import 'acervo_cubit.dart';
 import 'acervo_state.dart';
 import 'apresentacao_acervo.dart';
@@ -93,21 +90,6 @@ class _CorpoAcervoState extends State<_CorpoAcervo> {
     context.read<AcervoCubit>().limparBusca();
   }
 
-  /// A sessão terminou (401 na lista): descarta o token local, deixa a sessão
-  /// anônima e abre o login com o aviso, mantendo só a rota da vitrine
-  /// embaixo.
-  Future<void> _aoSessaoExpirar() async {
-    final navegador = Navigator.of(context);
-    await context.read<SessaoCubit>().encerrarPorExpiracao();
-    if (!mounted) return;
-    navegador.pushAndRemoveUntil(
-      MaterialPageRoute<void>(
-        builder: (_) => const LoginScreen(aviso: avisoSessaoTerminou),
-      ),
-      eRotaDaVitrine,
-    );
-  }
-
   void _aoRolar() {
     if (!_controleDeRolagem.hasClients) return;
     final posicao = _controleDeRolagem.position;
@@ -139,7 +121,8 @@ class _CorpoAcervoState extends State<_CorpoAcervo> {
       listenWhen: (anterior, atual) =>
           anterior.conteudo is! AcervoSessaoExpirada &&
           atual.conteudo is AcervoSessaoExpirada,
-      listener: (context, state) => unawaited(_aoSessaoExpirar()),
+      listener: (context, state) =>
+          unawaited(voltarAoLoginComSessaoTerminada(context)),
       child: Scaffold(
         appBar: AppBar(
           title: const Text(tituloAcervo),

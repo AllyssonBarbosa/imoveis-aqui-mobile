@@ -8,6 +8,7 @@ import 'package:imoveis_aqui/domain/entities/imovel_gestao.dart';
 import 'package:imoveis_aqui/domain/entities/mudanca_situacao.dart';
 import 'package:imoveis_aqui/domain/entities/situacao_imovel.dart';
 import 'package:imoveis_aqui/domain/repositories/falhas_autenticacao.dart';
+import 'package:imoveis_aqui/domain/repositories/imovel_detalhe_repository.dart';
 import 'package:imoveis_aqui/domain/usecases/obter_historico_situacao_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/obter_imovel_gestao_usecase.dart';
 import 'package:imoveis_aqui/presentation/gestao_imovel/gestao_imovel_cubit.dart';
@@ -160,6 +161,79 @@ void main() {
         carregado(36, historico: const ConteudoHistorico.erro()),
       ],
     );
+
+    blocTest<GestaoImovelCubit, GestaoImovelState>(
+      '404 no imóvel emite não encontrado, sem erro genérico (D-10)',
+      build: () {
+        when(() => obter(36)).thenAnswer(
+          (_) async => Result.failure(const ImovelNaoEncontradoException()),
+        );
+        return construir();
+      },
+      act: (cubit) => cubit.carregar(36),
+      expect: () => [
+        const GestaoImovelState(),
+        const GestaoImovelState(
+          imovel: ConteudoImovelGestao.naoEncontrado(),
+          historico: ConteudoHistorico.carregado([]),
+        ),
+      ],
+    );
+
+    blocTest<GestaoImovelCubit, GestaoImovelState>(
+      '401 no imóvel emite sessão expirada (D-10)',
+      build: () {
+        when(() => obter(36)).thenAnswer(
+          (_) async => Result.failure(const SessaoExpiradaException()),
+        );
+        return construir();
+      },
+      act: (cubit) => cubit.carregar(36),
+      expect: () => [
+        const GestaoImovelState(),
+        const GestaoImovelState(
+          imovel: ConteudoImovelGestao.sessaoExpirada(),
+          historico: ConteudoHistorico.carregado([]),
+        ),
+      ],
+    );
+
+    blocTest<GestaoImovelCubit, GestaoImovelState>(
+      '401 só no histórico leva a tela toda para sessão expirada',
+      build: () {
+        when(() => obter(36))
+            .thenAnswer((_) async => Result.success(_imovel(36)));
+        when(() => obterHistorico(36)).thenAnswer(
+          (_) async => Result.failure(const SessaoExpiradaException()),
+        );
+        return construir();
+      },
+      act: (cubit) => cubit.carregar(36),
+      expect: () => [
+        const GestaoImovelState(),
+        const GestaoImovelState(
+          imovel: ConteudoImovelGestao.sessaoExpirada(),
+          historico: ConteudoHistorico.erro(),
+        ),
+      ],
+    );
+
+    blocTest<GestaoImovelCubit, GestaoImovelState>(
+      '404 só no histórico vira falha do histórico, com o imóvel carregado',
+      build: () {
+        when(() => obter(36))
+            .thenAnswer((_) async => Result.success(_imovel(36)));
+        when(() => obterHistorico(36)).thenAnswer(
+          (_) async => Result.failure(const ImovelNaoEncontradoException()),
+        );
+        return construir();
+      },
+      act: (cubit) => cubit.carregar(36),
+      expect: () => [
+        const GestaoImovelState(),
+        carregado(36, historico: const ConteudoHistorico.erro()),
+      ],
+    );
   });
 
   group('tentarNovamenteHistorico', () {
@@ -193,6 +267,38 @@ void main() {
         verify(() => obter(36)).called(1);
         verify(() => obterHistorico(36)).called(2);
       },
+    );
+
+    blocTest<GestaoImovelCubit, GestaoImovelState>(
+      '401 ao repetir o histórico leva a tela toda para sessão expirada',
+      build: () {
+        when(() => obter(36))
+            .thenAnswer((_) async => Result.success(_imovel(36)));
+        var chamadas = 0;
+        when(() => obterHistorico(36)).thenAnswer((_) async {
+          chamadas++;
+          return chamadas == 1
+              ? Result<List<MudancaSituacao>>.failure(
+                  const FalhaDeConexaoException(),
+                )
+              : Result<List<MudancaSituacao>>.failure(
+                  const SessaoExpiradaException(),
+                );
+        });
+        return construir();
+      },
+      act: (cubit) async {
+        await cubit.carregar(36);
+        await cubit.tentarNovamenteHistorico();
+      },
+      skip: 2,
+      expect: () => [
+        carregado(36, historico: const ConteudoHistorico.carregando()),
+        const GestaoImovelState(
+          imovel: ConteudoImovelGestao.sessaoExpirada(),
+          historico: ConteudoHistorico.erro(),
+        ),
+      ],
     );
 
     blocTest<GestaoImovelCubit, GestaoImovelState>(

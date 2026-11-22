@@ -1,9 +1,13 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../di/injection.dart';
 import '../../domain/entities/imovel_acervo.dart';
 import '../detalhe_imovel/detalhe_imovel_screen.dart';
+import '../login/apresentacao_login.dart';
+import '../sessao/sessao_expirada.dart';
 import 'apresentacao_gestao.dart';
 import 'gestao_imovel_cubit.dart';
 import 'gestao_imovel_state.dart';
@@ -49,7 +53,7 @@ Future<void> abrirGestaoImovel(
 /// por `switch` exaustivo sobre [ConteudoImovelGestao], o indicador, o erro ou
 /// a situação e o histórico. Nenhuma regra, rede ou `try/catch` aqui: só apresenta o que o
 /// [GestaoImovelCubit] entrega.
-class GestaoImovelScreen extends StatelessWidget {
+class GestaoImovelScreen extends StatefulWidget {
   const GestaoImovelScreen({
     super.key,
     required this.previa,
@@ -69,63 +73,124 @@ class GestaoImovelScreen extends StatelessWidget {
   final Widget Function(String url)? construirImagemDeRede;
 
   @override
+  State<GestaoImovelScreen> createState() => _GestaoImovelScreenState();
+}
+
+/// `StatefulWidget` só para conferir o estado já presente quando a tela abre: o
+/// abridor pede a leitura antes de empurrar a rota, então um 401 pode ter
+/// chegado antes de o `BlocListener` existir — e ele só enxerga transições
+/// (D-10).
+class _GestaoImovelScreenState extends State<GestaoImovelScreen> {
+  @override
+  void initState() {
+    super.initState();
+    final jaExpirada =
+        context.read<GestaoImovelCubit>().state.imovel
+            is ImovelGestaoSessaoExpirada;
+    if (!jaExpirada) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      unawaited(voltarAoLoginComSessaoTerminada(context));
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(previa.codigo)),
-      body: BlocBuilder<GestaoImovelCubit, GestaoImovelState>(
-        builder: (context, state) {
-          final conteudo = state.imovel;
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              CabecalhoGestao(
-                previa: previa,
-                imovel: switch (conteudo) {
-                  ImovelGestaoCarregado(:final imovel) => imovel,
-                  ImovelGestaoCarregando() || ImovelGestaoErro() => null,
-                },
-                construirImagemDeRede: construirImagemDeRede,
-              ),
-              const SizedBox(height: 16),
-              ...switch (conteudo) {
-                ImovelGestaoCarregando() => const [
-                  Center(child: CircularProgressIndicator()),
-                ],
-                ImovelGestaoErro() => [
-                  _ErroDaGestao(
-                    aoTentarDeNovo: () =>
-                        context.read<GestaoImovelCubit>().tentarNovamente(),
-                  ),
-                ],
-                ImovelGestaoCarregado(:final imovel) => [
-                  SecaoSituacao(imovel: imovel),
-                  // D-02: só o que o servidor disse no cartão (na_vitrine);
-                  // o app nunca olha publicado nem situação para isso.
-                  if (previa.naVitrine) ...[
-                    const SizedBox(height: 16),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: OutlinedButton.icon(
-                        onPressed: () =>
-                            aoVerNaVitrine(context, previa.paraPrevia()),
-                        icon: const Icon(Icons.storefront),
-                        label: const Text(rotuloVerNaVitrine),
-                      ),
+    final previa = widget.previa;
+    return BlocListener<GestaoImovelCubit, GestaoImovelState>(
+      // 401 em qualquer das duas leituras: sessão terminada, volta ao login
+      // pelo helper único do app (D-10).
+      listenWhen: (anterior, atual) =>
+          anterior.imovel is! ImovelGestaoSessaoExpirada &&
+          atual.imovel is ImovelGestaoSessaoExpirada,
+      listener: (context, state) =>
+          unawaited(voltarAoLoginComSessaoTerminada(context)),
+      child: Scaffold(
+        appBar: AppBar(title: Text(previa.codigo)),
+        body: BlocBuilder<GestaoImovelCubit, GestaoImovelState>(
+          builder: (context, state) {
+            final conteudo = state.imovel;
+            return ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                CabecalhoGestao(
+                  previa: previa,
+                  imovel: switch (conteudo) {
+                    ImovelGestaoCarregado(:final imovel) => imovel,
+                    ImovelGestaoCarregando() ||
+                    ImovelGestaoErro() ||
+                    ImovelGestaoNaoEncontrado() ||
+                    ImovelGestaoSessaoExpirada() => null,
+                  },
+                  construirImagemDeRede: widget.construirImagemDeRede,
+                ),
+                const SizedBox(height: 16),
+                ...switch (conteudo) {
+                  ImovelGestaoCarregando() => const [
+                    Center(child: CircularProgressIndicator()),
+                  ],
+                  ImovelGestaoErro() => [
+                    _ErroDaGestao(
+                      aoTentarDeNovo: () =>
+                          context.read<GestaoImovelCubit>().tentarNovamente(),
                     ),
                   ],
-                  const SizedBox(height: 24),
-                  HistoricoSituacao(
-                    conteudo: state.historico,
-                    aoTentarDeNovo: () => context
-                        .read<GestaoImovelCubit>()
-                        .tentarNovamenteHistorico(),
-                  ),
-                ],
-              },
-            ],
-          );
-        },
+                  ImovelGestaoNaoEncontrado() => [
+                    const _MensagemDaGestao(texto: textoImovelForaDoAcervo),
+                  ],
+                  // Enquanto a navegação para o login acontece.
+                  ImovelGestaoSessaoExpirada() => [
+                    const _MensagemDaGestao(texto: avisoSessaoTerminou),
+                  ],
+                  ImovelGestaoCarregado(:final imovel) => [
+                    SecaoSituacao(imovel: imovel),
+                    // D-02: só o que o servidor disse no cartão (na_vitrine);
+                    // o app nunca olha publicado nem situação para isso.
+                    if (previa.naVitrine) ...[
+                      const SizedBox(height: 16),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: OutlinedButton.icon(
+                          onPressed: () => widget.aoVerNaVitrine(
+                            context,
+                            previa.paraPrevia(),
+                          ),
+                          icon: const Icon(Icons.storefront),
+                          label: const Text(rotuloVerNaVitrine),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 24),
+                    HistoricoSituacao(
+                      conteudo: state.historico,
+                      aoTentarDeNovo: () => context
+                          .read<GestaoImovelCubit>()
+                          .tentarNovamenteHistorico(),
+                    ),
+                  ],
+                },
+              ],
+            );
+          },
+        ),
       ),
+    );
+  }
+}
+
+/// Mensagem fixa de um desfecho sem conteúdo e sem nova tentativa (imóvel fora
+/// do acervo, sessão terminada).
+class _MensagemDaGestao extends StatelessWidget {
+  const _MensagemDaGestao({required this.texto});
+
+  final String texto;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      texto,
+      style: Theme.of(context).textTheme.bodyLarge,
+      textAlign: TextAlign.center,
     );
   }
 }

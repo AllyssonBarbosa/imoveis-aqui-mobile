@@ -30,6 +30,16 @@ sealed class ConteudoImovelGestao with _$ConteudoImovelGestao {
 
   /// Falha na leitura — "Tentar de novo" chama `tentarNovamente()`.
   const factory ConteudoImovelGestao.erro() = ImovelGestaoErro;
+
+  /// O servidor respondeu 404: o imóvel não está (mais) no acervo do corretor;
+  /// a tela mostra um texto fixo, sem "Tentar de novo" (D-10).
+  const factory ConteudoImovelGestao.naoEncontrado() =
+      ImovelGestaoNaoEncontrado;
+
+  /// O servidor recusou o token (401) em qualquer das duas leituras: a tela
+  /// volta ao login (D-10, padrão da Fase 8).
+  const factory ConteudoImovelGestao.sessaoExpirada() =
+      ImovelGestaoSessaoExpirada;
 }
 
 /// União selada dos desfechos da leitura do histórico — a seção decide o que

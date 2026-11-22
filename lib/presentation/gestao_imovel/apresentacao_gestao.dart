@@ -12,6 +12,11 @@ import '../acervo/apresentacao_acervo.dart';
 /// servidor (T-09-05).
 const String textoErroGestao = 'Não foi possível carregar o imóvel.';
 
+/// Imóvel que o servidor não encontra mais (404) — texto fixo em português; o
+/// `detail` em inglês do Django nunca chega à tela (T-09-05).
+const String textoImovelForaDoAcervo =
+    'Este imóvel não está mais no seu acervo.';
+
 /// Rótulo do botão que repete a leitura.
 const String rotuloTentarDeNovo = 'Tentar de novo';
 

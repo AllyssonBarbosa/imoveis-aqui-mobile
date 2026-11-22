@@ -359,13 +359,15 @@ extension ConteudoImovelGestaoPatterns on ConteudoImovelGestao {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( ImovelGestaoCarregando value)?  carregando,TResult Function( ImovelGestaoCarregado value)?  carregado,TResult Function( ImovelGestaoErro value)?  erro,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( ImovelGestaoCarregando value)?  carregando,TResult Function( ImovelGestaoCarregado value)?  carregado,TResult Function( ImovelGestaoErro value)?  erro,TResult Function( ImovelGestaoNaoEncontrado value)?  naoEncontrado,TResult Function( ImovelGestaoSessaoExpirada value)?  sessaoExpirada,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case ImovelGestaoCarregando() when carregando != null:
 return carregando(_that);case ImovelGestaoCarregado() when carregado != null:
 return carregado(_that);case ImovelGestaoErro() when erro != null:
-return erro(_that);case _:
+return erro(_that);case ImovelGestaoNaoEncontrado() when naoEncontrado != null:
+return naoEncontrado(_that);case ImovelGestaoSessaoExpirada() when sessaoExpirada != null:
+return sessaoExpirada(_that);case _:
   return orElse();
 
 }
@@ -383,13 +385,15 @@ return erro(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( ImovelGestaoCarregando value)  carregando,required TResult Function( ImovelGestaoCarregado value)  carregado,required TResult Function( ImovelGestaoErro value)  erro,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( ImovelGestaoCarregando value)  carregando,required TResult Function( ImovelGestaoCarregado value)  carregado,required TResult Function( ImovelGestaoErro value)  erro,required TResult Function( ImovelGestaoNaoEncontrado value)  naoEncontrado,required TResult Function( ImovelGestaoSessaoExpirada value)  sessaoExpirada,}){
 final _that = this;
 switch (_that) {
 case ImovelGestaoCarregando():
 return carregando(_that);case ImovelGestaoCarregado():
 return carregado(_that);case ImovelGestaoErro():
-return erro(_that);}
+return erro(_that);case ImovelGestaoNaoEncontrado():
+return naoEncontrado(_that);case ImovelGestaoSessaoExpirada():
+return sessaoExpirada(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
 ///
@@ -403,13 +407,15 @@ return erro(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( ImovelGestaoCarregando value)?  carregando,TResult? Function( ImovelGestaoCarregado value)?  carregado,TResult? Function( ImovelGestaoErro value)?  erro,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( ImovelGestaoCarregando value)?  carregando,TResult? Function( ImovelGestaoCarregado value)?  carregado,TResult? Function( ImovelGestaoErro value)?  erro,TResult? Function( ImovelGestaoNaoEncontrado value)?  naoEncontrado,TResult? Function( ImovelGestaoSessaoExpirada value)?  sessaoExpirada,}){
 final _that = this;
 switch (_that) {
 case ImovelGestaoCarregando() when carregando != null:
 return carregando(_that);case ImovelGestaoCarregado() when carregado != null:
 return carregado(_that);case ImovelGestaoErro() when erro != null:
-return erro(_that);case _:
+return erro(_that);case ImovelGestaoNaoEncontrado() when naoEncontrado != null:
+return naoEncontrado(_that);case ImovelGestaoSessaoExpirada() when sessaoExpirada != null:
+return sessaoExpirada(_that);case _:
   return null;
 
 }
@@ -426,12 +432,14 @@ return erro(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  carregando,TResult Function( ImovelGestao imovel)?  carregado,TResult Function()?  erro,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  carregando,TResult Function( ImovelGestao imovel)?  carregado,TResult Function()?  erro,TResult Function()?  naoEncontrado,TResult Function()?  sessaoExpirada,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case ImovelGestaoCarregando() when carregando != null:
 return carregando();case ImovelGestaoCarregado() when carregado != null:
 return carregado(_that.imovel);case ImovelGestaoErro() when erro != null:
-return erro();case _:
+return erro();case ImovelGestaoNaoEncontrado() when naoEncontrado != null:
+return naoEncontrado();case ImovelGestaoSessaoExpirada() when sessaoExpirada != null:
+return sessaoExpirada();case _:
   return orElse();
 
 }
@@ -449,12 +457,14 @@ return erro();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  carregando,required TResult Function( ImovelGestao imovel)  carregado,required TResult Function()  erro,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  carregando,required TResult Function( ImovelGestao imovel)  carregado,required TResult Function()  erro,required TResult Function()  naoEncontrado,required TResult Function()  sessaoExpirada,}) {final _that = this;
 switch (_that) {
 case ImovelGestaoCarregando():
 return carregando();case ImovelGestaoCarregado():
 return carregado(_that.imovel);case ImovelGestaoErro():
-return erro();}
+return erro();case ImovelGestaoNaoEncontrado():
+return naoEncontrado();case ImovelGestaoSessaoExpirada():
+return sessaoExpirada();}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -468,12 +478,14 @@ return erro();}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  carregando,TResult? Function( ImovelGestao imovel)?  carregado,TResult? Function()?  erro,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  carregando,TResult? Function( ImovelGestao imovel)?  carregado,TResult? Function()?  erro,TResult? Function()?  naoEncontrado,TResult? Function()?  sessaoExpirada,}) {final _that = this;
 switch (_that) {
 case ImovelGestaoCarregando() when carregando != null:
 return carregando();case ImovelGestaoCarregado() when carregado != null:
 return carregado(_that.imovel);case ImovelGestaoErro() when erro != null:
-return erro();case _:
+return erro();case ImovelGestaoNaoEncontrado() when naoEncontrado != null:
+return naoEncontrado();case ImovelGestaoSessaoExpirada() when sessaoExpirada != null:
+return sessaoExpirada();case _:
   return null;
 
 }
@@ -605,6 +617,70 @@ int get hashCode => runtimeType.hashCode;
 @override
 String toString() {
     return 'ConteudoImovelGestao.erro()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class ImovelGestaoNaoEncontrado implements ConteudoImovelGestao {
+  const ImovelGestaoNaoEncontrado();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is ImovelGestaoNaoEncontrado);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+    return 'ConteudoImovelGestao.naoEncontrado()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class ImovelGestaoSessaoExpirada implements ConteudoImovelGestao {
+  const ImovelGestaoSessaoExpirada();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is ImovelGestaoSessaoExpirada);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+    return 'ConteudoImovelGestao.sessaoExpirada()';
 }
 
 
