@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/core/result.dart';
@@ -143,6 +145,134 @@ void main() {
         tester.widget<FilledButton>(botaoConfirmar()).onPressed,
         isNotNull,
       );
+    });
+  });
+  group('envio protegido (D-09, D-10, T-09-07)', () {
+    /// Abre a folha, escolhe "Reservado" e toca em Confirmar com o UseCase
+    /// preso no [completer]: o envio fica em voo até o teste soltar.
+    Future<void> iniciarEnvioEmVoo(
+      WidgetTester tester,
+      Completer<Result<void>> completer,
+    ) async {
+      respondeCom(() => completer.future);
+      await abrirFolha(tester);
+      await tester.tap(find.byKey(const ValueKey('chip-mudar-reservado')));
+      await tester.pump();
+      await tester.enterText(find.byType(TextField), 'Sinal pago');
+      await tester.tap(botaoConfirmar());
+      // Sem pumpAndSettle: o indicador de progresso mantém a animação de pé.
+      await tester.pump();
+    }
+
+    testWidgets('durante o envio Confirmar mostra carregamento e fica '
+        'desabilitado; chips e campo ficam desabilitados', (tester) async {
+      final completer = Completer<Result<void>>();
+      await iniciarEnvioEmVoo(tester, completer);
+
+      final botao = tester.widget<FilledButton>(find.byType(FilledButton));
+      expect(botao.onPressed, isNull);
+      expect(
+        find.descendant(
+          of: find.byType(FilledButton),
+          matching: find.byType(CircularProgressIndicator),
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Confirmar'), findsNothing);
+      for (final situacao in SituacaoImovel.values) {
+        expect(
+          tester
+              .widget<ChoiceChip>(
+                find.byKey(ValueKey('chip-mudar-${situacao.name}')),
+              )
+              .onSelected,
+          isNull,
+          reason: 'chip ${situacao.name} deve ficar desabilitado no envio',
+        );
+      }
+      expect(tester.widget<TextField>(find.byType(TextField)).enabled, isFalse);
+
+      completer.complete(const Success<void>(null));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('dois toques seguidos em Confirmar geram UMA chamada ao '
+        'UseCase', (tester) async {
+      final completer = Completer<Result<void>>();
+      await iniciarEnvioEmVoo(tester, completer);
+
+      await tester.tap(find.byType(FilledButton), warnIfMissed: false);
+      await tester.pump();
+
+      verify(
+        () =>
+            mudar(imovelId, SituacaoImovel.reservado, observacao: 'Sinal pago'),
+      ).called(1);
+
+      completer.complete(const Success<void>(null));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('tocar na barreira fora da folha durante o envio NÃO fecha a '
+        'folha', (tester) async {
+      final completer = Completer<Result<void>>();
+      await iniciarEnvioEmVoo(tester, completer);
+
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(find.byType(FilledButton), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      completer.complete(const Success<void>(null));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('o botão voltar (handlePopRoute) durante o envio NÃO fecha a '
+        'folha', (tester) async {
+      final completer = Completer<Result<void>>();
+      await iniciarEnvioEmVoo(tester, completer);
+
+      await tester.binding.handlePopRoute();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(find.byType(FilledButton), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      completer.complete(const Success<void>(null));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('a folha não tem alça de arrasto e não deixa arrastar para '
+        'fechar', (tester) async {
+      await abrirFolha(tester);
+
+      // A alça é um widget privado do SDK: confere-se o que a liga.
+      final folha = tester.widget<BottomSheet>(find.byType(BottomSheet));
+      expect(folha.showDragHandle, isFalse);
+      expect(folha.enableDrag, isFalse);
+    });
+
+    testWidgets('ao completar com sucesso a folha fecha', (tester) async {
+      final completer = Completer<Result<void>>();
+      await iniciarEnvioEmVoo(tester, completer);
+
+      completer.complete(const Success<void>(null));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(FilledButton), findsNothing);
+      expect(find.text('abrir'), findsOneWidget);
+    });
+
+    testWidgets('com o envio ocioso, tocar na barreira fecha a folha '
+        '(o PopScope só segura durante o envio)', (tester) async {
+      await abrirFolha(tester);
+      expect(find.byType(FilledButton), findsOneWidget);
+
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(FilledButton), findsNothing);
     });
   });
 }

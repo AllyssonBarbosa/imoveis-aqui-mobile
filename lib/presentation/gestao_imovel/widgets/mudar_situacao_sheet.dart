@@ -14,6 +14,11 @@ import '../mudar_situacao_state.dart';
 /// folha recebe o mesmo Cubit por `BlocProvider.value` dentro do `builder`
 /// (mesmo aviso de `mostrarContatoBottomSheet`). O Cubit não é fechado aqui —
 /// quem o criou é dono dele.
+///
+/// A folha não tem alça nem arrasto (`showDragHandle` e `enableDrag` falsos):
+/// no SDK a alça fecha a folha por `Navigator.pop` direto, por fora do
+/// `PopScope`, e o `PopScope` é o que a segura durante o envio (D-10,
+/// T-09-07). O toque na barreira usa `maybePop` e respeita o `PopScope`.
 Future<void> mostrarMudarSituacaoSheet(
   BuildContext context, {
   required MudarSituacaoCubit cubit,
@@ -21,7 +26,8 @@ Future<void> mostrarMudarSituacaoSheet(
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
-    showDragHandle: true,
+    enableDrag: false,
+    showDragHandle: false,
     builder: (_) => BlocProvider<MudarSituacaoCubit>.value(
       value: cubit,
       child: const _FolhaMudarSituacao(),
@@ -33,6 +39,11 @@ Future<void> mostrarMudarSituacaoSheet(
 /// desabilitada), a observação opcional com limite de [limiteObservacao]
 /// caracteres (D-06, D-17), o "Data: hoje" informativo (D-05) e o
 /// `FilledButton` "Confirmar".
+///
+/// Durante o envio (D-10, T-09-07) Confirmar mostra carregamento e fica
+/// desabilitado, chips e campo ficam desabilitados e o `PopScope` impede o
+/// fechamento pela barreira e pelo botão voltar; a guarda do toque duplo é do
+/// Cubit (`podeConfirmar`), a folha só reflete o estado.
 ///
 /// É dona do `TextEditingController` da observação, que só existe em memória:
 /// nada vai para disco nem para log (T-09-06). Como a folha não fecha numa
@@ -71,76 +82,87 @@ class _FolhaMudarSituacaoState extends State<_FolhaMudarSituacao> {
           anterior.envio is! EnvioConcluido && atual.envio is EnvioConcluido,
       listener: (context, state) => Navigator.of(context).pop(),
       builder: (context, state) {
-        return SafeArea(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.fromLTRB(
-              16,
-              8,
-              16,
-              16 + MediaQuery.viewInsetsOf(context).bottom,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(tituloFolhaMudarSituacao, style: textTheme.titleLarge),
-                const SizedBox(height: 16),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    for (final situacao in SituacaoImovel.values)
-                      ChoiceChip(
-                        key: ValueKey('chip-mudar-${situacao.name}'),
-                        label: Text(rotuloSituacao(situacao)),
-                        selected: situacao == state.escolhida,
-                        // A situação atual não pode ser escolhida (D-09).
-                        onSelected: situacao == state.atual
-                            ? null
-                            : (_) => context
-                                  .read<MudarSituacaoCubit>()
-                                  .escolher(situacao),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _controleObservacao,
-                  maxLength: limiteObservacao,
-                  minLines: 2,
-                  maxLines: 4,
-                  decoration: const InputDecoration(
-                    labelText: rotuloObservacao,
-                    hintText: dicaObservacao,
+        final enviando = state.envio is EnvioEnviando;
+        return PopScope(
+          canPop: !enviando,
+          child: SafeArea(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(
+                16,
+                8,
+                16,
+                16 + MediaQuery.viewInsetsOf(context).bottom,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(tituloFolhaMudarSituacao, style: textTheme.titleLarge),
+                  const SizedBox(height: 16),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      for (final situacao in SituacaoImovel.values)
+                        ChoiceChip(
+                          key: ValueKey('chip-mudar-${situacao.name}'),
+                          label: Text(rotuloSituacao(situacao)),
+                          selected: situacao == state.escolhida,
+                          // A situação atual não pode ser escolhida (D-09) e nada
+                          // muda com o envio em voo (D-10).
+                          onSelected: enviando || situacao == state.atual
+                              ? null
+                              : (_) => context
+                                    .read<MudarSituacaoCubit>()
+                                    .escolher(situacao),
+                        ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  textoDataHoje,
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _controleObservacao,
+                    enabled: !enviando,
+                    maxLength: limiteObservacao,
+                    minLines: 2,
+                    maxLines: 4,
+                    decoration: const InputDecoration(
+                      labelText: rotuloObservacao,
+                      hintText: dicaObservacao,
+                    ),
                   ),
-                ),
-                if (state.envio is EnvioFalhou) ...[
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 4),
                   Text(
-                    textoFalhaAoMudar,
+                    textoDataHoje,
                     style: textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.error,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  if (state.envio is EnvioFalhou) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      textoFalhaAoMudar,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.error,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: state.podeConfirmar
+                          ? () => _confirmar(context)
+                          : null,
+                      child: enviando
+                          ? const SizedBox.square(
+                              dimension: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text(rotuloConfirmar),
                     ),
                   ),
                 ],
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    onPressed: state.podeConfirmar
-                        ? () => _confirmar(context)
-                        : null,
-                    child: const Text(rotuloConfirmar),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         );
