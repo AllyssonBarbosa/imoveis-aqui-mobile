@@ -126,122 +126,131 @@ class _GestaoImovelScreenState extends State<GestaoImovelScreen> {
         listener: (context, state) => ScaffoldMessenger.of(context)
             .showSnackBar(const SnackBar(content: Text(textoFalhaAoAtualizar))),
         child: BlocListener<MudarSituacaoCubit, MudarSituacaoState>(
-          // O servidor aceitou a mudança (a folha fecha sozinha): avisa com o
-          // texto do site e relê imóvel e histórico — a tela só mostra o que
-          // a API devolver (D-10, T-09-03).
+          // 401 no envio da folha: sessão terminada, volta ao login pelo helper
+          // único; o `pushAndRemoveUntil` do helper tira a folha também (D-10).
           listenWhen: (anterior, atual) =>
-              anterior.envio is! EnvioConcluido &&
-              atual.envio is EnvioConcluido,
-          listener: (context, state) {
-            final envio = state.envio;
-            if (envio is! EnvioConcluido) return;
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(textoSituacaoAlterada(envio.situacao))),
-            );
-            unawaited(context.read<GestaoImovelCubit>().registrarMudanca());
-          },
-          child: Scaffold(
-            appBar: AppBar(title: Text(previa.codigo)),
-            body: BlocBuilder<GestaoImovelCubit, GestaoImovelState>(
-              builder: (context, state) {
-                final conteudo = state.imovel;
-                return RefreshIndicator(
-                  onRefresh: () =>
-                      context.read<GestaoImovelCubit>().recarregar(),
-                  child: ListView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.all(16),
-                    children: [
-                      CabecalhoGestao(
-                        previa: previa,
-                        imovel: switch (conteudo) {
-                          ImovelGestaoCarregado(:final imovel) => imovel,
-                          ImovelGestaoCarregando() ||
-                          ImovelGestaoErro() ||
-                          ImovelGestaoNaoEncontrado() ||
-                          ImovelGestaoSessaoExpirada() => null,
-                        },
-                        construirImagemDeRede: widget.construirImagemDeRede,
-                      ),
-                      const SizedBox(height: 16),
-                      ...switch (conteudo) {
-                        ImovelGestaoCarregando() => const [
-                          Center(child: CircularProgressIndicator()),
-                        ],
-                        ImovelGestaoErro() => [
-                          _ErroDaGestao(
-                            aoTentarDeNovo: () => context
-                                .read<GestaoImovelCubit>()
-                                .tentarNovamente(),
-                          ),
-                        ],
-                        ImovelGestaoNaoEncontrado() => [
-                          const _MensagemDaGestao(
-                            texto: textoImovelForaDoAcervo,
-                          ),
-                        ],
-                        // Enquanto a navegação para o login acontece.
-                        ImovelGestaoSessaoExpirada() => [
-                          const _MensagemDaGestao(texto: avisoSessaoTerminou),
-                        ],
-                        ImovelGestaoCarregado(:final imovel) => [
-                          SecaoSituacao(imovel: imovel),
-                          // D-04: só o que o servidor disse (pode_mudar_situacao);
-                          // nenhum widget decide quem pode mudar.
-                          if (imovel.podeMudarSituacao) ...[
-                            const SizedBox(height: 16),
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: FilledButton.icon(
-                                onPressed: () {
-                                  final mudar =
-                                      context.read<MudarSituacaoCubit>()
-                                        ..iniciar(
-                                          imovelId: imovel.id,
-                                          atual: imovel.situacao,
-                                        );
-                                  unawaited(
-                                    mostrarMudarSituacaoSheet(
-                                      context,
-                                      cubit: mudar,
-                                    ),
-                                  );
-                                },
-                                icon: const Icon(Icons.swap_horiz),
-                                label: const Text(rotuloBotaoMudarSituacao),
-                              ),
+              anterior.envio is! EnvioSessaoExpirada &&
+              atual.envio is EnvioSessaoExpirada,
+          listener: (context, state) =>
+              unawaited(voltarAoLoginComSessaoTerminada(context)),
+          child: BlocListener<MudarSituacaoCubit, MudarSituacaoState>(
+            // O servidor aceitou a mudança (a folha fecha sozinha): avisa com o
+            // texto do site e relê imóvel e histórico — a tela só mostra o que
+            // a API devolver (D-10, T-09-03).
+            listenWhen: (anterior, atual) =>
+                anterior.envio is! EnvioConcluido &&
+                atual.envio is EnvioConcluido,
+            listener: (context, state) {
+              final envio = state.envio;
+              if (envio is! EnvioConcluido) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(textoSituacaoAlterada(envio.situacao))),
+              );
+              unawaited(context.read<GestaoImovelCubit>().registrarMudanca());
+            },
+            child: Scaffold(
+              appBar: AppBar(title: Text(previa.codigo)),
+              body: BlocBuilder<GestaoImovelCubit, GestaoImovelState>(
+                builder: (context, state) {
+                  final conteudo = state.imovel;
+                  return RefreshIndicator(
+                    onRefresh: () =>
+                        context.read<GestaoImovelCubit>().recarregar(),
+                    child: ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.all(16),
+                      children: [
+                        CabecalhoGestao(
+                          previa: previa,
+                          imovel: switch (conteudo) {
+                            ImovelGestaoCarregado(:final imovel) => imovel,
+                            ImovelGestaoCarregando() ||
+                            ImovelGestaoErro() ||
+                            ImovelGestaoNaoEncontrado() ||
+                            ImovelGestaoSessaoExpirada() => null,
+                          },
+                          construirImagemDeRede: widget.construirImagemDeRede,
+                        ),
+                        const SizedBox(height: 16),
+                        ...switch (conteudo) {
+                          ImovelGestaoCarregando() => const [
+                            Center(child: CircularProgressIndicator()),
+                          ],
+                          ImovelGestaoErro() => [
+                            _ErroDaGestao(
+                              aoTentarDeNovo: () => context
+                                  .read<GestaoImovelCubit>()
+                                  .tentarNovamente(),
                             ),
                           ],
-                          // D-02: só o que o servidor disse no cartão (na_vitrine);
-                          // o app nunca olha publicado nem situação para isso.
-                          // D-18: depois de uma mudança o botão some até reabrir.
-                          if (previa.naVitrine && !state.mudou) ...[
-                            const SizedBox(height: 16),
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: OutlinedButton.icon(
-                                onPressed: () => widget.aoVerNaVitrine(
-                                  context,
-                                  previa.paraPrevia(),
+                          ImovelGestaoNaoEncontrado() => [
+                            const _MensagemDaGestao(
+                              texto: textoImovelForaDoAcervo,
+                            ),
+                          ],
+                          // Enquanto a navegação para o login acontece.
+                          ImovelGestaoSessaoExpirada() => [
+                            const _MensagemDaGestao(texto: avisoSessaoTerminou),
+                          ],
+                          ImovelGestaoCarregado(:final imovel) => [
+                            SecaoSituacao(imovel: imovel),
+                            // D-04: só o que o servidor disse (pode_mudar_situacao);
+                            // nenhum widget decide quem pode mudar.
+                            if (imovel.podeMudarSituacao) ...[
+                              const SizedBox(height: 16),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: FilledButton.icon(
+                                  onPressed: () {
+                                    final mudar =
+                                        context.read<MudarSituacaoCubit>()
+                                          ..iniciar(
+                                            imovelId: imovel.id,
+                                            atual: imovel.situacao,
+                                          );
+                                    unawaited(
+                                      mostrarMudarSituacaoSheet(
+                                        context,
+                                        cubit: mudar,
+                                      ),
+                                    );
+                                  },
+                                  icon: const Icon(Icons.swap_horiz),
+                                  label: const Text(rotuloBotaoMudarSituacao),
                                 ),
-                                icon: const Icon(Icons.storefront),
-                                label: const Text(rotuloVerNaVitrine),
                               ),
+                            ],
+                            // D-02: só o que o servidor disse no cartão (na_vitrine);
+                            // o app nunca olha publicado nem situação para isso.
+                            // D-18: depois de uma mudança o botão some até reabrir.
+                            if (previa.naVitrine && !state.mudou) ...[
+                              const SizedBox(height: 16),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: OutlinedButton.icon(
+                                  onPressed: () => widget.aoVerNaVitrine(
+                                    context,
+                                    previa.paraPrevia(),
+                                  ),
+                                  icon: const Icon(Icons.storefront),
+                                  label: const Text(rotuloVerNaVitrine),
+                                ),
+                              ),
+                            ],
+                            const SizedBox(height: 24),
+                            HistoricoSituacao(
+                              conteudo: state.historico,
+                              aoTentarDeNovo: () => context
+                                  .read<GestaoImovelCubit>()
+                                  .tentarNovamenteHistorico(),
                             ),
                           ],
-                          const SizedBox(height: 24),
-                          HistoricoSituacao(
-                            conteudo: state.historico,
-                            aoTentarDeNovo: () => context
-                                .read<GestaoImovelCubit>()
-                                .tentarNovamenteHistorico(),
-                          ),
-                        ],
-                      },
-                    ],
-                  ),
-                );
-              },
+                        },
+                      ],
+                    ),
+                  );
+                },
+              ),
             ),
           ),
         ),

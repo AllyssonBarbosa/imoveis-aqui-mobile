@@ -56,8 +56,9 @@ const String textoDataHoje = 'Data: hoje';
 /// não limita o tamanho (§16.6), então o limite vive só na tela.
 const int limiteObservacao = 500;
 
-/// Falha genérica do pedido de mudança; nunca mostra o corpo do erro do
-/// servidor (T-09-05). A mensagem do servidor na folha vem no 09-12.
+/// Falha de rede, tempo esgotado ou 5xx no pedido de mudança; nunca mostra o
+/// corpo do erro do servidor (T-09-05). Só a recusa 400/403 exibe a mensagem do
+/// próprio servidor (`EnvioRecusado`).
 const String textoFalhaAoMudar =
     'Não foi possível mudar a situação agora. Tente de novo.';
 

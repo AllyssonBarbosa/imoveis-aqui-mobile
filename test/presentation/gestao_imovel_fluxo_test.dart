@@ -492,6 +492,91 @@ void main() {
       );
     });
 
+    testWidgets('falha 5xx no envio: texto fixo na folha; tocar Confirmar de '
+        'novo faz um segundo POST (do corretor, não automático) e, com 200, '
+        'fecha a folha (D-10, Pitfall 4)', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final pilha = await abrirGestao(tester);
+      pilha.api.falharProximas('/api/imoveis/$id/situacao/', status: 500);
+
+      await tester.tap(find.text('Mudar situação'));
+      await assentar(tester);
+      await tester.tap(find.byKey(const ValueKey('chip-mudar-reservado')));
+      await tester.pump();
+      await tester.tap(find.widgetWithText(FilledButton, 'Confirmar'));
+      await assentar(tester, quadros: 12);
+
+      expect(
+        find.text('Não foi possível mudar a situação agora. Tente de novo.'),
+        findsOneWidget,
+      );
+      expect(find.text('Confirmar'), findsOneWidget);
+      // Sem reenvio automático: um POST só até aqui.
+      expect(pilha.api.chamadas.where((c) => c.metodo == 'POST'), hasLength(1));
+      expect(_situacaoNaTela('Disponível'), findsOneWidget);
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Confirmar'));
+      await assentar(tester, quadros: 12);
+
+      expect(pilha.api.chamadas.where((c) => c.metodo == 'POST'), hasLength(2));
+      expect(find.text('Confirmar'), findsNothing);
+      expect(find.text('Situação alterada para reservado.'), findsOneWidget);
+    });
+
+    testWidgets('404 no envio: a folha mostra o texto fixo em português e o '
+        'texto em inglês do servidor não aparece (D-10, T-09-05)', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final pilha = await abrirGestao(tester);
+      pilha.api.responder(
+        (uri) => uri.path == '/api/imoveis/$id/situacao/',
+        status: 404,
+        fixture: 'erro_404_imovel.json',
+      );
+
+      await tester.tap(find.text('Mudar situação'));
+      await assentar(tester);
+      await tester.tap(find.byKey(const ValueKey('chip-mudar-reservado')));
+      await tester.pump();
+      await tester.tap(find.widgetWithText(FilledButton, 'Confirmar'));
+      await assentar(tester, quadros: 12);
+
+      expect(
+        find.text('Este imóvel não está mais no seu acervo.'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('No Imovel'), findsNothing);
+      expect(find.textContaining('matches the given query'), findsNothing);
+      expect(pilha.armazenamento.token, tokenDasFixtures);
+    });
+
+    testWidgets('401 no envio leva ao login com "Sua sessão terminou. Entre '
+        'de novo." e apaga o token (D-10, T-09-08)', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final pilha = await abrirGestao(tester);
+      pilha.api.responder(
+        (uri) => uri.path == '/api/imoveis/$id/situacao/',
+        status: 401,
+        fixture: 'erro_401.json',
+      );
+
+      await tester.tap(find.text('Mudar situação'));
+      await assentar(tester);
+      await tester.tap(find.byKey(const ValueKey('chip-mudar-reservado')));
+      await tester.pump();
+      await tester.tap(find.widgetWithText(FilledButton, 'Confirmar'));
+      await assentar(tester, quadros: 12);
+
+      expect(find.text('Sua sessão terminou. Entre de novo.'), findsOneWidget);
+      expect(find.byType(GestaoImovelScreen), findsNothing);
+      expect(find.text('Confirmar'), findsNothing);
+      expect(pilha.armazenamento.token, isNull);
+    });
+
     testWidgets('colega (pode_mudar_situacao falso): sem "Mudar situação" e '
         'com o histórico à vista (SIT-06, AC-6)', (tester) async {
       await tester.binding.setSurfaceSize(const Size(400, 1200));

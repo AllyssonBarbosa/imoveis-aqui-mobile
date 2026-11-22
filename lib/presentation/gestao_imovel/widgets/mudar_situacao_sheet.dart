@@ -81,8 +81,13 @@ class _FolhaMudarSituacaoState extends State<_FolhaMudarSituacao> {
   ) {
     final texto = switch (envio) {
       EnvioRecusado(:final mensagem) => mensagem,
+      EnvioNaoEncontrado() => textoImovelForaDoAcervo,
       EnvioFalhou() => textoFalhaAoMudar,
-      EnvioOcioso() || EnvioEnviando() || EnvioConcluido() => null,
+      // A sessão expirada não tem texto na folha: a tela leva ao login.
+      EnvioOcioso() ||
+      EnvioEnviando() ||
+      EnvioConcluido() ||
+      EnvioSessaoExpirada() => null,
     };
     if (texto == null) return const [];
     return [

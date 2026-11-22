@@ -4,7 +4,9 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/core/result.dart';
 import 'package:imoveis_aqui/domain/entities/situacao_imovel.dart';
+import 'package:imoveis_aqui/domain/repositories/falhas_autenticacao.dart';
 import 'package:imoveis_aqui/domain/repositories/gestao_imovel_repository.dart';
+import 'package:imoveis_aqui/domain/repositories/imovel_detalhe_repository.dart';
 import 'package:imoveis_aqui/domain/usecases/mudar_situacao_usecase.dart';
 import 'package:imoveis_aqui/presentation/gestao_imovel/mudar_situacao_cubit.dart';
 import 'package:imoveis_aqui/presentation/gestao_imovel/mudar_situacao_state.dart';
@@ -182,6 +184,54 @@ void main() {
         expect(cubit.state.envio, const EnvioSituacao.ocioso());
       },
     );
+
+    for (final (nome, erro, esperado) in <(String, Exception, EnvioSituacao)>[
+      (
+        '404 (ImovelNaoEncontradoException)',
+        const ImovelNaoEncontradoException(),
+        const EnvioSituacao.naoEncontrado(),
+      ),
+      (
+        '401 (SessaoExpiradaException)',
+        const SessaoExpiradaException(),
+        const EnvioSituacao.sessaoExpirada(),
+      ),
+      (
+        'rede, tempo esgotado ou 5xx (FalhaDeConexaoException)',
+        const FalhaDeConexaoException(),
+        const EnvioSituacao.falhou(),
+      ),
+    ]) {
+      blocTest<MudarSituacaoCubit, MudarSituacaoState>(
+        '$nome: emite enviando e o desfecho do tipo, com UMA chamada ao '
+        'UseCase (sem nova tentativa automática, D-10)',
+        build: () {
+          respondeCom(Result.failure(erro));
+          return iniciado()..escolher(SituacaoImovel.reservado);
+        },
+        act: (cubit) => cubit.confirmar(),
+        expect: () => [
+          isA<MudarSituacaoState>().having(
+            (e) => e.envio,
+            'envio',
+            const EnvioSituacao.enviando(),
+          ),
+          isA<MudarSituacaoState>()
+              .having((e) => e.envio, 'envio', esperado)
+              .having(
+                (e) => e.escolhida,
+                'escolhida',
+                SituacaoImovel.reservado,
+              ),
+        ],
+        verify: (cubit) {
+          verify(
+            () => mudar(imovelId, SituacaoImovel.reservado, observacao: ''),
+          ).called(1);
+          expect(cubit.state.podeConfirmar, isTrue);
+        },
+      );
+    }
 
     blocTest<MudarSituacaoCubit, MudarSituacaoState>(
       'confirmar(observacao: "Sinal pago") entrega o texto ao UseCase',

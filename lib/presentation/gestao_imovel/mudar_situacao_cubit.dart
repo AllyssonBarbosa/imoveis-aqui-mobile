@@ -3,7 +3,9 @@ import 'package:injectable/injectable.dart';
 
 import '../../core/result.dart';
 import '../../domain/entities/situacao_imovel.dart';
+import '../../domain/repositories/falhas_autenticacao.dart';
 import '../../domain/repositories/gestao_imovel_repository.dart';
+import '../../domain/repositories/imovel_detalhe_repository.dart';
 import '../../domain/usecases/mudar_situacao_usecase.dart';
 import 'mudar_situacao_state.dart';
 
@@ -68,6 +70,8 @@ class MudarSituacaoCubit extends Cubit<MudarSituacaoState> {
     MudancaSituacaoRecusadaException(:final mensagem) => EnvioSituacao.recusado(
       mensagem,
     ),
+    ImovelNaoEncontradoException() => const EnvioSituacao.naoEncontrado(),
+    SessaoExpiradaException() => const EnvioSituacao.sessaoExpirada(),
     _ => const EnvioSituacao.falhou(),
   };
 }

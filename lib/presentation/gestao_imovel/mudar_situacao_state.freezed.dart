@@ -347,7 +347,7 @@ extension EnvioSituacaoPatterns on EnvioSituacao {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( EnvioOcioso value)?  ocioso,TResult Function( EnvioEnviando value)?  enviando,TResult Function( EnvioConcluido value)?  concluido,TResult Function( EnvioFalhou value)?  falhou,TResult Function( EnvioRecusado value)?  recusado,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( EnvioOcioso value)?  ocioso,TResult Function( EnvioEnviando value)?  enviando,TResult Function( EnvioConcluido value)?  concluido,TResult Function( EnvioFalhou value)?  falhou,TResult Function( EnvioRecusado value)?  recusado,TResult Function( EnvioNaoEncontrado value)?  naoEncontrado,TResult Function( EnvioSessaoExpirada value)?  sessaoExpirada,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case EnvioOcioso() when ocioso != null:
@@ -355,7 +355,9 @@ return ocioso(_that);case EnvioEnviando() when enviando != null:
 return enviando(_that);case EnvioConcluido() when concluido != null:
 return concluido(_that);case EnvioFalhou() when falhou != null:
 return falhou(_that);case EnvioRecusado() when recusado != null:
-return recusado(_that);case _:
+return recusado(_that);case EnvioNaoEncontrado() when naoEncontrado != null:
+return naoEncontrado(_that);case EnvioSessaoExpirada() when sessaoExpirada != null:
+return sessaoExpirada(_that);case _:
   return orElse();
 
 }
@@ -373,7 +375,7 @@ return recusado(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( EnvioOcioso value)  ocioso,required TResult Function( EnvioEnviando value)  enviando,required TResult Function( EnvioConcluido value)  concluido,required TResult Function( EnvioFalhou value)  falhou,required TResult Function( EnvioRecusado value)  recusado,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( EnvioOcioso value)  ocioso,required TResult Function( EnvioEnviando value)  enviando,required TResult Function( EnvioConcluido value)  concluido,required TResult Function( EnvioFalhou value)  falhou,required TResult Function( EnvioRecusado value)  recusado,required TResult Function( EnvioNaoEncontrado value)  naoEncontrado,required TResult Function( EnvioSessaoExpirada value)  sessaoExpirada,}){
 final _that = this;
 switch (_that) {
 case EnvioOcioso():
@@ -381,7 +383,9 @@ return ocioso(_that);case EnvioEnviando():
 return enviando(_that);case EnvioConcluido():
 return concluido(_that);case EnvioFalhou():
 return falhou(_that);case EnvioRecusado():
-return recusado(_that);}
+return recusado(_that);case EnvioNaoEncontrado():
+return naoEncontrado(_that);case EnvioSessaoExpirada():
+return sessaoExpirada(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
 ///
@@ -395,7 +399,7 @@ return recusado(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( EnvioOcioso value)?  ocioso,TResult? Function( EnvioEnviando value)?  enviando,TResult? Function( EnvioConcluido value)?  concluido,TResult? Function( EnvioFalhou value)?  falhou,TResult? Function( EnvioRecusado value)?  recusado,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( EnvioOcioso value)?  ocioso,TResult? Function( EnvioEnviando value)?  enviando,TResult? Function( EnvioConcluido value)?  concluido,TResult? Function( EnvioFalhou value)?  falhou,TResult? Function( EnvioRecusado value)?  recusado,TResult? Function( EnvioNaoEncontrado value)?  naoEncontrado,TResult? Function( EnvioSessaoExpirada value)?  sessaoExpirada,}){
 final _that = this;
 switch (_that) {
 case EnvioOcioso() when ocioso != null:
@@ -403,7 +407,9 @@ return ocioso(_that);case EnvioEnviando() when enviando != null:
 return enviando(_that);case EnvioConcluido() when concluido != null:
 return concluido(_that);case EnvioFalhou() when falhou != null:
 return falhou(_that);case EnvioRecusado() when recusado != null:
-return recusado(_that);case _:
+return recusado(_that);case EnvioNaoEncontrado() when naoEncontrado != null:
+return naoEncontrado(_that);case EnvioSessaoExpirada() when sessaoExpirada != null:
+return sessaoExpirada(_that);case _:
   return null;
 
 }
@@ -420,14 +426,16 @@ return recusado(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  ocioso,TResult Function()?  enviando,TResult Function( SituacaoImovel situacao)?  concluido,TResult Function()?  falhou,TResult Function( String mensagem)?  recusado,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  ocioso,TResult Function()?  enviando,TResult Function( SituacaoImovel situacao)?  concluido,TResult Function()?  falhou,TResult Function( String mensagem)?  recusado,TResult Function()?  naoEncontrado,TResult Function()?  sessaoExpirada,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case EnvioOcioso() when ocioso != null:
 return ocioso();case EnvioEnviando() when enviando != null:
 return enviando();case EnvioConcluido() when concluido != null:
 return concluido(_that.situacao);case EnvioFalhou() when falhou != null:
 return falhou();case EnvioRecusado() when recusado != null:
-return recusado(_that.mensagem);case _:
+return recusado(_that.mensagem);case EnvioNaoEncontrado() when naoEncontrado != null:
+return naoEncontrado();case EnvioSessaoExpirada() when sessaoExpirada != null:
+return sessaoExpirada();case _:
   return orElse();
 
 }
@@ -445,14 +453,16 @@ return recusado(_that.mensagem);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  ocioso,required TResult Function()  enviando,required TResult Function( SituacaoImovel situacao)  concluido,required TResult Function()  falhou,required TResult Function( String mensagem)  recusado,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  ocioso,required TResult Function()  enviando,required TResult Function( SituacaoImovel situacao)  concluido,required TResult Function()  falhou,required TResult Function( String mensagem)  recusado,required TResult Function()  naoEncontrado,required TResult Function()  sessaoExpirada,}) {final _that = this;
 switch (_that) {
 case EnvioOcioso():
 return ocioso();case EnvioEnviando():
 return enviando();case EnvioConcluido():
 return concluido(_that.situacao);case EnvioFalhou():
 return falhou();case EnvioRecusado():
-return recusado(_that.mensagem);}
+return recusado(_that.mensagem);case EnvioNaoEncontrado():
+return naoEncontrado();case EnvioSessaoExpirada():
+return sessaoExpirada();}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -466,14 +476,16 @@ return recusado(_that.mensagem);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  ocioso,TResult? Function()?  enviando,TResult? Function( SituacaoImovel situacao)?  concluido,TResult? Function()?  falhou,TResult? Function( String mensagem)?  recusado,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  ocioso,TResult? Function()?  enviando,TResult? Function( SituacaoImovel situacao)?  concluido,TResult? Function()?  falhou,TResult? Function( String mensagem)?  recusado,TResult? Function()?  naoEncontrado,TResult? Function()?  sessaoExpirada,}) {final _that = this;
 switch (_that) {
 case EnvioOcioso() when ocioso != null:
 return ocioso();case EnvioEnviando() when enviando != null:
 return enviando();case EnvioConcluido() when concluido != null:
 return concluido(_that.situacao);case EnvioFalhou() when falhou != null:
 return falhou();case EnvioRecusado() when recusado != null:
-return recusado(_that.mensagem);case _:
+return recusado(_that.mensagem);case EnvioNaoEncontrado() when naoEncontrado != null:
+return naoEncontrado();case EnvioSessaoExpirada() when sessaoExpirada != null:
+return sessaoExpirada();case _:
   return null;
 
 }
@@ -712,5 +724,69 @@ as String,
 
 
 }
+
+/// @nodoc
+
+
+class EnvioNaoEncontrado implements EnvioSituacao {
+  const EnvioNaoEncontrado();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is EnvioNaoEncontrado);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+    return 'EnvioSituacao.naoEncontrado()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class EnvioSessaoExpirada implements EnvioSituacao {
+  const EnvioSessaoExpirada();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is EnvioSessaoExpirada);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+    return 'EnvioSituacao.sessaoExpirada()';
+}
+
+
+}
+
+
+
 
 // dart format on

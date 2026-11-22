@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/core/result.dart';
 import 'package:imoveis_aqui/domain/entities/situacao_imovel.dart';
+import 'package:imoveis_aqui/domain/repositories/falhas_autenticacao.dart';
 import 'package:imoveis_aqui/domain/repositories/gestao_imovel_repository.dart';
+import 'package:imoveis_aqui/domain/repositories/imovel_detalhe_repository.dart';
 import 'package:imoveis_aqui/domain/usecases/mudar_situacao_usecase.dart';
 import 'package:imoveis_aqui/presentation/gestao_imovel/mudar_situacao_cubit.dart';
 import 'package:imoveis_aqui/presentation/gestao_imovel/widgets/mudar_situacao_sheet.dart';
@@ -211,6 +213,49 @@ void main() {
       await tester.pump();
 
       expect(find.text(mensagem), findsNothing);
+    });
+  });
+
+  group('404 e falha de conexão no envio (D-10, T-09-05)', () {
+    testWidgets('404 mostra "Este imóvel não está mais no seu acervo." e a '
+        'folha continua aberta', (tester) async {
+      respondeCom(
+        () async => const Failure<void>(ImovelNaoEncontradoException()),
+      );
+      await abrirFolha(tester);
+
+      await tester.tap(find.byKey(const ValueKey('chip-mudar-reservado')));
+      await tester.pump();
+      await tester.tap(botaoConfirmar());
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Este imóvel não está mais no seu acervo.'),
+        findsOneWidget,
+      );
+      expect(find.text('Confirmar'), findsOneWidget);
+    });
+
+    testWidgets('falha de conexão mostra o texto fixo e Confirmar fica '
+        'habilitado para o corretor tentar de novo', (tester) async {
+      respondeCom(() async => const Failure<void>(FalhaDeConexaoException()));
+      await abrirFolha(tester);
+
+      await tester.tap(find.byKey(const ValueKey('chip-mudar-reservado')));
+      await tester.pump();
+      await tester.tap(botaoConfirmar());
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Não foi possível mudar a situação agora. Tente de novo.'),
+        findsOneWidget,
+      );
+      expect(
+        tester.widget<FilledButton>(botaoConfirmar()).onPressed,
+        isNotNull,
+      );
+      verify(() => mudar(imovelId, SituacaoImovel.reservado, observacao: ''))
+          .called(1);
     });
   });
 

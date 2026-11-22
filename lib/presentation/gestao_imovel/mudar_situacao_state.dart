@@ -54,4 +54,12 @@ sealed class EnvioSituacao with _$EnvioSituacao {
   /// só para exibir como texto simples — nunca vira lógica (D-10, T-09-13). A
   /// escolha continua.
   const factory EnvioSituacao.recusado(String mensagem) = EnvioRecusado;
+
+  /// O servidor não encontra mais o imóvel (404): a folha mostra um texto fixo
+  /// em português, nunca o `detail` do Django.
+  const factory EnvioSituacao.naoEncontrado() = EnvioNaoEncontrado;
+
+  /// O servidor recusou o token (401): a tela leva ao login com o aviso de
+  /// sessão terminada (D-10, padrão da Fase 8).
+  const factory EnvioSituacao.sessaoExpirada() = EnvioSessaoExpirada;
 }
