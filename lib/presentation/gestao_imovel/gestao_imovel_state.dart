@@ -9,11 +9,16 @@ part 'gestao_imovel_state.freezed.dart';
 /// do imóvel em [imovel] e o do histórico de situações em [historico] — as duas
 /// leituras são independentes (a falha de uma não derruba a outra). A seção de
 /// mudança de situação entra nos planos seguintes da fase.
+///
+/// [falhasAoAtualizar] conta as atualizações ("puxar para atualizar") que
+/// falharam com conteúdo já na tela: a tela mostra um aviso a cada aumento e o
+/// conteúdo anterior fica como está (AC-2, D-10).
 @freezed
 abstract class GestaoImovelState with _$GestaoImovelState {
   const factory GestaoImovelState({
     @Default(ConteudoImovelGestao.carregando()) ConteudoImovelGestao imovel,
     @Default(ConteudoHistorico.carregando()) ConteudoHistorico historico,
+    @Default(0) int falhasAoAtualizar,
   }) = _GestaoImovelState;
 }
 

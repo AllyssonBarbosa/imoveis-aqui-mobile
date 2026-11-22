@@ -58,6 +58,55 @@ class GestaoImovelCubit extends Cubit<GestaoImovelState> {
     );
   }
 
+  /// Relê o imóvel e o histórico em paralelo SEM emitir carregando (puxar para
+  /// atualizar e, depois de uma mudança de situação, o único caminho de
+  /// releitura): no sucesso troca os dois pelos lidos; numa falha genérica com
+  /// conteúdo já carregado mantém tudo e soma 1 em `falhasAoAtualizar`. Sem
+  /// conteúdo anterior, 401 e 404 aplicam o desfecho normal de [carregar]. A
+  /// tela só muda pelo que a API devolveu (SIT-02, T-09-03). Sem leitura
+  /// anterior não faz nada.
+  Future<void> recarregar() async {
+    final id = _id;
+    if (id == null) return;
+    final minhaVersao = ++_versao;
+
+    final leituraDoImovel = _obterImovel(id);
+    final leituraDoHistorico = _obterHistorico(id);
+    await Future.wait<Object>([leituraDoImovel, leituraDoHistorico]);
+    final resultadoDoImovel = await leituraDoImovel;
+    final resultadoDoHistorico = await leituraDoHistorico;
+
+    if (minhaVersao != _versao || isClosed) return;
+
+    final imovelLido = _paraConteudoDoImovel(
+      resultadoDoImovel,
+      historicoSessaoExpirada: _sessaoExpirou(resultadoDoHistorico),
+    );
+    final historicoLido = _paraConteudo(resultadoDoHistorico);
+    final tinhaImovel = state.imovel is ImovelGestaoCarregado;
+    final tinhaHistorico = state.historico is HistoricoCarregado;
+
+    // Falha genérica do imóvel com imóvel na tela: nada muda, só o aviso.
+    if (imovelLido is ImovelGestaoErro && tinhaImovel) {
+      emit(state.copyWith(falhasAoAtualizar: state.falhasAoAtualizar + 1));
+      return;
+    }
+    // Falha só do histórico com histórico na tela: o imóvel lido entra e o
+    // histórico anterior fica.
+    if (imovelLido is ImovelGestaoCarregado &&
+        historicoLido is HistoricoErro &&
+        tinhaHistorico) {
+      emit(
+        state.copyWith(
+          imovel: imovelLido,
+          falhasAoAtualizar: state.falhasAoAtualizar + 1,
+        ),
+      );
+      return;
+    }
+    emit(state.copyWith(imovel: imovelLido, historico: historicoLido));
+  }
+
   /// Repete a leitura do imóvel (e do histórico) com o id guardado; sem
   /// leitura anterior não faz nada.
   Future<void> tentarNovamente() async {

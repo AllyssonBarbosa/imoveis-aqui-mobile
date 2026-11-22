@@ -17,6 +17,10 @@ const String textoErroGestao = 'Não foi possível carregar o imóvel.';
 const String textoImovelForaDoAcervo =
     'Este imóvel não está mais no seu acervo.';
 
+/// SnackBar quando "puxar para atualizar" falha: o conteúdo anterior fica na
+/// tela (D-10, AC-2).
+const String textoFalhaAoAtualizar = 'Não foi possível atualizar agora.';
+
 /// Rótulo do botão que repete a leitura.
 const String rotuloTentarDeNovo = 'Tentar de novo';
 

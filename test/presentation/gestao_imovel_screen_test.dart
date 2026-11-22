@@ -63,6 +63,7 @@ void main() {
     abertosNaVitrine = [];
     when(() => cubit.tentarNovamente()).thenAnswer((_) async {});
     when(() => cubit.tentarNovamenteHistorico()).thenAnswer((_) async {});
+    when(() => cubit.recarregar()).thenAnswer((_) async {});
   });
 
   tearDown(() async {
@@ -269,5 +270,72 @@ void main() {
     verify(() => sessao.encerrarPorExpiracao()).called(1);
     expect(find.byType(LoginScreen), findsOneWidget);
     expect(find.byType(GestaoImovelScreen), findsNothing);
+  });
+
+  testWidgets('falhasAoAtualizar aumentando mostra o SnackBar "Não foi '
+      'possível atualizar agora." e o conteúdo continua na tela', (
+    tester,
+  ) async {
+    final imovel = _imovelDaFixture();
+    final carregado = GestaoImovelState(
+      imovel: ConteudoImovelGestao.carregado(imovel),
+    );
+    await montar(
+      tester,
+      carregado,
+      depois: Stream.value(carregado.copyWith(falhasAoAtualizar: 1)),
+    );
+    await tester.pump();
+
+    expect(find.text('Não foi possível atualizar agora.'), findsOneWidget);
+    expect(find.text(imovel.titulo), findsOneWidget);
+    expect(find.text('Situação'), findsOneWidget);
+  });
+
+  testWidgets('sem falha de atualização o SnackBar não aparece', (
+    tester,
+  ) async {
+    await montar(
+      tester,
+      GestaoImovelState(
+        imovel: ConteudoImovelGestao.carregado(_imovelDaFixture()),
+      ),
+    );
+
+    expect(find.text('Não foi possível atualizar agora.'), findsNothing);
+  });
+
+  testWidgets('arrastar para baixo (RefreshIndicator) chama recarregar()', (
+    tester,
+  ) async {
+    await montar(
+      tester,
+      GestaoImovelState(
+        imovel: ConteudoImovelGestao.carregado(_imovelDaFixture()),
+      ),
+    );
+
+    expect(find.byType(RefreshIndicator), findsOneWidget);
+    await tester.fling(find.byType(ListView), const Offset(0, 300), 1000);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump(const Duration(seconds: 1));
+
+    verify(() => cubit.recarregar()).called(1);
+  });
+
+  testWidgets('o puxar para atualizar também vale com o imóvel em erro (a '
+      'lista é sempre rolável)', (tester) async {
+    await montar(
+      tester,
+      const GestaoImovelState(imovel: ConteudoImovelGestao.erro()),
+    );
+
+    await tester.fling(find.byType(ListView), const Offset(0, 300), 1000);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump(const Duration(seconds: 1));
+
+    verify(() => cubit.recarregar()).called(1);
   });
 }

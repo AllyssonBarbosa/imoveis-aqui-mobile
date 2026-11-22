@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$GestaoImovelState {
 
- ConteudoImovelGestao get imovel; ConteudoHistorico get historico;
+ ConteudoImovelGestao get imovel; ConteudoHistorico get historico; int get falhasAoAtualizar;
 /// Create a copy of GestaoImovelState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -27,20 +27,20 @@ $GestaoImovelStateCopyWith<GestaoImovelState> get copyWith => _$GestaoImovelStat
 @override
 bool operator ==(Object other) {
   final _this = this as GestaoImovelState;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GestaoImovelState&&(identical(other.imovel, _this.imovel) || other.imovel == _this.imovel)&&(identical(other.historico, _this.historico) || other.historico == _this.historico));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GestaoImovelState&&(identical(other.imovel, _this.imovel) || other.imovel == _this.imovel)&&(identical(other.historico, _this.historico) || other.historico == _this.historico)&&(identical(other.falhasAoAtualizar, _this.falhasAoAtualizar) || other.falhasAoAtualizar == _this.falhasAoAtualizar));
 }
 
 
 @override
 int get hashCode {
   final _this = this as GestaoImovelState;
-  return Object.hash(runtimeType,_this.imovel,_this.historico);
+  return Object.hash(runtimeType,_this.imovel,_this.historico,_this.falhasAoAtualizar);
 }
 
 @override
 String toString() {
   final _this = this as GestaoImovelState;
-  return 'GestaoImovelState(imovel: ${_this.imovel}, historico: ${_this.historico})';
+  return 'GestaoImovelState(imovel: ${_this.imovel}, historico: ${_this.historico}, falhasAoAtualizar: ${_this.falhasAoAtualizar})';
 }
 
 
@@ -51,7 +51,7 @@ abstract mixin class $GestaoImovelStateCopyWith<$Res>  {
   factory $GestaoImovelStateCopyWith(GestaoImovelState value, $Res Function(GestaoImovelState) _then) = _$GestaoImovelStateCopyWithImpl;
 @useResult
 $Res call({
- ConteudoImovelGestao imovel, ConteudoHistorico historico
+ ConteudoImovelGestao imovel, ConteudoHistorico historico, int falhasAoAtualizar
 });
 
 
@@ -68,11 +68,12 @@ class _$GestaoImovelStateCopyWithImpl<$Res>
 
 /// Create a copy of GestaoImovelState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? imovel = null,Object? historico = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? imovel = null,Object? historico = null,Object? falhasAoAtualizar = null,}) {
   return _then(GestaoImovelState(
 imovel: null == imovel ? _self.imovel : imovel // ignore: cast_nullable_to_non_nullable
 as ConteudoImovelGestao,historico: null == historico ? _self.historico : historico // ignore: cast_nullable_to_non_nullable
-as ConteudoHistorico,
+as ConteudoHistorico,falhasAoAtualizar: null == falhasAoAtualizar ? _self.falhasAoAtualizar : falhasAoAtualizar // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 /// Create a copy of GestaoImovelState
@@ -175,10 +176,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( ConteudoImovelGestao imovel,  ConteudoHistorico historico)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( ConteudoImovelGestao imovel,  ConteudoHistorico historico,  int falhasAoAtualizar)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _GestaoImovelState() when $default != null:
-return $default(_that.imovel,_that.historico);case _:
+return $default(_that.imovel,_that.historico,_that.falhasAoAtualizar);case _:
   return orElse();
 
 }
@@ -196,10 +197,10 @@ return $default(_that.imovel,_that.historico);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( ConteudoImovelGestao imovel,  ConteudoHistorico historico)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( ConteudoImovelGestao imovel,  ConteudoHistorico historico,  int falhasAoAtualizar)  $default,) {final _that = this;
 switch (_that) {
 case _GestaoImovelState():
-return $default(_that.imovel,_that.historico);case _:
+return $default(_that.imovel,_that.historico,_that.falhasAoAtualizar);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -216,10 +217,10 @@ return $default(_that.imovel,_that.historico);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( ConteudoImovelGestao imovel,  ConteudoHistorico historico)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( ConteudoImovelGestao imovel,  ConteudoHistorico historico,  int falhasAoAtualizar)?  $default,) {final _that = this;
 switch (_that) {
 case _GestaoImovelState() when $default != null:
-return $default(_that.imovel,_that.historico);case _:
+return $default(_that.imovel,_that.historico,_that.falhasAoAtualizar);case _:
   return null;
 
 }
@@ -231,11 +232,12 @@ return $default(_that.imovel,_that.historico);case _:
 
 
 class _GestaoImovelState implements GestaoImovelState {
-  const _GestaoImovelState({this.imovel = const ConteudoImovelGestao.carregando(), this.historico = const ConteudoHistorico.carregando()});
+  const _GestaoImovelState({this.imovel = const ConteudoImovelGestao.carregando(), this.historico = const ConteudoHistorico.carregando(), this.falhasAoAtualizar = 0});
   
 
 @override@JsonKey() final  ConteudoImovelGestao imovel;
 @override@JsonKey() final  ConteudoHistorico historico;
+@override@JsonKey() final  int falhasAoAtualizar;
 
 /// Create a copy of GestaoImovelState
 /// with the given fields replaced by the non-null parameter values.
@@ -247,18 +249,18 @@ _$GestaoImovelStateCopyWith<_GestaoImovelState> get copyWith => __$GestaoImovelS
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _GestaoImovelState&&(identical(other.imovel, imovel) || other.imovel == imovel)&&(identical(other.historico, historico) || other.historico == historico));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _GestaoImovelState&&(identical(other.imovel, imovel) || other.imovel == imovel)&&(identical(other.historico, historico) || other.historico == historico)&&(identical(other.falhasAoAtualizar, falhasAoAtualizar) || other.falhasAoAtualizar == falhasAoAtualizar));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,imovel,historico);
+    return Object.hash(runtimeType,imovel,historico,falhasAoAtualizar);
 }
 
 @override
 String toString() {
-    return 'GestaoImovelState(imovel: $imovel, historico: $historico)';
+    return 'GestaoImovelState(imovel: $imovel, historico: $historico, falhasAoAtualizar: $falhasAoAtualizar)';
 }
 
 
@@ -269,7 +271,7 @@ abstract mixin class _$GestaoImovelStateCopyWith<$Res> implements $GestaoImovelS
   factory _$GestaoImovelStateCopyWith(_GestaoImovelState value, $Res Function(_GestaoImovelState) _then) = __$GestaoImovelStateCopyWithImpl;
 @override @useResult
 $Res call({
- ConteudoImovelGestao imovel, ConteudoHistorico historico
+ ConteudoImovelGestao imovel, ConteudoHistorico historico, int falhasAoAtualizar
 });
 
 
@@ -286,11 +288,12 @@ class __$GestaoImovelStateCopyWithImpl<$Res>
 
 /// Create a copy of GestaoImovelState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? imovel = null,Object? historico = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? imovel = null,Object? historico = null,Object? falhasAoAtualizar = null,}) {
   return _then(_GestaoImovelState(
 imovel: null == imovel ? _self.imovel : imovel // ignore: cast_nullable_to_non_nullable
 as ConteudoImovelGestao,historico: null == historico ? _self.historico : historico // ignore: cast_nullable_to_non_nullable
-as ConteudoHistorico,
+as ConteudoHistorico,falhasAoAtualizar: null == falhasAoAtualizar ? _self.falhasAoAtualizar : falhasAoAtualizar // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 

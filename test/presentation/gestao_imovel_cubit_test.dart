@@ -371,6 +371,211 @@ void main() {
     );
   });
 
+  group('recarregar (puxar para atualizar)', () {
+    blocTest<GestaoImovelCubit, GestaoImovelState>(
+      'com conteúdo carregado não emite carregando e troca imóvel e histórico '
+      'pelos lidos da API',
+      build: () {
+        var chamadas = 0;
+        when(() => obter(36)).thenAnswer((_) async {
+          chamadas++;
+          return Result.success(_imovel(chamadas == 1 ? 36 : 360));
+        });
+        when(() => obterHistorico(36))
+            .thenAnswer((_) async => Result.success([_mudanca(1)]));
+        return construir();
+      },
+      act: (cubit) async {
+        await cubit.carregar(36);
+        await cubit.recarregar();
+      },
+      skip: 2,
+      expect: () => [
+        GestaoImovelState(
+          imovel: ConteudoImovelGestao.carregado(_imovel(360)),
+          historico: ConteudoHistorico.carregado([_mudanca(1)]),
+        ),
+      ],
+      verify: (_) {
+        verify(() => obter(36)).called(2);
+        verify(() => obterHistorico(36)).called(2);
+      },
+    );
+
+    blocTest<GestaoImovelCubit, GestaoImovelState>(
+      'falha genérica mantém o conteúdo e soma 1 em falhasAoAtualizar',
+      build: () {
+        var chamadas = 0;
+        when(() => obter(36)).thenAnswer((_) async {
+          chamadas++;
+          return chamadas == 1
+              ? Result.success(_imovel(36))
+              : Result<ImovelGestao>.failure(const FalhaDeConexaoException());
+        });
+        return construir();
+      },
+      act: (cubit) async {
+        await cubit.carregar(36);
+        await cubit.recarregar();
+        await cubit.recarregar();
+      },
+      skip: 2,
+      expect: () => [
+        carregado(36).copyWith(falhasAoAtualizar: 1),
+        carregado(36).copyWith(falhasAoAtualizar: 2),
+      ],
+    );
+
+    blocTest<GestaoImovelCubit, GestaoImovelState>(
+      'falha só do histórico troca o imóvel, mantém o histórico anterior e '
+      'conta a falha',
+      build: () {
+        when(() => obter(36))
+            .thenAnswer((_) async => Result.success(_imovel(36)));
+        var chamadas = 0;
+        when(() => obterHistorico(36)).thenAnswer((_) async {
+          chamadas++;
+          return chamadas == 1
+              ? Result.success([_mudanca(1)])
+              : Result<List<MudancaSituacao>>.failure(
+                  const FalhaDeConexaoException(),
+                );
+        });
+        return construir();
+      },
+      act: (cubit) async {
+        await cubit.carregar(36);
+        await cubit.recarregar();
+      },
+      skip: 2,
+      expect: () => [
+        carregado(
+          36,
+          historico: ConteudoHistorico.carregado([_mudanca(1)]),
+        ).copyWith(falhasAoAtualizar: 1),
+      ],
+    );
+
+    blocTest<GestaoImovelCubit, GestaoImovelState>(
+      'sem conteúdo anterior aplica o desfecho normal (erro vira carregado)',
+      build: () {
+        var chamadas = 0;
+        when(() => obter(36)).thenAnswer((_) async {
+          chamadas++;
+          return chamadas == 1
+              ? Result<ImovelGestao>.failure(const FalhaDeConexaoException())
+              : Result.success(_imovel(36));
+        });
+        return construir();
+      },
+      act: (cubit) async {
+        await cubit.carregar(36);
+        await cubit.recarregar();
+      },
+      skip: 2,
+      expect: () => [carregado(36)],
+    );
+
+    blocTest<GestaoImovelCubit, GestaoImovelState>(
+      'sem conteúdo anterior e com nova falha aplica o erro, sem contar '
+      'falha de atualização',
+      build: () {
+        when(() => obter(36)).thenAnswer(
+          (_) async => Result.failure(const FalhaDeConexaoException()),
+        );
+        return construir();
+      },
+      act: (cubit) async {
+        await cubit.carregar(36);
+        await cubit.recarregar();
+      },
+      skip: 2,
+      expect: () => <GestaoImovelState>[],
+    );
+
+    blocTest<GestaoImovelCubit, GestaoImovelState>(
+      '401 em recarregar vira sessão expirada',
+      build: () {
+        var chamadas = 0;
+        when(() => obter(36)).thenAnswer((_) async {
+          chamadas++;
+          return chamadas == 1
+              ? Result.success(_imovel(36))
+              : Result<ImovelGestao>.failure(const SessaoExpiradaException());
+        });
+        return construir();
+      },
+      act: (cubit) async {
+        await cubit.carregar(36);
+        await cubit.recarregar();
+      },
+      skip: 2,
+      expect: () => [
+        const GestaoImovelState(
+          imovel: ConteudoImovelGestao.sessaoExpirada(),
+          historico: ConteudoHistorico.carregado([]),
+        ),
+      ],
+    );
+
+    blocTest<GestaoImovelCubit, GestaoImovelState>(
+      '404 em recarregar vira não encontrado',
+      build: () {
+        var chamadas = 0;
+        when(() => obter(36)).thenAnswer((_) async {
+          chamadas++;
+          return chamadas == 1
+              ? Result.success(_imovel(36))
+              : Result<ImovelGestao>.failure(
+                  const ImovelNaoEncontradoException(),
+                );
+        });
+        return construir();
+      },
+      act: (cubit) async {
+        await cubit.carregar(36);
+        await cubit.recarregar();
+      },
+      skip: 2,
+      expect: () => [
+        const GestaoImovelState(
+          imovel: ConteudoImovelGestao.naoEncontrado(),
+          historico: ConteudoHistorico.carregado([]),
+        ),
+      ],
+    );
+
+    blocTest<GestaoImovelCubit, GestaoImovelState>(
+      'sem leitura anterior não faz nada',
+      build: construir,
+      act: (cubit) => cubit.recarregar(),
+      expect: () => <GestaoImovelState>[],
+      verify: (_) => verifyNever(() => obter(any())),
+    );
+
+    test('depois de close() nenhuma emissão acontece', () async {
+      final resposta = Completer<Result<ImovelGestao>>();
+      var chamadas = 0;
+      when(() => obter(36)).thenAnswer((_) {
+        chamadas++;
+        return chamadas == 1
+            ? Future.value(Result.success(_imovel(36)))
+            : resposta.future;
+      });
+      final cubit = construir();
+      await cubit.carregar(36);
+      final estados = <GestaoImovelState>[];
+      cubit.stream.listen(estados.add);
+
+      final leitura = cubit.recarregar();
+      await cubit.close();
+      resposta.complete(Result.success(_imovel(360)));
+      await leitura;
+
+      expect(estados, isEmpty);
+    });
+  });
+
   group('versão de leitura e isClosed', () {
     test('a resposta de uma carga antiga é descartada', () async {
       final antiga = Completer<Result<ImovelGestao>>();

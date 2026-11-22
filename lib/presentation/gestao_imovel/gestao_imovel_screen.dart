@@ -105,73 +105,86 @@ class _GestaoImovelScreenState extends State<GestaoImovelScreen> {
           atual.imovel is ImovelGestaoSessaoExpirada,
       listener: (context, state) =>
           unawaited(voltarAoLoginComSessaoTerminada(context)),
-      child: Scaffold(
-        appBar: AppBar(title: Text(previa.codigo)),
-        body: BlocBuilder<GestaoImovelCubit, GestaoImovelState>(
-          builder: (context, state) {
-            final conteudo = state.imovel;
-            return ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                CabecalhoGestao(
-                  previa: previa,
-                  imovel: switch (conteudo) {
-                    ImovelGestaoCarregado(:final imovel) => imovel,
-                    ImovelGestaoCarregando() ||
-                    ImovelGestaoErro() ||
-                    ImovelGestaoNaoEncontrado() ||
-                    ImovelGestaoSessaoExpirada() => null,
-                  },
-                  construirImagemDeRede: widget.construirImagemDeRede,
-                ),
-                const SizedBox(height: 16),
-                ...switch (conteudo) {
-                  ImovelGestaoCarregando() => const [
-                    Center(child: CircularProgressIndicator()),
-                  ],
-                  ImovelGestaoErro() => [
-                    _ErroDaGestao(
-                      aoTentarDeNovo: () =>
-                          context.read<GestaoImovelCubit>().tentarNovamente(),
+      child: BlocListener<GestaoImovelCubit, GestaoImovelState>(
+        // Atualização que falhou com conteúdo na tela: o conteúdo fica e um
+        // SnackBar avisa (D-10, AC-2).
+        listenWhen: (anterior, atual) =>
+            atual.falhasAoAtualizar > anterior.falhasAoAtualizar,
+        listener: (context, state) => ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text(textoFalhaAoAtualizar))),
+        child: Scaffold(
+          appBar: AppBar(title: Text(previa.codigo)),
+          body: BlocBuilder<GestaoImovelCubit, GestaoImovelState>(
+            builder: (context, state) {
+              final conteudo = state.imovel;
+              return RefreshIndicator(
+                onRefresh: () => context.read<GestaoImovelCubit>().recarregar(),
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    CabecalhoGestao(
+                      previa: previa,
+                      imovel: switch (conteudo) {
+                        ImovelGestaoCarregado(:final imovel) => imovel,
+                        ImovelGestaoCarregando() ||
+                        ImovelGestaoErro() ||
+                        ImovelGestaoNaoEncontrado() ||
+                        ImovelGestaoSessaoExpirada() => null,
+                      },
+                      construirImagemDeRede: widget.construirImagemDeRede,
                     ),
-                  ],
-                  ImovelGestaoNaoEncontrado() => [
-                    const _MensagemDaGestao(texto: textoImovelForaDoAcervo),
-                  ],
-                  // Enquanto a navegação para o login acontece.
-                  ImovelGestaoSessaoExpirada() => [
-                    const _MensagemDaGestao(texto: avisoSessaoTerminou),
-                  ],
-                  ImovelGestaoCarregado(:final imovel) => [
-                    SecaoSituacao(imovel: imovel),
-                    // D-02: só o que o servidor disse no cartão (na_vitrine);
-                    // o app nunca olha publicado nem situação para isso.
-                    if (previa.naVitrine) ...[
-                      const SizedBox(height: 16),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: OutlinedButton.icon(
-                          onPressed: () => widget.aoVerNaVitrine(
-                            context,
-                            previa.paraPrevia(),
-                          ),
-                          icon: const Icon(Icons.storefront),
-                          label: const Text(rotuloVerNaVitrine),
+                    const SizedBox(height: 16),
+                    ...switch (conteudo) {
+                      ImovelGestaoCarregando() => const [
+                        Center(child: CircularProgressIndicator()),
+                      ],
+                      ImovelGestaoErro() => [
+                        _ErroDaGestao(
+                          aoTentarDeNovo: () => context
+                              .read<GestaoImovelCubit>()
+                              .tentarNovamente(),
                         ),
-                      ),
-                    ],
-                    const SizedBox(height: 24),
-                    HistoricoSituacao(
-                      conteudo: state.historico,
-                      aoTentarDeNovo: () => context
-                          .read<GestaoImovelCubit>()
-                          .tentarNovamenteHistorico(),
-                    ),
+                      ],
+                      ImovelGestaoNaoEncontrado() => [
+                        const _MensagemDaGestao(texto: textoImovelForaDoAcervo),
+                      ],
+                      // Enquanto a navegação para o login acontece.
+                      ImovelGestaoSessaoExpirada() => [
+                        const _MensagemDaGestao(texto: avisoSessaoTerminou),
+                      ],
+                      ImovelGestaoCarregado(:final imovel) => [
+                        SecaoSituacao(imovel: imovel),
+                        // D-02: só o que o servidor disse no cartão (na_vitrine);
+                        // o app nunca olha publicado nem situação para isso.
+                        if (previa.naVitrine) ...[
+                          const SizedBox(height: 16),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: OutlinedButton.icon(
+                              onPressed: () => widget.aoVerNaVitrine(
+                                context,
+                                previa.paraPrevia(),
+                              ),
+                              icon: const Icon(Icons.storefront),
+                              label: const Text(rotuloVerNaVitrine),
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 24),
+                        HistoricoSituacao(
+                          conteudo: state.historico,
+                          aoTentarDeNovo: () => context
+                              .read<GestaoImovelCubit>()
+                              .tentarNovamenteHistorico(),
+                        ),
+                      ],
+                    },
                   ],
-                },
-              ],
-            );
-          },
+                ),
+              );
+            },
+          ),
         ),
       ),
     );
