@@ -9,6 +9,7 @@ import '../../domain/repositories/falhas_autenticacao.dart';
 import '../../domain/repositories/gestao_imovel_repository.dart';
 import '../../domain/repositories/imovel_detalhe_repository.dart';
 import '../datasources/gestao_imovel_datasource.dart';
+import '../network/mensagem_de_recusa.dart';
 
 /// Impl de [GestaoImovelRepository] — injeta a interface trocável
 /// [GestaoImovelDataSource]. Traduz as falhas da leitura em tipos de domínio
@@ -52,7 +53,9 @@ class GestaoImovelRepositoryImpl implements GestaoImovelRepository {
   /// `FormatException` de data inválida, finalidade desconhecida ou corpo que
   /// não é objeto). 404 vira [ImovelNaoEncontradoException] (reaproveitada do
   /// detalhe público); o resto, que não é sessão, vira
-  /// [FalhaDeConexaoException].
+  /// [FalhaDeConexaoException]. 400 e 403 (só a escrita os espera) viram
+  /// [MudancaSituacaoRecusadaException] com a mensagem do servidor, ou
+  /// [FalhaDeConexaoException] se o corpo não tem texto.
   Future<Result<T>> _executar<T>(Future<T> Function() acao) async {
     try {
       return Result.success(await acao());
@@ -62,7 +65,18 @@ class GestaoImovelRepositoryImpl implements GestaoImovelRepository {
       if (erro.error is SessaoExpiradaException) {
         return Result.failure(const SessaoExpiradaException());
       }
-      if (erro.response?.statusCode == 404) {
+      final status = erro.response?.statusCode;
+      if (status == 400 || status == 403) {
+        // Recusa do servidor na escrita: a mensagem dele (já em português) sobe
+        // achatada; sem texto aproveitável, é falha de conexão (D-10).
+        final texto = mensagemDeRecusa(erro.response?.data);
+        return Result.failure(
+          texto == null
+              ? const FalhaDeConexaoException()
+              : MudancaSituacaoRecusadaException(texto),
+        );
+      }
+      if (status == 404) {
         // O `detail` do Django vem em inglês e nunca sobe (T-09-05).
         return Result.failure(const ImovelNaoEncontradoException());
       }

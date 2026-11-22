@@ -3,6 +3,21 @@ import '../entities/imovel_gestao.dart';
 import '../entities/mudanca_situacao.dart';
 import '../entities/situacao_imovel.dart';
 
+/// Falha de `mudarSituacao` quando o servidor recusa o pedido (400 ou 403).
+/// Carrega a mensagem do próprio servidor, já em português e de negócio (ex.:
+/// "O imóvel já está reservado."), só para exibir: nunca é usada para decidir
+/// nada (D-10). Molde: `ImovelNaoEncontradoException`.
+class MudancaSituacaoRecusadaException implements Exception {
+  const MudancaSituacaoRecusadaException(this.mensagem);
+
+  /// Texto do servidor, achatado e limitado (`mensagemDeRecusa`).
+  final String mensagem;
+
+  /// Sem a [mensagem], para o texto do servidor não ir parar em log por engano.
+  @override
+  String toString() => 'Mudança de situação recusada pelo servidor.';
+}
+
 /// Leitura do imóvel para a gestão da situação (SIT-07). Os dados vêm do
 /// servidor (D-01): o repositório nunca monta o imóvel por conta própria.
 abstract class GestaoImovelRepository {

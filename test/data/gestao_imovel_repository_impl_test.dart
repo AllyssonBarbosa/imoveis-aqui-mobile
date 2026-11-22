@@ -9,6 +9,7 @@ import 'package:imoveis_aqui/data/network/interceptador_sessao.dart';
 import 'package:imoveis_aqui/data/repositories/gestao_imovel_repository_impl.dart';
 import 'package:imoveis_aqui/domain/entities/imovel_gestao.dart';
 import 'package:imoveis_aqui/domain/entities/mudanca_situacao.dart';
+import 'package:imoveis_aqui/domain/entities/situacao_imovel.dart';
 import 'package:imoveis_aqui/domain/repositories/falhas_autenticacao.dart';
 import 'package:imoveis_aqui/domain/repositories/gestao_imovel_repository.dart';
 import 'package:imoveis_aqui/domain/repositories/imovel_detalhe_repository.dart';
@@ -67,6 +68,214 @@ Exception? _falhaDoHistorico(Result<List<MudancaSituacao>> resultado) =>
     };
 
 void main() {
+  group('GestaoImovelRepositoryImpl.mudarSituacao', () {
+    late _GestaoDataSourceFalso dataSource;
+    late GestaoImovelRepository repositorio;
+
+    setUp(() {
+      dataSource = _GestaoDataSourceFalso();
+      repositorio = GestaoImovelRepositoryImpl(dataSource);
+    });
+
+    Exception? falhaDe(Result<void> resultado) => switch (resultado) {
+      Failure<void>(:final erro) => erro,
+      _ => null,
+    };
+
+    void dataSourceLanca(Object erro) => when(
+      () => dataSource.mudarSituacao(36, SituacaoImovel.reservado, any()),
+    ).thenThrow(erro);
+
+    Future<Result<void>> pedir({String observacao = ''}) => repositorio
+        .mudarSituacao(36, SituacaoImovel.reservado, observacao: observacao);
+
+    void confereUmaChamada() => verify(
+      () => dataSource.mudarSituacao(36, SituacaoImovel.reservado, any()),
+    ).called(1);
+
+    test('sucesso devolve Success e repassa a observação ao DataSource',
+        () async {
+      when(
+        () => dataSource.mudarSituacao(36, SituacaoImovel.reservado, 'Sinal'),
+      ).thenAnswer((_) async {});
+
+      final resultado = await pedir(observacao: 'Sinal');
+
+      expect(resultado, isA<Success<void>>());
+      verify(
+        () => dataSource.mudarSituacao(36, SituacaoImovel.reservado, 'Sinal'),
+      ).called(1);
+    });
+
+    test('400 com erro_400_contrato_assinado.json vira recusa com a mensagem '
+        'do contrato', () async {
+      dataSourceLanca(
+        _erroDio(
+          status: 400,
+          corpo: lerFixtureApi('erro_400_contrato_assinado.json'),
+        ),
+      );
+
+      final falha = falhaDe(await pedir());
+
+      expect(falha, isA<MudancaSituacaoRecusadaException>());
+      expect(
+        (falha! as MudancaSituacaoRecusadaException).mensagem,
+        contains('contrato assinado'),
+      );
+      confereUmaChamada();
+    });
+
+    test('403 com erro_403_situacao.json vira recusa com o detail', () async {
+      dataSourceLanca(
+        _erroDio(status: 403, corpo: lerFixtureApi('erro_403_situacao.json')),
+      );
+
+      final falha = falhaDe(await pedir());
+
+      expect(falha, isA<MudancaSituacaoRecusadaException>());
+      expect(
+        (falha! as MudancaSituacaoRecusadaException).mensagem,
+        startsWith('Só o corretor responsável'),
+      );
+      confereUmaChamada();
+    });
+
+    test('400 com corpo {} (sem texto) vira FalhaDeConexaoException',
+        () async {
+      dataSourceLanca(_erroDio(status: 400, corpo: <String, Object?>{}));
+
+      expect(falhaDe(await pedir()), isA<FalhaDeConexaoException>());
+      confereUmaChamada();
+    });
+
+    test('403 com corpo HTML vira FalhaDeConexaoException', () async {
+      dataSourceLanca(_erroDio(status: 403, corpo: '<html>Proibido</html>'));
+
+      expect(falhaDe(await pedir()), isA<FalhaDeConexaoException>());
+    });
+
+    test('404 com erro_404_imovel.json vira ImovelNaoEncontradoException e o '
+        'inglês não sobe', () async {
+      dataSourceLanca(
+        _erroDio(status: 404, corpo: lerFixtureApi('erro_404_imovel.json')),
+      );
+
+      final falha = falhaDe(await pedir());
+
+      expect(falha, isA<ImovelNaoEncontradoException>());
+      expect(falha.toString(), isNot(contains('No Imovel matches')));
+      confereUmaChamada();
+    });
+
+    test('DioException com error SessaoExpiradaException vira '
+        'SessaoExpiradaException', () async {
+      dataSourceLanca(
+        _erroDio(status: 401).copyWith(error: const SessaoExpiradaException()),
+      );
+
+      expect(falhaDe(await pedir()), isA<SessaoExpiradaException>());
+      confereUmaChamada();
+    });
+
+    test('connectionTimeout vira FalhaDeConexaoException', () async {
+      dataSourceLanca(_erroDio());
+
+      expect(falhaDe(await pedir()), isA<FalhaDeConexaoException>());
+      confereUmaChamada();
+    });
+
+    test('receiveTimeout vira FalhaDeConexaoException', () async {
+      dataSourceLanca(
+        DioException(
+          requestOptions: _opcoes(),
+          type: DioExceptionType.receiveTimeout,
+        ),
+      );
+
+      expect(falhaDe(await pedir()), isA<FalhaDeConexaoException>());
+      confereUmaChamada();
+    });
+
+    test('connectionError vira FalhaDeConexaoException', () async {
+      dataSourceLanca(
+        DioException(
+          requestOptions: _opcoes(),
+          type: DioExceptionType.connectionError,
+        ),
+      );
+
+      expect(falhaDe(await pedir()), isA<FalhaDeConexaoException>());
+      confereUmaChamada();
+    });
+
+    test('500 com corpo HTML vira FalhaDeConexaoException', () async {
+      dataSourceLanca(_erroDio(status: 500, corpo: '<html>Erro</html>'));
+
+      expect(falhaDe(await pedir()), isA<FalhaDeConexaoException>());
+      confereUmaChamada();
+    });
+
+    test('MudancaSituacaoRecusadaException.toString não contém a mensagem',
+        () {
+      const recusa = MudancaSituacaoRecusadaException('X-segredo');
+
+      expect(recusa.toString(), isNot(contains('X-segredo')));
+      expect(recusa.mensagem, 'X-segredo');
+    });
+
+    test('pilha real: 400 da ApiFalsa (erro_400_mesma_situacao.json) vira '
+        'recusa com a mensagem do servidor', () async {
+      final api = ApiFalsa();
+      api.responder(
+        (uri) => uri.path == '/api/imoveis/36/situacao/',
+        status: 400,
+        fixture: 'erro_400_mesma_situacao.json',
+      );
+      final real = GestaoImovelRepositoryImpl(
+        GestaoImovelRemoteDataSource(
+          api.criarDioAutenticado(
+            InterceptadorSessao(ArmazenamentoTokenEmMemoria('token-de-teste')),
+          ),
+        ),
+      );
+
+      final resultado = await real.mudarSituacao(
+        36,
+        SituacaoImovel.reservado,
+      );
+
+      final falha = falhaDe(resultado);
+      expect(falha, isA<MudancaSituacaoRecusadaException>());
+      expect(
+        (falha! as MudancaSituacaoRecusadaException).mensagem,
+        'O imóvel já está reservado.',
+      );
+      // Sem nova tentativa: um POST só.
+      expect(api.chamadas, hasLength(1));
+    });
+
+    test('pilha real: 500 do POST vira FalhaDeConexaoException com um POST '
+        'só', () async {
+      final api = ApiFalsa()..falharProximas('/api/imoveis/36/situacao/');
+      final real = GestaoImovelRepositoryImpl(
+        GestaoImovelRemoteDataSource(
+          api.criarDioAutenticado(
+            InterceptadorSessao(ArmazenamentoTokenEmMemoria('token-de-teste')),
+          ),
+        ),
+      );
+
+      final resultado = await real.mudarSituacao(
+        36,
+        SituacaoImovel.reservado,
+      );
+
+      expect(falhaDe(resultado), isA<FalhaDeConexaoException>());
+      expect(api.chamadas, hasLength(1));
+    });
+  });
+
   group('GestaoImovelRepositoryImpl.obterHistorico', () {
     late _GestaoDataSourceFalso dataSource;
     late GestaoImovelRepository repositorio;
