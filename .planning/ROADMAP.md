@@ -27,7 +27,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 5: Imóveis Real — Endpoint Público e Integração Final** - Endpoints públicos reais de lista e detalhe de imóveis e troca das DataSources mock pelas reais via DI. (completed 2026-11-16)
 - [x] **Phase 7: Perfis Públicos da Empresa e do Corretor** - Card APP 07: página da empresa e página do corretor com a vitrine do anunciante, dados da API de perfis públicos (WEB 02) e aviso para corretor desativado. (Fase 6 reservada ao card APP 06, de outro colega — fase N = card APP 0N.) (completed 2026-11-20)
 - [x] **Phase 07.1: Integração da APP-07 com a API real** (completed 2026-11-20)
-- [ ] **Phase 8: Login e Área do Corretor — o Acervo**
+- [x] **Phase 8: Login e Área do Corretor — o Acervo** (completed 2026-11-21)
 
 ## Phase Details
 
@@ -378,7 +378,7 @@ Plans:
   5. Imóvel de outra empresa não aparece nem forçando a consulta.
   6. Sem login, o app continua abrindo direto na vitrine.
 
-**Plans:** 12/12 plans executed
+**Plans:** 12/12 plans complete
 
 Plans:
 **Wave 1**

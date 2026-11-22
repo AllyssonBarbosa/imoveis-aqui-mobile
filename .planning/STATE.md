@@ -1,13 +1,13 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 08
-current_phase_name: Login e Área do Corretor — o Acervo
+current_phase: 1
+current_phase_name: Localização, Escolha de Cidade e Contrato da API
 status: verifying
-stopped_at: Completed 08-12-PLAN.md
-last_updated: "2026-11-21T15:26:14.399Z"
+stopped_at: Phase 08 complete, ready to verify Phase 1
+last_updated: "2026-11-22T01:10:54.716Z"
 last_activity: 2026-11-21
-last_activity_desc: Phase 08 execution started
-state_head: bcfc3293b6814d4e46a2d9487bb8f2372c6e70ea
+last_activity_desc: Phase 08 complete, transitioned to Phase 1
+state_head: 6d141f8673d4e339425c24a261ce393f1a75cb9c
 progress:
   total_phases: 8
   completed_phases: 2
@@ -20,17 +20,17 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-11-20)
+See: .planning/PROJECT.md (updated 2026-11-21)
 
 **Core value:** A vitrine do app abre na cidade do usuário e mostra imóveis reais vindos da API, com a busca e o filtro resolvidos no servidor — o mesmo dado e a mesma regra do site, nunca recalculados dentro do aparelho.
-**Current focus:** Phase 08 — Login e Área do Corretor — o Acervo
+**Current focus:** Phase 1 — Localização, Escolha de Cidade e Contrato da API (verificação pendente)
 
 ## Current Position
 
-Phase: 08 (Login e Área do Corretor — o Acervo) — EXECUTING
-Plan: 12 of 12
+Phase: 1 — Localização, Escolha de Cidade e Contrato da API
+Plan: 4
 Status: Phase complete — ready for verification
-Last activity: 2026-11-21 — Phase 08 execution started
+Last activity: 2026-11-21 — Phase 08 complete, transitioned to Phase 1
 
 Progress: [████████████████████] 62/62 plans ([███░░░░░░░] 25%)
 
@@ -38,7 +38,7 @@ Progress: [████████████████████] 62/62 p
 
 **Velocity:**
 
-- Total plans completed: 40
+- Total plans completed: 52
 - Average duration: - min
 - Total execution time: 0 hours
 
@@ -49,6 +49,7 @@ Progress: [████████████████████] 62/62 p
 | 05 | 22 | - | - |
 | 07.1 | 6 | - | - |
 | 07 | 12 | - | - |
+| 08 | 12 | - | - |
 
 **Recent Trend:**
 
@@ -214,6 +215,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-21T15:26:13.260Z
-Stopped at: Completed 08-12-PLAN.md
+Last session: 2026-11-21T22:40:00Z
+Stopped at: Phase 08 complete, ready to verify Phase 1
 Resume file: None

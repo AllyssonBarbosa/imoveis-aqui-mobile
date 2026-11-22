@@ -1,7 +1,7 @@
 ---
 phase: 08-login-e-rea-do-corretor-o-acervo
 verified: 2026-11-21T18:00:00Z
-status: human_needed
+status: passed
 score: 6/6 must-haves verified
 covered_files:
   - .planning/phases/08-login-e-rea-do-corretor-o-acervo/08-01-PLAN.md
