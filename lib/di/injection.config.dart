@@ -153,6 +153,8 @@ import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_cubit.da
     as _i331;
 import 'package:imoveis_aqui/presentation/gestao_imovel/gestao_imovel_cubit.dart'
     as _i755;
+import 'package:imoveis_aqui/presentation/gestao_imovel/mudar_situacao_cubit.dart'
+    as _i635;
 import 'package:imoveis_aqui/presentation/login/login_cubit.dart' as _i81;
 import 'package:imoveis_aqui/presentation/perfis/perfil_corretor_cubit.dart'
     as _i194;
@@ -397,6 +399,9 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i121.ObterImovelGestaoUseCase>(),
         gh<_i989.ObterHistoricoSituacaoUseCase>(),
       ),
+    );
+    gh.factory<_i635.MudarSituacaoCubit>(
+      () => _i635.MudarSituacaoCubit(gh<_i186.MudarSituacaoUseCase>()),
     );
     gh.factory<_i551.DescartarSessaoUseCase>(
       () => _i551.DescartarSessaoUseCase(gh<_i550.AutenticacaoRepository>()),

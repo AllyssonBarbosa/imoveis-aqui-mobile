@@ -30,6 +30,26 @@ const String tituloSecaoSituacao = 'Situação';
 /// Atalho para a página pública do imóvel (só com `na_vitrine` do servidor).
 const String rotuloVerNaVitrine = 'Ver na vitrine';
 
+/// Rótulo do botão que abre a folha de mudança de situação (D-04: só aparece
+/// quando o servidor diz `pode_mudar_situacao`).
+const String rotuloBotaoMudarSituacao = 'Mudar situação';
+
+/// Título da folha inferior de mudança de situação (D-09).
+const String tituloFolhaMudarSituacao = 'Mudar situação';
+
+/// Rótulo do botão que confirma a mudança na folha.
+const String rotuloConfirmar = 'Confirmar';
+
+/// Falha genérica do pedido de mudança; nunca mostra o corpo do erro do
+/// servidor (T-09-05). A mensagem do servidor na folha vem no 09-12.
+const String textoFalhaAoMudar =
+    'Não foi possível mudar a situação agora. Tente de novo.';
+
+/// SnackBar de sucesso: o mesmo texto do site, com a situação em minúsculas
+/// (D-10) — "Situação alterada para reservado.".
+String textoSituacaoAlterada(SituacaoImovel situacao) =>
+    'Situação alterada para ${rotuloSituacao(situacao).toLowerCase()}.';
+
 /// Data e hora de um instante do servidor, `dd/MM/yyyy HH:mm`, no fuso do
 /// aparelho (D-05, A3 da pesquisa). Sem locale de propósito: com locale seria
 /// preciso inicializar os dados de data antes (RESEARCH, Pitfall 8).
