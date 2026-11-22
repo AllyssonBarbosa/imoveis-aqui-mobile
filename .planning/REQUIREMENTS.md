@@ -78,7 +78,7 @@ Card APP 09 (tarefa A09). SIT-01..SIT-06 cobrem os critérios AC-1..AC-6 do card
 - [ ] **SIT-05**: A vitrine pública reflete a mudança na consulta seguinte (regra única `na_vitrine` no servidor, provada no UAT) e o Meu acervo recarrega da API ao voltar da tela de gestão quando houve mudança, mantendo a busca e a situação escolhidas (AC-5).
 - [ ] **SIT-06**: Só o corretor responsável muda a situação pelo app (o gestor muda pela web; a área dele no app é da APP-12): o botão "Mudar situação" só aparece com `pode_mudar_situacao` calculado pelo Django, e quem forçar recebe a recusa do servidor (403), testada no Django (AC-6).
 - [ ] **SIT-07**: Todo cartão do Meu acervo abre a tela de gestão do imóvel (cabeçalho, situação atual com "desde" e histórico); "Ver na vitrine" só aparece quando o servidor diz `na_vitrine` e some depois de uma mudança até a tela ser reaberta. Supera o ACV-04 da Phase 8.
-- [ ] **API-11**: O §16 de `01-CONTRATO-API.md` congela `GET /api/imoveis/{id}/` (as 9 chaves que o app lê), `POST /api/imoveis/{id}/situacao/` (corpo, 200, 400, 401, 403, 404) e `GET /api/imoveis/{id}/historico/`, com fixtures capturadas da API real (código da `origin/main` da web) e teste de contrato no app.
+- [x] **API-11**: O §16 de `01-CONTRATO-API.md` congela `GET /api/imoveis/{id}/` (as 9 chaves que o app lê), `POST /api/imoveis/{id}/situacao/` (corpo, 200, 400, 401, 403, 404) e `GET /api/imoveis/{id}/historico/`, com fixtures capturadas da API real (código da `origin/main` da web) e teste de contrato no app.
 - [ ] **API-12**: (D-08 e D-19 da Phase 9) A web ganha, na branch `feat/APP09` criada da `origin/main` num worktree separado (`../imoveis-aqui-APP09`; o clone `../imoveis-aqui` não troca de branch), os testes que faltam para as rotas do corretor — 400 de mesma situação, situação inválida e contrato assinado, 401 sem token, 404 de histórico/detalhe de outra empresa, ordem do histórico e 403 antes de 400 —, sem mudança de código de produção nem push.
 
 ### API pública (endpoints que o app consome)
@@ -196,7 +196,7 @@ Excluídos de propósito. Documentados para evitar scope creep.
 | SIT-05 | Phase 9 | Pending |
 | SIT-06 | Phase 9 | Pending |
 | SIT-07 | Phase 9 | Pending |
-| API-11 | Phase 9 | Pending |
+| API-11 | Phase 9 | Complete |
 | API-12 | Phase 9 | Pending |
 
 Planos da Phase 6 que cobrem cada ID (frontmatter `requirements` dos `06-NN-PLAN.md`): APP06-C1 → 06-07, 06-09, 06-10; APP06-C2 → 06-02, 06-03, 06-04, 06-05, 06-06, 06-07, 06-10; APP06-C3 → 06-03, 06-04, 06-05, 06-06, 06-08, 06-09, 06-10; APP06-C4 → 06-01, 06-03, 06-05, 06-06, 06-07, 06-08, 06-10; APP06-C5 → 06-01, 06-09, 06-10; APP06-C6 → 06-01, 06-02, 06-05, 06-07, 06-09, 06-10; APP06-API-1 → 06-01, 06-03, 06-04, 06-10; APP06-API-2 → 06-02, 06-10.
