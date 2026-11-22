@@ -25,6 +25,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 3: Vitrine — Filtros Server-Side** - Filtros completos da vitrine (finalidade, natureza, faixas, características), chips ativos e paginação sempre consistente.
 - [ ] **Phase 4: Página do Imóvel — Galeria e Dados da Natureza** - Tela de detalhe (card APP 04): galeria a partir da capa, preços, corretor e bloco por natureza (casa, terreno, apartamento, lote), sobre mock seguindo o contrato de `GET /api/publico/imoveis/{id}/`.
 - [x] **Phase 5: Imóveis Real — Endpoint Público e Integração Final** - Endpoints públicos reais de lista e detalhe de imóveis e troca das DataSources mock pelas reais via DI. (completed 2026-11-16)
+- [x] **Phase 6: Contato com o Corretor — WhatsApp, Telefone e E-mail (APP 06)** - Botão de contato (WhatsApp, telefone e e-mail) na página do imóvel e no perfil do corretor, com o contato registrado pela API pública sem login. (completed 2026-11-22)
 
 ## Phase Details
 
@@ -274,7 +275,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -283,6 +284,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 3. Vitrine — Filtros Server-Side | 5/5 | In Progress|  |
 | 4. Página do Imóvel — Galeria e Dados da Natureza | 8/8 | In Progress|  |
 | 5. Imóveis Real — Endpoint Público e Integração Final | 22/22 | Complete    | 2026-11-16 |
+| 6. Contato com o Corretor — WhatsApp, Telefone e E-mail (APP 06) | 10/10 | Complete    | 2026-11-22 |
 
 ### Phase 6: Contato com o Corretor — WhatsApp, Telefone e E-mail (APP 06)
 
@@ -298,7 +300,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 **Requirements**: APP06-C1, APP06-C2, APP06-C3, APP06-C4, APP06-C5, APP06-C6, APP06-API-1, APP06-API-2
 **Depends on:** Phase 5
-**Plans:** 10/10 plans executed
+**Plans:** 10/10 plans complete
 
 Plans:
 
