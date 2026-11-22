@@ -5,6 +5,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../di/injection.dart';
+import '../../domain/entities/imovel_acervo.dart';
 import '../gestao_imovel/gestao_imovel_screen.dart';
 import '../perfis/widgets/rodape_paginacao_lista.dart';
 import '../sessao/dialogo_sair.dart';
@@ -88,6 +89,15 @@ class _CorpoAcervoState extends State<_CorpoAcervo> {
   void _limparBusca() {
     _controleDeBusca.clear();
     context.read<AcervoCubit>().limparBusca();
+  }
+
+  /// Abre a gestão do imóvel e, se ela voltou com "mudou" (D-12), relê o acervo
+  /// da API. O Cubit é capturado ANTES do `await` e a tela precisa seguir
+  /// montada na volta.
+  Future<void> _abrirGestao(ImovelAcervo imovel) async {
+    final cubit = context.read<AcervoCubit>();
+    final mudou = await widget.aoAbrirGestao(context, imovel);
+    if (mudou && mounted) cubit.recarregar();
   }
 
   void _aoRolar() {
@@ -226,8 +236,7 @@ class _CorpoAcervoState extends State<_CorpoAcervo> {
                             return CartaoImovelAcervo(
                               key: ValueKey('imovel-acervo-${imovel.id}'),
                               imovel: imovel,
-                              aoTocar: () =>
-                                  widget.aoAbrirGestao(context, imovel),
+                              aoTocar: () => unawaited(_abrirGestao(imovel)),
                             );
                           },
                         ),

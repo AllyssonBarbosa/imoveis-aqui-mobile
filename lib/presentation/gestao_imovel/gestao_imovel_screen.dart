@@ -20,8 +20,9 @@ import 'widgets/secao_situacao.dart';
 
 /// Assinatura de quem abre a gestão de um imóvel a partir do acervo —
 /// `AcervoScreen` recebe uma por parâmetro (padrão [abrirGestaoImovel]) para
-/// que os testes de widget do acervo não dependam do DI.
-typedef AoAbrirGestao = Future<void> Function(
+/// que os testes de widget do acervo não dependam do DI. Devolve `true` quando
+/// a situação do imóvel mudou durante a visita (D-12): o acervo relê a API.
+typedef AoAbrirGestao = Future<bool> Function(
   BuildContext context,
   ImovelAcervo imovel,
 );
@@ -35,7 +36,12 @@ typedef AoAbrirGestao = Future<void> Function(
 /// do próprio acervo, com `naVitrine` incluso (D-02): é assim que a tela o
 /// recebe. O Cubit da folha de mudança de situação é criado e fechado pelo
 /// próprio `BlocProvider(create:)` da rota.
-Future<void> abrirGestaoImovel(
+///
+/// Devolve `cubit.state.mudou` lido DEPOIS da volta (D-12): vale para o botão
+/// da `AppBar`, o botão voltar do sistema e o gesto do iOS, que não passam
+/// resultado pelo `pop` (RESEARCH, Pattern 5). A tela não usa `PopScope` —
+/// ele desligaria o gesto de voltar do iOS.
+Future<bool> abrirGestaoImovel(
   BuildContext context,
   ImovelAcervo imovel, {
   GestaoImovelCubit Function()? criarCubit,
@@ -56,7 +62,9 @@ Future<void> abrirGestaoImovel(
       ),
     ),
   );
+  final mudou = cubit.state.mudou;
   await cubit.close();
+  return mudou;
 }
 
 /// Tela de gestão do imóvel (SIT-07): a `AppBar` leva o código do imóvel e o

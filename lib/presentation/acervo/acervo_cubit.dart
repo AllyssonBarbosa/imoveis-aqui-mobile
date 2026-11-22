@@ -36,6 +36,14 @@ class AcervoCubit extends Cubit<AcervoState> {
     unawaited(_aplicarConsulta(state.termoBusca, state.situacao));
   }
 
+  /// Relê a primeira página mantendo a busca e a situação atuais (D-12) —
+  /// chamado quando a gestão de um imóvel devolve "mudou". O chip do cartão
+  /// passa a ser o que o servidor mandar; o app não altera o item. Volta ao
+  /// topo com o carregando (comportamento aceito).
+  void recarregar() {
+    unawaited(_aplicarConsulta(state.termoBusca, state.situacao));
+  }
+
   /// Busca por texto (D-08): 400 ms depois da última tecla, a partir de 1
   /// caractere (os códigos do acervo, como `DEV-CAMPINAS-14`, pedem busca
   /// curta). Apagar tudo (após `trim`) volta à lista completa na hora, mas só

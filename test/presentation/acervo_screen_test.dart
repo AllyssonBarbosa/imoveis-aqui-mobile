@@ -40,6 +40,7 @@ ImovelAcervo _imovel(int id, {bool naVitrine = true, bool meuImovel = true}) =>
 void main() {
   late _AcervoCubitFalso cubit;
   late List<ImovelAcervo> abertos;
+  late bool resultadoGestao;
 
   setUpAll(() {
     registerFallbackValue(SituacaoImovel.disponivel);
@@ -48,6 +49,8 @@ void main() {
   setUp(() {
     cubit = _AcervoCubitFalso();
     abertos = [];
+    resultadoGestao = false;
+    when(() => cubit.recarregar()).thenReturn(null);
     when(() => cubit.carregarMais()).thenAnswer((_) async {});
     when(() => cubit.tentarNovamente()).thenAnswer((_) async {});
     when(() => cubit.escolherSituacao(any())).thenAnswer((_) async {});
@@ -59,7 +62,10 @@ void main() {
       MaterialApp(
         home: AcervoScreen(
           criarCubit: () => cubit,
-          aoAbrirGestao: (context, imovel) async => abertos.add(imovel),
+          aoAbrirGestao: (context, imovel) async {
+            abertos.add(imovel);
+            return resultadoGestao;
+          },
         ),
       ),
     );
@@ -298,6 +304,30 @@ void main() {
     });
   });
 
+  group('volta da gestão (D-12)', () {
+    testWidgets('gestão devolvendo true: recarregar() uma vez', (tester) async {
+      resultadoGestao = true;
+      await montar(tester, carregada([_imovel(7)]));
+
+      await tester.tap(find.byType(CartaoImovelAcervo));
+      await tester.pump();
+
+      verify(() => cubit.recarregar()).called(1);
+    });
+
+    testWidgets('gestão devolvendo false: nenhuma chamada nova ao Cubit', (
+      tester,
+    ) async {
+      resultadoGestao = false;
+      await montar(tester, carregada([_imovel(7)]));
+
+      await tester.tap(find.byType(CartaoImovelAcervo));
+      await tester.pump();
+
+      verifyNever(() => cubit.recarregar());
+    });
+  });
+
   group('Sair e sessão terminada (08-10)', () {
     late _SessaoCubitFalso sessao;
 
@@ -334,7 +364,7 @@ void main() {
                     MaterialPageRoute<void>(
                       builder: (_) => AcervoScreen(
                         criarCubit: () => cubit,
-                        aoAbrirGestao: (context, imovel) async {},
+                        aoAbrirGestao: (context, imovel) async => false,
                       ),
                     ),
                   ),
@@ -373,7 +403,7 @@ void main() {
                             MaterialPageRoute<void>(
                               builder: (_) => AcervoScreen(
                                 criarCubit: () => cubit,
-                                aoAbrirGestao: (context, imovel) async {},
+                                aoAbrirGestao: (context, imovel) async => false,
                               ),
                             ),
                           ),

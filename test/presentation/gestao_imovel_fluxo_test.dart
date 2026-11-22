@@ -599,7 +599,109 @@ void main() {
       pilha.conferirCabecalhosDeAutorizacao();
     });
   });
+
+  group('volta ao acervo depois da gestão (D-12, SIT-05, AC-2, AC-5)', () {
+    /// GETs da lista do acervo (`/api/imoveis/` exato) até agora.
+    Iterable<RequisicaoGravada> listasLidas(PilhaReal pilha) => pilha
+        .api
+        .requisicoesGravadas
+        .where((p) => p.metodo == 'GET' && p.uri.path == '/api/imoveis/');
+
+    /// Reserva o imóvel pela folha e deixa a tela relida (o servidor "já
+    /// mudou" para o detalhe e o histórico).
+    Future<void> reservar(WidgetTester tester, PilhaReal pilha) async {
+      await tester.tap(find.text('Mudar situação'));
+      await assentar(tester);
+      await tester.tap(find.byKey(const ValueKey('chip-mudar-reservado')));
+      await tester.pump();
+      pilha.api.responder(
+        (uri) => uri.path == '/api/imoveis/$id/',
+        status: 200,
+        fixture: 'imovel_gestao_reservado.json',
+      );
+      pilha.api.responder(
+        (uri) => uri.path == '/api/imoveis/$id/historico/',
+        status: 200,
+        fixture: 'historico_um_item.json',
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Confirmar'));
+      await assentar(tester, quadros: 12);
+      expect(find.text('Situação alterada para reservado.'), findsOneWidget);
+    }
+
+    testWidgets('mudou e voltou pela AppBar: novo GET /api/imoveis/ sem page e '
+        'o cartão mostra "Reservado" vindo do corpo do servidor', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final pilha = await abrirGestao(tester);
+      expect(listasLidas(pilha), hasLength(1));
+      await reservar(tester, pilha);
+
+      // O servidor passa a listar o imóvel como reservado.
+      pilha.api.responder(
+        (uri) => uri.path == '/api/imoveis/' && uri.queryParameters.isEmpty,
+        status: 200,
+        corpo: _acervoComReservado(id),
+      );
+      await tester.tap(find.byType(BackButton));
+      await assentar(tester, quadros: 12);
+
+      expect(find.byType(GestaoImovelScreen), findsNothing);
+      final listas = listasLidas(pilha).toList();
+      expect(listas, hasLength(2));
+      expect(listas.last.uri.queryParameters.containsKey('page'), isFalse);
+      expect(find.text(codigo), findsOneWidget);
+      expect(_chipDoCartao(id, 'Reservado'), findsOneWidget);
+      pilha.conferirCabecalhosDeAutorizacao();
+    });
+
+    testWidgets('mudou e voltou pelo botão do sistema (handlePopRoute): o '
+        'acervo também recarrega (A4)', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final pilha = await abrirGestao(tester);
+      await reservar(tester, pilha);
+      pilha.api.responder(
+        (uri) => uri.path == '/api/imoveis/' && uri.queryParameters.isEmpty,
+        status: 200,
+        corpo: _acervoComReservado(id),
+      );
+
+      await tester.binding.handlePopRoute();
+      await assentar(tester, quadros: 12);
+
+      expect(find.byType(GestaoImovelScreen), findsNothing);
+      expect(listasLidas(pilha), hasLength(2));
+      expect(_chipDoCartao(id, 'Reservado'), findsOneWidget);
+      pilha.conferirCabecalhosDeAutorizacao();
+    });
+
+    testWidgets('abrir a gestão e voltar sem mudar não gera nenhum GET '
+        '/api/imoveis/ novo', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final pilha = await abrirGestao(tester);
+      expect(listasLidas(pilha), hasLength(1));
+
+      await tester.tap(find.byType(BackButton));
+      await assentar(tester, quadros: 12);
+
+      expect(find.byType(GestaoImovelScreen), findsNothing);
+      expect(find.text(codigo), findsOneWidget);
+      expect(listasLidas(pilha), hasLength(1));
+      pilha.conferirCabecalhosDeAutorizacao();
+    });
+  });
 }
+
+/// O chip de situação do cartão do acervo [idImovel] — escopado ao cartão para
+/// não confundir com o chip de filtro "Reservado" da barra do acervo.
+Finder _chipDoCartao(int idImovel, String rotulo) => find.descendant(
+  of: find.byKey(ValueKey('imovel-acervo-$idImovel')),
+  matching: find.text(rotulo),
+);
 
 /// A situação que a TELA mostra (seção "Situação"), sem confundir com o chip
 /// "Disponível" da folha aberta por cima.
@@ -628,4 +730,20 @@ Map<String, Object?> _acervoSoDoColega() {
       .where((item) => item['codigo'] == 'DEV-CAMPINAS-14')
       .toList();
   return <String, Object?>{...p2, 'next': null, 'count': 1, 'results': itens};
+}
+
+/// `acervo_p1.json` com o imóvel [idImovel] em `RESERVADO` e sem próxima
+/// página: cópia em memória do wire capturado, como o servidor listaria o
+/// acervo depois da mudança.
+Map<String, Object?> _acervoComReservado(int idImovel) {
+  final p1 = lerFixtureApi('acervo_p1.json')! as Map<String, Object?>;
+  final itens = (p1['results']! as List<Object?>)
+      .cast<Map<String, Object?>>()
+      .map(
+        (item) => item['id'] == idImovel
+            ? <String, Object?>{...item, 'situacao': 'RESERVADO'}
+            : item,
+      )
+      .toList();
+  return <String, Object?>{...p1, 'next': null, 'results': itens};
 }

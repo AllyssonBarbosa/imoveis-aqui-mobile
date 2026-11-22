@@ -566,4 +566,97 @@ void main() {
       verifyNever(() => cubit.registrarMudanca());
     });
   });
+
+  group('abrirGestaoImovel devolve se mudou (D-12, A4)', () {
+    /// Botão que abre a gestão pelo abridor real, com o Cubit falso em
+    /// [estado]; o resultado cai em [resultado].
+    Future<void> montarAbridor(
+      WidgetTester tester,
+      GestaoImovelState estado,
+      List<bool> resultado,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      whenListen(
+        cubit,
+        const Stream<GestaoImovelState>.empty(),
+        initialState: estado,
+      );
+      when(() => cubit.carregar(any())).thenAnswer((_) async {});
+      when(() => cubit.close()).thenAnswer((_) async {});
+      await tester.pumpWidget(
+        BlocProvider<SessaoCubit>.value(
+          value: sessao,
+          child: MaterialApp(
+            home: Builder(
+              builder: (context) => TextButton(
+                onPressed: () async => resultado.add(
+                  await abrirGestaoImovel(
+                    context,
+                    _previa(),
+                    criarCubit: () => cubit,
+                    criarMudarSituacaoCubit: () => mudar,
+                  ),
+                ),
+                child: const Text('Abrir'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('Abrir'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.byType(GestaoImovelScreen), findsOneWidget);
+    }
+
+    testWidgets('voltar pelo botão da AppBar com mudou devolve true e fecha o '
+        'Cubit', (tester) async {
+      final resultado = <bool>[];
+      await montarAbridor(
+        tester,
+        const GestaoImovelState(mudou: true),
+        resultado,
+      );
+
+      await tester.tap(find.byType(BackButton));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(resultado, [true]);
+      verify(() => cubit.carregar(36)).called(1);
+      verify(() => cubit.close()).called(1);
+      expect(find.byType(GestaoImovelScreen), findsNothing);
+    });
+
+    testWidgets('voltar pelo botão do sistema (handlePopRoute) com mudou '
+        'devolve true e fecha o Cubit', (tester) async {
+      final resultado = <bool>[];
+      await montarAbridor(
+        tester,
+        const GestaoImovelState(mudou: true),
+        resultado,
+      );
+
+      await tester.binding.handlePopRoute();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(resultado, [true]);
+      verify(() => cubit.close()).called(1);
+      expect(find.byType(GestaoImovelScreen), findsNothing);
+    });
+
+    testWidgets('sem mudança devolve false e fecha o Cubit', (tester) async {
+      final resultado = <bool>[];
+      await montarAbridor(tester, const GestaoImovelState(), resultado);
+
+      await tester.tap(find.byType(BackButton));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(resultado, [false]);
+      verify(() => cubit.close()).called(1);
+    });
+  });
 }
