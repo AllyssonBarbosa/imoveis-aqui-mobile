@@ -483,7 +483,7 @@ Plans:
   5. A vitrine reflete a mudança na consulta seguinte (o servidor decide a publicação; verificado no UAT).
   6. Só quem o servidor autoriza consegue mudar: pelo app, só o corretor responsável (botão só com `pode_mudar_situacao`; quem forçar recebe 403); o gestor da empresa continua mudando pela web e a área dele no app é da APP-12 (D-07 da fase).
 
-**Plans:** 6/13 plans executed
+**Plans:** 7/13 plans executed
 
 Plans:
 **Wave 1**
@@ -506,7 +506,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 09-07-PLAN.md — Tela de leitura completa: cabeçalho, "desde dd/MM/yyyy HH:mm", "Ver na vitrine" só com `na_vitrine` e histórico na tela (carga em paralelo, vazio do site, falha parcial) (SIT-07, SIT-01, SIT-03)
+- [x] 09-07-PLAN.md — Tela de leitura completa: cabeçalho, "desde dd/MM/yyyy HH:mm", "Ver na vitrine" só com `na_vitrine` e histórico na tela (carga em paralelo, vazio do site, falha parcial) (SIT-07, SIT-01, SIT-03)
 
 **Wave 6** *(blocked on Wave 5 completion)*
 

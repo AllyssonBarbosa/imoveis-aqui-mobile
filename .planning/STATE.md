@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 09
 current_phase_name: Mudança de Situação do Imóvel pelo App (APP 09)
 status: executing
-stopped_at: Completed 09-06-PLAN.md
-last_updated: "2026-11-22T15:51:04.920Z"
+stopped_at: Completed 09-07-PLAN.md
+last_updated: "2026-11-22T15:57:57.177Z"
 last_activity: 2026-11-22
 last_activity_desc: Phase 09 execution started
-state_head: f824d647e6001e47efe6bf18386c8e968d006f39
+state_head: 081d8ce03408f2253859adea940d4d7dda445c66
 progress:
   total_phases: 10
   completed_phases: 0
   total_plans: 97
-  completed_plans: 90
+  completed_plans: 91
   percent: 0
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-11-21)
 ## Current Position
 
 Phase: 09 (Mudança de Situação do Imóvel pelo App (APP 09)) — EXECUTING
-Plan: 7 of 13
+Plan: 8 of 13
 Status: Ready to execute
 Last activity: 2026-11-22 — Phase 09 execution started
 
@@ -133,6 +133,7 @@ Progress: [████████████████████] 72/72 p
 | Phase 9 P04 | 3 min | 2 tasks | 13 files |
 | Phase 9 P05 | 5 min | 2 tasks | 14 files |
 | Phase 09 P06 | 5 min | 2 tasks | 14 files |
+| Phase 09 P07 | 12 min | 2 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -215,6 +216,7 @@ Recent decisions affecting current work:
 - [Phase 9]: 09-04: 404 da leitura do imóvel de gestão reaproveita ImovelNaoEncontradoException; falhas genéricas viram FalhaDeConexaoException sem carregar o erro original — O detail em inglês do Django e corpos de 5xx nunca chegam à apresentação (T-09-05)
 - [Phase 9]: 09-05: abrirGestaoImovel é dono do Cubit (cria, carrega, push, close sem try/finally); título da AppBar = código do imóvel; todo cartão do acervo abre a gestão (D-02, supera ACV-04) — O servidor decide na_vitrine; o app não filtra o toque. A guarda de versão e o isClosed do GestaoImovelCubit foram provados por mutação, pois a Task 2 nasceu sem RED
 - [Phase 09]: 09-06: obterHistorico devolve List.unmodifiable na ordem do servidor; guarda de FormatException (corpo não-lista, item não-objeto) no DataSource; toString de MudancaSituacao sem nome/observação (T-09-06)
+- [Phase 09]: 09-07: retry do histórico com token próprio (_versaoHistorico) que também confere a versão da carga; Future.wait sobre imóvel e histórico com um único emit — Uma carga nova vence uma repetição antiga sem invalidar a leitura do imóvel em voo
 
 ### Pending Todos
 
@@ -252,6 +254,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-22T15:51:04.846Z
-Stopped at: Completed 09-06-PLAN.md
+Last session: 2026-11-22T15:57:57.106Z
+Stopped at: Completed 09-07-PLAN.md
 Resume file: None
