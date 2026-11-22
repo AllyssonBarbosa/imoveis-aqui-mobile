@@ -4,13 +4,13 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/core/result.dart';
 import 'package:imoveis_aqui/domain/entities/situacao_imovel.dart';
+import 'package:imoveis_aqui/domain/repositories/gestao_imovel_repository.dart';
 import 'package:imoveis_aqui/domain/usecases/mudar_situacao_usecase.dart';
 import 'package:imoveis_aqui/presentation/gestao_imovel/mudar_situacao_cubit.dart';
 import 'package:imoveis_aqui/presentation/gestao_imovel/mudar_situacao_state.dart';
 import 'package:mocktail/mocktail.dart';
 
-class _MudarSituacaoUseCaseFalso extends Mock
-    implements MudarSituacaoUseCase {}
+class _MudarSituacaoUseCaseFalso extends Mock implements MudarSituacaoUseCase {}
 
 void main() {
   const imovelId = 36;
@@ -28,13 +28,13 @@ void main() {
   MudarSituacaoCubit construir() => MudarSituacaoCubit(mudar);
 
   void respondeCom(Result<void> resultado) {
-    when(
-      () => mudar(any(), any(), observacao: any(named: 'observacao')),
-    ).thenAnswer((_) async => resultado);
+    when(() => mudar(any(), any(), observacao: any(named: 'observacao')))
+        .thenAnswer((_) async => resultado);
   }
 
-  MudarSituacaoCubit iniciado() => construir()
-    ..iniciar(imovelId: imovelId, atual: SituacaoImovel.disponivel);
+  MudarSituacaoCubit iniciado() =>
+      construir()
+        ..iniciar(imovelId: imovelId, atual: SituacaoImovel.disponivel);
 
   test('estado inicial: sem imóvel, sem escolha e não pode confirmar', () {
     final cubit = construir();
@@ -134,6 +134,56 @@ void main() {
     );
 
     blocTest<MudarSituacaoCubit, MudarSituacaoState>(
+      'recusa do servidor (400/403) emite enviando e recusado(mensagem), '
+      'mantendo a escolha e Confirmar habilitado (D-10)',
+      build: () {
+        respondeCom(
+          Result.failure(
+            const MudancaSituacaoRecusadaException(
+              'O imóvel já está reservado.',
+            ),
+          ),
+        );
+        return iniciado()..escolher(SituacaoImovel.reservado);
+      },
+      act: (cubit) => cubit.confirmar(),
+      expect: () => [
+        isA<MudarSituacaoState>().having(
+          (e) => e.envio,
+          'envio',
+          const EnvioSituacao.enviando(),
+        ),
+        isA<MudarSituacaoState>()
+            .having(
+              (e) => e.envio,
+              'envio',
+              const EnvioSituacao.recusado('O imóvel já está reservado.'),
+            )
+            .having((e) => e.escolhida, 'escolhida', SituacaoImovel.reservado),
+      ],
+      verify: (cubit) => expect(cubit.state.podeConfirmar, isTrue),
+    );
+
+    blocTest<MudarSituacaoCubit, MudarSituacaoState>(
+      'escolher outra situação depois de uma recusa volta o envio a ocioso '
+      '(some a mensagem)',
+      build: () {
+        respondeCom(
+          Result.failure(const MudancaSituacaoRecusadaException('Recusado.')),
+        );
+        return iniciado()..escolher(SituacaoImovel.reservado);
+      },
+      act: (cubit) async {
+        await cubit.confirmar();
+        cubit.escolher(SituacaoImovel.vendido);
+      },
+      verify: (cubit) {
+        expect(cubit.state.escolhida, SituacaoImovel.vendido);
+        expect(cubit.state.envio, const EnvioSituacao.ocioso());
+      },
+    );
+
+    blocTest<MudarSituacaoCubit, MudarSituacaoState>(
       'confirmar(observacao: "Sinal pago") entrega o texto ao UseCase',
       build: () {
         respondeCom(const Result.success(null));
@@ -141,11 +191,8 @@ void main() {
       },
       act: (cubit) => cubit.confirmar(observacao: 'Sinal pago'),
       verify: (_) => verify(
-        () => mudar(
-          imovelId,
-          SituacaoImovel.reservado,
-          observacao: 'Sinal pago',
-        ),
+        () =>
+            mudar(imovelId, SituacaoImovel.reservado, observacao: 'Sinal pago'),
       ).called(1),
     );
 
@@ -164,9 +211,8 @@ void main() {
       'escolher durante o envio é ignorado',
       build: () {
         final pendente = Completer<Result<void>>();
-        when(
-          () => mudar(any(), any(), observacao: any(named: 'observacao')),
-        ).thenAnswer((_) => pendente.future);
+        when(() => mudar(any(), any(), observacao: any(named: 'observacao')))
+            .thenAnswer((_) => pendente.future);
         // Libera o POST depois do segundo toque.
         Future<void>.delayed(
           const Duration(milliseconds: 10),
@@ -201,9 +247,8 @@ void main() {
 
     test('com o envio em voo podeConfirmar é falso', () async {
       final pendente = Completer<Result<void>>();
-      when(
-        () => mudar(any(), any(), observacao: any(named: 'observacao')),
-      ).thenAnswer((_) => pendente.future);
+      when(() => mudar(any(), any(), observacao: any(named: 'observacao')))
+          .thenAnswer((_) => pendente.future);
       final cubit = iniciado()..escolher(SituacaoImovel.reservado);
 
       final envio = cubit.confirmar();
@@ -217,9 +262,8 @@ void main() {
     test('nunca emite depois de close(): a resposta chega com o Cubit '
         'fechado', () async {
       final pendente = Completer<Result<void>>();
-      when(
-        () => mudar(any(), any(), observacao: any(named: 'observacao')),
-      ).thenAnswer((_) => pendente.future);
+      when(() => mudar(any(), any(), observacao: any(named: 'observacao')))
+          .thenAnswer((_) => pendente.future);
       final cubit = iniciado()..escolher(SituacaoImovel.reservado);
 
       final envio = cubit.confirmar();

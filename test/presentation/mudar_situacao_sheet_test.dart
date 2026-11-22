@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/core/result.dart';
 import 'package:imoveis_aqui/domain/entities/situacao_imovel.dart';
+import 'package:imoveis_aqui/domain/repositories/gestao_imovel_repository.dart';
 import 'package:imoveis_aqui/domain/usecases/mudar_situacao_usecase.dart';
 import 'package:imoveis_aqui/presentation/gestao_imovel/mudar_situacao_cubit.dart';
 import 'package:imoveis_aqui/presentation/gestao_imovel/widgets/mudar_situacao_sheet.dart';
@@ -147,6 +148,72 @@ void main() {
       );
     });
   });
+  group('recusa do servidor (D-10, T-09-13)', () {
+    const mensagem =
+        'Este imóvel tem um contrato assinado (#1): a situação não pode ser '
+        'mudada à mão enquanto o contrato estiver valendo.';
+
+    testWidgets('com a recusa a folha continua aberta, mostra a mensagem do '
+        'servidor como texto simples em colorScheme.error e mantém a '
+        'observação', (tester) async {
+      respondeCom(
+        () async =>
+            const Failure<void>(MudancaSituacaoRecusadaException(mensagem)),
+      );
+      await abrirFolha(tester);
+
+      await tester.tap(find.byKey(const ValueKey('chip-mudar-reservado')));
+      await tester.pump();
+      await tester.enterText(find.byType(TextField), 'Sinal pago');
+      await tester.tap(botaoConfirmar());
+      await tester.pumpAndSettle();
+
+      final texto = find.text(mensagem);
+      expect(texto, findsOneWidget);
+      final widget = tester.widget<Text>(texto);
+      expect(widget.maxLines, 6);
+      expect(
+        widget.style?.color,
+        Theme.of(tester.element(texto)).colorScheme.error,
+      );
+      // O texto genérico não aparece junto.
+      expect(
+        find.text('Não foi possível mudar a situação agora. Tente de novo.'),
+        findsNothing,
+      );
+      expect(find.text('Confirmar'), findsOneWidget);
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).controller!.text,
+        'Sinal pago',
+      );
+      expect(
+        tester.widget<FilledButton>(botaoConfirmar()).onPressed,
+        isNotNull,
+      );
+    });
+
+    testWidgets('escolher outra situação depois da recusa some a mensagem', (
+      tester,
+    ) async {
+      respondeCom(
+        () async =>
+            const Failure<void>(MudancaSituacaoRecusadaException(mensagem)),
+      );
+      await abrirFolha(tester);
+
+      await tester.tap(find.byKey(const ValueKey('chip-mudar-reservado')));
+      await tester.pump();
+      await tester.tap(botaoConfirmar());
+      await tester.pumpAndSettle();
+      expect(find.text(mensagem), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('chip-mudar-vendido')));
+      await tester.pump();
+
+      expect(find.text(mensagem), findsNothing);
+    });
+  });
+
   group('envio protegido (D-09, D-10, T-09-07)', () {
     /// Abre a folha, escolhe "Reservado" e toca em Confirmar com o UseCase
     /// preso no [completer]: o envio fica em voo até o teste soltar.

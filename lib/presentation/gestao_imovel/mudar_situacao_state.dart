@@ -46,6 +46,12 @@ sealed class EnvioSituacao with _$EnvioSituacao {
   const factory EnvioSituacao.concluido(SituacaoImovel situacao) =
       EnvioConcluido;
 
-  /// O pedido falhou; a escolha continua para tentar de novo.
+  /// O pedido falhou (rede, tempo esgotado, 5xx); a escolha continua para
+  /// tentar de novo.
   const factory EnvioSituacao.falhou() = EnvioFalhou;
+
+  /// O servidor recusou (400 ou 403): [mensagem] é o texto do próprio servidor,
+  /// só para exibir como texto simples — nunca vira lógica (D-10, T-09-13). A
+  /// escolha continua.
+  const factory EnvioSituacao.recusado(String mensagem) = EnvioRecusado;
 }

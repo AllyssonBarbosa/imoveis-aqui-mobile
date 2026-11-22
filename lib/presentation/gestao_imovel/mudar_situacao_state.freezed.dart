@@ -347,14 +347,15 @@ extension EnvioSituacaoPatterns on EnvioSituacao {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( EnvioOcioso value)?  ocioso,TResult Function( EnvioEnviando value)?  enviando,TResult Function( EnvioConcluido value)?  concluido,TResult Function( EnvioFalhou value)?  falhou,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( EnvioOcioso value)?  ocioso,TResult Function( EnvioEnviando value)?  enviando,TResult Function( EnvioConcluido value)?  concluido,TResult Function( EnvioFalhou value)?  falhou,TResult Function( EnvioRecusado value)?  recusado,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case EnvioOcioso() when ocioso != null:
 return ocioso(_that);case EnvioEnviando() when enviando != null:
 return enviando(_that);case EnvioConcluido() when concluido != null:
 return concluido(_that);case EnvioFalhou() when falhou != null:
-return falhou(_that);case _:
+return falhou(_that);case EnvioRecusado() when recusado != null:
+return recusado(_that);case _:
   return orElse();
 
 }
@@ -372,14 +373,15 @@ return falhou(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( EnvioOcioso value)  ocioso,required TResult Function( EnvioEnviando value)  enviando,required TResult Function( EnvioConcluido value)  concluido,required TResult Function( EnvioFalhou value)  falhou,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( EnvioOcioso value)  ocioso,required TResult Function( EnvioEnviando value)  enviando,required TResult Function( EnvioConcluido value)  concluido,required TResult Function( EnvioFalhou value)  falhou,required TResult Function( EnvioRecusado value)  recusado,}){
 final _that = this;
 switch (_that) {
 case EnvioOcioso():
 return ocioso(_that);case EnvioEnviando():
 return enviando(_that);case EnvioConcluido():
 return concluido(_that);case EnvioFalhou():
-return falhou(_that);}
+return falhou(_that);case EnvioRecusado():
+return recusado(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
 ///
@@ -393,14 +395,15 @@ return falhou(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( EnvioOcioso value)?  ocioso,TResult? Function( EnvioEnviando value)?  enviando,TResult? Function( EnvioConcluido value)?  concluido,TResult? Function( EnvioFalhou value)?  falhou,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( EnvioOcioso value)?  ocioso,TResult? Function( EnvioEnviando value)?  enviando,TResult? Function( EnvioConcluido value)?  concluido,TResult? Function( EnvioFalhou value)?  falhou,TResult? Function( EnvioRecusado value)?  recusado,}){
 final _that = this;
 switch (_that) {
 case EnvioOcioso() when ocioso != null:
 return ocioso(_that);case EnvioEnviando() when enviando != null:
 return enviando(_that);case EnvioConcluido() when concluido != null:
 return concluido(_that);case EnvioFalhou() when falhou != null:
-return falhou(_that);case _:
+return falhou(_that);case EnvioRecusado() when recusado != null:
+return recusado(_that);case _:
   return null;
 
 }
@@ -417,13 +420,14 @@ return falhou(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  ocioso,TResult Function()?  enviando,TResult Function( SituacaoImovel situacao)?  concluido,TResult Function()?  falhou,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  ocioso,TResult Function()?  enviando,TResult Function( SituacaoImovel situacao)?  concluido,TResult Function()?  falhou,TResult Function( String mensagem)?  recusado,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case EnvioOcioso() when ocioso != null:
 return ocioso();case EnvioEnviando() when enviando != null:
 return enviando();case EnvioConcluido() when concluido != null:
 return concluido(_that.situacao);case EnvioFalhou() when falhou != null:
-return falhou();case _:
+return falhou();case EnvioRecusado() when recusado != null:
+return recusado(_that.mensagem);case _:
   return orElse();
 
 }
@@ -441,13 +445,14 @@ return falhou();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  ocioso,required TResult Function()  enviando,required TResult Function( SituacaoImovel situacao)  concluido,required TResult Function()  falhou,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  ocioso,required TResult Function()  enviando,required TResult Function( SituacaoImovel situacao)  concluido,required TResult Function()  falhou,required TResult Function( String mensagem)  recusado,}) {final _that = this;
 switch (_that) {
 case EnvioOcioso():
 return ocioso();case EnvioEnviando():
 return enviando();case EnvioConcluido():
 return concluido(_that.situacao);case EnvioFalhou():
-return falhou();}
+return falhou();case EnvioRecusado():
+return recusado(_that.mensagem);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -461,13 +466,14 @@ return falhou();}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  ocioso,TResult? Function()?  enviando,TResult? Function( SituacaoImovel situacao)?  concluido,TResult? Function()?  falhou,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  ocioso,TResult? Function()?  enviando,TResult? Function( SituacaoImovel situacao)?  concluido,TResult? Function()?  falhou,TResult? Function( String mensagem)?  recusado,}) {final _that = this;
 switch (_that) {
 case EnvioOcioso() when ocioso != null:
 return ocioso();case EnvioEnviando() when enviando != null:
 return enviando();case EnvioConcluido() when concluido != null:
 return concluido(_that.situacao);case EnvioFalhou() when falhou != null:
-return falhou();case _:
+return falhou();case EnvioRecusado() when recusado != null:
+return recusado(_that.mensagem);case _:
   return null;
 
 }
@@ -638,5 +644,73 @@ String toString() {
 
 
 
+
+/// @nodoc
+
+
+class EnvioRecusado implements EnvioSituacao {
+  const EnvioRecusado(this.mensagem);
+  
+
+ final  String mensagem;
+
+/// Create a copy of EnvioSituacao
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$EnvioRecusadoCopyWith<EnvioRecusado> get copyWith => _$EnvioRecusadoCopyWithImpl<EnvioRecusado>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is EnvioRecusado&&(identical(other.mensagem, mensagem) || other.mensagem == mensagem));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,mensagem);
+}
+
+@override
+String toString() {
+    return 'EnvioSituacao.recusado(mensagem: $mensagem)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $EnvioRecusadoCopyWith<$Res> implements $EnvioSituacaoCopyWith<$Res> {
+  factory $EnvioRecusadoCopyWith(EnvioRecusado value, $Res Function(EnvioRecusado) _then) = _$EnvioRecusadoCopyWithImpl;
+@useResult
+$Res call({
+ String mensagem
+});
+
+
+
+
+}
+/// @nodoc
+class _$EnvioRecusadoCopyWithImpl<$Res>
+    implements $EnvioRecusadoCopyWith<$Res> {
+  _$EnvioRecusadoCopyWithImpl(this._self, this._then);
+
+  final EnvioRecusado _self;
+  final $Res Function(EnvioRecusado) _then;
+
+/// Create a copy of EnvioSituacao
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? mensagem = null,}) {
+  return _then(EnvioRecusado(
+null == mensagem ? _self.mensagem : mensagem // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
 
 // dart format on

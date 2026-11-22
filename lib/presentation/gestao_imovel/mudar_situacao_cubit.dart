@@ -3,6 +3,7 @@ import 'package:injectable/injectable.dart';
 
 import '../../core/result.dart';
 import '../../domain/entities/situacao_imovel.dart';
+import '../../domain/repositories/gestao_imovel_repository.dart';
 import '../../domain/usecases/mudar_situacao_usecase.dart';
 import 'mudar_situacao_state.dart';
 
@@ -12,8 +13,9 @@ import 'mudar_situacao_state.dart';
 /// (T-09-07, mesmo molde do `ContatoCubit`) e nunca emite depois de `close()`.
 ///
 /// O sucesso emite só `EnvioConcluido`; quem relê imóvel e histórico é a tela
-/// (`GestaoImovelCubit.registrarMudanca`). Falhas 400/403 aparecem aqui como a
-/// falha genérica da folha; a mensagem do servidor entra no 09-12.
+/// (`GestaoImovelCubit.registrarMudanca`). Numa falha o desfecho é escolhido só
+/// pelo TIPO da exceção de domínio (molde `ContatoCubit._motivoDe`); a mensagem
+/// do servidor na recusa só é carregada para exibição (D-10).
 @injectable
 class MudarSituacaoCubit extends Cubit<MudarSituacaoState> {
   MudarSituacaoCubit(this._mudar) : super(const MudarSituacaoState());
@@ -34,10 +36,7 @@ class MudarSituacaoCubit extends Cubit<MudarSituacaoState> {
     if (isClosed || state.envio is EnvioEnviando) return;
     if (situacao == state.atual) return;
     emit(
-      state.copyWith(
-        escolhida: situacao,
-        envio: const EnvioSituacao.ocioso(),
-      ),
+      state.copyWith(escolhida: situacao, envio: const EnvioSituacao.ocioso()),
     );
   }
 
@@ -51,19 +50,24 @@ class MudarSituacaoCubit extends Cubit<MudarSituacaoState> {
     if (imovelId == null || escolhida == null) return;
 
     emit(state.copyWith(envio: const EnvioSituacao.enviando()));
-    final resultado = await _mudar(
-      imovelId,
-      escolhida,
-      observacao: observacao,
-    );
+    final resultado = await _mudar(imovelId, escolhida, observacao: observacao);
     if (isClosed) return;
     switch (resultado) {
       case Success():
         emit(state.copyWith(envio: EnvioSituacao.concluido(escolhida)));
-      case Failure():
-        emit(state.copyWith(envio: const EnvioSituacao.falhou()));
+      case Failure(:final erro):
+        emit(state.copyWith(envio: _envioDaFalha(erro)));
       case Loading():
         emit(state.copyWith(envio: const EnvioSituacao.ocioso()));
     }
   }
+
+  /// Decide só pelo tipo de domínio — nunca por mensagem nem status HTTP. Sem
+  /// nova tentativa automática: o reenvio é sempre do corretor (Pitfall 4).
+  EnvioSituacao _envioDaFalha(Exception erro) => switch (erro) {
+    MudancaSituacaoRecusadaException(:final mensagem) => EnvioSituacao.recusado(
+      mensagem,
+    ),
+    _ => const EnvioSituacao.falhou(),
+  };
 }

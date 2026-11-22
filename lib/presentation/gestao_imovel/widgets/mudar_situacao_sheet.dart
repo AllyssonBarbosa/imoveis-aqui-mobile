@@ -71,6 +71,31 @@ class _FolhaMudarSituacaoState extends State<_FolhaMudarSituacao> {
     cubit.confirmar(observacao: _controleObservacao.text);
   }
 
+  /// Texto de falha da folha, escolhido por `switch` sobre [EnvioSituacao]. A
+  /// mensagem de [EnvioRecusado] é do servidor e entra como texto simples, com
+  /// limite de linhas, sem marcação nem link (T-09-13).
+  List<Widget> _textoDoEnvio(
+    EnvioSituacao envio,
+    TextTheme textTheme,
+    ColorScheme colorScheme,
+  ) {
+    final texto = switch (envio) {
+      EnvioRecusado(:final mensagem) => mensagem,
+      EnvioFalhou() => textoFalhaAoMudar,
+      EnvioOcioso() || EnvioEnviando() || EnvioConcluido() => null,
+    };
+    if (texto == null) return const [];
+    return [
+      const SizedBox(height: 12),
+      Text(
+        texto,
+        maxLines: 6,
+        overflow: TextOverflow.ellipsis,
+        style: textTheme.bodyMedium?.copyWith(color: colorScheme.error),
+      ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -137,15 +162,7 @@ class _FolhaMudarSituacaoState extends State<_FolhaMudarSituacao> {
                       color: colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  if (state.envio is EnvioFalhou) ...[
-                    const SizedBox(height: 12),
-                    Text(
-                      textoFalhaAoMudar,
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.error,
-                      ),
-                    ),
-                  ],
+                  ..._textoDoEnvio(state.envio, textTheme, colorScheme),
                   const SizedBox(height: 16),
                   SizedBox(
                     width: double.infinity,

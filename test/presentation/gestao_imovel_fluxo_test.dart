@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/di/injection.dart';
 import 'package:imoveis_aqui/presentation/gestao_imovel/gestao_imovel_screen.dart';
+import 'package:imoveis_aqui/presentation/gestao_imovel/widgets/secao_situacao.dart';
 
 import '../support/api_falsa.dart';
 import '../support/pilha_real.dart';
@@ -406,10 +407,52 @@ void main() {
       expect(pilha.api.chamadas.where((c) => c.metodo == 'POST'), hasLength(1));
     });
 
-    testWidgets('a mudança que o servidor recusa (403) não fecha a folha, '
-        'mostra a falha genérica e não troca a situação da tela', (
-      tester,
-    ) async {
+    testWidgets('contrato assinado (400): a folha continua aberta com o texto '
+        'do servidor e a observação; a tela segue "Disponível" e nada é '
+        'relido depois do POST (D-10, AC-4, T-09-03)', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final pilha = await abrirGestao(tester);
+      pilha.api.responder(
+        (uri) => uri.path == '/api/imoveis/$id/situacao/',
+        status: 400,
+        fixture: 'erro_400_contrato_assinado.json',
+      );
+
+      await tester.tap(find.text('Mudar situação'));
+      await assentar(tester);
+      await tester.tap(find.byKey(const ValueKey('chip-mudar-reservado')));
+      await tester.pump();
+      await tester.enterText(find.byType(TextField), 'Sinal pago');
+      await tester.tap(find.widgetWithText(FilledButton, 'Confirmar'));
+      await assentar(tester, quadros: 12);
+
+      expect(
+        find.textContaining('Este imóvel tem um contrato assinado (#1)'),
+        findsOneWidget,
+      );
+      expect(find.text('Confirmar'), findsOneWidget);
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).controller!.text,
+        'Sinal pago',
+      );
+      expect(find.text('Situação alterada para reservado.'), findsNothing);
+      // Atrás da folha a tela continua com a situação anterior.
+      expect(_situacaoNaTela('Disponível'), findsOneWidget);
+      expect(_situacaoNaTela('Reservado'), findsNothing);
+      final gravadas = pilha.api.requisicoesGravadas;
+      final posicaoDoPost = gravadas.indexWhere((p) => p.metodo == 'POST');
+      expect(posicaoDoPost, greaterThan(-1));
+      expect(
+        gravadas.skip(posicaoDoPost + 1),
+        isEmpty,
+        reason: 'nenhuma releitura de imóvel nem de histórico depois do POST',
+      );
+    });
+
+    testWidgets('quem força a mudança (403): a folha mostra "Só o corretor '
+        'responsável…", não fecha e não troca a situação da tela (SIT-06, '
+        'AC-6, T-09-01)', (tester) async {
       await tester.binding.setSurfaceSize(const Size(400, 1200));
       addTearDown(() => tester.binding.setSurfaceSize(null));
       final pilha = await abrirGestao(tester);
@@ -427,14 +470,23 @@ void main() {
       await assentar(tester, quadros: 12);
 
       expect(
-        find.text('Não foi possível mudar a situação agora. Tente de novo.'),
+        find.textContaining('Só o corretor responsável por este imóvel'),
         findsOneWidget,
       );
+      expect(find.text('Confirmar'), findsOneWidget);
       expect(find.text('Situação alterada para reservado.'), findsNothing);
+      expect(_situacaoNaTela('Disponível'), findsOneWidget);
       // Só a leitura inicial: nada foi relido depois da recusa.
       expect(
         pilha.api.requisicoesGravadas.where(
           (p) => p.metodo == 'GET' && p.uri.path == '/api/imoveis/$id/',
+        ),
+        hasLength(1),
+      );
+      expect(
+        pilha.api.requisicoesGravadas.where(
+          (p) =>
+              p.metodo == 'GET' && p.uri.path == '/api/imoveis/$id/historico/',
         ),
         hasLength(1),
       );
@@ -463,6 +515,13 @@ void main() {
     });
   });
 }
+
+/// A situação que a TELA mostra (seção "Situação"), sem confundir com o chip
+/// "Disponível" da folha aberta por cima.
+Finder _situacaoNaTela(String rotulo) => find.descendant(
+  of: find.byType(SecaoSituacao),
+  matching: find.text(rotulo),
+);
 
 /// `acervo_p1.json` com `na_vitrine` falso em todos os itens e sem próxima
 /// página — o servidor é quem decide a vitrine; aqui só trocamos o wire.
