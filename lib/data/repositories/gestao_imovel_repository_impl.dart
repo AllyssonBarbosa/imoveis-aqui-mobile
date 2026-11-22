@@ -5,6 +5,7 @@ import '../../core/result.dart';
 import '../../domain/entities/imovel_gestao.dart';
 import '../../domain/repositories/falhas_autenticacao.dart';
 import '../../domain/repositories/gestao_imovel_repository.dart';
+import '../../domain/repositories/imovel_detalhe_repository.dart';
 import '../datasources/gestao_imovel_datasource.dart';
 
 /// Impl de [GestaoImovelRepository] — injeta a interface trocável
@@ -25,7 +26,9 @@ class GestaoImovelRepositoryImpl implements GestaoImovelRepository {
   /// antes do `DioException` por status; depois o [TypeError] (que é um
   /// `Error`, não uma `Exception`) e por fim qualquer outra `Exception` (a
   /// `FormatException` de data inválida, finalidade desconhecida ou corpo que
-  /// não é objeto). Tudo o que não é sessão vira [FalhaDeConexaoException].
+  /// não é objeto). 404 vira [ImovelNaoEncontradoException] (reaproveitada do
+  /// detalhe público); o resto, que não é sessão, vira
+  /// [FalhaDeConexaoException].
   Future<Result<T>> _executar<T>(Future<T> Function() acao) async {
     try {
       return Result.success(await acao());
@@ -34,6 +37,10 @@ class GestaoImovelRepositoryImpl implements GestaoImovelRepository {
     } on DioException catch (erro) {
       if (erro.error is SessaoExpiradaException) {
         return Result.failure(const SessaoExpiradaException());
+      }
+      if (erro.response?.statusCode == 404) {
+        // O `detail` do Django vem em inglês e nunca sobe (T-09-05).
+        return Result.failure(const ImovelNaoEncontradoException());
       }
       return Result.failure(const FalhaDeConexaoException());
     } on TypeError {
