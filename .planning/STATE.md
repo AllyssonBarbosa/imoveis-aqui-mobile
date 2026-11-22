@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 09
 current_phase_name: Mudança de Situação do Imóvel pelo App (APP 09)
 status: executing
-stopped_at: Completed 09-04-PLAN.md
-last_updated: "2026-11-22T15:40:13.861Z"
+stopped_at: Completed 09-05-PLAN.md
+last_updated: "2026-11-22T15:46:33.438Z"
 last_activity: 2026-11-22
 last_activity_desc: Phase 09 execution started
-state_head: db9f990caa5f0439e907d224879d33549957d9ae
+state_head: a5cc55e6250503d8ec6781f0b4d87ef8b0b5109f
 progress:
   total_phases: 10
   completed_phases: 0
   total_plans: 97
-  completed_plans: 88
+  completed_plans: 89
   percent: 0
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-11-21)
 ## Current Position
 
 Phase: 09 (Mudança de Situação do Imóvel pelo App (APP 09)) — EXECUTING
-Plan: 5 of 13
+Plan: 6 of 13
 Status: Ready to execute
 Last activity: 2026-11-22 — Phase 09 execution started
 
@@ -131,6 +131,7 @@ Progress: [████████████████████] 72/72 p
 | Phase 09 P02 | 5min | 2 tasks | 2 files |
 | Phase 09 P03 | 5 min | 2 tasks | 3 files |
 | Phase 9 P04 | 3 min | 2 tasks | 13 files |
+| Phase 9 P05 | 5 min | 2 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -211,6 +212,7 @@ Recent decisions affecting current work:
 - [Phase 09]: 09-02: rotas do corretor travadas por testes de caracterização na feat/APP09 do worktree da web (c02a506), sem código de produção
 - [Phase 09]: 09-03: mapa único código → enum em data/models/codigos_imovel_api.dart (finalidadeDoCodigo, situacaoDoCodigo); gestão (09-04) e histórico (09-06) leem por ele; ida e volta com codigoDaSituacao travada por teste
 - [Phase 9]: 09-04: 404 da leitura do imóvel de gestão reaproveita ImovelNaoEncontradoException; falhas genéricas viram FalhaDeConexaoException sem carregar o erro original — O detail em inglês do Django e corpos de 5xx nunca chegam à apresentação (T-09-05)
+- [Phase 9]: 09-05: abrirGestaoImovel é dono do Cubit (cria, carrega, push, close sem try/finally); título da AppBar = código do imóvel; todo cartão do acervo abre a gestão (D-02, supera ACV-04) — O servidor decide na_vitrine; o app não filtra o toque. A guarda de versão e o isClosed do GestaoImovelCubit foram provados por mutação, pois a Task 2 nasceu sem RED
 
 ### Pending Todos
 
@@ -248,6 +250,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-22T15:40:13.774Z
-Stopped at: Completed 09-04-PLAN.md
+Last session: 2026-11-22T15:46:33.361Z
+Stopped at: Completed 09-05-PLAN.md
 Resume file: None

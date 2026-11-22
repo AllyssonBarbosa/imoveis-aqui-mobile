@@ -483,7 +483,7 @@ Plans:
   5. A vitrine reflete a mudança na consulta seguinte (o servidor decide a publicação; verificado no UAT).
   6. Só quem o servidor autoriza consegue mudar: pelo app, só o corretor responsável (botão só com `pode_mudar_situacao`; quem forçar recebe 403); o gestor da empresa continua mudando pela web e a área dele no app é da APP-12 (D-07 da fase).
 
-**Plans:** 4/13 plans executed
+**Plans:** 5/13 plans executed
 
 Plans:
 **Wave 1**
@@ -498,7 +498,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 09-05-PLAN.md — TRACER de UI: todo cartão do Meu acervo abre a tela de gestão com a situação atual vinda da API, pela pilha real; Cubit com versão e "Tentar de novo" (SIT-07)
+- [x] 09-05-PLAN.md — TRACER de UI: todo cartão do Meu acervo abre a tela de gestão com a situação atual vinda da API, pela pilha real; Cubit com versão e "Tentar de novo" (SIT-07)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
