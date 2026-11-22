@@ -39,7 +39,7 @@ ImovelAcervo _imovel(int id, {bool naVitrine = true, bool meuImovel = true}) =>
 
 void main() {
   late _AcervoCubitFalso cubit;
-  late List<Imovel> abertos;
+  late List<ImovelAcervo> abertos;
 
   setUpAll(() {
     registerFallbackValue(SituacaoImovel.disponivel);
@@ -59,7 +59,7 @@ void main() {
       MaterialApp(
         home: AcervoScreen(
           criarCubit: () => cubit,
-          aoAbrirImovel: (context, imovel) async => abertos.add(imovel),
+          aoAbrirGestao: (context, imovel) async => abertos.add(imovel),
         ),
       ),
     );
@@ -270,8 +270,8 @@ void main() {
     });
   });
 
-  group('toque no cartão (D-07)', () {
-    testWidgets('naVitrine chama aoAbrirImovel com a prévia do item', (
+  group('toque no cartão (D-02 da Fase 9)', () {
+    testWidgets('naVitrine chama aoAbrirGestao com o ImovelAcervo do item', (
       tester,
     ) async {
       await montar(tester, carregada([_imovel(7)]));
@@ -280,15 +280,21 @@ void main() {
 
       expect(abertos, hasLength(1));
       expect(abertos.single.id, 7);
-      expect(abertos.single.titulo, 'Imóvel 7');
+      expect(abertos.single.codigo, 'DEV-7');
+      expect(abertos.single.naVitrine, isTrue);
     });
 
-    testWidgets('sem naVitrine nada acontece', (tester) async {
+    testWidgets('sem naVitrine também chama aoAbrirGestao com o item', (
+      tester,
+    ) async {
       await montar(tester, carregada([_imovel(8, naVitrine: false)]));
 
       await tester.tap(find.byType(CartaoImovelAcervo));
 
-      expect(abertos, isEmpty);
+      expect(abertos, hasLength(1));
+      expect(abertos.single.id, 8);
+      expect(abertos.single.codigo, 'DEV-8');
+      expect(abertos.single.naVitrine, isFalse);
     });
   });
 
@@ -328,7 +334,7 @@ void main() {
                     MaterialPageRoute<void>(
                       builder: (_) => AcervoScreen(
                         criarCubit: () => cubit,
-                        aoAbrirImovel: (context, imovel) async {},
+                        aoAbrirGestao: (context, imovel) async {},
                       ),
                     ),
                   ),
@@ -367,7 +373,7 @@ void main() {
                             MaterialPageRoute<void>(
                               builder: (_) => AcervoScreen(
                                 criarCubit: () => cubit,
-                                aoAbrirImovel: (context, imovel) async {},
+                                aoAbrirGestao: (context, imovel) async {},
                               ),
                             ),
                           ),

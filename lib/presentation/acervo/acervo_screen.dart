@@ -5,7 +5,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../di/injection.dart';
-import '../detalhe_imovel/detalhe_imovel_screen.dart';
+import '../gestao_imovel/gestao_imovel_screen.dart';
 import '../login/apresentacao_login.dart';
 import '../login/login_screen.dart';
 import '../perfis/widgets/rodape_paginacao_lista.dart';
@@ -18,7 +18,7 @@ import 'apresentacao_acervo.dart';
 import 'widgets/cartao_imovel_acervo.dart';
 import 'widgets/chips_situacao.dart';
 
-/// Tela "Meu acervo" (ACV-01, ACV-02, ACV-04): os imóveis do corretor e os da
+/// Tela "Meu acervo" (ACV-01, ACV-02, SIT-07): os imóveis do corretor e os da
 /// imobiliária, com busca por código ou título (D-08), chips de situação
 /// (D-09) e rolagem infinita na ordem do servidor (D-10). A tela só apresenta
 /// o que o [AcervoCubit] entrega — nenhuma regra, rede ou filtro aqui.
@@ -30,23 +30,23 @@ class AcervoScreen extends StatelessWidget {
   const AcervoScreen({
     super.key,
     this.criarCubit,
-    this.aoAbrirImovel = abrirDetalheImovel,
+    this.aoAbrirGestao = abrirGestaoImovel,
   });
 
   /// Cria o Cubit da tela; `null` usa o localizador de serviços. Existe para
   /// os testes de widget não dependerem do DI.
   final AcervoCubit Function()? criarCubit;
 
-  /// Abre a página pública do imóvel tocado — o padrão navega por
-  /// `Navigator.push`; testes injetam um falso.
-  final AoAbrirImovel aoAbrirImovel;
+  /// Abre a gestão do imóvel tocado — de TODO cartão (D-02 da Fase 9); o
+  /// padrão navega por `Navigator.push`; testes injetam um falso.
+  final AoAbrirGestao aoAbrirGestao;
 
   @override
   Widget build(BuildContext context) {
     final criar = criarCubit ?? () => getIt<AcervoCubit>();
     return BlocProvider<AcervoCubit>(
       create: (_) => criar()..carregar(),
-      child: _CorpoAcervo(aoAbrirImovel: aoAbrirImovel),
+      child: _CorpoAcervo(aoAbrirGestao: aoAbrirGestao),
     );
   }
 }
@@ -55,9 +55,9 @@ class AcervoScreen extends StatelessWidget {
 /// (estado efêmero de interface); a guarda contra disparos duplicados vive
 /// inteira no Cubit.
 class _CorpoAcervo extends StatefulWidget {
-  const _CorpoAcervo({required this.aoAbrirImovel});
+  const _CorpoAcervo({required this.aoAbrirGestao});
 
-  final AoAbrirImovel aoAbrirImovel;
+  final AoAbrirGestao aoAbrirGestao;
 
   @override
   State<_CorpoAcervo> createState() => _CorpoAcervoState();
@@ -243,10 +243,8 @@ class _CorpoAcervoState extends State<_CorpoAcervo> {
                             return CartaoImovelAcervo(
                               key: ValueKey('imovel-acervo-${imovel.id}'),
                               imovel: imovel,
-                              aoTocar: () => widget.aoAbrirImovel(
-                                context,
-                                imovel.paraPrevia(),
-                              ),
+                              aoTocar: () =>
+                                  widget.aoAbrirGestao(context, imovel),
                             );
                           },
                         ),
