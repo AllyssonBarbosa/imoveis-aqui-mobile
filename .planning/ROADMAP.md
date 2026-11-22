@@ -483,7 +483,7 @@ Plans:
   5. A vitrine reflete a mudança na consulta seguinte (o servidor decide a publicação; verificado no UAT).
   6. Só quem o servidor autoriza consegue mudar: pelo app, só o corretor responsável (botão só com `pode_mudar_situacao`; quem forçar recebe 403); o gestor da empresa continua mudando pela web e a área dele no app é da APP-12 (D-07 da fase).
 
-**Plans:** 8/13 plans executed
+**Plans:** 9/13 plans executed
 
 Plans:
 **Wave 1**
@@ -514,7 +514,7 @@ Plans:
 
 **Wave 7** *(blocked on Wave 6 completion; depois do 09-08 para serializar o `build_runner`)*
 
-- [ ] 09-09-PLAN.md — Dados da escrita: `POST /api/imoveis/{id}/situacao/` com o corpo exato, recusa 400/403 com a mensagem do servidor achatada e falhas tipadas do envio (SIT-02, SIT-04, SIT-01)
+- [x] 09-09-PLAN.md — Dados da escrita: `POST /api/imoveis/{id}/situacao/` com o corpo exato, recusa 400/403 com a mensagem do servidor achatada e falhas tipadas do envio (SIT-02, SIT-04, SIT-01)
 
 **Wave 8** *(blocked on Wave 7 completion)*
 

@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 09
 current_phase_name: Mudança de Situação do Imóvel pelo App (APP 09)
 status: executing
-stopped_at: Completed 09-08-PLAN.md
-last_updated: "2026-11-22T16:07:36.498Z"
+stopped_at: Completed 09-09-PLAN.md
+last_updated: "2026-11-22T16:12:05.358Z"
 last_activity: 2026-11-22
 last_activity_desc: Phase 09 execution started
-state_head: 32fe05388d060376a0f967dd5e3d242a603c4fb1
+state_head: 5909440ad40f9b561e3d6fac67084c1cab050408
 progress:
   total_phases: 10
   completed_phases: 0
   total_plans: 97
-  completed_plans: 92
+  completed_plans: 93
   percent: 0
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-11-21)
 ## Current Position
 
 Phase: 09 (Mudança de Situação do Imóvel pelo App (APP 09)) — EXECUTING
-Plan: 9 of 13
+Plan: 10 of 13
 Status: Ready to execute
 Last activity: 2026-11-22 — Phase 09 execution started
 
@@ -135,6 +135,7 @@ Progress: [████████████████████] 72/72 p
 | Phase 09 P06 | 5 min | 2 tasks | 14 files |
 | Phase 09 P07 | 12 min | 2 tasks | 14 files |
 | Phase 09 P08 | 40 min | 2 tasks | 10 files |
+| Phase 09 P09 | 3 min | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -220,6 +221,7 @@ Recent decisions affecting current work:
 - [Phase 09]: 09-07: retry do histórico com token próprio (_versaoHistorico) que também confere a versão da carga; Future.wait sobre imóvel e histórico com um único emit — Uma carga nova vence uma repetição antiga sem invalidar a leitura do imóvel em voo
 - [Phase 09]: 09-08: 401 em qualquer leitura (inclusive repetição do histórico) leva a tela de gestão toda para sessão expirada; helper único voltarAoLoginComSessaoTerminada compartilhado com o acervo — D-10, T-09-08
 - [Phase 09]: 09-08: recarregar() mantém o conteúdo numa falha e conta falhasAoAtualizar (SnackBar); GestaoImovelScreen virou StatefulWidget para tratar 401 que chega antes do primeiro quadro — AC-2, D-10
+- [Phase 09]: 09-09: ramo 400/403 no _executar compartilhado; recusa sem texto vira FalhaDeConexaoException; corte em 300 + reticências — Mensagem do servidor só para exibir (D-10); corpo sem texto não vira recusa vazia
 
 ### Pending Todos
 
@@ -257,6 +259,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-22T16:07:36.426Z
-Stopped at: Completed 09-08-PLAN.md
+Last session: 2026-11-22T16:12:05.284Z
+Stopped at: Completed 09-09-PLAN.md
 Resume file: None
