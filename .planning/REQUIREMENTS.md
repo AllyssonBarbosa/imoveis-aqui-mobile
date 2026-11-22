@@ -63,7 +63,7 @@ Requisitos da primeira entrega (tarefas APP01, APP02, APP03, APP04, APP07, APP08
 - [x] **ACV-01**: O corretor vê o acervo — os imóveis dele e os da imobiliária — numa lista paginada com rolagem infinita, em cartão compacto (código, título, preço, situação e a marca "Seu" calculada no servidor).
 - [x] **ACV-02**: Busca por código ou título e filtro por situação (Todas, Disponível, Reservado, Vendido, Alugado) resolvidos no servidor com a regra do painel do site (`FiltroImovelForm`); busca e situação se combinam.
 - [x] **ACV-03**: Imóvel de outra empresa não aparece no acervo nem forçando a consulta (busca, situação, parâmetros extras ou id), garantido e testado no Django; gestor e administrador não acessam a lista e sem token a resposta é 401.
-- [x] **ACV-04**: O toque num cartão do acervo só abre a página do imóvel quando o servidor diz que ele está na vitrine (`na_vitrine`); senão o cartão não reage.
+- [x] **ACV-04**: O toque num cartão do acervo só abre a página do imóvel quando o servidor diz que ele está na vitrine (`na_vitrine`); senão o cartão não reage. Superado na Phase 9 pelo SIT-07: todo cartão abre a tela de gestão e "Ver na vitrine" só aparece com `na_vitrine`.
 - [x] **API-09**: O §14 de `01-CONTRATO-API.md` congela login, "quem sou eu", Sair e a lista do acervo (parâmetros, envelope, as 10 chaves do item, 400/401/403/404/429 e o efeito do Sair nos outros aparelhos), com fixtures capturadas do Django e testes de contrato nos dois repositórios.
 - [x] **API-10**: A web entrega, com testes, `GET /api/auth/eu/`, `POST /api/auth/sair/`, o limite de tentativas no login e a lista do acervo paginada, filtrada e enxuta em `GET /api/imoveis/`.
 
@@ -73,9 +73,9 @@ Card APP 09 (tarefa A09). SIT-01..SIT-06 cobrem os critérios AC-1..AC-6 do card
 
 - [x] **SIT-01**: O corretor troca a situação do imóvel (Disponível, Reservado, Vendido, Alugado) numa folha com chips de escolha única (a situação atual desabilitada) e observação opcional; a data é a do servidor (`alterado_em`), mostrada como "Data: hoje" na folha e com data e hora no histórico (AC-1).
 - [x] **SIT-02**: A troca é pedida à API (`POST /api/imoveis/{id}/situacao/`) e o app não altera nada localmente: depois do 200 a folha fecha, aparece "Situação alterada para <situação>." e a tela relê o imóvel e o histórico da API (AC-2).
-- [ ] **SIT-03**: A tela de gestão do imóvel mostra o histórico das mudanças na ordem do servidor (mais recente primeiro): de → para, data e hora, quem mudou e a observação; sem mudanças mostra "Nenhuma mudança ainda — disponível desde o cadastro." (AC-3).
-- [ ] **SIT-04**: Recusa do servidor (400/403) mostra a mensagem do servidor na folha, que continua aberta com a observação, e a situação exibida não muda; rede, tempo esgotado e 5xx mostram "Não foi possível mudar a situação agora. Tente de novo."; 404 mostra um texto fixo; 401 volta ao login com "Sua sessão terminou. Entre de novo." (AC-4).
-- [ ] **SIT-05**: A vitrine pública reflete a mudança na consulta seguinte (regra única `na_vitrine` no servidor, provada no UAT) e o Meu acervo recarrega da API ao voltar da tela de gestão quando houve mudança, mantendo a busca e a situação escolhidas (AC-5).
+- [x] **SIT-03**: A tela de gestão do imóvel mostra o histórico das mudanças na ordem do servidor (mais recente primeiro): de → para, data e hora, quem mudou e a observação; sem mudanças mostra "Nenhuma mudança ainda — disponível desde o cadastro." (AC-3).
+- [x] **SIT-04**: Recusa do servidor (400/403) mostra a mensagem do servidor na folha, que continua aberta com a observação, e a situação exibida não muda; rede, tempo esgotado e 5xx mostram "Não foi possível mudar a situação agora. Tente de novo."; 404 mostra um texto fixo; 401 volta ao login com "Sua sessão terminou. Entre de novo." (AC-4).
+- [x] **SIT-05**: A vitrine pública reflete a mudança na consulta seguinte (regra única `na_vitrine` no servidor, provada no UAT) e o Meu acervo recarrega da API ao voltar da tela de gestão quando houve mudança, mantendo a busca e a situação escolhidas (AC-5).
 - [x] **SIT-06**: Só o corretor responsável muda a situação pelo app (o gestor muda pela web; a área dele no app é da APP-12): o botão "Mudar situação" só aparece com `pode_mudar_situacao` calculado pelo Django, e quem forçar recebe a recusa do servidor (403), testada no Django (AC-6).
 - [x] **SIT-07**: Todo cartão do Meu acervo abre a tela de gestão do imóvel (cabeçalho, situação atual com "desde" e histórico); "Ver na vitrine" só aparece quando o servidor diz `na_vitrine` e some depois de uma mudança até a tela ser reaberta. Supera o ACV-04 da Phase 8.
 - [x] **API-11**: O §16 de `01-CONTRATO-API.md` congela `GET /api/imoveis/{id}/` (as 9 chaves que o app lê), `POST /api/imoveis/{id}/situacao/` (corpo, 200, 400, 401, 403, 404) e `GET /api/imoveis/{id}/historico/`, com fixtures capturadas da API real (código da `origin/main` da web) e teste de contrato no app.
@@ -191,9 +191,9 @@ Excluídos de propósito. Documentados para evitar scope creep.
 | API-10 | Phase 8 | Complete |
 | SIT-01 | Phase 9 | Complete |
 | SIT-02 | Phase 9 | Complete |
-| SIT-03 | Phase 9 | Pending |
-| SIT-04 | Phase 9 | Pending |
-| SIT-05 | Phase 9 | Pending |
+| SIT-03 | Phase 9 | Complete |
+| SIT-04 | Phase 9 | Complete |
+| SIT-05 | Phase 9 | Complete |
 | SIT-06 | Phase 9 | Complete |
 | SIT-07 | Phase 9 | Complete |
 | API-11 | Phase 9 | Complete |
@@ -211,4 +211,4 @@ Planos da Phase 9 que cobrem cada ID (frontmatter `requirements` dos `09-NN-PLAN
 
 ---
 *Requirements defined: 2026-09-21*
-*Last updated: 2026-11-22 after Phase 9 planning (SIT-01..07, API-11 and API-12 registered for card APP 09, D-14)*
+*Last updated: 2026-11-22 after Phase 9 execution (SIT-01..07, API-11 and API-12 Complete; ACV-04 superseded by SIT-07)*
