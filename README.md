@@ -202,6 +202,65 @@ rolagem, latência). Desktop e web **não** servem: o projeto não tem a pasta `
 
 4. Ao terminar, pare o `runserver` (Ctrl+C).
 
+### Área do corretor (APP-08)
+
+O corretor entra no **mesmo app**, sem aplicativo separado. O botão do topo da vitrine, ao lado do seletor de
+cidade, mostra "Entrar" (sem sessão guardada) ou "Meu acervo" (com sessão); a vitrine continua abrindo direto,
+sem login. Quem entra vê a área do seu papel, lido do servidor a cada toque em "Meu acervo":
+
+- **Corretor:** "Meu acervo" — os imóveis dele e os da imobiliária, com a marca "Seu" nos dele, busca por código
+  ou título, chips de situação (Todas, Disponível, Reservado, Vendido, Alugado) e rolagem infinita, tudo
+  resolvido no servidor. O cartão só abre a página do imóvel quando o servidor diz que ele está na vitrine.
+- **Gestor e administrador:** tela de aviso "A área do gestor ainda não está no app." com Sair.
+- **Sair** pede confirmação, apaga o token do aparelho e o revoga no servidor; se a rede falhar, o aparelho sai
+  do mesmo jeito. Sessão que o servidor recusa (401) volta ao login com "Sua sessão terminou. Entre de novo.".
+
+O token da API fica em `flutter_secure_storage` (Keychain no iOS, Keystore no Android) e só é enviado às rotas
+autenticadas (`/api/auth/eu/`, `/api/auth/sair/`, `/api/imoveis/`); a vitrine pública e o próprio login nunca
+levam o `Authorization`.
+
+**Dados de teste no Django da `feat/APP08`** (nenhuma senha vai para o repositório):
+
+```bash
+# a partir de ../imoveis-aqui/Web, na branch feat/APP08, com DEBUG=True no .env
+.venv/bin/python manage.py migrate
+.venv/bin/python manage.py seed_demo            # segunda empresa, com um corretor e um gestor
+.venv/bin/python manage.py semear_vitrine_dev   # imóveis DEV-* e o corretor corretor.vitrine.demo@example.com
+
+# escolha agora uma senha de desenvolvimento e defina-a pelo ambiente (nunca escreva a senha em arquivo)
+export SENHA_DEV_CORRETOR='<senha escolhida na hora>'
+.venv/bin/python manage.py shell -c "
+import os
+from contas.models import Usuario
+u = Usuario.objects.get(email='corretor.vitrine.demo@example.com')
+u.set_password(os.environ['SENHA_DEV_CORRETOR'])
+u.save()
+"
+
+.venv/bin/python manage.py runserver 0.0.0.0:8000   # com 10.0.2.2 no ALLOWED_HOSTS
+```
+
+As credenciais do corretor e do gestor do `seed_demo` aparecem na saída do próprio comando e estão no código
+dele (`core/management/commands/seed_demo.py`); não as copie para cá. Para o administrador, use um usuário de
+perfil `ADMINISTRADOR` criado por você no ambiente de desenvolvimento.
+
+O que conferir no emulador (roteiro completo no UAT da fase):
+
+1. Sem login, o app abre na vitrine com "Entrar" no topo.
+2. Corretor A (`corretor.vitrine.demo@example.com`) vê os `DEV-*` com a marca "Seu" em todos menos em
+   `DEV-CAMPINAS-14`; a busca `DEV-CAMPINAS-14` mostra "Apartamento no bairro Barão Geraldo".
+3. Corretor B (o do `seed_demo`) vê só `DEMO-CASA-01`, que está Vendido e não reage ao toque; nenhum `DEV-*`.
+4. Gestor e administrador caem no aviso, com Sair.
+5. Senha errada e e-mail inexistente mostram a mesma frase: "E-mail ou senha inválidos.".
+
+Avisos:
+
+- O token é **único por usuário** (contrato §14.4): Sair num aparelho desconecta os outros aparelhos do mesmo
+  usuário, que voltam ao login ao tocar em "Meu acervo".
+- O limite de tentativas de login usa `LOGIN_TAXA_POR_EMAIL` (padrão `10/hour`) e `LOGIN_TAXA_POR_IP` (padrão
+  `30/hour`), configuráveis pelo `.env` do Django. Passou do limite, o app mostra "Muitas tentativas. Tente de
+  novo em N minutos.".
+
 ## Testes e análise
 
 ```bash

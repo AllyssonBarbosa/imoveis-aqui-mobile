@@ -10,6 +10,10 @@ se o conjunto de chaves de qualquer objeto mudar.
 anunciante e a correção do perfil de corretor de empresa inativa (D-11) vêm da branch `feat/APP07` da web,
 até ela entrar na `main` dela. Ver §13.
 
+**Login e acervo do corretor (Fase 8):** as rotas autenticadas (`/api/auth/login/`, `/api/auth/eu/`, `/api/auth/sair/` e a
+lista do acervo em `GET /api/imoveis/`) vêm da branch `feat/APP08` da web, até ela entrar na `main` dela. Ver §14; os
+exemplos `acervo`, `eu` e `login` são travados por `test/data/contrato_acervo_test.dart`.
+
 **Histórico:** as propostas congeladas nas Fases 1 a 4 (paginação por cursor, `GET /api/publico/imoveis/?cidade=`,
 `ordenacao`, sufixo `_min`, `bairro`/`caracteristicas` por nome, `corretor{slug}`, `lote.preco`,
 `posicao_solar` livre etc.) foram **substituídas** na Fase 5 pelo formato real da API, que é dona
@@ -469,3 +473,171 @@ Nunca recapturar os grupos da APP-05 junto (`--grupo todos`): o sufixo aleatóri
 fixtures já travadas. Travas: no app, `test/data/contrato_perfis_test.dart` e
 `test/data/vitrine_anunciante_remote_datasource_test.dart`; no Django, `VitrineDoAnuncianteTests`,
 `VitrineAllowlistExataTests` e `CorretorPublicoEmpresaInativaTests`.
+
+---
+
+## 14. Login e acervo do corretor (Fase 8)
+
+A Fase 8 acrescenta as **rotas autenticadas** que o app usa depois do login: quem sou eu, Sair e a lista do acervo
+do corretor. Elas vivem na branch `feat/APP08` da web até ela entrar na `main` dela. Este § foi escrito a partir do
+que o Django **entrega** (D-05, D-15) e não muda os §1 a §13: as rotas públicas da vitrine continuam sem token.
+As respostas de exemplo são capturadas (§14.9), nunca escritas à mão.
+
+### 14.1 Rotas e autenticação
+
+| Rota | Método | Autenticação | Sucesso |
+|------|--------|--------------|---------|
+| `/api/auth/login/` | `POST` | nenhuma (`authentication_classes = []`) | 200 `{token}` |
+| `/api/auth/eu/` | `GET` | `Authorization: Token <chave>` | 200 `{perfil}` |
+| `/api/auth/sair/` | `POST` | `Authorization: Token <chave>` | 204 sem corpo |
+| `/api/imoveis/` | `GET` | `Authorization: Token <chave>` | 200 envelope do §4 |
+
+- O app manda `Authorization: Token <chave>` **só** em `eu`, `sair` e `GET /api/imoveis/`; nunca nas rotas públicas.
+- Sem token, ou com chave inválida ou revogada: **401** `{"detail": ...}` com o cabeçalho `WWW-Authenticate: Token`
+  (`TokenAuthentication` é a primeira classe de autenticação). `eu` e `sair` só aceitam token (sem sessão do site nem
+  CSRF). `GET /api/imoveis/` mantém o padrão global (token, depois sessão do painel), mas o app só envia token.
+- As rotas públicas da vitrine seguem com `authentication_classes = []`: um token velho no aparelho não as derruba.
+
+### 14.2 Login
+
+`POST /api/auth/login/` com corpo JSON `{"email": "...", "password": "..."}`.
+
+- **200** `{"token": "<chave>"}` (exemplo: `contrato/login.example.json`, com o valor trocado por 40 zeros; ver §14.9).
+- **400** para credencial inválida ou campo inválido (`{"non_field_errors": [...]}` ou erros por campo). O app
+  **ignora o texto** e mostra o dele (D-03); só o status decide. A resposta não revela se o e-mail existe.
+- **429** quando o limite de tentativas estoura: cabeçalho `Retry-After` (segundos) e corpo `{"detail": "..."}`. Não há
+  fixture (não é capturável de forma determinística): o `Retry-After` é travado no Django e, no app, por resposta sintética.
+- `authentication_classes = []`: um `Authorization: Token <revogado>` mandado ao login não vira 401.
+- **Limite de tentativas em dois baldes**, conferido antes de checar a senha e contando toda tentativa (certa ou errada,
+  e-mail existente ou não): `login_email` (chave pelo **SHA-256 do e-mail normalizado**, sem espaços e em minúsculas, nunca
+  em texto) e `login_ip` (IP do cliente, respeitando `NUM_PROXIES`). Taxas por variável de ambiente:
+  `LOGIN_TAXA_POR_EMAIL` (padrão `10/hour`) e `LOGIN_TAXA_POR_IP` (padrão `30/hour`), validadas na partida do Django.
+  Corpo sem e-mail não tem chave de e-mail (responde o 400 do serializer).
+
+### 14.3 Quem sou eu
+
+`GET /api/auth/eu/` devolve exatamente `{"perfil": "CORRETOR" | "GESTOR" | "ADMINISTRADOR"}` (exemplo:
+`contrato/eu.example.json`). De propósito não traz nome, e-mail nem empresa: o app só roteia a tela pelo papel (D-02).
+Só vale token; a sessão do site não autentica esta rota (401).
+
+### 14.4 Sair
+
+`POST /api/auth/sair/` apaga a chave do usuário no servidor e responde **204**.
+
+- O token é **único por usuário** (o login faz `get_or_create`): Sair **desconecta** todos os aparelhos do mesmo corretor,
+  não só o que chamou. O site, que usa sessão, não é afetado. Um novo login gera chave nova.
+- Repetir o Sair com a chave já revogada dá **401**; o app trata esse 401 como sucesso.
+- O app **apaga o token local mesmo se a chamada falhar** (rede fora, 5xx): sair nunca fica preso no aparelho.
+
+### 14.5 Lista do acervo
+
+`GET /api/imoveis/` (permissão `EhCorretor`) devolve o acervo da **empresa do corretor logado**, no envelope do §4:
+`{count, next, previous, results}`, `page_size = 20` fixo (o cliente não muda o tamanho) e `next`/`previous`
+**absolutos**. Só `page` pagina; só a lista usa a paginação (detalhe, criação e edição do painel não mudam).
+
+**Parâmetros** (os mesmos do painel do corretor no site, pela `FiltroImovelForm(campos=["busca", "situacao"])`):
+
+| Parâmetro | Regra |
+|-----------|-------|
+| `busca` | código OU título, `icontains` |
+| `situacao` | igualdade com `DISPONIVEL`, `RESERVADO`, `VENDIDO` ou `ALUGADO` |
+| `page` | número da página (20 por página) |
+
+Um valor inválido em **qualquer** campo do formulário (por exemplo `situacao=XYZ`) anula **todos** os filtros,
+inclusive a busca: a lista vem sem filtro, nunca erro. `corretor`, `empresa`, `natureza` e os demais filtros do painel não
+existem aqui (a URL não escolhe empresa nem corretor). Ordem fixa: `-criado_em, -pk` (o `pk` desempata, senão a página
+pode repetir ou pular imóvel).
+
+**Item: exatamente 10 chaves** (exemplo: `contrato/acervo.example.json`, cópia byte a byte de `test/fixtures/api/acervo_p1.json`):
+
+| Chave | Tipo | Observação |
+|-------|------|------------|
+| `id` | inteiro | |
+| `codigo` | string | código do imóvel na empresa |
+| `titulo` | string | |
+| `finalidade` | string | `VENDA`, `ALUGUEL` ou `VENDA_E_ALUGUEL` |
+| `preco_venda` | string decimal ou `null` | |
+| `preco_aluguel` | string decimal ou `null` | |
+| `foto_capa` | URL absoluta ou `null` | a capa marcada, senão a primeira foto |
+| `situacao` | string | `DISPONIVEL`, `RESERVADO`, `VENDIDO` ou `ALUGADO` |
+| `meu_imovel` | booleano | o corretor responsável é o usuário logado; calculado no servidor (D-06) |
+| `na_vitrine` | booleano | o imóvel aparece na vitrine pública agora; regra única `na_vitrine()` do servidor (D-07) |
+
+**Emenda ao D-13:** `finalidade` entra, além das 9 chaves decididas no D-13, porque o app decide por ela quais linhas
+de preço mostrar (`linhasDePreco`), no mesmo formato do cartão público. O app nunca compara ids nem reaplica a regra de
+publicação: `meu_imovel` e `na_vitrine` chegam prontos.
+
+**Deny-list (nunca no item):** `proprietario`, `corretor_responsavel`, `empresa`, `descricao`, `fotos`, `endereco`,
+`publicado`, `pode_publicar`, `pendencias_para_publicar` e `criado_em`. O serializer é dedicado
+(`ImovelAcervoSerializer`, `fields` listados um a um), travado por `AcervoAllowlistExataTests`.
+
+**Isolamento (AC-5):** o filtro por empresa é a primeira camada do queryset (sempre antes de `busca` e `situacao`); o
+corretor de uma empresa nunca recebe imóvel de outra, por manipulação de parâmetro. Exemplos no wire: o corretor da
+empresa demo recebe só códigos `DEV-*`; o da segunda empresa, só os dela (`test/fixtures/api/acervo_outra_empresa.json`).
+
+### 14.6 Erros
+
+| Situação | Status | Observação |
+|----------|--------|------------|
+| `login`: credencial ou campo inválido | **400** | texto ignorado pelo app (D-03) |
+| `eu`, `sair` ou `GET /api/imoveis/` sem token, ou com chave inválida ou revogada | **401** | `{detail}` + `WWW-Authenticate: Token` |
+| `GET /api/imoveis/` por gestor ou administrador | **403** `{detail}` | rota exclusiva do corretor |
+| `?page` fora do intervalo | **404** "Página inválida." | padrão do DRF |
+| imóvel de **outra empresa** pelo id (`/api/imoveis/<id>/`) | **404** | o queryset já é da empresa (sem canal de enumeração) |
+| `login` acima do limite de tentativas | **429** | `Retry-After` em segundos + `{detail}` |
+
+Exemplos capturados: `erro_400_login.json`, `erro_401.json` e `erro_403_acervo.json` em `test/fixtures/api/`.
+
+### 14.7 No app
+
+- **Dio público** (`'publico'`) para login e vitrine; **Dio `'autenticado'`** para `eu`, `sair` e a lista do acervo: o
+  `InterceptadorSessao` coloca `Authorization: Token <chave>` **só quando a origem do pedido é a da API configurada**.
+- **401 → `SessaoExpiradaException`**: o interceptador rejeita o erro já traduzido e apaga o token guardado (só se ainda for o que o pedido levou, para um 401 atrasado não derrubar o login novo)
+  (nenhum `try/catch` acima da camada de dados).
+- **`next` só na mesma origem** da base URL configurada (o mesmo teste do §4): o token nunca viaja para outro host.
+- **`followRedirects: false`** nos dois Dio: uma credencial nunca segue um redirecionamento.
+
+### 14.8 PENDENTE WEB e riscos aceitos
+
+| Risco | Tratamento |
+|-------|-----------|
+| **Token sem expiração.** A chave vale até o Sair (ou até o administrador apagá-la). | Aceito (D-15): sem refresh nesta fase; o Sair revoga no servidor. |
+| **Sair desconecta os outros aparelhos do mesmo corretor** (token único por usuário). | Aceito (D-A). Token por aparelho é ideia **deferida**. |
+| **Bloqueio dirigido de e-mail.** Quem erra a senha de um e-mail 10 vezes por hora bloqueia o login legítimo dele por até 1 hora. | Aceito (T-08-19): o balde por e-mail freia força bruta; ajustável por `LOGIN_TAXA_POR_EMAIL`. |
+| **IP compartilhado (CGNAT, escritório).** Muitos aparelhos atrás do mesmo IP dividem o balde `login_ip`. | Aceito (T-08-20): ajustável por `LOGIN_TAXA_POR_IP`; atrás de proxy reverso, configurar `NUM_PROXIES`. Item de deploy. |
+| **`LocMemCache` por processo.** O contador do login fica na memória de cada worker; com vários workers o limite efetivo multiplica. | Aceito no dev; produção deve usar cache compartilhado. Item de deploy. |
+| **Busca sensível a acento** (`icontains` no Postgres). | Aceito, como no §8; `unaccent` é melhoria da frente web. |
+| **Formato de `GET /api/imoveis/` mudou de lista para envelope paginado.** | Aceito: sem consumidor conhecido além do app (o painel do site usa as views do Django, não esta rota). |
+| **Taxas A1 (`10/hour` por e-mail, `30/hour` por IP)** são estimativa. | **PENDENTE**: confirmar no human-check do 08-12. |
+
+### 14.9 Sincronização
+
+Capturar só o grupo novo e copiar byte a byte para `contrato/`:
+
+```bash
+python3 tool/capturar_fixtures_api.py http://127.0.0.1:8000 test/fixtures/api --grupo acervo
+```
+
+| Fixture capturada | Exemplo do contrato |
+|-------------------|---------------------|
+| `acervo_p1.json` | `acervo.example.json` |
+| `eu_corretor.json` | `eu.example.json` |
+| `login_200.json` | `login.example.json` |
+
+O grupo faz login pela API, então precisa de credenciais **só por variável de ambiente** (nunca em arquivo):
+`CAPTURA_EMAIL_CORRETOR`, `CAPTURA_SENHA_CORRETOR`, `CAPTURA_EMAIL_OUTRA_EMPRESA`, `CAPTURA_SENHA_OUTRA_EMPRESA`,
+`CAPTURA_EMAIL_GESTOR` e `CAPTURA_SENHA_GESTOR`. Procedimento: SQLite temporário fora dos dois repositórios (nunca o
+banco do `Web/.env`), com `migrate`, `semear_vitrine_dev` **e** `seed_demo` (a segunda empresa, o gestor e o corretor
+dela); o corretor da vitrine demo nasce sem senha utilizável, então se gera uma **senha descartável** e se a define no
+SQLite temporário lendo `os.environ`. O detalhe está no docstring de `tool/capturar_fixtures_api.py`.
+
+**Redação do token:** o 200 do login é gravado com o valor de `token` trocado por 40 zeros
+(`0000000000000000000000000000000000000000`), depois de a ferramenta conferir que a resposta tinha exatamente a chave
+`token`. A chave real fica só em memória e é revogada no fim (a captura chama o Sair e confere o 401 seguinte).
+
+**Nunca `--grupo todos`:** ele reescreveria as fixtures da APP-05 e da APP-07 (o sufixo aleatório das fotos do seed
+mudaria as fixtures já travadas).
+
+Travas: no app, `test/data/contrato_acervo_test.dart` (chaves exatas do envelope, do item, do `eu` e do login, exemplo =
+fixture e isolamento entre empresas); no Django, `AcervoApiTests`, `AcervoAllowlistExataTests`,
+`LoginLimiteDeTentativasTests`, `EuApiTests` e `SairApiTests`.

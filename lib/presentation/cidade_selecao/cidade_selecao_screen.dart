@@ -21,6 +21,7 @@ class CidadeSelecaoScreen extends StatelessWidget {
     SalvarCidadeUseCase? salvarCidade,
     VitrineCubit Function()? criarVitrineCubit,
     OpcoesFiltroCubit Function()? criarOpcoesFiltroCubit,
+    this.acaoSessao,
     // ignore: prefer_initializing_formals
   }) : _salvarCidade = salvarCidade,
        // ignore: prefer_initializing_formals
@@ -32,11 +33,14 @@ class CidadeSelecaoScreen extends StatelessWidget {
   final VitrineCubit Function()? _criarVitrineCubit;
   final OpcoesFiltroCubit Function()? _criarOpcoesFiltroCubit;
 
+  /// Ação opcional do topo da vitrine (botão "Entrar"/"Meu acervo", D-C),
+  /// repassada à [VitrineScreen] no desfecho `autorizadaEAtendida`.
+  final Widget? acaoSessao;
+
   @override
   Widget build(BuildContext context) {
     final salvarCidade = _salvarCidade ?? getIt<SalvarCidadeUseCase>();
-    final criarVitrineCubit =
-        _criarVitrineCubit ?? () => getIt<VitrineCubit>();
+    final criarVitrineCubit = _criarVitrineCubit ?? () => getIt<VitrineCubit>();
     final criarOpcoesFiltroCubit =
         _criarOpcoesFiltroCubit ?? () => getIt<OpcoesFiltroCubit>();
     return BlocBuilder<CidadeSelecaoCubit, CidadeSelecaoState>(
@@ -49,6 +53,7 @@ class CidadeSelecaoScreen extends StatelessWidget {
                 cidade: cidade,
                 criarVitrineCubit: criarVitrineCubit,
                 criarOpcoesFiltroCubit: criarOpcoesFiltroCubit,
+                acaoSessao: acaoSessao,
               ),
               AutorizadaNaoAtendida(
                 :final cidadeDetectada,
@@ -164,11 +169,13 @@ class _CorpoVitrine extends StatelessWidget {
     required this.cidade,
     required this.criarVitrineCubit,
     required this.criarOpcoesFiltroCubit,
+    required this.acaoSessao,
   });
 
   final Cidade cidade;
   final VitrineCubit Function() criarVitrineCubit;
   final OpcoesFiltroCubit Function() criarOpcoesFiltroCubit;
+  final Widget? acaoSessao;
 
   @override
   Widget build(BuildContext context) {
@@ -182,7 +189,7 @@ class _CorpoVitrine extends StatelessWidget {
           create: (_) => criarOpcoesFiltroCubit()..carregar(cidade),
         ),
       ],
-      child: VitrineScreen(cidade: cidade),
+      child: VitrineScreen(cidade: cidade, acaoSessao: acaoSessao),
     );
   }
 }

@@ -10,7 +10,8 @@ empresa, mais a vitrine do anunciante (§13 do contrato). Planos: 07-01..07-12.
 | GET /api/publico/corretores/{id}/ (perfil público do corretor) | INTEGRATE | |
 | GET /api/publico/empresas/{id}/ (perfil público da empresa) | INTEGRATE | |
 | 404 dos dois perfis (corretor desativado, empresa inativa) | INTEGRATE | |
-| vitrine do anunciante: GET /api/publico/corretores/{id}/imoveis/ e /api/publico/empresas/{id}/imoveis/ (§13) | INTEGRATE | |
+| vitrine do corretor: GET /api/publico/corretores/{id}/imoveis/ (§13) | INTEGRATE | |
+| vitrine da empresa: GET /api/publico/empresas/{id}/imoveis/ (§13) | INTEGRATE | |
 | vitrine do anunciante — DataSource real (Dio) (entregue na Phase 07.1) | INTEGRATE | |
 | ativação da DataSource remota dos perfis no DI (entregue na Phase 07.1) | INTEGRATE | |
 | campo corretores_ativos da empresa (lista de corretores da imobiliária) | OPT-OUT | explicitly out of scope — Deferred Ideas do CONTEXT (não pedido pelo card) |

@@ -32,9 +32,15 @@ class VitrineScreen extends StatefulWidget {
     super.key,
     required this.cidade,
     this.aoAbrirImovel = abrirDetalheImovel,
+    this.acaoSessao,
   });
 
   final Cidade cidade;
+
+  /// Ação opcional ao lado do seletor de cidade (o botão "Entrar"/"Meu
+  /// acervo" do topo, D-C). Sem ela a tela renderiza como antes; o slot evita
+  /// a vitrine depender da sessão.
+  final Widget? acaoSessao;
 
   /// Abre a página do imóvel tocado (DET-01, D-18) — o default navega por
   /// `Navigator.push`; testes de widget da vitrine podem injetar um falso.
@@ -140,7 +146,17 @@ class _VitrineScreenState extends State<VitrineScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SeletorCidadeTopo(cidade: widget.cidade),
+          // Sem a ação da sessão o seletor segue filho direto da coluna, como
+          // antes; com ela, os dois dividem a mesma linha.
+          if (widget.acaoSessao case final acao?)
+            Row(
+              children: [
+                Expanded(child: SeletorCidadeTopo(cidade: widget.cidade)),
+                acao,
+              ],
+            )
+          else
+            SeletorCidadeTopo(cidade: widget.cidade),
           const SizedBox(height: 16),
           SearchBar(
             controller: _controleDeBusca,

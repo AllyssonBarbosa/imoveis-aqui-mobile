@@ -25,8 +25,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 3: Vitrine — Filtros Server-Side** - Filtros completos da vitrine (finalidade, natureza, faixas, características), chips ativos e paginação sempre consistente.
 - [ ] **Phase 4: Página do Imóvel — Galeria e Dados da Natureza** - Tela de detalhe (card APP 04): galeria a partir da capa, preços, corretor e bloco por natureza (casa, terreno, apartamento, lote), sobre mock seguindo o contrato de `GET /api/publico/imoveis/{id}/`.
 - [x] **Phase 5: Imóveis Real — Endpoint Público e Integração Final** - Endpoints públicos reais de lista e detalhe de imóveis e troca das DataSources mock pelas reais via DI. (completed 2026-11-16)
-- [ ] **Phase 7: Perfis Públicos da Empresa e do Corretor** - Card APP 07: página da empresa e página do corretor com a vitrine do anunciante, dados da API de perfis públicos (WEB 02) e aviso para corretor desativado. (Fase 6 reservada ao card APP 06, de outro colega — fase N = card APP 0N.)
-- [ ] **Phase 07.1: Integração da APP-07 com a API real**
+- [x] **Phase 7: Perfis Públicos da Empresa e do Corretor** - Card APP 07: página da empresa e página do corretor com a vitrine do anunciante, dados da API de perfis públicos (WEB 02) e aviso para corretor desativado. (Fase 6 reservada ao card APP 06, de outro colega — fase N = card APP 0N.) (completed 2026-11-20)
+- [x] **Phase 07.1: Integração da APP-07 com a API real** (completed 2026-11-20)
+- [x] **Phase 8: Login e Área do Corretor — o Acervo** (completed 2026-11-21)
 
 ## Phase Details
 
@@ -288,7 +289,7 @@ Plans:
   5. Perfil de corretor desativado mostra um aviso, e não uma tela quebrada.
   6. Dá para chegar ao perfil a partir da página do imóvel.
 
-**Plans**: 12/12 plans executed
+**Plans**: 12/12 plans complete
 
 Plans:
 **Wave 1**
@@ -333,7 +334,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 7 → 07.1 (6 res
 | 3. Vitrine — Filtros Server-Side | 5/5 | In Progress|  |
 | 4. Página do Imóvel — Galeria e Dados da Natureza | 8/8 | In Progress|  |
 | 5. Imóveis Real — Endpoint Público e Integração Final | 22/22 | Complete    | 2026-11-16 |
-| 7. Perfis Públicos da Empresa e do Corretor | 12/12 | In Progress | - |
+| 7. Perfis Públicos da Empresa e do Corretor | 12/12 | Complete    | 2026-11-20 |
 
 ### Phase 07.1: Integração da APP-07 com a API real (INSERTED)
 
@@ -346,7 +347,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 7 → 07.1 (6 res
   4. O app consome esse endpoint com a paginação nova; o adendo do contrato da vitrine do anunciante fica renumerado (o §12 da `main` passou a ser outro assunto) e alinhado ao que o Django entrega.
   5. Com o Django rodando e `semear_vitrine_dev`, dá para ir de um imóvel real até o corretor, a empresa e a vitrine deles, e de volta a um imóvel.
 **Depends on:** Phase 7
-**Plans:** 6/6 plans executed
+**Plans:** 6/6 plans complete
 
 Plans:
 **Wave 1**
@@ -362,3 +363,52 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 - [x] 07.1-06-PLAN.md — Contrato §13, REQUIREMENTS (D-17), README, COVERAGE da Phase 7, 07-UAT.md com dados reais do seed e gates finais dos dois repositórios (API-08, PERF-03, PERF-04)
+
+### Phase 8: Login e Área do Corretor — o Acervo
+
+**Goal:** Como corretor, eu quero entrar no aplicativo para ver os imóveis que eu e a imobiliária temos, de onde eu estiver. O login é do mesmo aplicativo — não existe app separado. Quem entra vê a área do seu papel; o visitante continua usando o app sem login, como antes. O corretor vê os imóveis dele e os da imobiliária, com busca e filtro por situação. Imóvel de outra empresa não aparece, de jeito nenhum. Card APP 08 (tarefa A08).
+**Requirements**: AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05, AUTH-06, ACV-01, ACV-02, ACV-03, ACV-04, API-09, API-10
+**Depends on:** Phase 7. Externamente: WEB 01 (feito, na main da web) — `POST /api/auth/login/` (DRF Token), `Usuario.perfil` e o isolamento por empresa (`EmpresaScopedQuerySetMixin`).
+**Success Criteria** (what must be TRUE):
+
+  1. Login pelo aplicativo, com o token vindo da API.
+  2. A sessão fica guardada; sair apaga o token do aparelho.
+  3. Erro de login genérico, sem revelar se o e-mail existe.
+  4. Lista do acervo com os imóveis do corretor e os da imobiliária, com busca e filtro por situação.
+  5. Imóvel de outra empresa não aparece nem forçando a consulta.
+  6. Sem login, o app continua abrindo direto na vitrine.
+
+**Plans:** 12/12 plans complete
+
+Plans:
+**Wave 1**
+- [x] 08-01-PLAN.md — Web (feat/APP08): TRACER do acervo autenticado (login → token → `GET /api/imoveis/` paginado e enxuto, 10 chaves) + busca/situação por `FiltroImovelForm`, isolamento (AC-5), allowlist e README (API-10, ACV-01..04)
+- [x] 08-02-PLAN.md — App: `flutter_secure_storage` atrás de `ArmazenamentoToken`, `allowBackup=false`, segundo `Dio` `@Named('autenticado')` com `InterceptadorSessao` (token só na mesma origem, 401 → sessão expirada) e `ApiFalsa` gravando cabeçalhos; override do D-D sobre a nota do CLAUDE.md registrado (AUTH-02)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [x] 08-03-PLAN.md — Web: login endurecido (`authentication_classes=[]`, limite por e-mail e por IP com `Retry-After`), `GET /api/auth/eu/` e `POST /api/auth/sair/` com testes e README (AUTH-06, AUTH-05, AUTH-02, AUTH-03, API-10)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [x] 08-04-PLAN.md — Wire real: grupo `acervo` em `tool/capturar_fixtures_api.py`, fixtures capturadas, §14 do contrato e `contrato_acervo_test.dart` (API-09)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [x] 08-05-PLAN.md — App: autenticação na camada de dados (DataSource login/eu/sair, `EuModel` → `Papel`, falhas tipadas 400/429/403/rede/401, repositório cujo sair/descarte nunca lançam) (AUTH-01, AUTH-02, AUTH-03, AUTH-05)
+- [x] 08-06-PLAN.md — App: acervo no domínio e nos Models (entidades `ImovelAcervo`/`PaginaAcervo`/`ConsultaAcervo`, Models das 10 chaves, fixtures lidas pelos Models) (ACV-01, ACV-04)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [x] 08-07-PLAN.md — App: use cases Entrar/ObterPapel/Sair/LerSessao e `SessaoCubit` singleton (Sair sempre anônimo, rollback do login que nunca lança) (AUTH-01, AUTH-02, AUTH-04, AUTH-05)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [x] 08-08-PLAN.md — App: acervo na camada de dados (parâmetros da consulta, DataSource no Dio autenticado com `next` só na mesma origem, repositório e `BuscarAcervoUseCase`) (ACV-01, ACV-02, ACV-04)
+
+**Wave 7** *(blocked on Wave 6 completion)*
+- [x] 08-09-PLAN.md — App: `AcervoCubit` (busca 400 ms, chips de situação, rolagem) + cartão compacto, chips e `AcervoScreen` (ACV-01, ACV-02, ACV-04)
+
+**Wave 8** *(blocked on Wave 7 completion)*
+- [x] 08-10-PLAN.md — App: tela de login (textos fixos D-03/D-04, roteamento pelo papel), tela de aviso do gestor/administrador com Sair, e Sair + 401 na tela do acervo (AUTH-01, AUTH-02, AUTH-03, AUTH-05)
+
+**Wave 9** *(blocked on Wave 8 completion)*
+- [x] 08-11-PLAN.md — App: "Meu acervo" roteando pelo papel (401 da entrada → login com aviso) e botão "Entrar"/"Meu acervo" no topo da vitrine sem atrasar a abertura (AUTH-04, AUTH-05)
+
+**Wave 10** *(blocked on Wave 9 completion)*
+- [x] 08-12-PLAN.md — Fluxos ponta a ponta sobre a `ApiFalsa`, README do app, REQUIREMENTS e gates finais dos dois repositórios + human-check (emulador, iOS no Mac, taxas, autorização da nota do CLAUDE.md) (AUTH-01..06, ACV-01..04, API-09, API-10)

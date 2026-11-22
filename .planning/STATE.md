@@ -1,44 +1,44 @@
 ---
 gsd_state_version: "1.0"
-current_phase: "07.1"
-current_phase_name: Integração da APP-07 com a API real (INSERTED)
+current_phase: 1
+current_phase_name: Localização, Escolha de Cidade e Contrato da API
 status: verifying
-stopped_at: Completed 07.1-06-PLAN.md
-last_updated: "2026-11-19T10:09:26.081Z"
-last_activity: 2026-11-18
-last_activity_desc: Phase 07.1 execution started
-state_head: ce8264d1e779a41393787de3f69505d69792cf37
+stopped_at: Phase 08 complete, ready to verify Phase 1
+last_updated: "2026-11-22T01:10:54.716Z"
+last_activity: 2026-11-21
+last_activity_desc: Phase 08 complete, transitioned to Phase 1
+state_head: 6d141f8673d4e339425c24a261ce393f1a75cb9c
 progress:
-  total_phases: 7
-  completed_phases: 1
-  total_plans: 62
-  completed_plans: 62
-  percent: 14
+  total_phases: 8
+  completed_phases: 2
+  total_plans: 74
+  completed_plans: 74
+  percent: 25
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-09-21)
+See: .planning/PROJECT.md (updated 2026-11-21)
 
 **Core value:** A vitrine do app abre na cidade do usuário e mostra imóveis reais vindos da API, com a busca e o filtro resolvidos no servidor — o mesmo dado e a mesma regra do site, nunca recalculados dentro do aparelho.
-**Current focus:** Phase 07.1 — Integração da APP-07 com a API real (INSERTED)
+**Current focus:** Phase 1 — Localização, Escolha de Cidade e Contrato da API (verificação pendente)
 
 ## Current Position
 
-Phase: 07.1 (Integração da APP-07 com a API real (INSERTED)) — EXECUTING
-Plan: 6 of 6
+Phase: 1 — Localização, Escolha de Cidade e Contrato da API
+Plan: 4
 Status: Phase complete — ready for verification
-Last activity: 2026-11-18 — Phase 07.1 execution started
+Last activity: 2026-11-21 — Phase 08 complete, transitioned to Phase 1
 
-Progress: [█░░░░░░░░░] 14%
+Progress: [████████████████████] 62/62 plans ([███░░░░░░░] 25%)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 22
+- Total plans completed: 52
 - Average duration: - min
 - Total execution time: 0 hours
 
@@ -47,6 +47,9 @@ Progress: [█░░░░░░░░░] 14%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 05 | 22 | - | - |
+| 07.1 | 6 | - | - |
+| 07 | 12 | - | - |
+| 08 | 12 | - | - |
 
 **Recent Trend:**
 
@@ -101,6 +104,18 @@ Progress: [█░░░░░░░░░] 14%
 | Phase 07.1 P04 | 15 min | 2 tasks | 8 files |
 | Phase 07.1 P05 | 25min | 2 tasks | 1 files |
 | Phase 07.1 P06 | 25min | 3 tasks | 5 files |
+| Phase 08 P01 | 5 min | 2 tasks | 4 files |
+| Phase 08 P02 | 10 min | 2 tasks | 14 files |
+| Phase 08 P03 | 15 min | 2 tasks | 8 files |
+| Phase 08 P04 | 20 min | 2 tasks | 17 files |
+| Phase 08 P05 | 20 min | 2 tasks | 13 files |
+| Phase 08 P06 | 4 min | 2 tasks | 13 files |
+| Phase 08 P07 | 15 min | 2 tasks | 11 files |
+| Phase 08 P08 | 22 min | 2 tasks | 11 files |
+| Phase 08 P09 | 9 min | 3 tasks | 12 files |
+| Phase 08 P10 | 17min | 2 tasks | 14 files |
+| Phase 08 P11 | 22min | 2 tasks | 14 files |
+| Phase 08 P12 | 25min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -152,6 +167,19 @@ Recent decisions affecting current work:
 - [Phase 07.1]: 07.1-04: VitrineAnuncianteCubit descarta id ja listado ao anexar a proxima pagina (integridade da lista, ordem do servidor); teste 'pilha real' removido, garantia passa ao wire capturado e ao e2e do 07.1-05
 - [Phase 07.1]: 07.1-05: e2e dos perfis registra detalhe e perfis sobre o mesmo Dio da ApiFalsa (registrarDetalheEPerfis); rolagem infinita provada pelo estado do Cubit; grupo DI real da APP-07 nao portado (coberto por injection_perfis_test)
 - [Phase 07.1]: Contrato §13 registra o 404 de anunciante inexistente/inativo (muda o antigo nunca 404) e os PENDENTE WEB (f), (g), (h)
+- [Phase 08]: 08-01: rota do acervo = ImovelViewSet.list adaptado (envelope paginado 20/pagina, 10 chaves com emenda finalidade, ordem -criado_em/-pk); filtro invalido anula todos os filtros como no site
+- [Phase 08]: 08-02: token da API no Keychain/Keystore atras de ArmazenamentoToken; Dio @Named('autenticado') leva Authorization so na mesma origem, 401 vira SessaoExpiradaException com compare-and-delete; iOS sem entitlements ate o human-check do 08-12
+- [Phase 08]: 08-03: login da API limitado por e-mail (SHA-256) e IP, 10/hour e 30/hour por .env (A1, confirmar no 08-12); eu devolve so {perfil}; Sair apaga o token unico do usuario (desconecta todos os aparelhos)
+- [Phase 08]: 08-04: login_200.json versionado com token trocado por 40 zeros; sem fixture de 429 (nao deterministico); credenciais da captura so por ambiente
+- [Phase 08]: 08-05: Retry-After limitado a 24 h em esperaDoLimite (valor hostil nao estoura Duration)
+- [Phase 08]: 08-06: ConsultaAcervo.copyWith usa limparSituacao para voltar a Todas; PaginaAcervo copia itens com List.unmodifiable; meuImovel/naVitrine so lidos do servidor (D-06, D-07)
+- [Phase 08]: 08-07: SessaoCubit.sair() usa try/finally sem catch; a garantia de nao lancar vem do repositorio e o estado anonimo e emitido depois do descarte do token
+- [Phase 08]: 08-08: FormatException de finalidade desconhecida do Model passa como Failure pelo ramo generico do AcervoRepositoryImpl; a guarda de origem do next usa mesmaOrigem (08-02)
+- [Phase 08]: 08-09: busca do acervo a partir de 1 caractere (A7), 400 ms; termoBusca do AcervoState e String vazia; sessao terminada vira variante propria sessaoExpirada
+- [Phase 08]: 08-10: e-mail do login segue com trim, a senha nunca; confirmarESair captura Navigator e SessaoCubit antes do await do dialogo
+- [Phase 08]: 08-11: sem acaoSessao a VitrineScreen mantem o SeletorCidadeTopo como filho direto da Column; so com a acao ele entra numa Row com Expanded
+- [Phase 08]: 08-11: SessaoCubit carregado sem await no initState de ImoveisAquiApp e provido acima do MaterialApp (AC-6)
+- [Phase 08]: 08-12: pilha real dos fluxos ponta a ponta montada num helper compartilhado (test/support/pilha_real.dart) trocando so os dois Dio e o ArmazenamentoToken
 
 ### Pending Todos
 
@@ -160,6 +188,7 @@ None yet.
 ### Blockers/Concerns
 
 - [Phase 5]: Externally blocked on the `Imóvel` model (owned by teammate E2 in `../imoveis-aqui/Web`) — Phases 1-3 do not require it (mock-first build), but Phase 5 cannot complete until that model lands.
+- [Phase 07.1]: PENDENTE WEB no §13.7 do contrato (D-20): limite de taxa nas views de perfil e extensão do seed — aceito fora do escopo do app, depende da frente web.
 - [Phase 1]: API-AUDIT needs live coordination with the teammate on exact `Imóvel` field names/enum values (natureza, finalidade, características shape, quartos/suítes/vagas exact-vs-range semantics) — not resolvable from docs alone.
 
 ### Quick Tasks Completed
@@ -174,6 +203,7 @@ None yet.
 
 - Phase 7 added: Perfis Públicos da Empresa e do Corretor (card APP 07); número 7 escolhido para casar com o card — fase 6 reservada ao APP 06
 - Phase 07.1 inserted after Phase 7: Integração da APP-07 com a API real (merge da APP-05, perfis na API real, endpoint da vitrine do anunciante no Django) (URGENT)
+- Phase 8 added: Login e Área do Corretor — o Acervo (card APP 08, tarefa A08)
 
 ## Deferred Items
 
@@ -185,6 +215,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-19T10:09:24.781Z
-Stopped at: Completed 07.1-06-PLAN.md
+Last session: 2026-11-21T22:40:00Z
+Stopped at: Phase 08 complete, ready to verify Phase 1
 Resume file: None

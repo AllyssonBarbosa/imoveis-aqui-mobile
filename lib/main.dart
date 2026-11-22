@@ -1,3 +1,5 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -8,6 +10,8 @@ import 'domain/usecases/obter_cidade_salva_usecase.dart';
 import 'presentation/cidade_selecao/cidade_selecao_cubit.dart';
 import 'presentation/cidade_selecao/cidade_selecao_screen.dart';
 import 'presentation/priming/priming_screen.dart';
+import 'presentation/sessao/botao_sessao_topo.dart';
+import 'presentation/sessao/sessao_cubit.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,15 +29,38 @@ DestinoInicial decidirDestinoInicial(Cidade? cidadeSalva) {
       : DestinoInicial.mostraLista;
 }
 
-class ImoveisAquiApp extends StatelessWidget {
+/// Raiz do app. Provê o [SessaoCubit] singleton ACIMA do `MaterialApp` para
+/// todas as rotas empurradas (login, acervo, Sair) enxergarem a mesma sessão.
+///
+/// `StatefulWidget` só para chamar `carregar()` uma única vez no `initState`
+/// (nunca no `build`) e sem `await`: a leitura do aparelho nunca atrasa a
+/// vitrine (AC-6) — o botão do topo fica sem rótulo até ela terminar.
+class ImoveisAquiApp extends StatefulWidget {
   const ImoveisAquiApp({super.key});
 
   @override
+  State<ImoveisAquiApp> createState() => _ImoveisAquiAppState();
+}
+
+class _ImoveisAquiAppState extends State<ImoveisAquiApp> {
+  late final SessaoCubit _sessao;
+
+  @override
+  void initState() {
+    super.initState();
+    _sessao = getIt<SessaoCubit>();
+    unawaited(_sessao.carregar());
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Imóveis Aqui',
-      theme: AppTheme.tema,
-      home: const _TelaInicial(),
+    return BlocProvider<SessaoCubit>.value(
+      value: _sessao,
+      child: MaterialApp(
+        title: 'Imóveis Aqui',
+        theme: AppTheme.tema,
+        home: const _TelaInicial(),
+      ),
     );
   }
 }
@@ -86,13 +113,14 @@ class _TelaInicialState extends State<_TelaInicial> {
       case DestinoInicial.mostraLista:
         return BlocProvider<CidadeSelecaoCubit>(
           create: (_) => getIt<CidadeSelecaoCubit>(),
-          child: const PrimingScreen(),
+          child: const PrimingScreen(acaoSessao: BotaoSessaoTopo()),
         );
       case DestinoInicial.entraDireto:
         return BlocProvider<CidadeSelecaoCubit>(
-          create: (_) => getIt<CidadeSelecaoCubit>()
-            ..iniciarNaAberturaComCidadeSalva(cidadeSalva!),
-          child: const CidadeSelecaoScreen(),
+          create: (_) =>
+              getIt<CidadeSelecaoCubit>()
+                ..iniciarNaAberturaComCidadeSalva(cidadeSalva!),
+          child: const CidadeSelecaoScreen(acaoSessao: BotaoSessaoTopo()),
         );
     }
   }
