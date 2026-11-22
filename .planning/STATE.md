@@ -2,17 +2,17 @@
 gsd_state_version: "1.0"
 current_phase: 09
 current_phase_name: Mudança de Situação do Imóvel pelo App (APP 09)
-status: executing
-stopped_at: Completed 09-12-PLAN.md
-last_updated: "2026-11-22T19:24:55.430Z"
+status: verifying
+stopped_at: Completed 09-13-PLAN.md
+last_updated: "2026-11-22T19:33:01.487Z"
 last_activity: 2026-11-22
 last_activity_desc: Phase 09 execution started
-state_head: 50aae893d634d778dc79d9460cfa1e5e3a0f80e7
+state_head: 551e430bd061731154c43cea6f0e687b4de58e65
 progress:
   total_phases: 10
   completed_phases: 0
   total_plans: 97
-  completed_plans: 96
+  completed_plans: 97
   percent: 0
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-11-21)
 
 Phase: 09 (Mudança de Situação do Imóvel pelo App (APP 09)) — EXECUTING
 Plan: 13 of 13
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-11-22 — Phase 09 execution started
 
 Progress: [████████████████████] 72/72 plans ([░░░░░░░░░░] 0%)
@@ -139,6 +139,7 @@ Progress: [████████████████████] 72/72 p
 | Phase 09 P10 | 25min | 2 tasks | 14 files |
 | Phase 09 P11 | 5 min | 2 tasks | 4 files |
 | Phase 09 P12 | 31 min | 2 tasks | 9 files |
+| Phase 09 P13 | 30 min | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -230,6 +231,7 @@ Recent decisions affecting current work:
 - [Phase 09]: 09-11: limite de 500 caracteres na observação só na interface (D-17); servidor não limita — Decisão do usuário, exceção à D-06, proteção T-09-09
 - [Phase 09]: 09-11: alça de arrasto da folha de mudança desligada (showDragHandle e enableDrag falsos) — A alça fecharia por Navigator.pop fora do PopScope, que segura o envio (T-09-07)
 - [Phase 09]: 09-12: só a recusa 400/403 exibe texto do servidor (texto simples, 6 linhas); 404 e rede/5xx com texto fixo; sem reenvio automático; 401 no envio volta ao login pelo helper único
+- [Phase 09]: 09-13: abrirGestaoImovel devolve o mudou lido do Cubit depois do push (cobre AppBar, botão do sistema e gesto do iOS); acervo chama recarregar() só com true — Botão voltar do sistema e gesto do iOS não passam resultado pelo pop; a tela não usa PopScope (desligaria o gesto do iOS)
 
 ### Pending Todos
 
@@ -267,6 +269,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-22T19:24:55.358Z
-Stopped at: Completed 09-12-PLAN.md
+Last session: 2026-11-22T19:33:01.403Z
+Stopped at: Completed 09-13-PLAN.md
 Resume file: None

@@ -483,7 +483,7 @@ Plans:
   5. A vitrine reflete a mudança na consulta seguinte (o servidor decide a publicação; verificado no UAT).
   6. Só quem o servidor autoriza consegue mudar: pelo app, só o corretor responsável (botão só com `pode_mudar_situacao`; quem forçar recebe 403); o gestor da empresa continua mudando pela web e a área dele no app é da APP-12 (D-07 da fase).
 
-**Plans:** 12/13 plans executed
+**Plans:** 13/13 plans executed
 
 Plans:
 **Wave 1**
@@ -530,4 +530,4 @@ Plans:
 
 **Wave 11** *(blocked on Wave 10 completion)*
 
-- [ ] 09-13-PLAN.md — Volta ao acervo recarrega da API (D-12), fluxos ponta a ponta, README, REQUIREMENTS (todos Complete, nota no ACV-04), gates dos dois repositórios + human-check do UAT (SIT-01..07, API-11, API-12)
+- [x] 09-13-PLAN.md — Volta ao acervo recarrega da API (D-12), fluxos ponta a ponta, README, REQUIREMENTS (todos Complete, nota no ACV-04), gates dos dois repositórios + human-check do UAT (SIT-01..07, API-11, API-12)
