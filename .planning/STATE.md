@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 09
 current_phase_name: Mudança de Situação do Imóvel pelo App (APP 09)
 status: executing
-stopped_at: Completed 09-07-PLAN.md
-last_updated: "2026-11-22T15:57:57.177Z"
+stopped_at: Completed 09-08-PLAN.md
+last_updated: "2026-11-22T16:07:36.498Z"
 last_activity: 2026-11-22
 last_activity_desc: Phase 09 execution started
-state_head: 081d8ce03408f2253859adea940d4d7dda445c66
+state_head: 32fe05388d060376a0f967dd5e3d242a603c4fb1
 progress:
   total_phases: 10
   completed_phases: 0
   total_plans: 97
-  completed_plans: 91
+  completed_plans: 92
   percent: 0
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-11-21)
 ## Current Position
 
 Phase: 09 (Mudança de Situação do Imóvel pelo App (APP 09)) — EXECUTING
-Plan: 8 of 13
+Plan: 9 of 13
 Status: Ready to execute
 Last activity: 2026-11-22 — Phase 09 execution started
 
@@ -134,6 +134,7 @@ Progress: [████████████████████] 72/72 p
 | Phase 9 P05 | 5 min | 2 tasks | 14 files |
 | Phase 09 P06 | 5 min | 2 tasks | 14 files |
 | Phase 09 P07 | 12 min | 2 tasks | 14 files |
+| Phase 09 P08 | 40 min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -217,6 +218,8 @@ Recent decisions affecting current work:
 - [Phase 9]: 09-05: abrirGestaoImovel é dono do Cubit (cria, carrega, push, close sem try/finally); título da AppBar = código do imóvel; todo cartão do acervo abre a gestão (D-02, supera ACV-04) — O servidor decide na_vitrine; o app não filtra o toque. A guarda de versão e o isClosed do GestaoImovelCubit foram provados por mutação, pois a Task 2 nasceu sem RED
 - [Phase 09]: 09-06: obterHistorico devolve List.unmodifiable na ordem do servidor; guarda de FormatException (corpo não-lista, item não-objeto) no DataSource; toString de MudancaSituacao sem nome/observação (T-09-06)
 - [Phase 09]: 09-07: retry do histórico com token próprio (_versaoHistorico) que também confere a versão da carga; Future.wait sobre imóvel e histórico com um único emit — Uma carga nova vence uma repetição antiga sem invalidar a leitura do imóvel em voo
+- [Phase 09]: 09-08: 401 em qualquer leitura (inclusive repetição do histórico) leva a tela de gestão toda para sessão expirada; helper único voltarAoLoginComSessaoTerminada compartilhado com o acervo — D-10, T-09-08
+- [Phase 09]: 09-08: recarregar() mantém o conteúdo numa falha e conta falhasAoAtualizar (SnackBar); GestaoImovelScreen virou StatefulWidget para tratar 401 que chega antes do primeiro quadro — AC-2, D-10
 
 ### Pending Todos
 
@@ -254,6 +257,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-22T15:57:57.106Z
-Stopped at: Completed 09-07-PLAN.md
+Last session: 2026-11-22T16:07:36.426Z
+Stopped at: Completed 09-08-PLAN.md
 Resume file: None
