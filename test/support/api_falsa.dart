@@ -3,6 +3,8 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
+import 'package:imoveis_aqui/data/network/interceptador_sessao.dart';
+import 'package:imoveis_aqui/di/modulo_rede.dart';
 
 /// Base URL do servidor de captura das fixtures (os `next`/`previous` das
 /// fixtures de lista são absolutos nesta origem — 05-06).
@@ -15,13 +17,48 @@ Object? lerFixtureApi(String nomeArquivo) {
   return jsonDecode(arquivo.readAsStringSync());
 }
 
+/// Uma requisição como a [ApiFalsa] a recebeu: URL, método e cabeçalhos (cópia
+/// do que o Dio mandou, depois de passar pelos interceptors).
+class RequisicaoGravada {
+  RequisicaoGravada({
+    required this.uri,
+    required this.metodo,
+    required Map<String, Object?> cabecalhos,
+    this.corpo,
+  }) : cabecalhos = Map.unmodifiable(cabecalhos);
+
+  final Uri uri;
+  final String metodo;
+  final Map<String, Object?> cabecalhos;
+
+  /// Corpo enviado (`RequestOptions.data`), ou nulo se o pedido não tem corpo.
+  final Object? corpo;
+
+  /// Valor do cabeçalho [nome] (sem diferenciar maiúsculas), ou nulo.
+  String? cabecalho(String nome) {
+    for (final entrada in cabecalhos.entries) {
+      if (entrada.key.toLowerCase() == nome.toLowerCase()) {
+        return entrada.value?.toString();
+      }
+    }
+    return null;
+  }
+}
+
 class _Sobrescrita {
-  const _Sobrescrita(this.quando, this.status, this.fixture, this.corpo);
+  const _Sobrescrita(
+    this.quando,
+    this.status,
+    this.fixture,
+    this.corpo,
+    this.cabecalhos,
+  );
 
   final bool Function(Uri uri) quando;
   final int status;
   final String? fixture;
   final Object? corpo;
+  final Map<String, List<String>>? cabecalhos;
 }
 
 /// Uma chamada HTTP recebida pela [ApiFalsa]: método, URI, corpo enviado e
@@ -64,11 +101,28 @@ class _Falha {
 /// bairros capturados, as outras cidades recebem `[]`) e o catálogo de
 /// características. O detalhe (`/api/publico/imoveis/<id>/`) serve o
 /// `detalhe_*.json` capturado cujo `id` bate, senão 404 com
-/// `erro_404_detalhe.json`. O contato (`POST /api/publico/imoveis/<id>/contato/`)
+/// `erro_404_detalhe.json`. Os perfis (`/api/publico/corretores/<id>/` e
+/// `/api/publico/empresas/<id>/`) servem `perfil_corretor.json` e
+/// `perfil_empresa.json` quando o id é o capturado; a vitrine do anunciante
+/// (`/api/publico/<corretores|empresas>/<id>/imoveis/`) serve
+/// `vitrine_<corretor|empresa>_p1.json` (p2 com `page=2`) para o id do perfil
+/// capturado. Id sem fixture nessas rotas responde 404 com
+/// `erro_404_perfil.json`, o mesmo `{detail}` que o Django devolve (o app nunca
+/// lê o texto). As rotas de autenticação: `POST /api/auth/login/` serve
+/// `login_200.json`; `GET /api/auth/eu/` serve `eu_corretor.json` e
+/// `POST /api/auth/sair/` responde 204, ambos só com `Authorization: Token ...`
+/// (senão 401 com `erro_401.json`). O acervo do corretor (`GET /api/imoveis/`)
+/// também exige o token (senão 401) e serve `acervo_p1.json` (`acervo_p2.json`
+/// com `page=2`, `acervo_busca.json` com `busca` não vazia e
+/// `acervo_situacao_vazia.json` com `situacao=VENDIDO`). O contato (`POST /api/publico/imoveis/<id>/contato/`)
 /// responde 201 com `contato_201_<canal>.json` quando o `canal` do corpo está em
 /// `canais_contato` do detalhe do id, 400 com `erro_400_canal_contato.json`
 /// quando não está, 404 para id fora das fixtures e 405 para outro método.
 /// Rota ainda não servida responde 404 com um objeto JSON vazio.
+/// Cada requisição é gravada com método e cabeçalhos ([requisicoesGravadas]) e,
+/// com o corpo já decodificado, em [chamadas];
+/// e [criarDioAutenticado] monta o mesmo `Dio` autenticado da produção sobre a
+/// rede falsa, para provar o que o app envia (ex.: `Authorization`).
 class ApiFalsa {
   ApiFalsa({this.latencia = Duration.zero});
 
@@ -77,6 +131,7 @@ class ApiFalsa {
 
   final List<Uri> _requisicoes = [];
   final List<ChamadaApiFalsa> _chamadas = [];
+  final List<RequisicaoGravada> _gravadas = [];
   final List<_Sobrescrita> _sobrescritas = [];
   final List<_Falha> _falhas = [];
 
@@ -85,6 +140,10 @@ class ApiFalsa {
 
   /// Todas as chamadas (método, URI, corpo e cabeçalhos), na ordem.
   List<ChamadaApiFalsa> get chamadas => List.unmodifiable(_chamadas);
+
+  /// Todas as requisições com método e cabeçalhos, na ordem.
+  List<RequisicaoGravada> get requisicoesGravadas =>
+      List.unmodifiable(_gravadas);
 
   /// Última requisição à lista de imóveis de uma cidade
   /// (`/api/publico/cidades/<id>/imoveis/`), ou nulo se ainda não houve.
@@ -100,13 +159,18 @@ class ApiFalsa {
   /// `test/fixtures/api/`; [corpo] serve um valor JSON derivado de uma
   /// fixture (ex.: uma cópia com uma chave alterada para simular wire
   /// malformado). Sem nenhum dos dois o corpo é um objeto JSON vazio.
+  /// [cabecalhos] são somados aos cabeçalhos da resposta (ex.: `Retry-After`
+  /// de um 429).
   void responder(
     bool Function(Uri uri) quando, {
     required int status,
     String? fixture,
     Object? corpo,
+    Map<String, List<String>>? cabecalhos,
   }) {
-    _sobrescritas.add(_Sobrescrita(quando, status, fixture, corpo));
+    _sobrescritas.add(
+      _Sobrescrita(quando, status, fixture, corpo, cabecalhos),
+    );
   }
 
   /// As próximas [vezes] requisições cujo caminho começa com [caminho]
@@ -122,16 +186,35 @@ class ApiFalsa {
     return dio;
   }
 
-  Future<ResponseBody> _atender(RequestOptions options) async {
-    final uri = options.uri;
+  /// O `Dio` autenticado de produção ([construirDioAutenticado]) com o
+  /// [interceptador] dado, trocando só o adaptador pela rede falsa.
+  Dio criarDioAutenticado(InterceptadorSessao interceptador) {
+    final dio = construirDioAutenticado(
+      urlBase: urlBaseApiFalsa,
+      interceptador: interceptador,
+    );
+    dio.httpClientAdapter = _AdaptadorApiFalsa(this);
+    return dio;
+  }
+
+  Future<ResponseBody> _atender(RequestOptions opcoes) async {
+    final uri = opcoes.uri;
     _requisicoes.add(uri);
-    final corpoEnviado = options.data;
+    final corpoEnviado = opcoes.data;
     _chamadas.add(
       ChamadaApiFalsa(
-        metodo: options.method.toUpperCase(),
+        metodo: opcoes.method.toUpperCase(),
         uri: uri,
         corpo: corpoEnviado is String ? jsonDecode(corpoEnviado) : corpoEnviado,
-        cabecalhos: Map<String, Object?>.of(options.headers),
+        cabecalhos: Map<String, Object?>.of(opcoes.headers),
+      ),
+    );
+    _gravadas.add(
+      RequisicaoGravada(
+        uri: uri,
+        metodo: opcoes.method,
+        cabecalhos: Map<String, Object?>.of(opcoes.headers),
+        corpo: opcoes.data,
       ),
     );
     if (latencia > Duration.zero) await Future<void>.delayed(latencia);
@@ -150,6 +233,7 @@ class ApiFalsa {
               ? lerFixtureApi(sobrescrita.fixture!)
               : sobrescrita.corpo ?? const <String, Object?>{},
           sobrescrita.status,
+          cabecalhos: sobrescrita.cabecalhos,
         );
       }
     }
@@ -162,7 +246,36 @@ class ApiFalsa {
     }
     final idDoContato = _idDoContatoDeImovel(uri.path);
     if (idDoContato != null) {
-      return _atenderContato(idDoContato, options);
+      return _atenderContato(idDoContato, opcoes);
+    }
+    if (uri.path == '/api/auth/login/' && opcoes.method == 'POST') {
+      return _corpoJson(lerFixtureApi('login_200.json'), 200);
+    }
+    if (uri.path == '/api/auth/eu/' && opcoes.method == 'GET') {
+      return _temToken(opcoes)
+          ? _corpoJson(lerFixtureApi('eu_corretor.json'), 200)
+          : _corpoJson(lerFixtureApi('erro_401.json'), 401);
+    }
+    if (uri.path == '/api/auth/sair/' && opcoes.method == 'POST') {
+      return _temToken(opcoes)
+          ? _semCorpo(204)
+          : _corpoJson(lerFixtureApi('erro_401.json'), 401);
+    }
+    if (uri.path == '/api/imoveis/' && opcoes.method == 'GET') {
+      if (!_temToken(opcoes)) {
+        return _corpoJson(lerFixtureApi('erro_401.json'), 401);
+      }
+      final String fixture;
+      if (uri.queryParameters['page'] == '2') {
+        fixture = 'acervo_p2.json';
+      } else if ((uri.queryParameters['busca'] ?? '').isNotEmpty) {
+        fixture = 'acervo_busca.json';
+      } else if (uri.queryParameters['situacao'] == 'VENDIDO') {
+        fixture = 'acervo_situacao_vazia.json';
+      } else {
+        fixture = 'acervo_p1.json';
+      }
+      return _corpoJson(lerFixtureApi(fixture), 200);
     }
     final idDoDetalhe = _idDoDetalheDeImovel(uri.path);
     if (idDoDetalhe != null) {
@@ -170,6 +283,22 @@ class ApiFalsa {
       return fixture == null
           ? _corpoJson(lerFixtureApi('erro_404_detalhe.json'), 404)
           : _corpoJson(lerFixtureApi(fixture), 200);
+    }
+    final perfil = _rotaDePerfil(uri.path);
+    if (perfil != null) {
+      final (:recurso, :id) = perfil;
+      return id == _idDaFixture('perfil_$recurso.json')
+          ? _corpoJson(lerFixtureApi('perfil_$recurso.json'), 200)
+          : _corpoJson(lerFixtureApi('erro_404_perfil.json'), 404);
+    }
+    final vitrine = _rotaDaVitrineDoAnunciante(uri.path);
+    if (vitrine != null) {
+      final (:recurso, :id) = vitrine;
+      if (id != _idDaFixture('perfil_$recurso.json')) {
+        return _corpoJson(lerFixtureApi('erro_404_perfil.json'), 404);
+      }
+      final pagina = uri.queryParameters['page'] == '2' ? 'p2' : 'p1';
+      return _corpoJson(lerFixtureApi('vitrine_${recurso}_$pagina.json'), 200);
     }
     final cidadeDosBairros = _idDosBairros(uri.path);
     if (cidadeDosBairros != null) {
@@ -268,6 +397,40 @@ class ApiFalsa {
     return null;
   }
 
+  /// Recurso (`corretor` ou `empresa`) e id de
+  /// `/api/publico/corretores/<id>/` ou `/api/publico/empresas/<id>/`, ou nulo
+  /// se [caminho] não é essa rota.
+  ({String recurso, int id})? _rotaDePerfil(String caminho) {
+    final casamento = RegExp(r'^/api/publico/(corretores|empresas)/(\d+)/$')
+        .firstMatch(caminho);
+    if (casamento == null) return null;
+    return (
+      recurso: _recursoNoSingular(casamento.group(1)!),
+      id: int.parse(casamento.group(2)!),
+    );
+  }
+
+  /// Recurso e id de `/api/publico/<corretores|empresas>/<id>/imoveis/`, ou
+  /// nulo se [caminho] não é essa rota.
+  ({String recurso, int id})? _rotaDaVitrineDoAnunciante(String caminho) {
+    final casamento = RegExp(
+      r'^/api/publico/(corretores|empresas)/(\d+)/imoveis/$',
+    ).firstMatch(caminho);
+    if (casamento == null) return null;
+    return (
+      recurso: _recursoNoSingular(casamento.group(1)!),
+      id: int.parse(casamento.group(2)!),
+    );
+  }
+
+  String _recursoNoSingular(String plural) =>
+      plural == 'corretores' ? 'corretor' : 'empresa';
+
+  /// `id` da fixture de perfil capturada [fixture] (os ids nunca ficam fixos no
+  /// código: vêm do que o Django devolveu).
+  int _idDaFixture(String fixture) =>
+      (lerFixtureApi(fixture)! as Map<String, Object?>)['id']! as int;
+
   /// Id da cidade de `/api/publico/cidades/<id>/bairros/`, ou nulo se
   /// [caminho] não é essa rota.
   int? _idDosBairros(String caminho) {
@@ -286,12 +449,29 @@ class ApiFalsa {
     return campinas['id']! as int;
   }
 
-  ResponseBody _corpoJson(Object? corpo, int status) {
+  /// Verdadeiro se o pedido leva `Authorization: Token ...`.
+  bool _temToken(RequestOptions opcoes) {
+    for (final entrada in opcoes.headers.entries) {
+      if (entrada.key.toLowerCase() == 'authorization') {
+        return entrada.value.toString().startsWith('Token ');
+      }
+    }
+    return false;
+  }
+
+  ResponseBody _semCorpo(int status) => ResponseBody.fromString('', status);
+
+  ResponseBody _corpoJson(
+    Object? corpo,
+    int status, {
+    Map<String, List<String>>? cabecalhos,
+  }) {
     return ResponseBody.fromString(
       jsonEncode(corpo),
       status,
       headers: {
         Headers.contentTypeHeader: [Headers.jsonContentType],
+        ...?cabecalhos,
       },
     );
   }

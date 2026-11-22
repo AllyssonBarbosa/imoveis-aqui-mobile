@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,6 +11,9 @@ import 'package:imoveis_aqui/main.dart';
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_cubit.dart';
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_state.dart';
 import 'package:imoveis_aqui/presentation/priming/priming_screen.dart';
+import 'package:imoveis_aqui/presentation/sessao/botao_sessao_topo.dart';
+import 'package:imoveis_aqui/presentation/sessao/sessao_cubit.dart';
+import 'package:imoveis_aqui/presentation/sessao/sessao_state.dart';
 import 'package:imoveis_aqui/presentation/vitrine/vitrine_cubit.dart';
 import 'package:imoveis_aqui/presentation/vitrine/vitrine_state.dart';
 import 'package:mocktail/mocktail.dart';
@@ -33,9 +38,12 @@ class _ObterCidadeSalvaUseCaseFalso extends Mock
 
 class _SalvarCidadeUseCaseFalso extends Mock implements SalvarCidadeUseCase {}
 
+class _SessaoCubitFalso extends MockCubit<SessaoState> implements SessaoCubit {}
+
 void main() {
   late _CidadeSelecaoCubitFalso cubit;
   late _ObterCidadeSalvaUseCaseFalso obterCidadeSalva;
+  late _SessaoCubitFalso sessao;
 
   const campinas = Cidade(nome: 'Campinas', uf: 'SP');
   const valinhos = Cidade(nome: 'Valinhos', uf: 'SP');
@@ -48,10 +56,17 @@ void main() {
   setUp(() {
     cubit = _CidadeSelecaoCubitFalso();
     obterCidadeSalva = _ObterCidadeSalvaUseCaseFalso();
+    sessao = _SessaoCubitFalso();
+    when(() => sessao.carregar()).thenAnswer((_) async {});
+    whenListen(
+      sessao,
+      const Stream<SessaoState>.empty(),
+      initialState: const SessaoState.anonima(),
+    );
+    getIt.registerSingleton<SessaoCubit>(sessao);
 
-    when(
-      () => cubit.iniciarNaAberturaComCidadeSalva(any()),
-    ).thenAnswer((_) async {});
+    when(() => cubit.iniciarNaAberturaComCidadeSalva(any()))
+        .thenAnswer((_) async {});
 
     getIt.registerFactory<ObterCidadeSalvaUseCase>(() => obterCidadeSalva);
     getIt.registerFactory<CidadeSelecaoCubit>(() => cubit);
@@ -78,25 +93,22 @@ void main() {
     await getIt.reset();
   });
 
-  testWidgets(
-    'sem cidade salva → rota para PrimingScreen; '
-    'iniciarNaAberturaComCidadeSalva nunca é chamado (D-08)',
-    (tester) async {
-      when(() => obterCidadeSalva()).thenAnswer((_) async => null);
-      whenListen(
-        cubit,
-        const Stream<CidadeSelecaoState>.empty(),
-        initialState: const CidadeSelecaoState.localizando(),
-      );
+  testWidgets('sem cidade salva → rota para PrimingScreen; '
+      'iniciarNaAberturaComCidadeSalva nunca é chamado (D-08)', (tester) async {
+    when(() => obterCidadeSalva()).thenAnswer((_) async => null);
+    whenListen(
+      cubit,
+      const Stream<CidadeSelecaoState>.empty(),
+      initialState: const CidadeSelecaoState.localizando(),
+    );
 
-      await tester.pumpWidget(const ImoveisAquiApp());
-      await tester.pump();
-      await tester.pump();
+    await tester.pumpWidget(const ImoveisAquiApp());
+    await tester.pump();
+    await tester.pump();
 
-      expect(find.byType(PrimingScreen), findsOneWidget);
-      verifyNever(() => cubit.iniciarNaAberturaComCidadeSalva(any()));
-    },
-  );
+    expect(find.byType(PrimingScreen), findsOneWidget);
+    verifyNever(() => cubit.iniciarNaAberturaComCidadeSalva(any()));
+  });
 
   testWidgets(
     'cidade salva AINDA atendida → chama iniciarNaAberturaComCidadeSalva '
@@ -116,9 +128,7 @@ void main() {
       await tester.pump();
 
       expect(find.text('Campinas, SP'), findsOneWidget);
-      verify(
-        () => cubit.iniciarNaAberturaComCidadeSalva(campinas),
-      ).called(1);
+      verify(() => cubit.iniciarNaAberturaComCidadeSalva(campinas)).called(1);
     },
   );
 
@@ -152,9 +162,108 @@ void main() {
         findsOneWidget,
       );
       expect(find.byType(Card), findsNWidgets(listaAtendida.length));
-      verify(
-        () => cubit.iniciarNaAberturaComCidadeSalva(cidadeRemovida),
-      ).called(1);
+      verify(() => cubit.iniciarNaAberturaComCidadeSalva(cidadeRemovida))
+          .called(1);
     },
   );
+
+  /// Cidade salva ainda atendida: o app entra direto na vitrine de Campinas.
+  void prepararVitrine() {
+    when(() => obterCidadeSalva()).thenAnswer((_) async => campinas);
+    whenListen(
+      cubit,
+      Stream<CidadeSelecaoState>.value(
+        const CidadeSelecaoState.autorizadaEAtendida(campinas),
+      ),
+      initialState: const CidadeSelecaoState.autorizadaEAtendida(campinas),
+    );
+  }
+
+  testWidgets(
+    'AC-6: com a sessão presa em verificando a vitrine abre igual, sem '
+    'rótulo no topo, e a leitura da sessão nunca é esperada',
+    (tester) async {
+      prepararVitrine();
+      // `carregar()` que nunca termina: se a abertura esperasse a sessão, a
+      // vitrine jamais apareceria.
+      final nuncaTermina = Completer<void>();
+      when(() => sessao.carregar()).thenAnswer((_) => nuncaTermina.future);
+      whenListen(
+        sessao,
+        const Stream<SessaoState>.empty(),
+        initialState: const SessaoState.verificando(),
+      );
+
+      await tester.pumpWidget(const ImoveisAquiApp());
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text('Campinas, SP'), findsOneWidget);
+      expect(find.byType(BotaoSessaoTopo), findsOneWidget);
+      expect(find.text('Entrar'), findsNothing);
+      expect(find.text('Meu acervo'), findsNothing);
+      verify(() => sessao.carregar()).called(1);
+    },
+  );
+
+  testWidgets('sessão anônima: o topo da vitrine mostra Entrar', (
+    tester,
+  ) async {
+    prepararVitrine();
+
+    await tester.pumpWidget(const ImoveisAquiApp());
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('Campinas, SP'), findsOneWidget);
+    expect(find.text('Entrar'), findsOneWidget);
+    expect(find.text('Meu acervo'), findsNothing);
+    // O botão divide a linha do seletor de cidade, no canto direito.
+    expect(
+      tester.getCenter(find.text('Entrar')).dy,
+      closeTo(tester.getCenter(find.text('Campinas, SP')).dy, 24),
+    );
+    expect(
+      tester.getCenter(find.text('Entrar')).dx,
+      greaterThan(tester.getCenter(find.text('Campinas, SP')).dx),
+    );
+    verify(() => sessao.carregar()).called(1);
+  });
+
+  testWidgets('sessão autenticada: o topo da vitrine mostra Meu acervo', (
+    tester,
+  ) async {
+    prepararVitrine();
+    whenListen(
+      sessao,
+      const Stream<SessaoState>.empty(),
+      initialState: const SessaoState.autenticada(),
+    );
+
+    await tester.pumpWidget(const ImoveisAquiApp());
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('Campinas, SP'), findsOneWidget);
+    expect(find.text('Meu acervo'), findsOneWidget);
+    expect(find.text('Entrar'), findsNothing);
+  });
+
+  testWidgets('sem cidade salva o botão do topo é repassado ao PrimingScreen', (
+    tester,
+  ) async {
+    when(() => obterCidadeSalva()).thenAnswer((_) async => null);
+    whenListen(
+      cubit,
+      const Stream<CidadeSelecaoState>.empty(),
+      initialState: const CidadeSelecaoState.localizando(),
+    );
+
+    await tester.pumpWidget(const ImoveisAquiApp());
+    await tester.pump();
+    await tester.pump();
+
+    final priming = tester.widget<PrimingScreen>(find.byType(PrimingScreen));
+    expect(priming.acaoSessao, isA<BotaoSessaoTopo>());
+  });
 }

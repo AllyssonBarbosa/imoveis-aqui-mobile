@@ -8,7 +8,11 @@
          debug declarava INTERNET. Cleartext HTTP continua desligado aqui;
          só o manifest de debug habilita (ver android/app/src/debug). -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Backup do Android desligado: ele restauraria dados cifrados com uma chave
+         do Keystore que não abre mais (flutter_secure_storage, "Disabling Auto
+         Backup"); o token da API não deve voltar de um backup. -->
     <application
+        android:allowBackup="false"
         android:label="imoveis_aqui"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">

@@ -10,6 +10,7 @@ import 'package:imoveis_aqui/domain/entities/cidade.dart';
 import 'package:imoveis_aqui/domain/entities/dados_natureza.dart';
 import 'package:imoveis_aqui/domain/entities/detalhe_imovel.dart';
 import 'package:imoveis_aqui/domain/entities/imovel.dart';
+import 'package:imoveis_aqui/domain/entities/perfil_corretor.dart';
 import 'package:imoveis_aqui/presentation/comum/imagem_rede.dart';
 import 'package:imoveis_aqui/presentation/contato/contato_cubit.dart';
 import 'package:imoveis_aqui/presentation/contato/contato_state.dart';
@@ -22,6 +23,8 @@ import 'package:imoveis_aqui/presentation/detalhe_imovel/widgets/cartao_corretor
 import 'package:imoveis_aqui/presentation/detalhe_imovel/widgets/galeria_imovel.dart';
 import 'package:imoveis_aqui/presentation/detalhe_imovel/widgets/visualizador_fotos.dart';
 import 'package:imoveis_aqui/presentation/vitrine/apresentacao_imovel.dart';
+import 'package:imoveis_aqui/presentation/perfis/perfil_corretor_cubit.dart';
+import 'package:imoveis_aqui/presentation/perfis/perfil_state.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _DetalheImovelCubitFalso extends MockCubit<DetalheImovelState>
@@ -39,6 +42,22 @@ _ContatoCubitFalso _novoContatoCubitFalso() {
     initialState: const ContatoState.ocioso(),
   );
   return falso;
+}
+
+class _PerfilCorretorCubitFalso extends MockCubit<PerfilState<PerfilCorretor>>
+    implements PerfilCorretorCubit {}
+
+/// O perfil da APP 07 resolve o próprio Cubit no DI ao abrir; nos testes da
+/// barra de contato ele fica parado em "carregando" (só a barra importa).
+void _registrarPerfilCubitCarregando() {
+  final perfilCubit = _PerfilCorretorCubitFalso();
+  when(() => perfilCubit.carregar(any())).thenAnswer((_) async {});
+  whenListen(
+    perfilCubit,
+    const Stream<PerfilState<PerfilCorretor>>.empty(),
+    initialState: const PerfilState<PerfilCorretor>.carregando(),
+  );
+  getIt.registerFactory<PerfilCorretorCubit>(() => perfilCubit);
 }
 
 /// Imagem determinística: uma caixa com a chave da própria url.
@@ -760,6 +779,18 @@ void main() {
     testWidgets('tocar no cartão abre o perfil com o nome do detalhe', (
       tester,
     ) async {
+      // O destino do toque resolve o Cubit do perfil no DI; aqui ele fica
+      // parado em "carregando" — só a prévia do detalhe importa neste teste.
+      final perfilCubit = _PerfilCorretorCubitFalso();
+      when(() => perfilCubit.carregar(any())).thenAnswer((_) async {});
+      whenListen(
+        perfilCubit,
+        const Stream<PerfilState<PerfilCorretor>>.empty(),
+        initialState: const PerfilState<PerfilCorretor>.carregando(),
+      );
+      getIt.registerFactory<PerfilCorretorCubit>(() => perfilCubit);
+      addTearDown(getIt.reset);
+
       await pumpEstado(
         tester,
         DetalheImovelState.carregado(comCorretor),
@@ -972,6 +1003,7 @@ void main() {
     testWidgets('tocar no cartão do corretor abre o perfil com "Sobre: '
         '<título>" quando o detalhe tem canais', (tester) async {
       getIt.registerFactory<ContatoCubit>(_novoContatoCubitFalso);
+      _registrarPerfilCubitCarregando();
       final comCorretorECanais = comCanais.copyWith(corretor: marina);
       await pumpEstado(
         tester,
@@ -1000,6 +1032,7 @@ void main() {
 
     testWidgets('tocar no cartão do corretor num detalhe sem canais abre o '
         'perfil sem barra de contato', (tester) async {
+      _registrarPerfilCubitCarregando();
       final semCanais = detalhe.copyWith(corretor: marina);
       await pumpEstado(
         tester,

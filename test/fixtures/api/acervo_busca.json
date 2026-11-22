@@ -1,0 +1,19 @@
+{
+  "count": 1,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": 14,
+      "codigo": "DEV-CAMPINAS-14",
+      "titulo": "Apartamento no bairro Barão Geraldo",
+      "finalidade": "ALUGUEL",
+      "preco_venda": null,
+      "preco_aluguel": "2550.00",
+      "foto_capa": "http://127.0.0.1:8000/media/imoveis/fotos/dev-campinas-14-1.jpg",
+      "situacao": "DISPONIVEL",
+      "meu_imovel": false,
+      "na_vitrine": true
+    }
+  ]
+}

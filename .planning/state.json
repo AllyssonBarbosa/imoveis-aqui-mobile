@@ -32,12 +32,17 @@
       "number": "6",
       "name": "Contato com o Corretor — WhatsApp, Telefone e E-mail (APP 06)",
       "status": "complete"
+    },
+    {
+      "number": "7",
+      "name": "Perfis Públicos da Empresa e do Corretor",
+      "status": "complete"
     }
   ],
   "next": {
-    "command": "/gsd:progress --next",
-    "label": "Advance to the next step (plan phase 1)",
-    "reason": "Phase 1 of 6 — needs a plan"
+    "command": "/gsd-progress --next",
+    "label": "Advance to the next step (verify)",
+    "reason": "Phase 1 of 8 · 25% · ready to verify"
   },
-  "updated_at": "2026-11-22T04:02:20.317Z"
+  "updated_at": "2026-11-22T01:10:54.772Z"
 }

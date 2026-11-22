@@ -5,7 +5,7 @@
 
 ## v1 Requirements
 
-Requisitos da primeira entrega (tarefas APP01, APP02, APP03, APP04 + os endpoints públicos que as habilitam). Cada um mapeia para uma fase do roadmap.
+Requisitos da primeira entrega (tarefas APP01, APP02, APP03, APP04, APP07, APP08 + os endpoints da API que as habilitam). Cada um mapeia para uma fase do roadmap.
 
 ### Localização e escolha da cidade (APP01)
 
@@ -43,6 +43,30 @@ Requisitos da primeira entrega (tarefas APP01, APP02, APP03, APP04 + os endpoint
 - [x] **DET-05**: A página mostra descrição, características e o corretor responsável com foto; tocar no corretor abre a tela de perfil do corretor, cujo conteúdo completo é do APP 07.
 - [x] **DET-06**: Imóvel não encontrado (404) mostra "Este imóvel não está mais disponível" com volta à vitrine; os demais erros mostram "Tentar de novo".
 
+### Perfis públicos (APP07)
+
+- [x] **PERF-01**: A página da empresa mostra logomarca, CRECI, apresentação, contato e cidades de atuação.
+- [x] **PERF-02**: A página do corretor mostra foto, CRECI, apresentação e contato.
+- [x] **PERF-03**: As páginas da empresa e do corretor mostram a vitrine dos imóveis daquele anunciante (lista paginada por página — `GET /api/publico/corretores/<id>/imoveis/` e `/api/publico/empresas/<id>/imoveis/` —, recortada e ordenada no servidor).
+- [x] **PERF-04**: Os dados dos perfis vêm da API dos perfis públicos (`GET /api/publico/corretores/{id}/` e `GET /api/publico/empresas/{id}/`, WEB 02) por DataSource trocável, sem nada montado ou decidido no app.
+- [x] **PERF-05**: Perfil de corretor desativado (404) mostra o aviso "Este corretor não está mais disponível", e não uma tela quebrada.
+- [x] **PERF-06**: Dá para chegar ao perfil do corretor a partir da página do imóvel e à página da empresa a partir do perfil do corretor.
+
+### Login e acervo (APP08)
+
+- [x] **AUTH-01**: O corretor entra no app com e-mail e senha, no mesmo aplicativo (sem app separado); o token vem de `POST /api/auth/login/`.
+- [x] **AUTH-02**: A sessão fica guardada no aparelho em `flutter_secure_storage`; Sair apaga o token do aparelho mesmo se a rede falhar e o revoga no servidor (`POST /api/auth/sair/`).
+- [x] **AUTH-03**: O erro de login é genérico: o app mostra o texto fixo "E-mail ou senha inválidos." e nenhum texto revela se o e-mail existe; limite de tentativas (429) e falha de rede têm mensagens próprias, vindas de falhas tipadas na camada de dados.
+- [x] **AUTH-04**: Sem login o app continua abrindo direto na vitrine; o botão do topo mostra "Entrar" ou "Meu acervo" conforme a sessão guardada, sem atrasar a abertura.
+- [x] **AUTH-05**: Quem entra vê a área do seu papel, lido de `GET /api/auth/eu/`: o corretor vai ao acervo; gestor e administrador veem uma tela de aviso com Sair; sessão expirada (401) volta ao login com aviso.
+- [x] **AUTH-06**: O servidor limita as tentativas de login por e-mail e por IP (429 com `Retry-After`), sem revelar se o e-mail existe.
+- [x] **ACV-01**: O corretor vê o acervo — os imóveis dele e os da imobiliária — numa lista paginada com rolagem infinita, em cartão compacto (código, título, preço, situação e a marca "Seu" calculada no servidor).
+- [x] **ACV-02**: Busca por código ou título e filtro por situação (Todas, Disponível, Reservado, Vendido, Alugado) resolvidos no servidor com a regra do painel do site (`FiltroImovelForm`); busca e situação se combinam.
+- [x] **ACV-03**: Imóvel de outra empresa não aparece no acervo nem forçando a consulta (busca, situação, parâmetros extras ou id), garantido e testado no Django; gestor e administrador não acessam a lista e sem token a resposta é 401.
+- [x] **ACV-04**: O toque num cartão do acervo só abre a página do imóvel quando o servidor diz que ele está na vitrine (`na_vitrine`); senão o cartão não reage.
+- [x] **API-09**: O §14 de `01-CONTRATO-API.md` congela login, "quem sou eu", Sair e a lista do acervo (parâmetros, envelope, as 10 chaves do item, 400/401/403/404/429 e o efeito do Sair nos outros aparelhos), com fixtures capturadas do Django e testes de contrato nos dois repositórios.
+- [x] **API-10**: A web entrega, com testes, `GET /api/auth/eu/`, `POST /api/auth/sair/`, o limite de tentativas no login e a lista do acervo paginada, filtrada e enxuta em `GET /api/imoveis/`.
+
 ### API pública (endpoints que o app consome)
 
 - [x] **API-01**: Auditar a API atual e congelar por escrito o contrato de `/cidades` e `/imoveis` (nomes de campos, enums, nomes dos params de filtro, envelope de paginação) antes de codar APP02/APP03 ou o endpoint real.
@@ -51,6 +75,7 @@ Requisitos da primeira entrega (tarefas APP01, APP02, APP03, APP04 + os endpoint
 - [x] **API-04**: A camada de dados do app é trocável (DataSource mock/fixture honrando o contrato → DataSource real por DI), permitindo desenvolver APP02/APP03 antes de o endpoint real de imóveis existir.
 - [x] **API-06**: O contrato de `GET /api/publico/imoveis/{id}/` fica congelado por escrito no §11 do contrato da API + `imovel_detalhe.example.json`, e o app o consome por DataSource trocável (mock honrando o contrato).
 - [x] **API-07**: Endpoint real `GET /api/publico/imoveis/{id}/` público, só imóveis publicados, 404 igual para inexistente e não publicado, serializer com a allowlist do §11, e troca da DataSource do detalhe por DI.
+- [x] **API-08**: A vitrine do anunciante fica escrita como §13 do contrato (rotas `GET /api/publico/corretores/<id>/imoveis/` e `/api/publico/empresas/<id>/imoveis/`, `PageNumberPagination`, allowlist e limite de taxa da API pública) e o app a consome pela DataSource real (Dio), entregue pelo Django.
 
 ### Contato com o corretor (APP06)
 
@@ -131,15 +156,34 @@ Excluídos de propósito. Documentados para evitar scope creep.
 | APP06-C6 | Phase 6 | Complete |
 | APP06-API-1 | Phase 6 | Complete |
 | APP06-API-2 | Phase 6 | Complete |
+| PERF-01 | Phase 7 | Complete |
+| PERF-02 | Phase 7 | Complete |
+| PERF-03 | Phase 7, Phase 07.1 | Complete |
+| PERF-04 | Phase 7, Phase 07.1 | Complete |
+| PERF-05 | Phase 7 | Complete |
+| PERF-06 | Phase 7 | Complete |
+| API-08 | Phase 7, Phase 07.1 | Complete |
+| AUTH-01 | Phase 8 | Complete |
+| AUTH-02 | Phase 8 | Complete |
+| AUTH-03 | Phase 8 | Complete |
+| AUTH-04 | Phase 8 | Complete |
+| AUTH-05 | Phase 8 | Complete |
+| AUTH-06 | Phase 8 | Complete |
+| ACV-01 | Phase 8 | Complete |
+| ACV-02 | Phase 8 | Complete |
+| ACV-03 | Phase 8 | Complete |
+| ACV-04 | Phase 8 | Complete |
+| API-09 | Phase 8 | Complete |
+| API-10 | Phase 8 | Complete |
 
 Planos da Phase 6 que cobrem cada ID (frontmatter `requirements` dos `06-NN-PLAN.md`): APP06-C1 → 06-07, 06-09, 06-10; APP06-C2 → 06-02, 06-03, 06-04, 06-05, 06-06, 06-07, 06-10; APP06-C3 → 06-03, 06-04, 06-05, 06-06, 06-08, 06-09, 06-10; APP06-C4 → 06-01, 06-03, 06-05, 06-06, 06-07, 06-08, 06-10; APP06-C5 → 06-01, 06-09, 06-10; APP06-C6 → 06-01, 06-02, 06-05, 06-07, 06-09, 06-10; APP06-API-1 → 06-01, 06-03, 06-04, 06-10; APP06-API-2 → 06-02, 06-10.
 
 **Coverage:**
 
-- v1 requirements: 38 total
-- Mapped to phases: 38 (roadmap complete)
+- v1 requirements: 57 total
+- Mapped to phases: 57 (roadmap complete)
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-09-21*
-*Last updated: 2026-11-16 after adding Phase 6 requirement IDs (APP06-C1..C6, APP06-API-1/2)*
+*Last updated: 2026-11-22 after merging origin/main (Phases 7, 07.1, 8) into feat/APP06 (Phase 6, APP06-C1..C6, APP06-API-1/2)*

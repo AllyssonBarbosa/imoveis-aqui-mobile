@@ -24,7 +24,14 @@ recalculados dentro do aparelho.
 
 ### Validated
 
-(None yet — ship to validate)
+- ✓ **APP08** — Login do corretor no mesmo app (token da API em `flutter_secure_storage`), "Meu acervo" com os imóveis dele e da imobiliária, busca e filtro por situação resolvidos no servidor, isolamento por empresa, Sair que revoga o token; gestor e administrador veem um aviso — Phase 8
+- ✓ **PERF-03** — Vitrine do anunciante (corretor e empresa) paginada e recortada no servidor, via `GET /api/publico/corretores/<id>/imoveis/` e `/api/publico/empresas/<id>/imoveis/` — Phase 07.1
+- ✓ **PERF-04** — Perfis do corretor e da empresa vindos da API real (WEB 02) por DataSource trocável, sem mock em `lib/` — Phase 07.1
+- ✓ **API-08** — Vitrine do anunciante escrita no §13 do contrato e entregue pelo Django, com allowlist e limite de taxa da API pública — Phase 07.1
+- ✓ **PERF-01** — Página da empresa com logomarca, CRECI, apresentação, contato e cidades de atuação — Phase 7 (UAT 5/5 na API real)
+- ✓ **PERF-02** — Página do corretor com foto, CRECI, apresentação e contato — Phase 7
+- ✓ **PERF-05** — Corretor desativado (404) mostra "Este corretor não está mais disponível", não uma tela quebrada — Phase 7
+- ✓ **PERF-06** — Perfil do corretor a partir da página do imóvel e página da empresa a partir do perfil do corretor — Phase 7
 
 ### Active
 
@@ -43,7 +50,7 @@ recalculados dentro do aparelho.
 
 - Site público / painel web — outra frente, feita por outros colegas da equipe.
 - Página de detalhe do imóvel (card 8), contato por WhatsApp (card 9), favoritos — entregas seguintes do app, não nas 3 tarefas atribuídas agora.
-- Áreas logadas do app (corretor / gestor), contratos e parcelas — milestones futuros, atrás de login.
+- Área logada do gestor/administrador, contratos e parcelas — milestones futuros (a área do corretor entrou na Phase 8).
 - Model de Imóvel / endereço / fotos / quatro naturezas / loteamento / publicação — **dependência** minha, mas construídos na frente web pelos colegas (E2); eu apenas exponho o que for publicado via API pública.
 - Infra de backend: PostgreSQL, Dockerização da API e volume de imagens — pertencem ao repositório e às decisões da API (colega), não ao app Flutter. O app persiste só a cidade escolhida localmente no aparelho.
 
@@ -77,6 +84,14 @@ recalculados dentro do aparelho.
 | Cidade escolhida guardada localmente no aparelho | Vitrine sem login; sem conta e sem senha (card APP01) | — Pending |
 | Filtro e busca server-side | Filtrar no celular exigiria baixar o acervo inteiro — não escala e gasta o dado do visitante (card APP03) | — Pending |
 | Paleta Verde e Branco via `ColorScheme.fromSeed` | Decisão da equipe + diretriz Material 3 | — Pending |
+| Vitrine do anunciante como endpoint próprio no Django (rotas aninhadas `corretores\|empresas/<id>/imoveis/`), no padrão da API pública da APP-05 | O app não recorta a vitrine; o servidor decide o que é do anunciante, com a mesma allowlist, paginação e limite de taxa | ✓ Good — Phase 07.1 (17 testes direcionados no web, UAT real no emulador) |
+| Anunciante inexistente ou inativo responde 404 uniforme; ativo sem imóveis responde 200 vazio | Não vaza se o anunciante existe; o app mostra o aviso de indisponível | ✓ Good — Phase 07.1 (§13 do contrato) |
+| `feat/APP07` recebeu a `main` por merge, não rebase | Preservar o histórico já enviado e resolver os 10 conflitos uma vez | ✓ Good — Phase 07.1 (merge 9c2252a) |
+| Contato do anunciante só como texto selecionável, sem botão de ligar/WhatsApp/e-mail | Ações de contato e o registro do contato são da APP 06 / CON-01, com regra no servidor | ✓ Good — Phase 7 (UAT 2) |
+| Rótulo neutro "Ver página do anunciante" no cartão da empresa | Vale para imobiliária e construtora sem o app decidir o tipo no texto | ✓ Good — Phase 7 (suposição A7 aprovada no UAT 5) |
+| Token da API guardado em `flutter_secure_storage` (Keychain/Keystore), só nas rotas autenticadas | Login do corretor exige credencial no aparelho; a vitrine pública e o login nunca levam `Authorization` | ✓ Good — Phase 8 (UAT 7/7) |
+| `GET /api/imoveis/` virou envelope paginado (`count`/`next`/`results`) filtrado no servidor | O acervo do corretor rola e filtra sem baixar tudo; o time da web precisa saber da mudança de formato | ✓ Good — Phase 8 |
+| Limite de login 10/hour por e-mail e 30/hour por IP | Freia tentativa de senha sem travar o uso normal; taxas ajustáveis pelo `.env` | ✓ Good — Phase 8 (aceito no UAT 4) |
 
 ## Evolution
 
@@ -96,4 +111,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-21 after initialization*
+*Last updated: 2026-11-21 after Phase 8*

@@ -70,8 +70,13 @@ página do imóvel vêm da API real do repositório irmão (`../imoveis-aqui/Web
 `feat/APP06`: `GET /api/publico/cidades/`, `/api/publico/cidades/<id>/imoveis/`,
 `/api/publico/cidades/<id>/bairros/`, `/api/publico/caracteristicas/`, `/api/publico/imoveis/<id>/` e `POST /api/publico/imoveis/<id>/contato/`.
 O app não tem mock de acervo: se a API falhar, a tela mostra o estado de erro com "Tentar de novo".
+Os perfis públicos (`GET /api/publico/corretores/<id>/` e `/api/publico/empresas/<id>/`) vêm da `main` da web;
+a vitrine do anunciante (`GET /api/publico/corretores/<id>/imoveis/` e `/api/publico/empresas/<id>/imoveis/`,
+20 por página, mesmo limite de taxa da vitrine da cidade) e a correção do perfil de corretor de empresa inativa
+(404) vêm da branch `feat/APP07` da web, até ela entrar na `main` dela.
 O formato das respostas está em
-`.planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/01-CONTRATO-API.md`.
+`.planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/01-CONTRATO-API.md` (§13 para perfis e
+vitrine do anunciante).
 
 ### Base URL da API (app)
 
@@ -93,7 +98,8 @@ o emulador Android:
 
 Na branch `feat/APP06` do repositório da API (ela traz a vitrine pública da W09, as migrações
 `imoveis.0003` a `0006` e a caixa de contatos da W11: o `migrate` também cria a tabela `contatos`,
-migração `contatos.0001`):
+migração `contatos.0001`). Para testar a APP-07 (perfis e vitrine do anunciante), use a branch `feat/APP07` da web
+(ela parte da `main` atualizada, que já tem a APP-05):
 
 ```bash
 # a partir de ../imoveis-aqui/Web
@@ -115,7 +121,8 @@ cp .env.example .env               # preencha DATABASE_URL (Postgres) e confira 
 
 Os testes do app não usam JSON escrito à mão: `test/fixtures/api/` guarda respostas **capturadas** da
 API semeada (cidades, listas de Campinas, bairros, características, os quatro detalhes, os casos sem
-foto e sem corretor, os erros 400 e 404 e as respostas do POST de contato). Os exemplos do contrato
+foto e sem corretor, os erros 400 e 404 e as respostas do POST de contato), mais as sete da APP-07: perfil do corretor, perfil da empresa, o 404 de
+perfil e duas páginas (p1 e p2) da vitrine de cada anunciante. Os exemplos do contrato
 (`.planning/phases/01-.../contrato/*.example.json`) são cópias exatas delas, e
 `test/data/contrato_lista_test.dart` / `test/data/contrato_detalhe_test.dart` falham se divergirem.
 Para recapturar tudo (por exemplo, depois que a API mudar):
@@ -137,11 +144,14 @@ python3 tool/capturar_fixtures_api.py http://127.0.0.1:8000 test/fixtures/api --
 # 4. pare o servidor temporário e apague o SQLite temporário
 ```
 
-`--grupo todos` recaptura as 19 fixtures de uma vez (`lista`, `detalhe` e `contato` capturam só o seu grupo).
+`--grupo todos` recaptura todos os grupos de uma vez; cada `--grupo` captura só o seu.
 Para capturar só o contato use `--grupo contato`. Esse grupo faz o POST de contato de verdade (`contato_201_whatsapp.json`, `contato_201_telefone.json`,
 `contato_201_email.json` e `erro_400_canal_contato.json`): cada POST grava um contato **só no SQLite temporário**
 do passo 1, nunca no banco do `Web/.env`. Suba o servidor temporário com `CONTATO_TAXA_ANONIMA=1000/min` para
-não esbarrar no limite de 10/min ao repetir a captura.
+não esbarrar no limite de 10/min ao repetir a captura. Os perfis
+e a vitrine do anunciante têm grupos próprios, `--grupo perfis` e `--grupo anunciante`, travados por
+`test/data/contrato_perfis_test.dart` e `test/data/vitrine_anunciante_remote_datasource_test.dart`. Ao capturá-los,
+**não** recapture os grupos da APP-05 junto: o sufixo aleatório das fotos do seed mudaria as fixtures já travadas.
 Depois, copie as fixtures para os exemplos do contrato (tabela no §12 do `01-CONTRATO-API.md`) e rode
 `flutter test`.
 
@@ -203,6 +213,65 @@ rolagem, latência). Desktop e web **não** servem: o projeto não tem a pasta `
    Textos e layout devem ler naturalmente em português a 360 dp, em Material 3 verde e branco.
 
 4. Ao terminar, pare o `runserver` (Ctrl+C).
+
+### Área do corretor (APP-08)
+
+O corretor entra no **mesmo app**, sem aplicativo separado. O botão do topo da vitrine, ao lado do seletor de
+cidade, mostra "Entrar" (sem sessão guardada) ou "Meu acervo" (com sessão); a vitrine continua abrindo direto,
+sem login. Quem entra vê a área do seu papel, lido do servidor a cada toque em "Meu acervo":
+
+- **Corretor:** "Meu acervo" — os imóveis dele e os da imobiliária, com a marca "Seu" nos dele, busca por código
+  ou título, chips de situação (Todas, Disponível, Reservado, Vendido, Alugado) e rolagem infinita, tudo
+  resolvido no servidor. O cartão só abre a página do imóvel quando o servidor diz que ele está na vitrine.
+- **Gestor e administrador:** tela de aviso "A área do gestor ainda não está no app." com Sair.
+- **Sair** pede confirmação, apaga o token do aparelho e o revoga no servidor; se a rede falhar, o aparelho sai
+  do mesmo jeito. Sessão que o servidor recusa (401) volta ao login com "Sua sessão terminou. Entre de novo.".
+
+O token da API fica em `flutter_secure_storage` (Keychain no iOS, Keystore no Android) e só é enviado às rotas
+autenticadas (`/api/auth/eu/`, `/api/auth/sair/`, `/api/imoveis/`); a vitrine pública e o próprio login nunca
+levam o `Authorization`.
+
+**Dados de teste no Django da `feat/APP08`** (nenhuma senha vai para o repositório):
+
+```bash
+# a partir de ../imoveis-aqui/Web, na branch feat/APP08, com DEBUG=True no .env
+.venv/bin/python manage.py migrate
+.venv/bin/python manage.py seed_demo            # segunda empresa, com um corretor e um gestor
+.venv/bin/python manage.py semear_vitrine_dev   # imóveis DEV-* e o corretor corretor.vitrine.demo@example.com
+
+# escolha agora uma senha de desenvolvimento e defina-a pelo ambiente (nunca escreva a senha em arquivo)
+export SENHA_DEV_CORRETOR='<senha escolhida na hora>'
+.venv/bin/python manage.py shell -c "
+import os
+from contas.models import Usuario
+u = Usuario.objects.get(email='corretor.vitrine.demo@example.com')
+u.set_password(os.environ['SENHA_DEV_CORRETOR'])
+u.save()
+"
+
+.venv/bin/python manage.py runserver 0.0.0.0:8000   # com 10.0.2.2 no ALLOWED_HOSTS
+```
+
+As credenciais do corretor e do gestor do `seed_demo` aparecem na saída do próprio comando e estão no código
+dele (`core/management/commands/seed_demo.py`); não as copie para cá. Para o administrador, use um usuário de
+perfil `ADMINISTRADOR` criado por você no ambiente de desenvolvimento.
+
+O que conferir no emulador (roteiro completo no UAT da fase):
+
+1. Sem login, o app abre na vitrine com "Entrar" no topo.
+2. Corretor A (`corretor.vitrine.demo@example.com`) vê os `DEV-*` com a marca "Seu" em todos menos em
+   `DEV-CAMPINAS-14`; a busca `DEV-CAMPINAS-14` mostra "Apartamento no bairro Barão Geraldo".
+3. Corretor B (o do `seed_demo`) vê só `DEMO-CASA-01`, que está Vendido e não reage ao toque; nenhum `DEV-*`.
+4. Gestor e administrador caem no aviso, com Sair.
+5. Senha errada e e-mail inexistente mostram a mesma frase: "E-mail ou senha inválidos.".
+
+Avisos:
+
+- O token é **único por usuário** (contrato §14.4): Sair num aparelho desconecta os outros aparelhos do mesmo
+  usuário, que voltam ao login ao tocar em "Meu acervo".
+- O limite de tentativas de login usa `LOGIN_TAXA_POR_EMAIL` (padrão `10/hour`) e `LOGIN_TAXA_POR_IP` (padrão
+  `30/hour`), configuráveis pelo `.env` do Django. Passou do limite, o app mostra "Muitas tentativas. Tente de
+  novo em N minutos.".
 
 ## Testes e análise
 
