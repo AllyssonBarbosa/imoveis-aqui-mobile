@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 09
 current_phase_name: Mudança de Situação do Imóvel pelo App (APP 09)
 status: executing
-stopped_at: Completed 09-01-PLAN.md
-last_updated: "2026-11-22T15:29:17.713Z"
+stopped_at: Completed 09-02-PLAN.md
+last_updated: "2026-11-22T15:32:53.206Z"
 last_activity: 2026-11-22
 last_activity_desc: Phase 09 execution started
-state_head: 4cdf6c01455d3c0cd2c8a189d63b4d305279d740
+state_head: 1fdaa04405a44ef590d895c6ed83801cf2c521fd
 progress:
   total_phases: 10
   completed_phases: 0
   total_plans: 97
-  completed_plans: 85
+  completed_plans: 86
   percent: 0
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-11-21)
 ## Current Position
 
 Phase: 09 (Mudança de Situação do Imóvel pelo App (APP 09)) — EXECUTING
-Plan: 2 of 13
+Plan: 3 of 13
 Status: Ready to execute
 Last activity: 2026-11-22 — Phase 09 execution started
 
@@ -128,6 +128,7 @@ Progress: [████████████████████] 72/72 p
 | Phase 08 P11 | 22min | 2 tasks | 14 files |
 | Phase 08 P12 | 25min | 2 tasks | 6 files |
 | Phase 09 P01 | 10 min | 2 tasks | 17 files |
+| Phase 09 P02 | 5min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -205,6 +206,7 @@ Recent decisions affecting current work:
 - [Phase 08]: 08-11: SessaoCubit carregado sem await no initState de ImoveisAquiApp e provido acima do MaterialApp (AC-6)
 - [Phase 08]: 08-12: pilha real dos fluxos ponta a ponta montada num helper compartilhado (test/support/pilha_real.dart) trocando so os dois Dio e o ArmazenamentoToken
 - [Phase 09]: 09-01: wire da mudança de situação capturado do Django da origin/main 8bf4448 por git archive (clone da web intacto); 404 de outra empresa igual no detalhe, no histórico e no POST (T-09-02); limite de 500 da observação registrado no §16.6 como D-17, limite no servidor PENDENTE WEB (L8)
+- [Phase 09]: 09-02: rotas do corretor travadas por testes de caracterização na feat/APP09 do worktree da web (c02a506), sem código de produção
 
 ### Pending Todos
 
@@ -242,6 +244,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-22T15:29:17.643Z
-Stopped at: Completed 09-01-PLAN.md
+Last session: 2026-11-22T15:32:53.124Z
+Stopped at: Completed 09-02-PLAN.md
 Resume file: None
