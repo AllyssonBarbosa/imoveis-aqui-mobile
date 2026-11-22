@@ -29,6 +29,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 7: Perfis Públicos da Empresa e do Corretor** - Card APP 07: página da empresa e página do corretor com a vitrine do anunciante, dados da API de perfis públicos (WEB 02) e aviso para corretor desativado. (Fase 6 reservada ao card APP 06, de outro colega — fase N = card APP 0N.) (completed 2026-11-20)
 - [x] **Phase 07.1: Integração da APP-07 com a API real** (completed 2026-11-20)
 - [x] **Phase 8: Login e Área do Corretor — o Acervo** (completed 2026-11-21)
+- [ ] **Phase 9: Mudança de Situação do Imóvel pelo App (APP 09)** - Corretor responsável troca a situação do imóvel (disponível/reservado/vendido/alugado) com observação pela API (a data é a do servidor; o gestor segue pela web até a APP-12), vê o histórico na tela do imóvel; recusa do servidor mantém a situação anterior.
 
 ## Phase Details
 
@@ -294,31 +295,39 @@ Plans:
 
 Plans:
 **Wave 1**
+
 - [x] 07-01-PLAN.md — Dados do perfil do corretor (domain/data): entidade, Model defensivo da WEB 02, mock coerente com o detalhe (7, 8, 9 + corretor 10 sem imóveis), repositório (PERF-04, PERF-02)
 
 **Wave 2** *(blocked on Wave 1 completion)*
+
 - [x] 07-02-PLAN.md — TRACER: tocar no corretor da página do imóvel abre o perfil buscado por id (prévia na hora -> CRECI do mock por toda a pilha) + DI de produção (PERF-06, PERF-02, PERF-04)
 - [x] 07-03-PLAN.md — Registro de PERF-01..06/API-08 + adendo §12 do contrato + exemplos de wire dos perfis protegidos por teste de contrato (API-08, PERF-04)
 
 **Wave 3** *(blocked on Wave 2 completion)*
+
 - [x] 07-04-PLAN.md — Corretor completo: 404 'Este corretor não está mais disponível' + 'Tentar de novo', apresentação e contato como texto (PERF-02, PERF-05)
 - [x] 07-05-PLAN.md — API real dos perfis (Dio) com 404/JSON ruim tipados no repositório + entidade/Model defensivo da empresa (PERF-04, PERF-05, PERF-01)
 
 **Wave 4** *(blocked on Wave 3 completion)*
+
 - [x] 07-06-PLAN.md — Dados da vitrine do anunciante: AnuncianteRef, §12 no mock com cursor, repositório e use case (PERF-03, API-08)
 - [x] 07-07-PLAN.md — Corretor desativado reproduzível à mão: id reservado 99 via imóvel 337 + e2e até o aviso (PERF-05)
 
 **Wave 5** *(blocked on Wave 4 completion)*
+
 - [x] 07-08-PLAN.md — Vitrine do anunciante na página do corretor: Cubit, sliver de ImovelCard, vazio (corretor 10) e erro com 'Tentar de novo' (PERF-03, API-08)
 - [x] 07-09-PLAN.md — Dados da empresa: fixture IMOBILIARIA/AUTONOMO = exemplo do §12, buscarEmpresa no mock, na remota e no repositório (PERF-01, PERF-04)
 
 **Wave 6** *(blocked on Wave 5 completion)*
+
 - [x] 07-10-PLAN.md — Rolagem infinita da vitrine do anunciante: carregarMais, rodapés, página curta, corpo rolável compartilhado (PERF-03, API-08)
 
 **Wave 7** *(blocked on Wave 6 completion)*
+
 - [x] 07-11-PLAN.md — Página da empresa a partir do perfil do corretor ('Ver página do anunciante'): logomarca, nome, tipo, CRECI pela pilha de perfis (PERF-01, PERF-06, PERF-04)
 
 **Wave 8** *(blocked on Wave 7 completion)*
+
 - [x] 07-12-PLAN.md — Desfechos da empresa (404/erro/cartão ausente), empresa completa (apresentação, contato, cidades, vitrine), fluxo completo, guardas e human-check (PERF-01..PERF-06, API-08)
 
 **UI hint**: yes
@@ -326,7 +335,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 07.1 → 8
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 07.1 → 8 → 9
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -372,27 +381,33 @@ Plans:
 **Goal:** Os perfis do corretor e da empresa e a vitrine do anunciante funcionam ponta a ponta com dados reais, sobre a `main` que já tem a APP-05: a branch `feat/APP07` recebe a `main` com os conflitos resolvidos, os perfis passam a usar a API real da WEB 02, e a vitrine do anunciante passa a vir de um endpoint novo no Django (imóveis por corretor e por empresa), no padrão da API pública da APP-05.
 **Requirements**: PERF-03, PERF-04, API-08
 **Success Criteria**:
+
   1. `feat/APP07` contém a `main` atual (APP-05) com todos os conflitos resolvidos; `flutter analyze` limpo e `flutter test` verde.
   2. O DI registra a DataSource real dos perfis (`GET /api/publico/corretores/{id}/` e `/empresas/{id}/`); nenhum mock de perfil ou de imóvel ativo no app.
   3. O Django expõe a vitrine do anunciante (imóveis publicados de um corretor e de uma empresa) com a mesma paginação, allowlist e limite de taxa da API pública da APP-05, com testes no repositório web.
   4. O app consome esse endpoint com a paginação nova; o adendo do contrato da vitrine do anunciante fica renumerado (o §12 da `main` passou a ser outro assunto) e alinhado ao que o Django entrega.
   5. Com o Django rodando e `semear_vitrine_dev`, dá para ir de um imóvel real até o corretor, a empresa e a vitrine deles, e de volta a um imóvel.
+
 **Depends on:** Phase 7
 **Plans:** 6/6 plans complete
 
 Plans:
 **Wave 1**
+
 - [x] 07.1-01-PLAN.md — Merge de origin/main (APP-05) em feat/APP07 com os 10 conflitos resolvidos + TRACER: perfis e vitrine do anunciante nas DataSources Dio pelo DI de produção, zero mock em lib/ (PERF-04, PERF-03, API-08)
 - [x] 07.1-02-PLAN.md — Django (repo web, branch feat/APP07): rotas corretores/<id>/imoveis/ e empresas/<id>/imoveis/ no padrão da APP-05, D-11 (corretor de empresa inativa -> 404), site usando as mesmas consultas (D-19), testes (PERF-03, API-08)
 
 **Wave 2** *(blocked on Wave 1 completion)*
+
 - [x] 07.1-03-PLAN.md — Wire real: captura dos perfis e da vitrine do anunciante do Django, ApiFalsa com as rotas novas, teste da DataSource remota, perfil_remote/contrato_perfis e exemplos do contrato copiados (PERF-04, PERF-03, API-08)
 - [x] 07.1-04-PLAN.md — Cubit da vitrine do anunciante sem id repetido ao anexar página + testes de tela/repositório da APP-07 sobre as entidades da main (PERF-03)
 
 **Wave 3** *(blocked on Wave 2 completion)*
+
 - [x] 07.1-05-PLAN.md — Fluxos e2e da APP-07 portados para a ApiFalsa (perfil, empresa, rolagem infinita, 404, vazio) e suíte completa verde — SC-1 (PERF-03, PERF-04)
 
 **Wave 4** *(blocked on Wave 3 completion)*
+
 - [x] 07.1-06-PLAN.md — Contrato §13, REQUIREMENTS (D-17), README, COVERAGE da Phase 7, 07-UAT.md com dados reais do seed e gates finais dos dois repositórios (API-08, PERF-03, PERF-04)
 
 ### Phase 8: Login e Área do Corretor — o Acervo
@@ -413,33 +428,106 @@ Plans:
 
 Plans:
 **Wave 1**
+
 - [x] 08-01-PLAN.md — Web (feat/APP08): TRACER do acervo autenticado (login → token → `GET /api/imoveis/` paginado e enxuto, 10 chaves) + busca/situação por `FiltroImovelForm`, isolamento (AC-5), allowlist e README (API-10, ACV-01..04)
 - [x] 08-02-PLAN.md — App: `flutter_secure_storage` atrás de `ArmazenamentoToken`, `allowBackup=false`, segundo `Dio` `@Named('autenticado')` com `InterceptadorSessao` (token só na mesma origem, 401 → sessão expirada) e `ApiFalsa` gravando cabeçalhos; override do D-D sobre a nota do CLAUDE.md registrado (AUTH-02)
 
 **Wave 2** *(blocked on Wave 1 completion)*
+
 - [x] 08-03-PLAN.md — Web: login endurecido (`authentication_classes=[]`, limite por e-mail e por IP com `Retry-After`), `GET /api/auth/eu/` e `POST /api/auth/sair/` com testes e README (AUTH-06, AUTH-05, AUTH-02, AUTH-03, API-10)
 
 **Wave 3** *(blocked on Wave 2 completion)*
+
 - [x] 08-04-PLAN.md — Wire real: grupo `acervo` em `tool/capturar_fixtures_api.py`, fixtures capturadas, §14 do contrato e `contrato_acervo_test.dart` (API-09)
 
 **Wave 4** *(blocked on Wave 3 completion)*
+
 - [x] 08-05-PLAN.md — App: autenticação na camada de dados (DataSource login/eu/sair, `EuModel` → `Papel`, falhas tipadas 400/429/403/rede/401, repositório cujo sair/descarte nunca lançam) (AUTH-01, AUTH-02, AUTH-03, AUTH-05)
 - [x] 08-06-PLAN.md — App: acervo no domínio e nos Models (entidades `ImovelAcervo`/`PaginaAcervo`/`ConsultaAcervo`, Models das 10 chaves, fixtures lidas pelos Models) (ACV-01, ACV-04)
 
 **Wave 5** *(blocked on Wave 4 completion)*
+
 - [x] 08-07-PLAN.md — App: use cases Entrar/ObterPapel/Sair/LerSessao e `SessaoCubit` singleton (Sair sempre anônimo, rollback do login que nunca lança) (AUTH-01, AUTH-02, AUTH-04, AUTH-05)
 
 **Wave 6** *(blocked on Wave 5 completion)*
+
 - [x] 08-08-PLAN.md — App: acervo na camada de dados (parâmetros da consulta, DataSource no Dio autenticado com `next` só na mesma origem, repositório e `BuscarAcervoUseCase`) (ACV-01, ACV-02, ACV-04)
 
 **Wave 7** *(blocked on Wave 6 completion)*
+
 - [x] 08-09-PLAN.md — App: `AcervoCubit` (busca 400 ms, chips de situação, rolagem) + cartão compacto, chips e `AcervoScreen` (ACV-01, ACV-02, ACV-04)
 
 **Wave 8** *(blocked on Wave 7 completion)*
+
 - [x] 08-10-PLAN.md — App: tela de login (textos fixos D-03/D-04, roteamento pelo papel), tela de aviso do gestor/administrador com Sair, e Sair + 401 na tela do acervo (AUTH-01, AUTH-02, AUTH-03, AUTH-05)
 
 **Wave 9** *(blocked on Wave 8 completion)*
+
 - [x] 08-11-PLAN.md — App: "Meu acervo" roteando pelo papel (401 da entrada → login com aviso) e botão "Entrar"/"Meu acervo" no topo da vitrine sem atrasar a abertura (AUTH-04, AUTH-05)
 
 **Wave 10** *(blocked on Wave 9 completion)*
+
 - [x] 08-12-PLAN.md — Fluxos ponta a ponta sobre a `ApiFalsa`, README do app, REQUIREMENTS e gates finais dos dois repositórios + human-check (emulador, iOS no Mac, taxas, autorização da nota do CLAUDE.md) (AUTH-01..06, ACV-01..04, API-09, API-10)
+
+### Phase 9: Mudança de Situação do Imóvel pelo App (APP 09)
+
+**Goal:** Como corretor, eu quero mudar a situação do imóvel pelo celular para marcar o reservado na hora da conversa, sem esperar chegar ao computador. A troca entre disponível, reservado, vendido e alugado leva data e observação, e o histórico da mudança aparece na própria tela. Quem decide é o servidor: o app pede a mudança; se a API recusar, a mensagem é mostrada e a tela não muda de estado por conta própria. Card APP 09 (tarefa A09). Depende da WEB 08 (Documentos, publicação, situação e histórico — Feito no Kanban).
+**Requirements**: SIT-01, SIT-02, SIT-03, SIT-04, SIT-05, SIT-06, SIT-07, API-11, API-12
+**Depends on:** Phase 8. Externamente: WEB 08 (feito, na `origin/main` da web `8bf4448`) — `GET /api/imoveis/{id}/`, `POST /api/imoveis/{id}/situacao/` e `GET /api/imoveis/{id}/historico/`.
+**Success Criteria** (what must be TRUE — os 6 critérios do card):
+
+  1. Trocar a situação do imóvel com observação (opcional); a data da mudança é a do servidor (`alterado_em`), informada como "Data: hoje" na troca e mostrada com data e hora no histórico — como no site (D-05 da fase; o card fala em "data e observação").
+  2. A mudança é feita pela API; o app não altera nada localmente.
+  3. O histórico das mudanças aparece na tela do imóvel.
+  4. Recusa do servidor mostra a mensagem e mantém a situação anterior.
+  5. A vitrine reflete a mudança na consulta seguinte (o servidor decide a publicação; verificado no UAT).
+  6. Só quem o servidor autoriza consegue mudar: pelo app, só o corretor responsável (botão só com `pode_mudar_situacao`; quem forçar recebe 403); o gestor da empresa continua mudando pela web e a área dele no app é da APP-12 (D-07 da fase).
+
+**Plans:** 13 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 09-01-PLAN.md — TRACER do wire: grupo `situacao` em `tool/capturar_fixtures_api.py` capturando login → detalhe → POST 200 → detalhe/histórico relidos, as recusas 400/403 e o 404 de outra empresa no detalhe e no histórico contra o código da `origin/main` (via `git archive`, sem depender do clone), gate de credenciais, §16 do contrato e `contrato_gestao_situacao_test.dart` (API-11)
+- [ ] 09-02-PLAN.md — Web (D-19): worktree `../imoveis-aqui-APP09` na `feat/APP09` da `origin/main` e testes de caracterização L1–L7 das rotas do corretor (inclui 404 do histórico de outra empresa), commit local sem push (API-12, SIT-06)
+- [ ] 09-03-PLAN.md — Mapa único código do Django → enum (`finalidadeDoCodigo`/`situacaoDoCodigo` em `codigos_imovel_api.dart`), usado pelo acervo e pelos Models novos da fase, sem mudança no Meu acervo (SIT-07, SIT-03)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 09-04-PLAN.md — Dados da leitura do imóvel de gestão: tracer de dados UseCase → Repository → DataSource autenticado → `GET /api/imoveis/{id}/` → Model (9 chaves), usando o mapa único do 09-03, e falhas tipadas (SIT-07)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 09-05-PLAN.md — TRACER de UI: todo cartão do Meu acervo abre a tela de gestão com a situação atual vinda da API, pela pilha real; Cubit com versão e "Tentar de novo" (SIT-07)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 09-06-PLAN.md — Dados do histórico: `GET /api/imoveis/{id}/historico/` até a lista de domínio na ordem do servidor, rota da `ApiFalsa` e falhas tipadas (SIT-03)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 09-07-PLAN.md — Tela de leitura completa: cabeçalho, "desde dd/MM/yyyy HH:mm", "Ver na vitrine" só com `na_vitrine` e histórico na tela (carga em paralelo, vazio do site, falha parcial) (SIT-07, SIT-01, SIT-03)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [ ] 09-08-PLAN.md — Desfechos da leitura: 404 fixo, 401 → login por helper compartilhado com o acervo, puxar para atualizar sem apagar o conteúdo (SIT-04, SIT-02)
+
+**Wave 7** *(blocked on Wave 6 completion; depois do 09-08 para serializar o `build_runner`)*
+
+- [ ] 09-09-PLAN.md — Dados da escrita: `POST /api/imoveis/{id}/situacao/` com o corpo exato, recusa 400/403 com a mensagem do servidor achatada e falhas tipadas do envio (SIT-02, SIT-04, SIT-01)
+
+**Wave 8** *(blocked on Wave 7 completion)*
+
+- [ ] 09-10-PLAN.md — Folha de mudança, caminho feliz: folha e Cubit da folha (chips, Confirmar, POST com guarda de toque duplo) e tela (botão só com `pode_mudar_situacao` → POST → SnackBar e releitura; "Ver na vitrine" some após a mudança, D-18) (SIT-01, SIT-02, SIT-06, SIT-07)
+
+**Wave 9** *(blocked on Wave 8 completion)*
+
+- [ ] 09-11-PLAN.md — Folha completa: observação opcional com a dica do site e limite de 500 (D-17), "Data: hoje", envio protegido (carregamento, toque duplo, folha que não fecha no meio, sem alça) (SIT-01, SIT-02, SIT-04)
+
+**Wave 10** *(blocked on Wave 9 completion)*
+
+- [ ] 09-12-PLAN.md — Recusas e falhas na folha: 400/403 com a mensagem do servidor e a folha aberta, rede/5xx com texto fixo, 404 e 401 no envio (SIT-04, SIT-06)
+
+**Wave 11** *(blocked on Wave 10 completion)*
+
+- [ ] 09-13-PLAN.md — Volta ao acervo recarrega da API (D-12), fluxos ponta a ponta, README, REQUIREMENTS (todos Complete, nota no ACV-04), gates dos dois repositórios + human-check do UAT (SIT-01..07, API-11, API-12)

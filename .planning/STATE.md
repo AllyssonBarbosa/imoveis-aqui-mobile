@@ -1,19 +1,19 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 1
-current_phase_name: Localização, Escolha de Cidade e Contrato da API
-status: verifying
-stopped_at: Phase 08 complete, ready to verify Phase 1
-last_updated: "2026-11-22T12:00:00.000Z"
+current_phase: 9
+current_phase_name: Mudança de Situação do Imóvel pelo App (APP 09)
+status: executing
+stopped_at: Phase 9 context gathered
+last_updated: "2026-11-22T14:35:45.308Z"
 last_activity: 2026-11-22
 last_activity_desc: Merged origin/main (Phases 7, 07.1, 8) into feat/APP06 (Phase 6 complete)
-state_head: 6d141f8673d4e339425c24a261ce393f1a75cb9c
+state_head: 97833e496c3509f1c77b3c763f75cb43dcd7e25c
 progress:
-  total_phases: 9
-  completed_phases: 3
-  total_plans: 84
+  total_phases: 10
+  completed_phases: 0
+  total_plans: 97
   completed_plans: 84
-  percent: 33
+  percent: 0
 ---
 
 # Project State
@@ -27,12 +27,12 @@ See: .planning/PROJECT.md (updated 2026-11-21)
 
 ## Current Position
 
-Phase: 1 — Localização, Escolha de Cidade e Contrato da API
+Phase: 9 (Mudança de Situação do Imóvel pelo App (APP 09)) — READY TO EXECUTE
 Plan: 4
-Status: Phase complete — ready for verification
+Status: Ready to execute
 Last activity: 2026-11-22 — Merged origin/main (Phases 7, 07.1, 8) into feat/APP06 (Phase 6 complete)
 
-Progress: [████████████████████] 72/72 plans ([███░░░░░░░] 33%)
+Progress: [████████████████████] 72/72 plans ([░░░░░░░░░░] 0%)
 
 ## Performance Metrics
 
@@ -228,6 +228,7 @@ None yet.
 - Phase 7 added: Perfis Públicos da Empresa e do Corretor (card APP 07); número 7 escolhido para casar com o card — fase 6 reservada ao APP 06
 - Phase 07.1 inserted after Phase 7: Integração da APP-07 com a API real (merge da APP-05, perfis na API real, endpoint da vitrine do anunciante no Django) (URGENT)
 - Phase 8 added: Login e Área do Corretor — o Acervo (card APP 08, tarefa A08)
+- Phase 9 added: Mudança de Situação do Imóvel pelo App (card APP 09, tarefa A09) — card do Kanban copiado para `../APP 09 · Mudança de situação do imóvel pelo app.md` (2026-11-22); depende da WEB 08
 
 ## Deferred Items
 
@@ -239,6 +240,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-21T22:40:00Z
-Stopped at: Phase 08 complete, ready to verify Phase 1
-Resume file: None
+Last session: 2026-11-22T04:56:50.586Z
+Stopped at: Phase 9 context gathered
+Resume file: .planning/phases/09-mudan-a-de-situa-o-do-im-vel-pelo-app-app-09/09-CONTEXT.md

@@ -5,7 +5,7 @@
 
 ## v1 Requirements
 
-Requisitos da primeira entrega (tarefas APP01, APP02, APP03, APP04, APP07, APP08 + os endpoints da API que as habilitam). Cada um mapeia para uma fase do roadmap.
+Requisitos da primeira entrega (tarefas APP01, APP02, APP03, APP04, APP07, APP08, APP09 + os endpoints da API que as habilitam). Cada um mapeia para uma fase do roadmap.
 
 ### Localização e escolha da cidade (APP01)
 
@@ -66,6 +66,20 @@ Requisitos da primeira entrega (tarefas APP01, APP02, APP03, APP04, APP07, APP08
 - [x] **ACV-04**: O toque num cartão do acervo só abre a página do imóvel quando o servidor diz que ele está na vitrine (`na_vitrine`); senão o cartão não reage.
 - [x] **API-09**: O §14 de `01-CONTRATO-API.md` congela login, "quem sou eu", Sair e a lista do acervo (parâmetros, envelope, as 10 chaves do item, 400/401/403/404/429 e o efeito do Sair nos outros aparelhos), com fixtures capturadas do Django e testes de contrato nos dois repositórios.
 - [x] **API-10**: A web entrega, com testes, `GET /api/auth/eu/`, `POST /api/auth/sair/`, o limite de tentativas no login e a lista do acervo paginada, filtrada e enxuta em `GET /api/imoveis/`.
+
+### Situação do imóvel (APP09)
+
+Card APP 09 (tarefa A09). SIT-01..SIT-06 cobrem os critérios AC-1..AC-6 do card; SIT-07 é a tela de gestão que os habilita.
+
+- [ ] **SIT-01**: O corretor troca a situação do imóvel (Disponível, Reservado, Vendido, Alugado) numa folha com chips de escolha única (a situação atual desabilitada) e observação opcional; a data é a do servidor (`alterado_em`), mostrada como "Data: hoje" na folha e com data e hora no histórico (AC-1).
+- [ ] **SIT-02**: A troca é pedida à API (`POST /api/imoveis/{id}/situacao/`) e o app não altera nada localmente: depois do 200 a folha fecha, aparece "Situação alterada para <situação>." e a tela relê o imóvel e o histórico da API (AC-2).
+- [ ] **SIT-03**: A tela de gestão do imóvel mostra o histórico das mudanças na ordem do servidor (mais recente primeiro): de → para, data e hora, quem mudou e a observação; sem mudanças mostra "Nenhuma mudança ainda — disponível desde o cadastro." (AC-3).
+- [ ] **SIT-04**: Recusa do servidor (400/403) mostra a mensagem do servidor na folha, que continua aberta com a observação, e a situação exibida não muda; rede, tempo esgotado e 5xx mostram "Não foi possível mudar a situação agora. Tente de novo."; 404 mostra um texto fixo; 401 volta ao login com "Sua sessão terminou. Entre de novo." (AC-4).
+- [ ] **SIT-05**: A vitrine pública reflete a mudança na consulta seguinte (regra única `na_vitrine` no servidor, provada no UAT) e o Meu acervo recarrega da API ao voltar da tela de gestão quando houve mudança, mantendo a busca e a situação escolhidas (AC-5).
+- [ ] **SIT-06**: Só o corretor responsável muda a situação pelo app (o gestor muda pela web; a área dele no app é da APP-12): o botão "Mudar situação" só aparece com `pode_mudar_situacao` calculado pelo Django, e quem forçar recebe a recusa do servidor (403), testada no Django (AC-6).
+- [ ] **SIT-07**: Todo cartão do Meu acervo abre a tela de gestão do imóvel (cabeçalho, situação atual com "desde" e histórico); "Ver na vitrine" só aparece quando o servidor diz `na_vitrine` e some depois de uma mudança até a tela ser reaberta. Supera o ACV-04 da Phase 8.
+- [ ] **API-11**: O §16 de `01-CONTRATO-API.md` congela `GET /api/imoveis/{id}/` (as 9 chaves que o app lê), `POST /api/imoveis/{id}/situacao/` (corpo, 200, 400, 401, 403, 404) e `GET /api/imoveis/{id}/historico/`, com fixtures capturadas da API real (código da `origin/main` da web) e teste de contrato no app.
+- [ ] **API-12**: (D-08 e D-19 da Phase 9) A web ganha, na branch `feat/APP09` criada da `origin/main` num worktree separado (`../imoveis-aqui-APP09`; o clone `../imoveis-aqui` não troca de branch), os testes que faltam para as rotas do corretor — 400 de mesma situação, situação inválida e contrato assinado, 401 sem token, 404 de histórico/detalhe de outra empresa, ordem do histórico e 403 antes de 400 —, sem mudança de código de produção nem push.
 
 ### API pública (endpoints que o app consome)
 
@@ -175,15 +189,26 @@ Excluídos de propósito. Documentados para evitar scope creep.
 | ACV-04 | Phase 8 | Complete |
 | API-09 | Phase 8 | Complete |
 | API-10 | Phase 8 | Complete |
+| SIT-01 | Phase 9 | Pending |
+| SIT-02 | Phase 9 | Pending |
+| SIT-03 | Phase 9 | Pending |
+| SIT-04 | Phase 9 | Pending |
+| SIT-05 | Phase 9 | Pending |
+| SIT-06 | Phase 9 | Pending |
+| SIT-07 | Phase 9 | Pending |
+| API-11 | Phase 9 | Pending |
+| API-12 | Phase 9 | Pending |
 
 Planos da Phase 6 que cobrem cada ID (frontmatter `requirements` dos `06-NN-PLAN.md`): APP06-C1 → 06-07, 06-09, 06-10; APP06-C2 → 06-02, 06-03, 06-04, 06-05, 06-06, 06-07, 06-10; APP06-C3 → 06-03, 06-04, 06-05, 06-06, 06-08, 06-09, 06-10; APP06-C4 → 06-01, 06-03, 06-05, 06-06, 06-07, 06-08, 06-10; APP06-C5 → 06-01, 06-09, 06-10; APP06-C6 → 06-01, 06-02, 06-05, 06-07, 06-09, 06-10; APP06-API-1 → 06-01, 06-03, 06-04, 06-10; APP06-API-2 → 06-02, 06-10.
 
 **Coverage:**
 
-- v1 requirements: 57 total
-- Mapped to phases: 57 (roadmap complete)
+- v1 requirements: 66 total
+- Mapped to phases: 66 (roadmap complete)
 - Unmapped: 0
+
+Planos da Phase 9 que cobrem cada ID (frontmatter `requirements` dos `09-NN-PLAN.md`): SIT-01 → 09-07, 09-09, 09-10, 09-11, 09-13; SIT-02 → 09-08, 09-09, 09-10, 09-11, 09-13; SIT-03 → 09-03, 09-06, 09-07, 09-13; SIT-04 → 09-08, 09-09, 09-11, 09-12, 09-13; SIT-05 → 09-13; SIT-06 → 09-02, 09-10, 09-12, 09-13; SIT-07 → 09-03, 09-04, 09-05, 09-07, 09-10, 09-13; API-11 → 09-01, 09-13; API-12 → 09-02, 09-13.
 
 ---
 *Requirements defined: 2026-09-21*
-*Last updated: 2026-11-22 after merging origin/main (Phases 7, 07.1, 8) into feat/APP06 (Phase 6, APP06-C1..C6, APP06-API-1/2)*
+*Last updated: 2026-11-22 after Phase 9 planning (SIT-01..07, API-11 and API-12 registered for card APP 09, D-14)*

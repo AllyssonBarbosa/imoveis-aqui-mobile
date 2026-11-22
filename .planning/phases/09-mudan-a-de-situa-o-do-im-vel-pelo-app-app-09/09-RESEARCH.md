@@ -658,8 +658,8 @@ Não se aplica: a fase não renomeia, refatora em massa nem migra dados. (Verifi
 
 | # | Claim | Section | Risk if Wrong |
 |---|-------|---------|---------------|
-| A1 | `maxLength` de 500 caracteres na observação | Pitfall 5 | Decisão de produto; limite menor/maior muda só a UI (o servidor não limita) |
-| A2 | Após 200, esconder "Ver na vitrine" (`naVitrineConhecido=false`) até reabrir | Pitfall 2 | Se o usuário preferir manter o botão, a página pública cai no 404 já tratado (DET-06) |
+| A1 | `maxLength` de 500 caracteres na observação — **decidido: D-17** (usuário, 2026-11-22, exceção à D-06) | Pitfall 5 | Decisão de produto; limite menor/maior muda só a UI (o servidor não limita) |
+| A2 | Após 200, esconder "Ver na vitrine" (`naVitrineConhecido=false`) até reabrir — **decidido: D-18** (usuário, 2026-11-22) | Pitfall 2 | Se o usuário preferir manter o botão, a página pública cai no 404 já tratado (DET-06) |
 | A3 | Mostrar data/hora no fuso do aparelho (`toLocal`) | Pitfall 8 | Corretor com aparelho em outro fuso vê hora diferente da do site |
 | A4 | O padrão "abridor devolve `bool` lido do Cubit" cobre botão voltar do Android e gesto do iOS | Pattern 5 | Se falhar em teste de widget, usar `PopScope` com `onPopInvokedWithResult` só no Android; coberto por teste de navegação |
 | A5 | Cubit separado para a folha | Pattern 3 | Discricionário (CONTEXT permite um Cubit só); só muda a organização dos testes |
@@ -667,18 +667,26 @@ Não se aplica: a fase não renomeia, refatora em massa nem migra dados. (Verifi
 | A7 | `max_length` no serializer da web (L8) é aceitável para a equipe web | Lacunas L8 | Mudança de contrato na web exige OK deles; é opcional |
 | A8 | UAT visual pode usar o simulador iOS (`iPhone 17`) ou o AVD `Medium_Phone` | Environment | `adb` não está no PATH (existe em `~/Library/Android/sdk/platform-tools`); ajustar PATH ou usar o iOS |
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+Todas resolvidas em 2026-11-22, durante o plan-phase (decisões do usuário registradas no `09-CONTEXT.md` como D-17, D-18 e D-19; as demais seguem o padrão aceito pelas decisões já travadas).
 
 1. **O que fazer com `na_vitrine` velho depois da mudança?** (Pitfall 2)
    - Sabemos: o `ImovelSerializer` não traz `na_vitrine`; o cartão traz o valor do instante da lista.
    - Falta: preferência do usuário (esconder o botão até reabrir, ou deixar e confiar no 404 tratado).
    - Recomendação: esconder (A2), registrar no UAT.
+   - **RESOLVED — D-18 (decisão do usuário):** "Ver na vitrine" some depois de uma mudança (`!state.mudou`) até a tela ser reaberta. Conferido no UAT.
 2. **Limite da observação (A1) e se a web ganha `max_length` (L8).**
    - Recomendação: `maxLength` 500 no app já nesta fase; L8 só como pergunta à equipe web, fora do caminho crítico.
+   - **RESOLVED — D-17 (decisão do usuário):** limite de 500 no campo do app, aprovado como exceção à D-06 (proteção de interface, T-09-09). L8 continua fora desta fase: vira pergunta à equipe web no human-check de fim de fase.
 3. **Texto do SnackBar para "disponível".** O site usa `get_situacao_display().lower()` → "Situação alterada para disponível." (mesma regra do D-10). Sem dúvida técnica; confirmar só se o texto soar estranho.
+   - **RESOLVED — padrão do D-10:** o app usa a mesma regra do site (rótulo em minúsculas); o texto é conferido no UAT, sem decisão nova.
 4. **Branch do servidor para a UAT e para o trabalho da web.** O clone está na `feat/APP06` (sem as rotas). Recomendação: extrair a `origin/main` para capturas/UAT e, para a `feat/APP09`, pedir autorização antes de trocar a branch do clone (ou criar um segundo clone/worktree da web).
+   - **RESOLVED — D-19 (decisão do usuário):** a `feat/APP09` nasce da `origin/main` num worktree separado, `../imoveis-aqui-APP09`; o clone `../imoveis-aqui` nunca troca de branch; commit local, sem push. A captura de fixtures usa `git archive` da `origin/main` (sem depender da branch do clone) e o servidor do UAT é o worktree. API-12 fecha como Complete (sem caminho de "pular").
 5. **Recarga do acervo volta ao topo e mostra o carregando** (reuso de `_aplicarConsulta`). Aceito pelo D-12 (a lista pode mudar de ordem/filtro); se quiserem manter a posição, é um `recarregar()` mais elaborado (não recomendado).
+   - **RESOLVED — padrão aceito pelo D-12:** `AcervoCubit.recarregar()` reusa `_aplicarConsulta` com a busca e a situação atuais; voltar ao topo com o carregando é o comportamento aceito. Junto disso, o ACV-04 (Phase 8) recebe em `REQUIREMENTS.md` a nota de que foi superado pelo SIT-07 (D-02: todo cartão abre a tela de gestão).
 6. **Gestor:** continua no aviso (D-07). Nenhuma ação.
+   - **RESOLVED — D-07:** gestor fora do app nesta fase (APP-12); os critérios de sucesso do ROADMAP foram alinhados (só o corretor responsável muda pelo app; o gestor muda pela web).
 
 ## Environment Availability
 
