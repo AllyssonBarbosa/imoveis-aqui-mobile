@@ -483,7 +483,7 @@ Plans:
   5. A vitrine reflete a mudança na consulta seguinte (o servidor decide a publicação; verificado no UAT).
   6. Só quem o servidor autoriza consegue mudar: pelo app, só o corretor responsável (botão só com `pode_mudar_situacao`; quem forçar recebe 403); o gestor da empresa continua mudando pela web e a área dele no app é da APP-12 (D-07 da fase).
 
-**Plans:** 11/13 plans executed
+**Plans:** 12/13 plans executed
 
 Plans:
 **Wave 1**
@@ -526,7 +526,7 @@ Plans:
 
 **Wave 10** *(blocked on Wave 9 completion)*
 
-- [ ] 09-12-PLAN.md — Recusas e falhas na folha: 400/403 com a mensagem do servidor e a folha aberta, rede/5xx com texto fixo, 404 e 401 no envio (SIT-04, SIT-06)
+- [x] 09-12-PLAN.md — Recusas e falhas na folha: 400/403 com a mensagem do servidor e a folha aberta, rede/5xx com texto fixo, 404 e 401 no envio (SIT-04, SIT-06)
 
 **Wave 11** *(blocked on Wave 10 completion)*
 
