@@ -576,6 +576,109 @@ void main() {
     });
   });
 
+  group('registrarMudanca (depois de mudar a situação, D-10, D-18)', () {
+    blocTest<GestaoImovelCubit, GestaoImovelState>(
+      'marca mudou com a MESMA situação ainda na tela e só troca imóvel e '
+      'histórico quando a releitura devolve os novos (T-09-03)',
+      build: () {
+        final releitura = Completer<Result<ImovelGestao>>();
+        var chamadas = 0;
+        when(() => obter(36)).thenAnswer((_) {
+          chamadas++;
+          return chamadas == 1
+              ? Future.value(Result.success(_imovel(36)))
+              : releitura.future;
+        });
+        Future<void>.delayed(
+          const Duration(milliseconds: 10),
+          () => releitura.complete(Result.success(_imovel(360))),
+        );
+        return construir();
+      },
+      act: (cubit) async {
+        await cubit.carregar(36);
+        await cubit.registrarMudanca();
+      },
+      skip: 2,
+      expect: () => [
+        // 1º: mudou verdadeiro, imóvel antigo ainda na tela.
+        GestaoImovelState(
+          imovel: ConteudoImovelGestao.carregado(_imovel(36)),
+          historico: const ConteudoHistorico.carregado([]),
+          mudou: true,
+        ),
+        // 2º: só agora o imóvel relido entra.
+        GestaoImovelState(
+          imovel: ConteudoImovelGestao.carregado(_imovel(360)),
+          historico: const ConteudoHistorico.carregado([]),
+          mudou: true,
+        ),
+      ],
+      verify: (_) => verify(() => obter(36)).called(2),
+    );
+
+    blocTest<GestaoImovelCubit, GestaoImovelState>(
+      'se a releitura falhar, mudou continua verdadeiro e o conteúdo anterior '
+      'fica (Pitfall 3)',
+      build: () {
+        var chamadas = 0;
+        when(() => obter(36)).thenAnswer((_) async {
+          chamadas++;
+          return chamadas == 1
+              ? Result.success(_imovel(36))
+              : Result<ImovelGestao>.failure(const FalhaDeConexaoException());
+        });
+        return construir();
+      },
+      act: (cubit) async {
+        await cubit.carregar(36);
+        await cubit.registrarMudanca();
+      },
+      skip: 2,
+      expect: () => [
+        GestaoImovelState(
+          imovel: ConteudoImovelGestao.carregado(_imovel(36)),
+          historico: const ConteudoHistorico.carregado([]),
+          mudou: true,
+        ),
+        GestaoImovelState(
+          imovel: ConteudoImovelGestao.carregado(_imovel(36)),
+          historico: const ConteudoHistorico.carregado([]),
+          mudou: true,
+          falhasAoAtualizar: 1,
+        ),
+      ],
+    );
+
+    blocTest<GestaoImovelCubit, GestaoImovelState>(
+      'tentarNovamente depois de uma mudança mantém mudou verdadeiro',
+      build: () {
+        when(() => obter(36))
+            .thenAnswer((_) async => Result.success(_imovel(36)));
+        return construir();
+      },
+      act: (cubit) async {
+        await cubit.carregar(36);
+        await cubit.registrarMudanca();
+        await cubit.tentarNovamente();
+      },
+      verify: (cubit) {
+        expect(cubit.state.mudou, isTrue);
+        expect(cubit.state.imovel, isA<ImovelGestaoCarregado>());
+      },
+    );
+
+    blocTest<GestaoImovelCubit, GestaoImovelState>(
+      'depois de close() não emite nada',
+      build: construir,
+      act: (cubit) async {
+        await cubit.close();
+        await cubit.registrarMudanca();
+      },
+      expect: () => <GestaoImovelState>[],
+    );
+  });
+
   group('versão de leitura e isClosed', () {
     test('a resposta de uma carga antiga é descartada', () async {
       final antiga = Completer<Result<ImovelGestao>>();

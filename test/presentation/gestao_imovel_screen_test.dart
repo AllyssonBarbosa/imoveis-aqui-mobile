@@ -12,6 +12,8 @@ import 'package:imoveis_aqui/presentation/gestao_imovel/apresentacao_gestao.dart
 import 'package:imoveis_aqui/presentation/gestao_imovel/gestao_imovel_cubit.dart';
 import 'package:imoveis_aqui/presentation/gestao_imovel/gestao_imovel_screen.dart';
 import 'package:imoveis_aqui/presentation/gestao_imovel/gestao_imovel_state.dart';
+import 'package:imoveis_aqui/presentation/gestao_imovel/mudar_situacao_cubit.dart';
+import 'package:imoveis_aqui/presentation/gestao_imovel/mudar_situacao_state.dart';
 import 'package:imoveis_aqui/presentation/login/login_cubit.dart';
 import 'package:imoveis_aqui/presentation/login/login_screen.dart';
 import 'package:imoveis_aqui/presentation/login/login_state.dart';
@@ -25,9 +27,17 @@ import '../support/api_falsa.dart';
 class _GestaoImovelCubitFalso extends MockCubit<GestaoImovelState>
     implements GestaoImovelCubit {}
 
+class _MudarSituacaoCubitFalso extends MockCubit<MudarSituacaoState>
+    implements MudarSituacaoCubit {}
+
 class _SessaoCubitFalso extends MockCubit<SessaoState> implements SessaoCubit {}
 
 class _LoginCubitFalso extends MockCubit<LoginState> implements LoginCubit {}
+
+/// O imóvel da fixture de um colega (`pode_mudar_situacao: false`).
+ImovelGestao _imovelDoColega() => ImovelGestaoModel.fromJson(
+  lerFixtureApi('imovel_gestao_sem_permissao.json')! as Map<String, Object?>,
+).paraEntidade();
 
 ImovelAcervo _previa({bool naVitrine = true}) => ImovelAcervo(
   id: 36,
@@ -46,13 +56,40 @@ ImovelGestao _imovelDaFixture() => ImovelGestaoModel.fromJson(
   lerFixtureApi('imovel_gestao_disponivel.json')! as Map<String, Object?>,
 ).paraEntidade();
 
+/// Deixa a folha inferior terminar de subir. Nunca `pumpAndSettle`: o
+/// indicador de progresso do histórico mantém a animação de pé.
+Future<void> _deixarAFolhaSubir(WidgetTester tester) async {
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 500));
+}
+
 void main() {
   late _GestaoImovelCubitFalso cubit;
+  late _MudarSituacaoCubitFalso mudar;
   late _SessaoCubitFalso sessao;
   late List<Imovel> abertosNaVitrine;
 
+  setUpAll(() {
+    registerFallbackValue(SituacaoImovel.disponivel);
+  });
+
   setUp(() {
     cubit = _GestaoImovelCubitFalso();
+    mudar = _MudarSituacaoCubitFalso();
+    whenListen(
+      mudar,
+      const Stream<MudarSituacaoState>.empty(),
+      initialState: const MudarSituacaoState(),
+    );
+    when(
+      () => mudar.iniciar(
+        imovelId: any(named: 'imovelId'),
+        atual: any(named: 'atual'),
+      ),
+    ).thenAnswer((_) {});
+    when(() => mudar.escolher(any())).thenAnswer((_) {});
+    when(() => mudar.confirmar()).thenAnswer((_) async {});
+    when(() => cubit.registrarMudanca()).thenAnswer((_) async {});
     sessao = _SessaoCubitFalso();
     when(() => sessao.encerrarPorExpiracao()).thenAnswer((_) async {});
     whenListen(
@@ -85,8 +122,11 @@ void main() {
       BlocProvider<SessaoCubit>.value(
         value: sessao,
         child: MaterialApp(
-          home: BlocProvider<GestaoImovelCubit>.value(
-            value: cubit,
+          home: MultiBlocProvider(
+            providers: [
+              BlocProvider<GestaoImovelCubit>.value(value: cubit),
+              BlocProvider<MudarSituacaoCubit>.value(value: mudar),
+            ],
             child: GestaoImovelScreen(
               previa: previa ?? _previa(),
               aoVerNaVitrine: (context, imovel) async =>
@@ -337,5 +377,193 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
 
     verify(() => cubit.recarregar()).called(1);
+  });
+
+  group('mudar situação (D-04, D-09, D-10, D-18)', () {
+    testWidgets('com pode_mudar_situacao verdadeiro aparece "Mudar situação"', (
+      tester,
+    ) async {
+      await montar(
+        tester,
+        GestaoImovelState(
+          imovel: ConteudoImovelGestao.carregado(_imovelDaFixture()),
+        ),
+      );
+
+      expect(find.text('Mudar situação'), findsOneWidget);
+    });
+
+    testWidgets('com pode_mudar_situacao falso o botão não existe e o '
+        'histórico continua visível (colega, AC-6)', (tester) async {
+      await montar(
+        tester,
+        GestaoImovelState(
+          imovel: ConteudoImovelGestao.carregado(_imovelDoColega()),
+        ),
+      );
+
+      expect(find.text('Mudar situação'), findsNothing);
+      expect(find.text('Situação'), findsOneWidget);
+      expect(find.text('Histórico'), findsOneWidget);
+    });
+
+    testWidgets('com mudou verdadeiro "Ver na vitrine" não aparece mesmo '
+        'com naVitrine (D-18)', (tester) async {
+      await montar(
+        tester,
+        GestaoImovelState(
+          imovel: ConteudoImovelGestao.carregado(_imovelDaFixture()),
+          mudou: true,
+        ),
+      );
+
+      expect(find.text('Ver na vitrine'), findsNothing);
+      expect(find.text('Mudar situação'), findsOneWidget);
+    });
+
+    testWidgets('tocar no botão inicia o Cubit da folha com o id e a situação '
+        'atual e abre a folha: chip da atual desabilitado, Confirmar '
+        'desabilitado', (tester) async {
+      whenListen(
+        mudar,
+        const Stream<MudarSituacaoState>.empty(),
+        initialState: const MudarSituacaoState(
+          imovelId: 36,
+          atual: SituacaoImovel.disponivel,
+        ),
+      );
+      await montar(
+        tester,
+        GestaoImovelState(
+          imovel: ConteudoImovelGestao.carregado(_imovelDaFixture()),
+        ),
+      );
+
+      await tester.tap(find.text('Mudar situação'));
+      await _deixarAFolhaSubir(tester);
+
+      verify(
+        () => mudar.iniciar(imovelId: 36, atual: SituacaoImovel.disponivel),
+      ).called(1);
+      expect(find.text('Confirmar'), findsOneWidget);
+      for (final situacao in SituacaoImovel.values) {
+        expect(
+          find.byKey(ValueKey('chip-mudar-${situacao.name}')),
+          findsOneWidget,
+        );
+      }
+      final chipDaAtual = tester.widget<ChoiceChip>(
+        find.byKey(const ValueKey('chip-mudar-disponivel')),
+      );
+      expect(chipDaAtual.onSelected, isNull);
+      final chipReservado = tester.widget<ChoiceChip>(
+        find.byKey(const ValueKey('chip-mudar-reservado')),
+      );
+      expect(chipReservado.onSelected, isNotNull);
+      final confirmar = tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, 'Confirmar'),
+      );
+      expect(confirmar.onPressed, isNull);
+    });
+
+    testWidgets('na folha, tocar em outro chip chama escolher(); com escolha '
+        'diferente da atual o Confirmar habilita e chama confirmar()', (
+      tester,
+    ) async {
+      whenListen(
+        mudar,
+        const Stream<MudarSituacaoState>.empty(),
+        initialState: const MudarSituacaoState(
+          imovelId: 36,
+          atual: SituacaoImovel.disponivel,
+          escolhida: SituacaoImovel.reservado,
+        ),
+      );
+      await montar(
+        tester,
+        GestaoImovelState(
+          imovel: ConteudoImovelGestao.carregado(_imovelDaFixture()),
+        ),
+      );
+      await tester.tap(find.text('Mudar situação'));
+      await _deixarAFolhaSubir(tester);
+
+      await tester.tap(find.byKey(const ValueKey('chip-mudar-vendido')));
+      await tester.pump();
+      verify(() => mudar.escolher(SituacaoImovel.vendido)).called(1);
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Confirmar'));
+      await tester.pump();
+      verify(() => mudar.confirmar()).called(1);
+    });
+
+    testWidgets('envio que falhou mostra "Não foi possível mudar a situação '
+        'agora. Tente de novo." na folha', (tester) async {
+      whenListen(
+        mudar,
+        const Stream<MudarSituacaoState>.empty(),
+        initialState: const MudarSituacaoState(
+          imovelId: 36,
+          atual: SituacaoImovel.disponivel,
+          escolhida: SituacaoImovel.reservado,
+          envio: EnvioSituacao.falhou(),
+        ),
+      );
+      await montar(
+        tester,
+        GestaoImovelState(
+          imovel: ConteudoImovelGestao.carregado(_imovelDaFixture()),
+        ),
+      );
+      await tester.tap(find.text('Mudar situação'));
+      await _deixarAFolhaSubir(tester);
+
+      expect(
+        find.text('Não foi possível mudar a situação agora. Tente de novo.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('transição do Cubit da folha para concluído mostra o '
+        'SnackBar "Situação alterada para reservado." e pede a releitura '
+        'por registrarMudanca()', (tester) async {
+      const base = MudarSituacaoState(
+        imovelId: 36,
+        atual: SituacaoImovel.disponivel,
+        escolhida: SituacaoImovel.reservado,
+      );
+      whenListen(
+        mudar,
+        Stream.value(
+          base.copyWith(
+            envio: const EnvioSituacao.concluido(SituacaoImovel.reservado),
+          ),
+        ),
+        initialState: base,
+      );
+      await montar(
+        tester,
+        GestaoImovelState(
+          imovel: ConteudoImovelGestao.carregado(_imovelDaFixture()),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text('Situação alterada para reservado.'), findsOneWidget);
+      verify(() => cubit.registrarMudanca()).called(1);
+    });
+
+    testWidgets('sem sucesso nenhum SnackBar de mudança aparece nem a '
+        'releitura é pedida', (tester) async {
+      await montar(
+        tester,
+        GestaoImovelState(
+          imovel: ConteudoImovelGestao.carregado(_imovelDaFixture()),
+        ),
+      );
+
+      expect(find.textContaining('Situação alterada'), findsNothing);
+      verifyNever(() => cubit.registrarMudanca());
+    });
   });
 }

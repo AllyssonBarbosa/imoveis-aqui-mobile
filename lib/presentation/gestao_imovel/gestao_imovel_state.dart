@@ -13,12 +13,18 @@ part 'gestao_imovel_state.freezed.dart';
 /// [falhasAoAtualizar] conta as atualizações ("puxar para atualizar") que
 /// falharam com conteúdo já na tela: a tela mostra um aviso a cada aumento e o
 /// conteúdo anterior fica como está (AC-2, D-10).
+///
+/// [mudou] fica verdadeiro depois de uma mudança de situação bem-sucedida e
+/// assim continua até a tela ser reaberta, mesmo que a releitura falhe: a
+/// vitrine pública pode já não mostrar o imóvel, então "Ver na vitrine" some
+/// (D-18, Pitfalls 2 e 3).
 @freezed
 abstract class GestaoImovelState with _$GestaoImovelState {
   const factory GestaoImovelState({
     @Default(ConteudoImovelGestao.carregando()) ConteudoImovelGestao imovel,
     @Default(ConteudoHistorico.carregando()) ConteudoHistorico historico,
     @Default(0) int falhasAoAtualizar,
+    @Default(false) bool mudou,
   }) = _GestaoImovelState;
 }
 

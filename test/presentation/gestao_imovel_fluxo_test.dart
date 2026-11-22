@@ -249,6 +249,174 @@ void main() {
     expect(find.textContaining('Not found'), findsNothing);
     expect(pilha.armazenamento.token, tokenDasFixtures);
   });
+
+  group('mudar a situação ponta a ponta (SIT-01, SIT-02, SIT-06, SIT-07)', () {
+    testWidgets('"Mudar situação" → chip "Reservado" → "Confirmar": POST com '
+        'situacao RESERVADO e token, folha fecha, SnackBar do site, releitura '
+        'de imóvel e histórico e a tela mostra a situação lida da API; '
+        '"Ver na vitrine" some (D-04, D-10, D-18)', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final pilha = await abrirGestao(tester);
+      expect(find.text('Ver na vitrine'), findsOneWidget);
+      expect(find.text('Disponível'), findsOneWidget);
+
+      await tester.tap(find.text('Mudar situação'));
+      await assentar(tester);
+      // A atual está desabilitada e o Confirmar só vale com outra escolha.
+      expect(
+        tester
+            .widget<ChoiceChip>(
+              find.byKey(const ValueKey('chip-mudar-disponivel')),
+            )
+            .onSelected,
+        isNull,
+      );
+      expect(
+        tester
+            .widget<FilledButton>(
+              find.widgetWithText(FilledButton, 'Confirmar'),
+            )
+            .onPressed,
+        isNull,
+      );
+
+      await tester.tap(find.byKey(const ValueKey('chip-mudar-reservado')));
+      await tester.pump();
+      expect(
+        tester
+            .widget<FilledButton>(
+              find.widgetWithText(FilledButton, 'Confirmar'),
+            )
+            .onPressed,
+        isNotNull,
+      );
+
+      // O servidor "já mudou": as próximas leituras devolvem a situação nova.
+      pilha.api.responder(
+        (uri) => uri.path == '/api/imoveis/$id/',
+        status: 200,
+        fixture: 'imovel_gestao_reservado.json',
+      );
+      pilha.api.responder(
+        (uri) => uri.path == '/api/imoveis/$id/historico/',
+        status: 200,
+        fixture: 'historico_um_item.json',
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Confirmar'));
+      await assentar(tester, quadros: 12);
+
+      final gravadas = pilha.api.requisicoesGravadas;
+      final posicaoDoPost = gravadas.indexWhere((p) => p.metodo == 'POST');
+      expect(posicaoDoPost, greaterThan(-1));
+      final post = gravadas[posicaoDoPost];
+      expect(post.uri.path, '/api/imoveis/$id/situacao/');
+      expect(post.cabecalho('authorization'), 'Token $tokenDasFixtures');
+      expect(
+        pilha.api.chamadas.where((c) => c.metodo == 'POST').single.corpo,
+        <String, Object?>{'situacao': 'RESERVADO'},
+      );
+      // Depois do POST: nova leitura do imóvel e do histórico.
+      final depois = gravadas.skip(posicaoDoPost + 1).toList();
+      expect(
+        depois.where(
+          (p) => p.metodo == 'GET' && p.uri.path == '/api/imoveis/$id/',
+        ),
+        hasLength(1),
+      );
+      expect(
+        depois.where(
+          (p) =>
+              p.metodo == 'GET' && p.uri.path == '/api/imoveis/$id/historico/',
+        ),
+        hasLength(1),
+      );
+
+      // A folha fechou, o aviso é o do site e a tela mostra o que a API leu.
+      expect(find.text('Confirmar'), findsNothing);
+      expect(find.text('Situação alterada para reservado.'), findsOneWidget);
+      expect(find.text('Reservado'), findsOneWidget);
+      expect(find.text('Disponível'), findsNothing);
+      expect(find.text('Disponível → Reservado'), findsOneWidget);
+      expect(find.text('Ver na vitrine'), findsNothing);
+      pilha.conferirCabecalhosDeAutorizacao();
+    });
+
+    testWidgets('toque duplo no Confirmar manda um POST só (T-09-07)', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final pilha = await abrirGestao(tester);
+
+      await tester.tap(find.text('Mudar situação'));
+      await assentar(tester);
+      await tester.tap(find.byKey(const ValueKey('chip-mudar-reservado')));
+      await tester.pump();
+      final confirmar = find.widgetWithText(FilledButton, 'Confirmar');
+      await tester.tap(confirmar);
+      await tester.tap(confirmar, warnIfMissed: false);
+      await assentar(tester, quadros: 12);
+
+      expect(pilha.api.chamadas.where((c) => c.metodo == 'POST'), hasLength(1));
+    });
+
+    testWidgets('a mudança que o servidor recusa (403) não fecha a folha, '
+        'mostra a falha genérica e não troca a situação da tela', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final pilha = await abrirGestao(tester);
+      pilha.api.responder(
+        (uri) => uri.path == '/api/imoveis/$id/situacao/',
+        status: 403,
+        fixture: 'erro_403_situacao.json',
+      );
+
+      await tester.tap(find.text('Mudar situação'));
+      await assentar(tester);
+      await tester.tap(find.byKey(const ValueKey('chip-mudar-reservado')));
+      await tester.pump();
+      await tester.tap(find.widgetWithText(FilledButton, 'Confirmar'));
+      await assentar(tester, quadros: 12);
+
+      expect(
+        find.text('Não foi possível mudar a situação agora. Tente de novo.'),
+        findsOneWidget,
+      );
+      expect(find.text('Situação alterada para reservado.'), findsNothing);
+      // Só a leitura inicial: nada foi relido depois da recusa.
+      expect(
+        pilha.api.requisicoesGravadas.where(
+          (p) => p.metodo == 'GET' && p.uri.path == '/api/imoveis/$id/',
+        ),
+        hasLength(1),
+      );
+    });
+
+    testWidgets('colega (pode_mudar_situacao falso): sem "Mudar situação" e '
+        'com o histórico à vista (SIT-06, AC-6)', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final pilha = await PilhaReal.preparar(token: tokenDasFixtures);
+      pilha.api.responder(
+        (uri) => uri.path == '/api/imoveis/' && uri.queryParameters.isEmpty,
+        status: 200,
+        corpo: _acervoSoDoColega(),
+      );
+      await pilha.entrarNoAcervo(tester);
+
+      await tester.tap(find.text('DEV-CAMPINAS-14'));
+      await assentar(tester);
+
+      expect(find.byType(GestaoImovelScreen), findsOneWidget);
+      expect(find.text('Situação'), findsOneWidget);
+      expect(find.text('Mudar situação'), findsNothing);
+      expect(find.text('Histórico'), findsOneWidget);
+      pilha.conferirCabecalhosDeAutorizacao();
+    });
+  });
 }
 
 /// `acervo_p1.json` com `na_vitrine` falso em todos os itens e sem próxima
@@ -260,4 +428,15 @@ Map<String, Object?> _acervoSemVitrine() {
       .map((item) => <String, Object?>{...item, 'na_vitrine': false})
       .toList();
   return <String, Object?>{...p1, 'next': null, 'results': itens};
+}
+
+/// `acervo_p2.json` só com o imóvel de um colega (`DEV-CAMPINAS-14`,
+/// `meu_imovel` falso) e sem próxima página.
+Map<String, Object?> _acervoSoDoColega() {
+  final p2 = lerFixtureApi('acervo_p2.json')! as Map<String, Object?>;
+  final itens = (p2['results']! as List<Object?>)
+      .cast<Map<String, Object?>>()
+      .where((item) => item['codigo'] == 'DEV-CAMPINAS-14')
+      .toList();
+  return <String, Object?>{...p2, 'next': null, 'count': 1, 'results': itens};
 }

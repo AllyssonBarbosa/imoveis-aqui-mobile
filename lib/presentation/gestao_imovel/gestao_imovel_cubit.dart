@@ -37,7 +37,9 @@ class GestaoImovelCubit extends Cubit<GestaoImovelState> {
     _id = id;
     final minhaVersao = ++_versao;
     if (isClosed) return;
-    emit(const GestaoImovelState());
+    // `mudou` sobrevive a uma nova carga: a mudança já aconteceu no servidor
+    // (D-18).
+    emit(GestaoImovelState(mudou: state.mudou));
 
     final leituraDoImovel = _obterImovel(id);
     final leituraDoHistorico = _obterHistorico(id);
@@ -105,6 +107,17 @@ class GestaoImovelCubit extends Cubit<GestaoImovelState> {
       return;
     }
     emit(state.copyWith(imovel: imovelLido, historico: historicoLido));
+  }
+
+  /// Chamado pela tela depois que o servidor aceitou uma mudança de situação:
+  /// marca [GestaoImovelState.mudou] SEM tocar no imóvel nem no histórico (a
+  /// situação antiga continua na tela) e relê os dois por [recarregar] — só a
+  /// releitura da API troca o que a tela mostra (D-10, T-09-03). `mudou` fica
+  /// verdadeiro mesmo se a releitura falhar (Pitfall 3).
+  Future<void> registrarMudanca() async {
+    if (isClosed) return;
+    emit(state.copyWith(mudou: true));
+    await recarregar();
   }
 
   /// Repete a leitura do imóvel (e do histórico) com o id guardado; sem
