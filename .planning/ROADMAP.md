@@ -483,7 +483,7 @@ Plans:
   5. A vitrine reflete a mudança na consulta seguinte (o servidor decide a publicação; verificado no UAT).
   6. Só quem o servidor autoriza consegue mudar: pelo app, só o corretor responsável (botão só com `pode_mudar_situacao`; quem forçar recebe 403); o gestor da empresa continua mudando pela web e a área dele no app é da APP-12 (D-07 da fase).
 
-**Plans:** 10/13 plans executed
+**Plans:** 11/13 plans executed
 
 Plans:
 **Wave 1**
@@ -522,7 +522,7 @@ Plans:
 
 **Wave 9** *(blocked on Wave 8 completion)*
 
-- [ ] 09-11-PLAN.md — Folha completa: observação opcional com a dica do site e limite de 500 (D-17), "Data: hoje", envio protegido (carregamento, toque duplo, folha que não fecha no meio, sem alça) (SIT-01, SIT-02, SIT-04)
+- [x] 09-11-PLAN.md — Folha completa: observação opcional com a dica do site e limite de 500 (D-17), "Data: hoje", envio protegido (carregamento, toque duplo, folha que não fecha no meio, sem alça) (SIT-01, SIT-02, SIT-04)
 
 **Wave 10** *(blocked on Wave 9 completion)*
 

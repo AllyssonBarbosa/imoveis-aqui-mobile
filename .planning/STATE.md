@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 09
 current_phase_name: Mudança de Situação do Imóvel pelo App (APP 09)
 status: executing
-stopped_at: Completed 09-10-PLAN.md
-last_updated: "2026-11-22T19:08:45.893Z"
+stopped_at: Completed 09-11-PLAN.md
+last_updated: "2026-11-22T19:15:26.269Z"
 last_activity: 2026-11-22
 last_activity_desc: Phase 09 execution started
-state_head: ceea18922a6bdbc65aa7377f17b37581e4e6a229
+state_head: df6e6dcee4aa3b1ef22c26f224229ae26841d330
 progress:
   total_phases: 10
   completed_phases: 0
   total_plans: 97
-  completed_plans: 94
+  completed_plans: 95
   percent: 0
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-11-21)
 ## Current Position
 
 Phase: 09 (Mudança de Situação do Imóvel pelo App (APP 09)) — EXECUTING
-Plan: 11 of 13
+Plan: 12 of 13
 Status: Ready to execute
 Last activity: 2026-11-22 — Phase 09 execution started
 
@@ -137,6 +137,7 @@ Progress: [████████████████████] 72/72 p
 | Phase 09 P08 | 40 min | 2 tasks | 10 files |
 | Phase 09 P09 | 3 min | 2 tasks | 11 files |
 | Phase 09 P10 | 25min | 2 tasks | 14 files |
+| Phase 09 P11 | 5 min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -225,6 +226,8 @@ Recent decisions affecting current work:
 - [Phase 09]: 09-09: ramo 400/403 no _executar compartilhado; recusa sem texto vira FalhaDeConexaoException; corte em 300 + reticências — Mensagem do servidor só para exibir (D-10); corpo sem texto não vira recusa vazia
 - [Phase 09]: 09-10: SnackBar usa a situação escolhida aceita com 200; a tela só muda pela releitura (registrarMudanca = mudou + recarregar)
 - [Phase 09]: 09-10: GestaoImovelCubit.carregar preserva mudou para que Ver na vitrine não volte após Tentar de novo (D-18)
+- [Phase 09]: 09-11: limite de 500 caracteres na observação só na interface (D-17); servidor não limita — Decisão do usuário, exceção à D-06, proteção T-09-09
+- [Phase 09]: 09-11: alça de arrasto da folha de mudança desligada (showDragHandle e enableDrag falsos) — A alça fecharia por Navigator.pop fora do PopScope, que segura o envio (T-09-07)
 
 ### Pending Todos
 
@@ -262,6 +265,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-22T19:08:45.810Z
-Stopped at: Completed 09-10-PLAN.md
+Last session: 2026-11-22T19:15:26.174Z
+Stopped at: Completed 09-11-PLAN.md
 Resume file: None
