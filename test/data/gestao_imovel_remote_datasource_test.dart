@@ -155,6 +155,54 @@ void main() {
 
       expect(modelos.single.situacaoNova, 'RESERVADO');
     });
+
+    test('corpo que não é lista (objeto) lança FormatException', () async {
+      api.responder(
+        (uri) => uri.path == '/api/imoveis/36/historico/',
+        status: 200,
+        corpo: <String, Object?>{},
+      );
+      final datasource = criarDataSource(
+        ArmazenamentoTokenEmMemoria('token-de-teste'),
+      );
+
+      await expectLater(
+        datasource.obterHistorico(36),
+        throwsA(isA<FormatException>()),
+      );
+    });
+
+    test('item que não é objeto lança FormatException', () async {
+      api.responder(
+        (uri) => uri.path == '/api/imoveis/36/historico/',
+        status: 200,
+        corpo: <Object?>['texto solto'],
+      );
+      final datasource = criarDataSource(
+        ArmazenamentoTokenEmMemoria('token-de-teste'),
+      );
+
+      await expectLater(
+        datasource.obterHistorico(36),
+        throwsA(isA<FormatException>()),
+      );
+    });
+
+    test('sem token: DioException cujo error é SessaoExpiradaException',
+        () async {
+      final datasource = criarDataSource(ArmazenamentoTokenEmMemoria());
+
+      await expectLater(
+        datasource.obterHistorico(36),
+        throwsA(
+          isA<DioException>().having(
+            (e) => e.error,
+            'error',
+            isA<SessaoExpiradaException>(),
+          ),
+        ),
+      );
+    });
   });
 
   group('GestaoImovelRemoteDataSource', () {

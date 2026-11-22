@@ -24,10 +24,13 @@ class GestaoImovelRepositoryImpl implements GestaoImovelRepository {
 
   @override
   Future<Result<List<MudancaSituacao>>> obterHistorico(int id) => _executar(
-    () async => [
+    // Imutável: o Cubit não consegue reordenar nem editar o que veio do
+    // servidor (D-11). A tradução de cada item roda dentro da ação, então uma
+    // data inválida vira falha tipada.
+    () async => List.unmodifiable([
       for (final item in await _dataSource.obterHistorico(id))
         item.paraEntidade(),
-    ],
+    ]),
   );
 
   /// Cadeia única de tradução de erros. A ordem importa: a sessão expirada
