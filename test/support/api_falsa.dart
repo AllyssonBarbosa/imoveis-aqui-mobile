@@ -117,8 +117,11 @@ class _Falha {
 /// `acervo_situacao_vazia.json` com `situacao=VENDIDO`). O imóvel de gestão
 /// (`GET /api/imoveis/<id>/`) também exige o token (senão 401) e serve o
 /// primeiro `imovel_gestao_*.json` (ordem alfabética) cujo `id` bate, senão 404
-/// com `erro_404_imovel.json`. O contato (`POST /api/publico/imoveis/<id>/contato/`)
-/// responde 201 com `contato_201_<canal>.json` quando o `canal` do corpo está em
+/// com `erro_404_imovel.json`. O histórico de situações
+/// (`GET /api/imoveis/<id>/historico/`) também exige o token (senão 401) e serve
+/// `historico_vazio.json` (os testes trocam por `responder`). O contato
+/// (`POST /api/publico/imoveis/<id>/contato/`) responde 201 com
+/// `contato_201_<canal>.json` quando o `canal` do corpo está em
 /// `canais_contato` do detalhe do id, 400 com `erro_400_canal_contato.json`
 /// quando não está, 404 para id fora das fixtures e 405 para outro método.
 /// Rota ainda não servida responde 404 com um objeto JSON vazio.
@@ -280,6 +283,12 @@ class ApiFalsa {
       }
       return _corpoJson(lerFixtureApi(fixture), 200);
     }
+    final idDoHistorico = _idDoHistoricoDeImovel(uri.path);
+    if (idDoHistorico != null && opcoes.method == 'GET') {
+      return _temToken(opcoes)
+          ? _corpoJson(lerFixtureApi('historico_vazio.json'), 200)
+          : _corpoJson(lerFixtureApi('erro_401.json'), 401);
+    }
     final idDaGestao = _idDoImovelDeGestao(uri.path);
     if (idDaGestao != null && opcoes.method == 'GET') {
       if (!_temToken(opcoes)) {
@@ -385,6 +394,15 @@ class ApiFalsa {
   /// se [caminho] não é essa rota.
   int? _idDoImovelDeGestao(String caminho) {
     final casamento = RegExp(r'^/api/imoveis/(\d+)/$').firstMatch(caminho);
+    if (casamento == null) return null;
+    return int.parse(casamento.group(1)!);
+  }
+
+  /// Id do imóvel de `/api/imoveis/<id>/historico/` (rota autenticada do
+  /// histórico de situações), ou nulo se [caminho] não é essa rota.
+  int? _idDoHistoricoDeImovel(String caminho) {
+    final casamento = RegExp(r'^/api/imoveis/(\d+)/historico/$')
+        .firstMatch(caminho);
     if (casamento == null) return null;
     return int.parse(casamento.group(1)!);
   }

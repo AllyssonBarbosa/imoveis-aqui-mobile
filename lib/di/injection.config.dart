@@ -129,6 +129,8 @@ import 'package:imoveis_aqui/domain/usecases/obter_cidades_atendidas_usecase.dar
     as _i54;
 import 'package:imoveis_aqui/domain/usecases/obter_detalhe_imovel_usecase.dart'
     as _i990;
+import 'package:imoveis_aqui/domain/usecases/obter_historico_situacao_usecase.dart'
+    as _i989;
 import 'package:imoveis_aqui/domain/usecases/obter_imovel_gestao_usecase.dart'
     as _i121;
 import 'package:imoveis_aqui/domain/usecases/obter_papel_usecase.dart' as _i396;
@@ -361,6 +363,11 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i214.AutenticacaoRepositoryImpl(
         gh<_i887.AutenticacaoDataSource>(),
         gh<_i288.ArmazenamentoToken>(),
+      ),
+    );
+    gh.factory<_i989.ObterHistoricoSituacaoUseCase>(
+      () => _i989.ObterHistoricoSituacaoUseCase(
+        gh<_i796.GestaoImovelRepository>(),
       ),
     );
     gh.factory<_i121.ObterImovelGestaoUseCase>(

@@ -3,6 +3,7 @@ import 'package:injectable/injectable.dart';
 
 import '../../core/result.dart';
 import '../../domain/entities/imovel_gestao.dart';
+import '../../domain/entities/mudanca_situacao.dart';
 import '../../domain/repositories/falhas_autenticacao.dart';
 import '../../domain/repositories/gestao_imovel_repository.dart';
 import '../../domain/repositories/imovel_detalhe_repository.dart';
@@ -20,6 +21,14 @@ class GestaoImovelRepositoryImpl implements GestaoImovelRepository {
   @override
   Future<Result<ImovelGestao>> obterImovel(int id) =>
       _executar(() async => (await _dataSource.obterImovel(id)).paraEntidade());
+
+  @override
+  Future<Result<List<MudancaSituacao>>> obterHistorico(int id) => _executar(
+    () async => [
+      for (final item in await _dataSource.obterHistorico(id))
+        item.paraEntidade(),
+    ],
+  );
 
   /// Cadeia única de tradução de erros. A ordem importa: a sessão expirada
   /// (direta ou dentro do `DioException.error`, posta pelo interceptor) vem
