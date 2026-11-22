@@ -483,14 +483,14 @@ Plans:
   5. A vitrine reflete a mudança na consulta seguinte (o servidor decide a publicação; verificado no UAT).
   6. Só quem o servidor autoriza consegue mudar: pelo app, só o corretor responsável (botão só com `pode_mudar_situacao`; quem forçar recebe 403); o gestor da empresa continua mudando pela web e a área dele no app é da APP-12 (D-07 da fase).
 
-**Plans:** 2/13 plans executed
+**Plans:** 3/13 plans executed
 
 Plans:
 **Wave 1**
 
 - [x] 09-01-PLAN.md — TRACER do wire: grupo `situacao` em `tool/capturar_fixtures_api.py` capturando login → detalhe → POST 200 → detalhe/histórico relidos, as recusas 400/403 e o 404 de outra empresa no detalhe e no histórico contra o código da `origin/main` (via `git archive`, sem depender do clone), gate de credenciais, §16 do contrato e `contrato_gestao_situacao_test.dart` (API-11)
 - [x] 09-02-PLAN.md — Web (D-19): worktree `../imoveis-aqui-APP09` na `feat/APP09` da `origin/main` e testes de caracterização L1–L7 das rotas do corretor (inclui 404 do histórico de outra empresa), commit local sem push (API-12, SIT-06)
-- [ ] 09-03-PLAN.md — Mapa único código do Django → enum (`finalidadeDoCodigo`/`situacaoDoCodigo` em `codigos_imovel_api.dart`), usado pelo acervo e pelos Models novos da fase, sem mudança no Meu acervo (SIT-07, SIT-03)
+- [x] 09-03-PLAN.md — Mapa único código do Django → enum (`finalidadeDoCodigo`/`situacaoDoCodigo` em `codigos_imovel_api.dart`), usado pelo acervo e pelos Models novos da fase, sem mudança no Meu acervo (SIT-07, SIT-03)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
