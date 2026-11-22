@@ -384,11 +384,14 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i89.BuscarAcervoUseCase>(
       () => _i89.BuscarAcervoUseCase(gh<_i268.AcervoRepository>()),
     );
-    gh.factory<_i755.GestaoImovelCubit>(
-      () => _i755.GestaoImovelCubit(gh<_i121.ObterImovelGestaoUseCase>()),
-    );
     gh.factory<_i587.AcervoCubit>(
       () => _i587.AcervoCubit(gh<_i89.BuscarAcervoUseCase>()),
+    );
+    gh.factory<_i755.GestaoImovelCubit>(
+      () => _i755.GestaoImovelCubit(
+        gh<_i121.ObterImovelGestaoUseCase>(),
+        gh<_i989.ObterHistoricoSituacaoUseCase>(),
+      ),
     );
     gh.factory<_i551.DescartarSessaoUseCase>(
       () => _i551.DescartarSessaoUseCase(gh<_i550.AutenticacaoRepository>()),

@@ -1,16 +1,19 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../domain/entities/imovel_gestao.dart';
+import '../../domain/entities/mudanca_situacao.dart';
 
 part 'gestao_imovel_state.freezed.dart';
 
-/// Estado de tela da gestão do imóvel (SIT-07): hoje só o desfecho da leitura
-/// do imóvel em [imovel]; as seções de histórico e de mudança de situação
-/// entram nos planos seguintes da fase.
+/// Estado de tela da gestão do imóvel (SIT-07, SIT-03): o desfecho da leitura
+/// do imóvel em [imovel] e o do histórico de situações em [historico] — as duas
+/// leituras são independentes (a falha de uma não derruba a outra). A seção de
+/// mudança de situação entra nos planos seguintes da fase.
 @freezed
 abstract class GestaoImovelState with _$GestaoImovelState {
   const factory GestaoImovelState({
     @Default(ConteudoImovelGestao.carregando()) ConteudoImovelGestao imovel,
+    @Default(ConteudoHistorico.carregando()) ConteudoHistorico historico,
   }) = _GestaoImovelState;
 }
 
@@ -27,4 +30,21 @@ sealed class ConteudoImovelGestao with _$ConteudoImovelGestao {
 
   /// Falha na leitura — "Tentar de novo" chama `tentarNovamente()`.
   const factory ConteudoImovelGestao.erro() = ImovelGestaoErro;
+}
+
+/// União selada dos desfechos da leitura do histórico — a seção decide o que
+/// mostrar por `switch` exaustivo, sem ramo abrangente.
+@freezed
+sealed class ConteudoHistorico with _$ConteudoHistorico {
+  /// Leitura em voo.
+  const factory ConteudoHistorico.carregando() = HistoricoCarregando;
+
+  /// Sucesso — as mudanças na ordem que o servidor mandou (D-11); lista vazia
+  /// quando o imóvel nunca mudou de situação.
+  const factory ConteudoHistorico.carregado(List<MudancaSituacao> itens) =
+      HistoricoCarregado;
+
+  /// Falha só do histórico — "Tentar de novo" chama
+  /// `tentarNovamenteHistorico()`.
+  const factory ConteudoHistorico.erro() = HistoricoErro;
 }

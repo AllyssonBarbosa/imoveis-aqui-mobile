@@ -4,6 +4,10 @@
 
 import 'package:intl/intl.dart';
 
+import '../../domain/entities/mudanca_situacao.dart';
+import '../../domain/entities/situacao_imovel.dart';
+import '../acervo/apresentacao_acervo.dart';
+
 /// Falha ao ler o imóvel na primeira carga; nunca mostra o corpo do erro do
 /// servidor (T-09-05).
 const String textoErroGestao = 'Não foi possível carregar o imóvel.';
@@ -26,3 +30,31 @@ String formatarDataHora(DateTime momento) =>
 /// "desde dd/MM/yyyy HH:mm" — quando o imóvel entrou na situação atual, sempre
 /// a data que o servidor mandou (D-05).
 String textoDesde(DateTime momento) => 'desde ${formatarDataHora(momento)}';
+
+/// Título da seção do histórico de situações.
+const String tituloHistorico = 'Histórico';
+
+/// Imóvel que nunca mudou de situação — o texto do site (D-11).
+const String textoHistoricoVazio =
+    'Nenhuma mudança ainda — disponível desde o cadastro.';
+
+/// Falha só do histórico; nunca mostra o corpo do erro do servidor (T-09-05).
+const String textoErroHistorico = 'Não foi possível carregar o histórico.';
+
+/// Rótulo de uma situação, ou "—" quando o servidor mandou uma que o app não
+/// conhece (T-09-10).
+String rotuloSituacaoOuTraco(SituacaoImovel? situacao) =>
+    situacao == null ? '—' : rotuloSituacao(situacao);
+
+/// "Disponível → Reservado": de qual situação para qual.
+String textoDeParaHistorico(MudancaSituacao mudanca) =>
+    '${rotuloSituacaoOuTraco(mudanca.situacaoAnterior)} → '
+    '${rotuloSituacaoOuTraco(mudanca.situacaoNova)}';
+
+/// "dd/MM/yyyy HH:mm · Nome de quem mudou"; sem nome, só a data e hora.
+String textoQuandoEQuem(MudancaSituacao mudanca) {
+  final quando = formatarDataHora(mudanca.alteradoEm);
+  final nome = mudanca.alteradoPor;
+  if (nome == null || nome.isEmpty) return quando;
+  return '$quando · $nome';
+}

@@ -8,6 +8,7 @@ import 'apresentacao_gestao.dart';
 import 'gestao_imovel_cubit.dart';
 import 'gestao_imovel_state.dart';
 import 'widgets/cabecalho_gestao.dart';
+import 'widgets/historico_situacao.dart';
 import 'widgets/secao_situacao.dart';
 
 /// Assinatura de quem abre a gestão de um imóvel a partir do acervo —
@@ -46,7 +47,7 @@ Future<void> abrirGestaoImovel(
 /// Tela de gestão do imóvel (SIT-07): a `AppBar` leva o código do imóvel e o
 /// corpo é uma lista com o cabeçalho (foto, código, título, preço — D-03) e,
 /// por `switch` exaustivo sobre [ConteudoImovelGestao], o indicador, o erro ou
-/// a situação. Nenhuma regra, rede ou `try/catch` aqui: só apresenta o que o
+/// a situação e o histórico. Nenhuma regra, rede ou `try/catch` aqui: só apresenta o que o
 /// [GestaoImovelCubit] entrega.
 class GestaoImovelScreen extends StatelessWidget {
   const GestaoImovelScreen({
@@ -112,6 +113,13 @@ class GestaoImovelScreen extends StatelessWidget {
                       ),
                     ),
                   ],
+                  const SizedBox(height: 24),
+                  HistoricoSituacao(
+                    conteudo: state.historico,
+                    aoTentarDeNovo: () => context
+                        .read<GestaoImovelCubit>()
+                        .tentarNovamenteHistorico(),
+                  ),
                 ],
               },
             ],

@@ -44,7 +44,9 @@ void main() {
     );
     expect(find.text(titulo), findsOneWidget);
     expect(find.text('Disponível'), findsOneWidget);
-    expect(find.textContaining('desde '), findsOneWidget);
+    // "desde 22/11/2026 ..." (a situação); o vazio do histórico também diz
+    // "desde o cadastro", por isso o padrão exige dígito logo após.
+    expect(find.textContaining(RegExp(r'^desde \d')), findsOneWidget);
 
     final leituras = pilha.api.requisicoesGravadas.where(
       (p) => p.uri.path == '/api/imoveis/$id/',
@@ -107,6 +109,86 @@ void main() {
       pilha.conferirCabecalhosDeAutorizacao();
     },
   );
+
+  testWidgets('a gestão mostra o histórico: vazio na pilha padrão e, com a '
+      'mudança servida pelo wire, "Disponível → Reservado" com a observação '
+      '(SIT-03)', (tester) async {
+    // Tela de celular: com a foto 16:9 na largura padrão do teste o histórico
+    // ficaria abaixo da área visível.
+    await tester.binding.setSurfaceSize(const Size(400, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final pilha = await abrirGestao(tester);
+
+    expect(find.text('Histórico'), findsOneWidget);
+    expect(
+      find.text('Nenhuma mudança ainda — disponível desde o cadastro.'),
+      findsOneWidget,
+    );
+    final leituras = pilha.api.requisicoesGravadas.where(
+      (p) => p.uri.path == '/api/imoveis/$id/historico/',
+    );
+    expect(leituras, hasLength(1));
+    pilha.conferirCabecalhosDeAutorizacao();
+  });
+
+  testWidgets('histórico com uma mudança do servidor aparece com de → para, '
+      'quando, quem e a observação da captura', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(400, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final pilha = await PilhaReal.preparar(token: tokenDasFixtures);
+    pilha.api.responder(
+      (uri) => uri.path == '/api/imoveis/$id/historico/',
+      status: 200,
+      fixture: 'historico_um_item.json',
+    );
+    await pilha.entrarNoAcervo(tester);
+    await tester.tap(find.text(codigo));
+    await assentar(tester);
+
+    expect(find.text('Disponível → Reservado'), findsOneWidget);
+    expect(find.text('Reservado na conversa com o cliente.'), findsOneWidget);
+    expect(find.textContaining(' · Corretor Vitrine Demo'), findsOneWidget);
+    expect(
+      find.text('Nenhuma mudança ainda — disponível desde o cadastro.'),
+      findsNothing,
+    );
+    pilha.conferirCabecalhosDeAutorizacao();
+  });
+
+  testWidgets('falha só do histórico mantém o imóvel na tela e "Tentar de '
+      'novo" repete só o histórico', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(400, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final pilha = await PilhaReal.preparar(token: tokenDasFixtures);
+    await pilha.entrarNoAcervo(tester);
+    pilha.api.falharProximas('/api/imoveis/$id/historico/', status: 500);
+
+    await tester.tap(find.text(codigo));
+    await assentar(tester);
+
+    expect(find.text(titulo), findsOneWidget);
+    expect(find.text('Disponível'), findsOneWidget);
+    expect(find.text('Não foi possível carregar o histórico.'), findsOneWidget);
+    expect(find.text('Não foi possível carregar o imóvel.'), findsNothing);
+
+    await tester.tap(find.text('Tentar de novo'));
+    await assentar(tester);
+
+    expect(find.text('Não foi possível carregar o histórico.'), findsNothing);
+    expect(
+      find.text('Nenhuma mudança ainda — disponível desde o cadastro.'),
+      findsOneWidget,
+    );
+    final lidosDoImovel = pilha.api.requisicoesGravadas.where(
+      (p) => p.uri.path == '/api/imoveis/$id/',
+    );
+    final lidosDoHistorico = pilha.api.requisicoesGravadas.where(
+      (p) => p.uri.path == '/api/imoveis/$id/historico/',
+    );
+    expect(lidosDoImovel, hasLength(1));
+    expect(lidosDoHistorico, hasLength(2));
+    pilha.conferirCabecalhosDeAutorizacao();
+  });
 }
 
 /// `acervo_p1.json` com `na_vitrine` falso em todos os itens e sem próxima

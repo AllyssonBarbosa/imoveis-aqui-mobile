@@ -44,6 +44,7 @@ void main() {
     cubit = _GestaoImovelCubitFalso();
     abertosNaVitrine = [];
     when(() => cubit.tentarNovamente()).thenAnswer((_) async {});
+    when(() => cubit.tentarNovamenteHistorico()).thenAnswer((_) async {});
   });
 
   Future<void> montar(
@@ -159,5 +160,29 @@ void main() {
     await tester.pump();
 
     verify(() => cubit.tentarNovamente()).called(1);
+  });
+
+  testWidgets('imóvel carregado mostra o histórico; a falha só dele mantém o '
+      'imóvel e "Tentar de novo" repete só o histórico', (tester) async {
+    final imovel = _imovelDaFixture();
+    await montar(
+      tester,
+      GestaoImovelState(
+        imovel: ConteudoImovelGestao.carregado(imovel),
+        historico: const ConteudoHistorico.erro(),
+      ),
+    );
+
+    expect(find.text(imovel.titulo), findsOneWidget);
+    expect(find.text('Histórico'), findsOneWidget);
+    expect(find.text('Não foi possível carregar o histórico.'), findsOneWidget);
+    expect(find.text('Não foi possível carregar o imóvel.'), findsNothing);
+
+    await tester.ensureVisible(find.text('Tentar de novo'));
+    await tester.tap(find.text('Tentar de novo'));
+    await tester.pump();
+
+    verify(() => cubit.tentarNovamenteHistorico()).called(1);
+    verifyNever(() => cubit.tentarNovamente());
   });
 }

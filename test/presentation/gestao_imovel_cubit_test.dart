@@ -5,8 +5,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/core/result.dart';
 import 'package:imoveis_aqui/domain/entities/imovel.dart';
 import 'package:imoveis_aqui/domain/entities/imovel_gestao.dart';
+import 'package:imoveis_aqui/domain/entities/mudanca_situacao.dart';
 import 'package:imoveis_aqui/domain/entities/situacao_imovel.dart';
 import 'package:imoveis_aqui/domain/repositories/falhas_autenticacao.dart';
+import 'package:imoveis_aqui/domain/usecases/obter_historico_situacao_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/obter_imovel_gestao_usecase.dart';
 import 'package:imoveis_aqui/presentation/gestao_imovel/gestao_imovel_cubit.dart';
 import 'package:imoveis_aqui/presentation/gestao_imovel/gestao_imovel_state.dart';
@@ -14,6 +16,18 @@ import 'package:mocktail/mocktail.dart';
 
 class _ObterImovelGestaoUseCaseFalso extends Mock
     implements ObterImovelGestaoUseCase {}
+
+class _ObterHistoricoSituacaoUseCaseFalso extends Mock
+    implements ObterHistoricoSituacaoUseCase {}
+
+MudancaSituacao _mudanca(int id) => MudancaSituacao(
+  id: id,
+  situacaoAnterior: SituacaoImovel.disponivel,
+  situacaoNova: SituacaoImovel.reservado,
+  alteradoPor: 'Corretor Demo',
+  alteradoEm: DateTime.utc(2026, 11, 22, 15, 25),
+  observacao: 'Reservado na conversa.',
+);
 
 ImovelGestao _imovel(int id) => ImovelGestao(
   id: id,
@@ -28,12 +42,26 @@ ImovelGestao _imovel(int id) => ImovelGestao(
 
 void main() {
   late _ObterImovelGestaoUseCaseFalso obter;
+  late _ObterHistoricoSituacaoUseCaseFalso obterHistorico;
 
   setUp(() {
     obter = _ObterImovelGestaoUseCaseFalso();
+    obterHistorico = _ObterHistoricoSituacaoUseCaseFalso();
+    // Por padrão o servidor responde histórico vazio; os casos do histórico
+    // trocam esta resposta.
+    when(() => obterHistorico(any()))
+        .thenAnswer((_) async => Result.success(const <MudancaSituacao>[]));
   });
 
-  GestaoImovelCubit construir() => GestaoImovelCubit(obter);
+  GestaoImovelCubit construir() => GestaoImovelCubit(obter, obterHistorico);
+
+  GestaoImovelState carregado(
+    int id, {
+    ConteudoHistorico historico = const ConteudoHistorico.carregado([]),
+  }) => GestaoImovelState(
+    imovel: ConteudoImovelGestao.carregado(_imovel(id)),
+    historico: historico,
+  );
 
   test('estado inicial é o imóvel carregando', () {
     expect(construir().state, const GestaoImovelState());
@@ -49,10 +77,7 @@ void main() {
         return construir();
       },
       act: (cubit) => cubit.carregar(36),
-      expect: () => [
-        const GestaoImovelState(),
-        GestaoImovelState(imovel: ConteudoImovelGestao.carregado(_imovel(36))),
-      ],
+      expect: () => [const GestaoImovelState(), carregado(36)],
       verify: (_) => verify(() => obter(36)).called(1),
     );
 
@@ -67,9 +92,139 @@ void main() {
       act: (cubit) => cubit.carregar(36),
       expect: () => [
         const GestaoImovelState(),
-        const GestaoImovelState(imovel: ConteudoImovelGestao.erro()),
+        const GestaoImovelState(
+          imovel: ConteudoImovelGestao.erro(),
+          historico: ConteudoHistorico.carregado([]),
+        ),
       ],
     );
+
+    blocTest<GestaoImovelCubit, GestaoImovelState>(
+      'imóvel e histórico carregados juntos num único estado (D-11)',
+      build: () {
+        when(() => obter(36))
+            .thenAnswer((_) async => Result.success(_imovel(36)));
+        when(
+          () => obterHistorico(36),
+        ).thenAnswer((_) async => Result.success([_mudanca(2), _mudanca(1)]));
+        return construir();
+      },
+      act: (cubit) => cubit.carregar(36),
+      expect: () => [
+        const GestaoImovelState(),
+        carregado(
+          36,
+          historico: ConteudoHistorico.carregado([_mudanca(2), _mudanca(1)]),
+        ),
+      ],
+      verify: (_) {
+        verify(() => obter(36)).called(1);
+        verify(() => obterHistorico(36)).called(1);
+      },
+    );
+
+    test(
+      'as duas leituras partem juntas, antes de qualquer resposta',
+      () async {
+        final imovel = Completer<Result<ImovelGestao>>();
+        final historico = Completer<Result<List<MudancaSituacao>>>();
+        when(() => obter(36)).thenAnswer((_) => imovel.future);
+        when(() => obterHistorico(36)).thenAnswer((_) => historico.future);
+        final cubit = construir();
+
+        final leitura = cubit.carregar(36);
+        await Future<void>.delayed(Duration.zero);
+
+        verify(() => obter(36)).called(1);
+        verify(() => obterHistorico(36)).called(1);
+        imovel.complete(Result.success(_imovel(36)));
+        historico.complete(Result.success(const <MudancaSituacao>[]));
+        await leitura;
+        await cubit.close();
+      },
+    );
+
+    blocTest<GestaoImovelCubit, GestaoImovelState>(
+      'falha só do histórico mantém o imóvel carregado e o histórico vira erro',
+      build: () {
+        when(() => obter(36))
+            .thenAnswer((_) async => Result.success(_imovel(36)));
+        when(() => obterHistorico(36)).thenAnswer(
+          (_) async => Result.failure(const FalhaDeConexaoException()),
+        );
+        return construir();
+      },
+      act: (cubit) => cubit.carregar(36),
+      expect: () => [
+        const GestaoImovelState(),
+        carregado(36, historico: const ConteudoHistorico.erro()),
+      ],
+    );
+  });
+
+  group('tentarNovamenteHistorico', () {
+    blocTest<GestaoImovelCubit, GestaoImovelState>(
+      'repete só o histórico e recupera a seção, sem reler o imóvel',
+      build: () {
+        when(() => obter(36))
+            .thenAnswer((_) async => Result.success(_imovel(36)));
+        var chamadas = 0;
+        when(() => obterHistorico(36)).thenAnswer((_) async {
+          chamadas++;
+          return chamadas == 1
+              ? Result<List<MudancaSituacao>>.failure(
+                  const FalhaDeConexaoException(),
+                )
+              : Result.success([_mudanca(1)]);
+        });
+        return construir();
+      },
+      act: (cubit) async {
+        await cubit.carregar(36);
+        await cubit.tentarNovamenteHistorico();
+      },
+      expect: () => [
+        const GestaoImovelState(),
+        carregado(36, historico: const ConteudoHistorico.erro()),
+        carregado(36, historico: const ConteudoHistorico.carregando()),
+        carregado(36, historico: ConteudoHistorico.carregado([_mudanca(1)])),
+      ],
+      verify: (_) {
+        verify(() => obter(36)).called(1);
+        verify(() => obterHistorico(36)).called(2);
+      },
+    );
+
+    blocTest<GestaoImovelCubit, GestaoImovelState>(
+      'sem leitura anterior não faz nada',
+      build: construir,
+      act: (cubit) => cubit.tentarNovamenteHistorico(),
+      expect: () => <GestaoImovelState>[],
+      verify: (_) => verifyNever(() => obterHistorico(any())),
+    );
+
+    test('resposta do histórico de uma carga antiga é descartada', () async {
+      final antiga = Completer<Result<List<MudancaSituacao>>>();
+      when(() => obter(any())).thenAnswer(
+        (invocacao) async =>
+            Result.success(_imovel(invocacao.positionalArguments.first as int)),
+      );
+      when(() => obterHistorico(36)).thenAnswer((_) => antiga.future);
+      when(() => obterHistorico(37))
+          .thenAnswer((_) async => Result.success([_mudanca(7)]));
+      final cubit = construir();
+
+      final primeira = cubit.carregar(36);
+      await cubit.carregar(37);
+      antiga.complete(Result.success([_mudanca(1)]));
+      await primeira;
+
+      expect(
+        cubit.state,
+        carregado(37, historico: ConteudoHistorico.carregado([_mudanca(7)])),
+      );
+      await cubit.close();
+    });
   });
 
   group('tentarNovamente', () {
@@ -91,9 +246,12 @@ void main() {
       },
       expect: () => [
         const GestaoImovelState(),
-        const GestaoImovelState(imovel: ConteudoImovelGestao.erro()),
+        const GestaoImovelState(
+          imovel: ConteudoImovelGestao.erro(),
+          historico: ConteudoHistorico.carregado([]),
+        ),
         const GestaoImovelState(),
-        GestaoImovelState(imovel: ConteudoImovelGestao.carregado(_imovel(36))),
+        carregado(36),
       ],
       verify: (_) => verify(() => obter(36)).called(2),
     );
@@ -122,7 +280,7 @@ void main() {
       antiga.complete(Result.success(_imovel(36)));
       await primeira;
 
-      expect(cubit.state.imovel, ConteudoImovelGestao.carregado(_imovel(37)));
+      expect(cubit.state, carregado(37));
       await cubit.close();
     });
 
