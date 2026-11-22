@@ -3,7 +3,7 @@ status: complete
 phase: 08-login-e-rea-do-corretor-o-acervo
 source: [08-VERIFICATION.md]
 started: 2026-11-21T16:06:16Z
-updated: 2026-11-22T01:07:26.318Z
+updated: 2026-11-22T01:10:36.227Z
 ---
 
 ## Current Test
@@ -18,8 +18,8 @@ result: pass
 
 ### 2. Token no Keychain do iOS num Mac M1 (entrar, fechar e reabrir no simulador)
 expected: O token persiste; se não persistir, adicionar a capability Keychain Sharing pelo Xcode
-result: skipped
-reason: "Pulado pelo usuário: exige Mac M1 com simulador iOS, indisponível nesta sessão"
+result: pass
+note: "Usuário informou: 'ja fiz o teste 2 e 5, 2 ok 5 ok' (relatado em 2026-11-21, depois de inicialmente pular e adiar o teste)"
 
 ### 3. Isolamento com dados reais: corretor B (outra empresa) abre o acervo
 expected: Só vê DEMO-CASA-01 (Vendido, sem toque) e nenhum DEV-*; gestor e administrador caem em 'A área do gestor ainda não está no app.' com Sair
@@ -32,8 +32,8 @@ note: "Usuário aceitou as taxas 10/hour por e-mail e 30/hour por IP"
 
 ### 5. Sair em dois aparelhos (token único por usuário). Conferir também que, ao expirar a sessão (401), o app volta à vitrine com o login e o aviso, sem reoferecer Meu acervo
 expected: O outro aparelho volta ao login com 'Sua sessão terminou. Entre de novo.' ao tocar em Meu acervo; depois, a vitrine mostra Entrar (e não Meu acervo)
-result: skipped
-reason: "Pulado pelo usuário: exige dois aparelhos ao mesmo tempo"
+result: pass
+note: "Usuário informou: 'ja fiz o teste 2 e 5, 2 ok 5 ok' (relatado em 2026-11-21, depois de inicialmente pular e adiar o teste)"
 
 ### 6. Aparência (login, aviso, acervo, cartão compacto), autofill do gerenciador de senhas e o botão do topo em 360 dp
 expected: Material 3 verde e branco; Entrar / Meu acervo ao lado do seletor de cidade sem truncar; oferta de preenchimento no login
@@ -47,12 +47,13 @@ note: "Usuário autorizou o push das branches feat/APP08 dos dois repositórios.
 ## Summary
 
 total: 7
-passed: 5
+passed: 7
 issues: 0
 pending: 0
-skipped: 2
+skipped: 0
 blocked: 0
 
 ## Gaps
 
 [none yet]
+
