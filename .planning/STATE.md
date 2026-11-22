@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 09
 current_phase_name: Mudança de Situação do Imóvel pelo App (APP 09)
 status: executing
-stopped_at: Completed 09-09-PLAN.md
-last_updated: "2026-11-22T16:12:05.358Z"
+stopped_at: Completed 09-10-PLAN.md
+last_updated: "2026-11-22T19:08:45.893Z"
 last_activity: 2026-11-22
 last_activity_desc: Phase 09 execution started
-state_head: 5909440ad40f9b561e3d6fac67084c1cab050408
+state_head: ceea18922a6bdbc65aa7377f17b37581e4e6a229
 progress:
   total_phases: 10
   completed_phases: 0
   total_plans: 97
-  completed_plans: 93
+  completed_plans: 94
   percent: 0
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-11-21)
 ## Current Position
 
 Phase: 09 (Mudança de Situação do Imóvel pelo App (APP 09)) — EXECUTING
-Plan: 10 of 13
+Plan: 11 of 13
 Status: Ready to execute
 Last activity: 2026-11-22 — Phase 09 execution started
 
@@ -136,6 +136,7 @@ Progress: [████████████████████] 72/72 p
 | Phase 09 P07 | 12 min | 2 tasks | 14 files |
 | Phase 09 P08 | 40 min | 2 tasks | 10 files |
 | Phase 09 P09 | 3 min | 2 tasks | 11 files |
+| Phase 09 P10 | 25min | 2 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -222,6 +223,8 @@ Recent decisions affecting current work:
 - [Phase 09]: 09-08: 401 em qualquer leitura (inclusive repetição do histórico) leva a tela de gestão toda para sessão expirada; helper único voltarAoLoginComSessaoTerminada compartilhado com o acervo — D-10, T-09-08
 - [Phase 09]: 09-08: recarregar() mantém o conteúdo numa falha e conta falhasAoAtualizar (SnackBar); GestaoImovelScreen virou StatefulWidget para tratar 401 que chega antes do primeiro quadro — AC-2, D-10
 - [Phase 09]: 09-09: ramo 400/403 no _executar compartilhado; recusa sem texto vira FalhaDeConexaoException; corte em 300 + reticências — Mensagem do servidor só para exibir (D-10); corpo sem texto não vira recusa vazia
+- [Phase 09]: 09-10: SnackBar usa a situação escolhida aceita com 200; a tela só muda pela releitura (registrarMudanca = mudou + recarregar)
+- [Phase 09]: 09-10: GestaoImovelCubit.carregar preserva mudou para que Ver na vitrine não volte após Tentar de novo (D-18)
 
 ### Pending Todos
 
@@ -259,6 +262,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-22T16:12:05.284Z
-Stopped at: Completed 09-09-PLAN.md
+Last session: 2026-11-22T19:08:45.810Z
+Stopped at: Completed 09-10-PLAN.md
 Resume file: None

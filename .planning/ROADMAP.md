@@ -483,7 +483,7 @@ Plans:
   5. A vitrine reflete a mudança na consulta seguinte (o servidor decide a publicação; verificado no UAT).
   6. Só quem o servidor autoriza consegue mudar: pelo app, só o corretor responsável (botão só com `pode_mudar_situacao`; quem forçar recebe 403); o gestor da empresa continua mudando pela web e a área dele no app é da APP-12 (D-07 da fase).
 
-**Plans:** 9/13 plans executed
+**Plans:** 10/13 plans executed
 
 Plans:
 **Wave 1**
@@ -518,7 +518,7 @@ Plans:
 
 **Wave 8** *(blocked on Wave 7 completion)*
 
-- [ ] 09-10-PLAN.md — Folha de mudança, caminho feliz: folha e Cubit da folha (chips, Confirmar, POST com guarda de toque duplo) e tela (botão só com `pode_mudar_situacao` → POST → SnackBar e releitura; "Ver na vitrine" some após a mudança, D-18) (SIT-01, SIT-02, SIT-06, SIT-07)
+- [x] 09-10-PLAN.md — Folha de mudança, caminho feliz: folha e Cubit da folha (chips, Confirmar, POST com guarda de toque duplo) e tela (botão só com `pode_mudar_situacao` → POST → SnackBar e releitura; "Ver na vitrine" some após a mudança, D-18) (SIT-01, SIT-02, SIT-06, SIT-07)
 
 **Wave 9** *(blocked on Wave 8 completion)*
 

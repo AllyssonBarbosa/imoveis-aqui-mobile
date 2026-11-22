@@ -71,13 +71,13 @@ Requisitos da primeira entrega (tarefas APP01, APP02, APP03, APP04, APP07, APP08
 
 Card APP 09 (tarefa A09). SIT-01..SIT-06 cobrem os critérios AC-1..AC-6 do card; SIT-07 é a tela de gestão que os habilita.
 
-- [ ] **SIT-01**: O corretor troca a situação do imóvel (Disponível, Reservado, Vendido, Alugado) numa folha com chips de escolha única (a situação atual desabilitada) e observação opcional; a data é a do servidor (`alterado_em`), mostrada como "Data: hoje" na folha e com data e hora no histórico (AC-1).
-- [ ] **SIT-02**: A troca é pedida à API (`POST /api/imoveis/{id}/situacao/`) e o app não altera nada localmente: depois do 200 a folha fecha, aparece "Situação alterada para <situação>." e a tela relê o imóvel e o histórico da API (AC-2).
+- [x] **SIT-01**: O corretor troca a situação do imóvel (Disponível, Reservado, Vendido, Alugado) numa folha com chips de escolha única (a situação atual desabilitada) e observação opcional; a data é a do servidor (`alterado_em`), mostrada como "Data: hoje" na folha e com data e hora no histórico (AC-1).
+- [x] **SIT-02**: A troca é pedida à API (`POST /api/imoveis/{id}/situacao/`) e o app não altera nada localmente: depois do 200 a folha fecha, aparece "Situação alterada para <situação>." e a tela relê o imóvel e o histórico da API (AC-2).
 - [ ] **SIT-03**: A tela de gestão do imóvel mostra o histórico das mudanças na ordem do servidor (mais recente primeiro): de → para, data e hora, quem mudou e a observação; sem mudanças mostra "Nenhuma mudança ainda — disponível desde o cadastro." (AC-3).
 - [ ] **SIT-04**: Recusa do servidor (400/403) mostra a mensagem do servidor na folha, que continua aberta com a observação, e a situação exibida não muda; rede, tempo esgotado e 5xx mostram "Não foi possível mudar a situação agora. Tente de novo."; 404 mostra um texto fixo; 401 volta ao login com "Sua sessão terminou. Entre de novo." (AC-4).
 - [ ] **SIT-05**: A vitrine pública reflete a mudança na consulta seguinte (regra única `na_vitrine` no servidor, provada no UAT) e o Meu acervo recarrega da API ao voltar da tela de gestão quando houve mudança, mantendo a busca e a situação escolhidas (AC-5).
-- [ ] **SIT-06**: Só o corretor responsável muda a situação pelo app (o gestor muda pela web; a área dele no app é da APP-12): o botão "Mudar situação" só aparece com `pode_mudar_situacao` calculado pelo Django, e quem forçar recebe a recusa do servidor (403), testada no Django (AC-6).
-- [ ] **SIT-07**: Todo cartão do Meu acervo abre a tela de gestão do imóvel (cabeçalho, situação atual com "desde" e histórico); "Ver na vitrine" só aparece quando o servidor diz `na_vitrine` e some depois de uma mudança até a tela ser reaberta. Supera o ACV-04 da Phase 8.
+- [x] **SIT-06**: Só o corretor responsável muda a situação pelo app (o gestor muda pela web; a área dele no app é da APP-12): o botão "Mudar situação" só aparece com `pode_mudar_situacao` calculado pelo Django, e quem forçar recebe a recusa do servidor (403), testada no Django (AC-6).
+- [x] **SIT-07**: Todo cartão do Meu acervo abre a tela de gestão do imóvel (cabeçalho, situação atual com "desde" e histórico); "Ver na vitrine" só aparece quando o servidor diz `na_vitrine` e some depois de uma mudança até a tela ser reaberta. Supera o ACV-04 da Phase 8.
 - [x] **API-11**: O §16 de `01-CONTRATO-API.md` congela `GET /api/imoveis/{id}/` (as 9 chaves que o app lê), `POST /api/imoveis/{id}/situacao/` (corpo, 200, 400, 401, 403, 404) e `GET /api/imoveis/{id}/historico/`, com fixtures capturadas da API real (código da `origin/main` da web) e teste de contrato no app.
 - [x] **API-12**: (D-08 e D-19 da Phase 9) A web ganha, na branch `feat/APP09` criada da `origin/main` num worktree separado (`../imoveis-aqui-APP09`; o clone `../imoveis-aqui` não troca de branch), os testes que faltam para as rotas do corretor — 400 de mesma situação, situação inválida e contrato assinado, 401 sem token, 404 de histórico/detalhe de outra empresa, ordem do histórico e 403 antes de 400 —, sem mudança de código de produção nem push.
 
@@ -189,13 +189,13 @@ Excluídos de propósito. Documentados para evitar scope creep.
 | ACV-04 | Phase 8 | Complete |
 | API-09 | Phase 8 | Complete |
 | API-10 | Phase 8 | Complete |
-| SIT-01 | Phase 9 | Pending |
-| SIT-02 | Phase 9 | Pending |
+| SIT-01 | Phase 9 | Complete |
+| SIT-02 | Phase 9 | Complete |
 | SIT-03 | Phase 9 | Pending |
 | SIT-04 | Phase 9 | Pending |
 | SIT-05 | Phase 9 | Pending |
-| SIT-06 | Phase 9 | Pending |
-| SIT-07 | Phase 9 | Pending |
+| SIT-06 | Phase 9 | Complete |
+| SIT-07 | Phase 9 | Complete |
 | API-11 | Phase 9 | Complete |
 | API-12 | Phase 9 | Complete |
 
