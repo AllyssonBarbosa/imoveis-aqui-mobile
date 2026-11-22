@@ -1,0 +1,81 @@
+{
+  "id": 36,
+  "codigo": "DEV-INDAIATUBA-04",
+  "titulo": "Lote no bairro Jardim Esplanada",
+  "natureza": "LOTE",
+  "corretor_responsavel": 1,
+  "proprietario": 1,
+  "finalidade": "VENDA",
+  "preco_venda": "90000.00",
+  "preco_aluguel": null,
+  "preco_condominio": null,
+  "preco_iptu": null,
+  "descricao": "Lote de demonstração em Indaiatuba (Jardim Esplanada), semeado para o desenvolvimento da vitrine.",
+  "caracteristicas": [
+    4,
+    1
+  ],
+  "casa": null,
+  "terreno": null,
+  "apartamento": null,
+  "lote": {
+    "quadra": {
+      "id": 5,
+      "identificacao": "A",
+      "loteamento": {
+        "id": 4,
+        "nome": "Loteamento Jardim dos Ipês Indaiatuba",
+        "cidade": 4,
+        "incorporadora": "Incorporadora Verde Vale",
+        "asfalto": true,
+        "agua": true,
+        "energia": true,
+        "esgoto": true,
+        "iluminacao": true,
+        "areas_de_lazer": "Praça central, quadra poliesportiva e pista de caminhada."
+      }
+    },
+    "numero": "4",
+    "area": "250.00",
+    "frente": "10.00",
+    "fundo": "25.00",
+    "entrada_minima": "9000.00",
+    "parcelas_maximas": 60,
+    "condicoes_parcelamento": "Correção anual pelo IPCA.",
+    "vendido": false
+  },
+  "endereco": {
+    "id": 32,
+    "cep": "13013-000",
+    "logradouro": "Rua das Palmeiras",
+    "numero": "121",
+    "complemento": "",
+    "bairro": "Jardim Esplanada",
+    "cidade": 4,
+    "latitude": "-23.086400",
+    "longitude": "-47.222000"
+  },
+  "fotos": [
+    {
+      "id": 86,
+      "imovel": 36,
+      "imagem": "http://127.0.0.1:8000/media/imoveis/fotos/dev-indaiatuba-04-1.jpg",
+      "ordem": 0,
+      "capa": true
+    },
+    {
+      "id": 87,
+      "imovel": 36,
+      "imagem": "http://127.0.0.1:8000/media/imoveis/fotos/dev-indaiatuba-04-2.jpg",
+      "ordem": 1,
+      "capa": false
+    }
+  ],
+  "situacao": "DISPONIVEL",
+  "situacao_desde": "2026-11-22T12:25:40.749450-03:00",
+  "pode_mudar_situacao": true,
+  "publicado": true,
+  "pode_publicar": true,
+  "pendencias_para_publicar": [],
+  "criado_em": "2026-11-22T12:25:40.749450-03:00"
+}
