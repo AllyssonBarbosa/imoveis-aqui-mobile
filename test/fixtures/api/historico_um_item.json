@@ -1,0 +1,10 @@
+[
+  {
+    "id": 2,
+    "situacao_anterior": "DISPONIVEL",
+    "situacao_nova": "RESERVADO",
+    "alterado_por": "Corretor Vitrine Demo",
+    "alterado_em": "2026-11-22T12:25:43.371313-03:00",
+    "observacao": "Reservado na conversa com o cliente."
+  }
+]
