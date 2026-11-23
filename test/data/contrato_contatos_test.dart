@@ -2,6 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:imoveis_aqui/data/models/contato_recebido_model.dart';
+import 'package:imoveis_aqui/data/models/contatos_envelope_model.dart';
+import 'package:imoveis_aqui/data/models/imovel_com_contato_model.dart';
+import 'package:imoveis_aqui/data/models/resumo_contatos_model.dart';
 
 import '../support/api_falsa.dart';
 
@@ -14,8 +18,8 @@ import '../support/api_falsa.dart';
 /// repositórios. Também prova, no wire, o isolamento entre empresas (CXA-04):
 /// a caixa da empresa B tem contato de verdade e nenhum dele aparece na da A.
 ///
-/// Os Models do app ainda não existem aqui; o plano 10-05 acrescenta o grupo
-/// "Models leem toda fixture".
+/// O grupo "Models leem toda fixture de contatos" prova que os Models do app
+/// leem cada resposta capturada e a mapeiam para o domínio sem erro.
 ///
 /// Os exemplos vivem no diretório da Fase 1. Se esse diretório for um dia
 /// arquivado, mova os quatro `*.example.json` e corrija [_pastaContrato].
@@ -373,6 +377,51 @@ void main() {
 
       expect(_fixture('contatos_resumo.json')['sem_retorno'], totalA);
       expect(totalB, isNot(totalA));
+    });
+  });
+
+  group('Models leem toda fixture de contatos', () {
+    for (final nome in _fixturesDeLista) {
+      test('$nome vira uma página, com todos os itens', () {
+        final pagina = ContatosEnvelopeModel.fromJson(
+          _fixture(nome),
+        ).paraPagina();
+
+        expect(pagina.itens, hasLength(_itens(nome).length));
+        expect(pagina.proximaPagina, _fixture(nome)['next']);
+      });
+    }
+
+    test('a caixa da outra empresa também é lida (D-13)', () {
+      final pagina = ContatosEnvelopeModel.fromJson(
+        _fixture('contatos_outra_empresa.json'),
+      ).paraPagina();
+
+      expect(pagina.itens, isNotEmpty);
+    });
+
+    test('contato_patch_200 vira um item anotado', () {
+      final bruto = _fixture('contato_patch_200.json');
+      final contato = ContatoRecebidoModel.fromJson(bruto).paraEntidade();
+
+      expect(contato.id, bruto['id']);
+      expect(contato.retornoEm, isNotNull);
+    });
+
+    test('os dois resumos e as opções de imóvel são lidos', () {
+      final antes = ResumoContatosModel.fromJson(
+        _fixture('contatos_resumo.json'),
+      );
+      final depois = ResumoContatosModel.fromJson(
+        _fixture('contatos_resumo_apos.json'),
+      );
+      final opcoes = [
+        for (final opcao in _opcoesDeImovel())
+          ImovelComContatoModel.fromJson(opcao).paraEntidade(),
+      ];
+
+      expect(depois.semRetorno, antes.semRetorno - 1);
+      expect(opcoes, hasLength(_opcoesDeImovel().length));
     });
   });
 }

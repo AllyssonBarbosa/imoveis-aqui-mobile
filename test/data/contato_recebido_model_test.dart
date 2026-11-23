@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/data/models/contato_recebido_model.dart';
 import 'package:imoveis_aqui/data/models/contatos_envelope_model.dart';
+import 'package:imoveis_aqui/data/models/imovel_com_contato_model.dart';
+import 'package:imoveis_aqui/data/models/resumo_contatos_model.dart';
 import 'package:imoveis_aqui/domain/entities/canal_contato.dart';
 import 'package:imoveis_aqui/domain/entities/retorno_contato.dart';
 
@@ -119,6 +121,48 @@ void main() {
 
       expect(contato.toString(), isNot(contains('texto do servidor')));
       expect(contato.toString(), isNot(contains('Fulano')));
+    });
+  });
+
+  group('ResumoContatosModel', () {
+    test('lê sem_retorno como o inteiro da fixture', () {
+      final bruto = _fixture('contatos_resumo.json');
+
+      expect(
+        ResumoContatosModel.fromJson(bruto).semRetorno,
+        bruto['sem_retorno'],
+      );
+    });
+
+    test('depois de anotar, a contagem é uma a menos', () {
+      final antes = ResumoContatosModel.fromJson(
+        _fixture('contatos_resumo.json'),
+      ).semRetorno;
+      final depois = ResumoContatosModel.fromJson(
+        _fixture('contatos_resumo_apos.json'),
+      ).semRetorno;
+
+      expect(depois, antes - 1);
+    });
+  });
+
+  group('ImovelComContatoModel.paraEntidade', () {
+    test('lê toda a lista de opções na ordem recebida', () {
+      final bruto = lerFixtureApi('contatos_imoveis.json')! as List<Object?>;
+      final opcoes = [
+        for (final item in bruto)
+          ImovelComContatoModel.fromJson(
+            item! as Map<String, Object?>,
+          ).paraEntidade(),
+      ];
+
+      expect(opcoes, hasLength(bruto.length));
+      for (var i = 0; i < bruto.length; i++) {
+        final item = bruto[i]! as Map<String, Object?>;
+        expect(opcoes[i].id, item['id']);
+        expect(opcoes[i].codigo, item['codigo']);
+        expect(opcoes[i].titulo, item['titulo']);
+      }
     });
   });
 }
