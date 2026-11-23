@@ -459,14 +459,14 @@ Plans:
   5. Contato de imóvel de outra empresa nunca aparece.
   6. A tela mostra quantos contatos ainda estão sem retorno anotado.
 
-**Plans:** 1/10 plans executed
+**Plans:** 2/10 plans executed
 
 Plans:
 **Wave 1**
 - [x] 10-01-PLAN.md — Web (feat/APP10): TRACER da caixa paginada com token (login → `GET /api/contatos/` em envelope de 20) + `resumo` (sem retorno), `imoveis` (opções do filtro), PATCH `{}` → 400, isolamento e README (API-12, CXA-01..05)
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 10-02-PLAN.md — Wire real: grupo `contatos` na ferramenta de captura e as 11 fixtures, com a outra empresa tendo 1 contato (isolamento que pode falhar) (API-11, CXA-04)
+- [x] 10-02-PLAN.md — Wire real: grupo `contatos` na ferramenta de captura e as 11 fixtures, com a outra empresa tendo 1 contato (isolamento que pode falhar) (API-11, CXA-04)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 10-03-PLAN.md — §16 do contrato, exemplos, `contrato_contatos_test.dart` e registro de CXA-01..06, API-11, API-12 (API-11, CXA-04)

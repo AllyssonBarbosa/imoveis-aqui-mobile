@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 10
 current_phase_name: Contatos Recebidos e Retorno Anotado (APP 10)
 status: executing
-stopped_at: Completed 10-01-PLAN.md
-last_updated: "2026-11-23T22:39:45.117Z"
+stopped_at: Completed 10-02-PLAN.md
+last_updated: "2026-11-23T22:44:55.230Z"
 last_activity: 2026-11-23
 last_activity_desc: Phase 10 execution started
-state_head: 5ae15174aa4b100b72bd55e59f4441af397aaba6
+state_head: 4b1d2c4bdb8bda28c7c4885f39acdbd82870e14a
 progress:
   total_phases: 10
   completed_phases: 3
   total_plans: 94
-  completed_plans: 85
+  completed_plans: 86
   percent: 30
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-11-21)
 ## Current Position
 
 Phase: 10 (Contatos Recebidos e Retorno Anotado (APP 10)) — EXECUTING
-Plan: 2 of 10
+Plan: 3 of 10
 Status: Ready to execute
 Last activity: 2026-11-23 — Phase 10 execution started
 
@@ -128,6 +128,7 @@ Progress: [████████████████████] 72/72 p
 | Phase 08 P11 | 22min | 2 tasks | 14 files |
 | Phase 08 P12 | 25min | 2 tasks | 6 files |
 | Phase 10 P01 | 25 min | 2 tasks | 4 files |
+| Phase 10 P02 | 6 min | 2 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -206,6 +207,8 @@ Recent decisions affecting current work:
 - [Phase 08]: 08-12: pilha real dos fluxos ponta a ponta montada num helper compartilhado (test/support/pilha_real.dart) trocando so os dois Dio e o ArmazenamentoToken
 - [Phase 10]: planejamento aceito pelo Allysson com 0 bloqueios e avisos do verificador (rodada 2): tipo `tracer` do 10-01 (valido no GSD), 8 planos com 10-14 arquivos (abaixo do bloqueio de 15; inclui gerados), truths tecnicas em 10-02/04/05 e 5 comandos fora da raiz (repo web, forma provada na fase 8)
 - [Phase 10]: 10-01: GET /api/contatos/ paginada em envelope de 20 (D-12); resumo e imoveis partem de contatos_visiveis_para; PATCH {} -> 400; anônimo 401 nas rotas novas
+- [Phase 10]: 10-02: contato da empresa B criado pelo ORM só no SQLite temporário (DEMO-CASA-01 está fora da vitrine); nenhum seed/arquivo do repo web alterado
+- [Phase 10]: 10-02: CONTATO_TAXA_ANONIMA não existe no settings.py da feat/APP10; captura dos 25 POSTs públicos sem ajuste de taxa
 
 ### Pending Todos
 
@@ -243,6 +246,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-23T22:39:43.227Z
-Stopped at: Completed 10-01-PLAN.md
+Last session: 2026-11-23T22:44:53.217Z
+Stopped at: Completed 10-02-PLAN.md
 Resume file: None
