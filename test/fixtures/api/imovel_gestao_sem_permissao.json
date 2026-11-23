@@ -1,0 +1,93 @@
+{
+  "id": 14,
+  "codigo": "DEV-CAMPINAS-14",
+  "titulo": "Apartamento no bairro Barão Geraldo",
+  "natureza": "APARTAMENTO",
+  "corretor_responsavel": 2,
+  "proprietario": 1,
+  "finalidade": "ALUGUEL",
+  "preco_venda": null,
+  "preco_aluguel": "2550.00",
+  "preco_condominio": null,
+  "preco_iptu": null,
+  "descricao": "Apartamento de demonstração em Campinas (Barão Geraldo), semeado para o desenvolvimento da vitrine.",
+  "caracteristicas": [
+    3,
+    6
+  ],
+  "casa": null,
+  "terreno": null,
+  "apartamento": {
+    "predio": {
+      "id": 2,
+      "nome": "Edifício Girassol Campinas",
+      "endereco": {
+        "id": 6,
+        "cep": "13061-000",
+        "logradouro": "Rua das Palmeiras",
+        "numero": "457",
+        "complemento": "",
+        "bairro": "Taquaral",
+        "cidade": 1,
+        "latitude": "-22.839300",
+        "longitude": "-47.127100"
+      },
+      "andares": 12,
+      "unidades_por_andar": 4,
+      "ano_construcao": 2013,
+      "elevadores": 2,
+      "portaria_24h": true,
+      "piscina": true,
+      "academia": true,
+      "salao_de_festas": true,
+      "playground": false,
+      "valor_condominio_base": "840.00",
+      "total_apartamentos": 3
+    },
+    "andar": 3,
+    "numero": "314",
+    "area_privativa": "73.00",
+    "area_total": "88.00",
+    "quartos": 2,
+    "suites": 1,
+    "banheiros": 2,
+    "vagas": 2,
+    "varanda": false,
+    "posicao_solar": "POENTE"
+  },
+  "lote": null,
+  "endereco": {
+    "id": 6,
+    "cep": "13061-000",
+    "logradouro": "Rua das Palmeiras",
+    "numero": "457",
+    "complemento": "",
+    "bairro": "Taquaral",
+    "cidade": 1,
+    "latitude": "-22.839300",
+    "longitude": "-47.127100"
+  },
+  "fotos": [
+    {
+      "id": 31,
+      "imovel": 14,
+      "imagem": "http://127.0.0.1:8000/media/imoveis/fotos/dev-campinas-14-1.jpg",
+      "ordem": 0,
+      "capa": true
+    },
+    {
+      "id": 32,
+      "imovel": 14,
+      "imagem": "http://127.0.0.1:8000/media/imoveis/fotos/dev-campinas-14-2.jpg",
+      "ordem": 1,
+      "capa": false
+    }
+  ],
+  "situacao": "DISPONIVEL",
+  "situacao_desde": "2026-11-22T12:25:40.636394-03:00",
+  "pode_mudar_situacao": false,
+  "publicado": true,
+  "pode_publicar": true,
+  "pendencias_para_publicar": [],
+  "criado_em": "2026-11-22T12:25:40.636394-03:00"
+}

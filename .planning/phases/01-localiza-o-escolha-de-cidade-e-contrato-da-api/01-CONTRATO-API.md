@@ -14,6 +14,11 @@ até ela entrar na `main` dela. Ver §13.
 lista do acervo em `GET /api/imoveis/`) vêm da branch `feat/APP08` da web, até ela entrar na `main` dela. Ver §14; os
 exemplos `acervo`, `eu` e `login` são travados por `test/data/contrato_acervo_test.dart`.
 
+**Situação e histórico do imóvel (Fase 9):** as rotas autenticadas `GET /api/imoveis/<id>/`,
+`POST /api/imoveis/<id>/situacao/` e `GET /api/imoveis/<id>/historico/` (WEB 08) vêm da `main` da web (lidas em
+`origin/main` `8bf4448`). Ver §16; os exemplos `imovel_gestao` e `historico_situacao` são travados por
+`test/data/contrato_gestao_situacao_test.dart`.
+
 **Histórico:** as propostas congeladas nas Fases 1 a 4 (paginação por cursor, `GET /api/publico/imoveis/?cidade=`,
 `ordenacao`, sufixo `_min`, `bairro`/`caracteristicas` por nome, `corretor{slug}`, `lote.preco`,
 `posicao_solar` livre etc.) foram **substituídas** na Fase 5 pelo formato real da API, que é dona
@@ -675,3 +680,153 @@ O visitante escolhe um canal e o servidor registra o contato e devolve o link pr
 **No app (D-13, D-14, D-15):** o app lê `canais_contato` do detalhe (§11.2) e só mostra os canais que o servidor
 mandou; ao tocar, faz este POST, e abre o `link` recebido. Qualquer falha (400, 404, 429, rede) é um estado de
 erro com "Tentar de novo", sem nova tentativa automática e sem montar link no aparelho.
+
+
+---
+
+## 16. Situação e histórico do imóvel (Fase 9)
+
+A Fase 9 acrescenta as **rotas autenticadas por imóvel** que o app usa para o corretor mudar a situação do seu imóvel:
+o detalhe de gestão, o POST da mudança e o histórico. Elas foram entregues pela WEB 08 e estão na `origin/main` da web
+(lidas em `8bf4448`). Este § foi escrito a partir do que o Django **entrega** (D-13) e não muda os §1 a §15. As
+respostas de exemplo são capturadas (§16.7), nunca escritas à mão.
+
+### 16.1 Rotas e autenticação
+
+| Rota | Método | Autenticação | Sucesso |
+|------|--------|--------------|---------|
+| `/api/imoveis/<id>/` | `GET` | `Authorization: Token <chave>` | 200 `ImovelSerializer` (§16.2) |
+| `/api/imoveis/<id>/situacao/` | `POST` | idem | 200 `ImovelSerializer` (§16.3) |
+| `/api/imoveis/<id>/historico/` | `GET` | idem | 200 lista (§16.4) |
+
+- **A barra final é obrigatória nas três rotas.** O Dio `'autenticado'` tem `followRedirects: false` (§14.7): um POST sem `/`
+  final tomaria 301 do `APPEND_SLASH` e falharia, em vez de chegar à view.
+- `Authorization: Token <chave>` como no §14.1, só na mesma origem da API. Permissão `EhCorretor`; o queryset é sempre o
+  da **empresa** do corretor logado (o id da URL é entrada não confiável).
+- **Ordem das decisões do servidor num POST de situação:** 401 (sem token válido) → 403 (não é corretor) → 404 (imóvel
+  de outra empresa **ou** inexistente, mesmo corpo) → 403 (não é o responsável: `pode_mudar_situacao` falso) → 400 de
+  validação do corpo → 400 de regra (`mudar_situacao`: mesma situação, contrato assinado) → 200. Por isso um colega com
+  corpo inválido recebe 403, não 400.
+
+### 16.2 `GET /api/imoveis/<id>/`
+
+Devolve o `ImovelSerializer` completo (26 chaves; o mesmo do painel do corretor). **O app lê só 9:** `id`, `codigo`,
+`titulo`, `finalidade`, `preco_venda`, `preco_aluguel`, `situacao`, `situacao_desde` e `pode_mudar_situacao`. As outras
+17 chaves são ignoradas e **não** são declaradas no Model do app (menos superfície, menos dado sensível em memória; por
+isso a trava do app é um subconjunto, não uma allowlist exata). Exemplo: `contrato/imovel_gestao.example.json`, cópia
+byte a byte de `test/fixtures/api/imovel_gestao_disponivel.json`.
+
+| Chave | Tipo | Observação |
+|-------|------|------------|
+| `id` | inteiro | o mesmo `id` do cartão do acervo |
+| `codigo`, `titulo` | string | |
+| `finalidade` | string | `VENDA`, `ALUGUEL` ou `VENDA_E_ALUGUEL` |
+| `preco_venda`, `preco_aluguel` | string decimal ou `null` | o app formata e nunca calcula |
+| `situacao` | string | `DISPONIVEL`, `RESERVADO`, `VENDIDO` ou `ALUGADO` |
+| `situacao_desde` | ISO 8601 | **com offset** (`-03:00`) e microssegundos; a data é do servidor (D-05) |
+| `pode_mudar_situacao` | booleano | calculado pelo Django (`Imovel.pode_mudar_situacao`): corretor responsável do imóvel, ou gestor da mesma empresa; o app não reaplica a regra |
+
+- `na_vitrine` **não** está nesta rota: vem da lista do §14.5. A foto de capa da tela também vem do cartão do acervo
+  (já calculada pelo servidor na lista), não do `fotos` deste detalhe.
+- Imóvel de **outra empresa** pelo id: **404** `{"detail": "No Imovel matches the given query."}`
+  (`erro_404_imovel.json`), indistinguível de um id que não existe.
+- Um colega da mesma empresa lê o detalhe (200) com `pode_mudar_situacao: false` (`imovel_gestao_sem_permissao.json`).
+
+### 16.3 `POST /api/imoveis/<id>/situacao/`
+
+Corpo JSON `{"situacao": "RESERVADO", "observacao": "Reservado na conversa com o cliente."}`.
+
+- `situacao`: só os 4 códigos (`DISPONIVEL`, `RESERVADO`, `VENDIDO`, `ALUGADO`), em maiúsculas.
+- `observacao`: **opcional**. O app a **omite** quando vazia e nunca manda `null` (o servidor recusa `null`). Espaços nas
+  pontas são cortados pelo DRF (`trim`).
+- O **200** devolve o `ImovelSerializer` (`situacao_200.json`), mas o app **não o usa como estado novo**: ele relê o
+  detalhe e o histórico (D-10), para mostrar sempre o que o servidor guardou.
+
+| Caso | Status | Corpo real |
+|------|--------|-----------|
+| Sucesso | 200 | `ImovelSerializer` com a `situacao` nova e `situacao_desde` novo (`situacao_200.json`) |
+| Mesma situação | 400 | `{"situacao": ["O imóvel já está reservado."]}` (`erro_400_mesma_situacao.json`) |
+| Contrato assinado | 400 | `{"situacao": ["Este imóvel tem um contrato assinado (#1): a situação não pode ser mudada à mão enquanto o contrato estiver valendo."]}` (`erro_400_contrato_assinado.json`) |
+| `situacao` fora da lista (ou minúscula) | 400 | `{"situacao": ["\"DEMOLIDO\" não é uma escolha válida."]}` |
+| `situacao` ausente | 400 | `{"situacao": ["Este campo é obrigatório."]}` |
+| `observacao: null` | 400 | `{"observacao": ["Este campo pode não ser nulo."]}` (chave `observacao`, não `situacao`) |
+| Corpo que não é objeto | 400 | `{"non_field_errors": ["Dado inválido. Esperava um dicionário, mas recebeu list."]}` |
+| Sem token, ou token revogado | 401 | `{"detail": "As credenciais de autenticação não foram fornecidas."}` + `WWW-Authenticate: Token` (`erro_401.json`) |
+| Não é o responsável (colega da mesma empresa) | 403 | `{"detail": "Só o corretor responsável por este imóvel ou o gestor podem mudar a situação."}` (`erro_403_situacao.json`) |
+| Gestor ou administrador nesta rota | 403 | `{"detail": "Este recurso é restrito ao corretor."}` |
+| Imóvel de outra empresa ou inexistente | 404 | `{"detail": "No Imovel matches the given query."}` — **em inglês** |
+| `GET` na rota | 405 | |
+
+O servidor **não limita** o tamanho da `observacao` (100 000 caracteres foram aceitos em sonda): ver §16.6.
+
+### 16.4 `GET /api/imoveis/<id>/historico/`
+
+Devolve uma **lista simples**, **sem envelope e sem paginação** (`[]` quando nunca houve mudança:
+`historico_vazio.json`). Cada item tem exatamente **6 chaves** (exemplo: `contrato/historico_situacao.example.json`,
+cópia byte a byte de `test/fixtures/api/historico_um_item.json`):
+
+| Chave | Tipo | Observação |
+|-------|------|------------|
+| `id` | inteiro | |
+| `situacao_anterior`, `situacao_nova` | string | um dos 4 códigos |
+| `alterado_por` | string | o **nome** de quem mudou, não o id |
+| `alterado_em` | ISO 8601 | com offset; gravado pelo servidor (D-05) |
+| `observacao` | string | pode ser `""` |
+
+- **Ordem do servidor:** `-alterado_em, -id` (mais recente primeiro; o `id` desempata). O app mostra na ordem recebida.
+- Uma mudança feita pela **assinatura de contrato** aparece no histórico com observação automática (por exemplo,
+  `Contrato #1 de venda assinado em 01/07/2026.`, `historico_contrato.json`): o app só mostra o texto.
+- O **colega da mesma empresa lê** o histórico (200), como lê o detalhe.
+- O corretor de **outra empresa** recebe o **mesmo 404** do detalhe: `{"detail": "No Imovel matches the given query."}`
+  (`erro_404_historico.json`, igual a `erro_404_imovel.json`), pelo mesmo `get_object` do `ImovelViewSet` — sem canal de
+  enumeração entre empresas (T-09-02).
+
+### 16.5 No app
+
+- **400 e 403 → recusa com a mensagem do servidor**, **achatada**: `detail` e todas as listas de texto de **qualquer**
+  chave do corpo (não só `situacao`: o `null` de `observacao` e o `non_field_errors` vêm em outras chaves), juntando as
+  mensagens, com `trim` e corte de **300 caracteres**; se o resultado ficar vazio, vira falha de conexão.
+- **404 → texto fixo em português**; o `detail` **em inglês** do servidor nunca é exibido.
+- **401 → `SessaoExpiradaException`** (§14.7); o interceptador do Dio `'autenticado'` já traduz e apaga o token.
+- **Rede, timeout, 5xx ou JSON ruim → falha de conexão**, sem nova tentativa automática.
+- **Datas:** `DateTime.parse` devolve UTC; a tela mostra `situacao_desde` e `alterado_em` no **fuso do aparelho**
+  (`.toLocal()`) com `DateFormat('dd/MM/yyyy HH:mm')` **sem locale** (`DateFormat(..., 'pt_BR')` lança
+  `LocaleDataException` sem `initializeDateFormatting`).
+- O app **nunca** decide quem pode mudar nem deduz a `na_vitrine`: tudo chega pronto do servidor.
+
+### 16.6 PENDENTE WEB e riscos aceitos
+
+| Risco | Tratamento |
+|-------|-----------|
+| **Observação sem `max_length` no serializer.** O servidor aceita textos enormes. | O app limita a **500 caracteres** no campo, com contador (**D-17**: decisão do usuário, aprovada em 2026-11-22, exceção à D-06 que mandava não criar regra própria). O limite no servidor (hardening **L8**, `max_length` no `MudancaSituacaoSerializer`) **depende da equipe web**. |
+| **POST com tempo esgotado é ambíguo.** O servidor pode ter gravado mesmo com o app tendo desistido. | Sem retry automático. O reenvio recebe 400 `O imóvel já está …`, que explica; puxar para atualizar corrige a tela. |
+| **Rotas do gestor** `/api/gestao/imoveis/<id>/...`. | **Fora do app** até a APP-12; nesta rota o gestor toma 403. |
+| **404 em inglês** (`No Imovel matches the given query.`). | Aceito: o app mostra texto fixo em português e não depende do texto. |
+| **`na_vitrine` fica velho depois da mudança** (não vem no detalhe). | O app deixa de oferecer o dado que sabe estar velho até a tela ser reaberta pelo acervo recarregado. |
+
+### 16.7 Sincronização
+
+Capturar só o grupo novo e copiar byte a byte para `contrato/`:
+
+```bash
+python3 tool/capturar_fixtures_api.py http://127.0.0.1:8000 test/fixtures/api --grupo situacao
+```
+
+| Fixture capturada | Exemplo do contrato |
+|-------------------|---------------------|
+| `imovel_gestao_disponivel.json` | `imovel_gestao.example.json` |
+| `historico_um_item.json` | `historico_situacao.example.json` |
+
+O grupo faz login pela API, então precisa de credenciais **só por variável de ambiente** (nunca em arquivo):
+`CAPTURA_EMAIL_CORRETOR`, `CAPTURA_SENHA_CORRETOR`, `CAPTURA_EMAIL_OUTRA_EMPRESA` e `CAPTURA_SENHA_OUTRA_EMPRESA`.
+Ele **lê** as fixtures do acervo (`acervo_p1`, `acervo_busca`, `acervo_outra_empresa`) e confere ao vivo que os ids
+batem. Procedimento: SQLite temporário dentro de uma pasta de `mktemp -d` (nunca o banco do `Web/.env`), com `migrate`,
+`semear_vitrine_dev` **e** `seed_demo`, **nessa ordem**; o código do Django é o da `origin/main`, extraído com
+`git archive origin/main Web | tar -x -C <pasta temporária>` — o clone da web **pode estar em qualquer branch**, nada é
+lido da árvore dele nem escrito nele (D-19). **O POST grava no banco** (reserva o imóvel alvo): só roda no SQLite
+temporário. **Nunca `--grupo todos`:** reescreveria as fixtures das fases anteriores.
+
+Travas: no app, `test/data/contrato_gestao_situacao_test.dart` (as 9 chaves lidas, as 6 do histórico, a forma dos
+erros, os dois 404 iguais, exemplo = fixture e os ids casados com o acervo); no Django, `CorretorMudaSituacaoTests`,
+`AppSituacaoApiTests` e `TravaDaSituacaoManualTests.test_api_do_corretor_recusa_com_contrato_assinado`, na `feat/APP09`
+do worktree `../imoveis-aqui-APP09` (09-02, D-19).

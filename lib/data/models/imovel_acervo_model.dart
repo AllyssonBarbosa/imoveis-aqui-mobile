@@ -1,8 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import '../../domain/entities/imovel.dart';
 import '../../domain/entities/imovel_acervo.dart';
-import '../../domain/entities/situacao_imovel.dart';
+import 'codigos_imovel_api.dart';
 import 'url_segura.dart';
 
 part 'imovel_acervo_model.freezed.dart';
@@ -32,7 +31,8 @@ abstract class ImovelAcervoModel with _$ImovelAcervoModel {
   factory ImovelAcervoModel.fromJson(Map<String, Object?> json) =>
       _$ImovelAcervoModelFromJson(json);
 
-  /// Mapeia para a entidade de domínio. `finalidade` desconhecida lança
+  /// Mapeia para a entidade de domínio. Finalidade e situação passam pelo mapa
+  /// único de `codigos_imovel_api.dart`: `finalidade` desconhecida lança
   /// [FormatException] (o repositório converte em falha, T-08-33);
   /// `situacao` desconhecida ou nula vira `null`; `fotoCapa` fora de http(s)
   /// vira `null` (T-08-31).
@@ -41,41 +41,13 @@ abstract class ImovelAcervoModel with _$ImovelAcervoModel {
       id: id,
       codigo: codigo,
       titulo: titulo,
-      finalidade: _mapearFinalidade(finalidade),
+      finalidade: finalidadeDoCodigo(finalidade),
       precoVenda: precoVenda,
       precoAluguel: precoAluguel,
       fotoCapa: urlHttpOuNula(fotoCapa),
-      situacao: _mapearSituacao(situacao),
+      situacao: situacaoDoCodigo(situacao),
       meuImovel: meuImovel,
       naVitrine: naVitrine,
     );
-  }
-
-  static FinalidadeImovel _mapearFinalidade(String valor) {
-    switch (valor) {
-      case 'VENDA':
-        return FinalidadeImovel.venda;
-      case 'ALUGUEL':
-        return FinalidadeImovel.aluguel;
-      case 'VENDA_E_ALUGUEL':
-        return FinalidadeImovel.vendaEAluguel;
-      default:
-        throw FormatException('finalidade desconhecida: $valor');
-    }
-  }
-
-  static SituacaoImovel? _mapearSituacao(String? valor) {
-    switch (valor) {
-      case 'DISPONIVEL':
-        return SituacaoImovel.disponivel;
-      case 'RESERVADO':
-        return SituacaoImovel.reservado;
-      case 'VENDIDO':
-        return SituacaoImovel.vendido;
-      case 'ALUGADO':
-        return SituacaoImovel.alugado;
-      default:
-        return null;
-    }
   }
 }

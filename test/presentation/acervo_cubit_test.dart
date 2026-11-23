@@ -342,6 +342,45 @@ void main() {
     });
   });
 
+  group('recarregar (D-12)', () {
+    blocTest<AcervoCubit, AcervoState>(
+      'mantém a busca e a situação: carregando com o mesmo termo e a mesma '
+      'situação, mesma consulta ao use case e o resultado substitui a lista',
+      build: construir,
+      setUp: () => respondeSempre(pagina1),
+      act: (cubit) async {
+        cubit.buscar('DEV');
+        await Future<void>.delayed(const Duration(milliseconds: 450));
+        await cubit.escolherSituacao(SituacaoImovel.reservado);
+        await Future<void>.delayed(Duration.zero);
+        clearInteractions(buscar);
+        respondeSempre(pagina2);
+        cubit.recarregar();
+        await Future<void>.delayed(Duration.zero);
+      },
+      skip: 4,
+      expect: () => [
+        const AcervoState(
+          termoBusca: 'DEV',
+          situacao: SituacaoImovel.reservado,
+        ),
+        AcervoState(
+          termoBusca: 'DEV',
+          situacao: SituacaoImovel.reservado,
+          conteudo: ConteudoAcervo.carregada(itens: pagina2.itens),
+        ),
+      ],
+      verify: (_) => verify(
+        () => buscar(
+          const ConsultaAcervo(
+            busca: 'DEV',
+            situacao: SituacaoImovel.reservado,
+          ),
+        ),
+      ).called(1),
+    );
+  });
+
   group('consulta obsoleta', () {
     test('resposta antiga que chega depois de uma nova é descartada', () {
       fakeAsync((async) {

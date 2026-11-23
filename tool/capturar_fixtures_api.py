@@ -6,7 +6,7 @@ devolve (ensure_ascii=False, indent=2, quebra de linha final). Só biblioteca pa
 
 Uso:
     python3 tool/capturar_fixtures_api.py [URL_BASE] [PASTA_SAIDA]
-        [--grupo lista|detalhe|contato|perfis|anunciante|acervo|todos]
+        [--grupo lista|detalhe|contato|perfis|anunciante|acervo|situacao|todos]
 
 Padrões: URL_BASE=http://127.0.0.1:8000, PASTA_SAIDA=test/fixtures/api, --grupo=todos.
 Grupos: `lista` (cidades, listas de Campinas, bairros, características e o 400 de natureza);
@@ -16,10 +16,12 @@ contato: 201 de WhatsApp, telefone e e-mail, e o 400 de canal inválido; recusa 
 `perfis` (perfil do corretor, perfil da
 empresa e o 404 de perfil; descobre os ids ao vivo pelo corretor responsável de um detalhe); `anunciante`
 (p1 e p2 da vitrine de imóveis do corretor e da empresa); `acervo` (rotas autenticadas da Fase 8: login,
-eu, acervo do corretor em `GET /api/imoveis/` e o Sair; ver "Grupo acervo" abaixo); `todos` = `lista`,
-`detalhe`, `contato`, `perfis`, `anunciante` e `acervo`, nessa ordem. ATENÇÃO: `todos` reescreve as fixtures da lista e
-do detalhe (as URLs de foto mudam a cada banco novo); para acrescentar só um grupo rode
-`--grupo contato`, `--grupo perfis`, `--grupo anunciante` ou `--grupo acervo` (nunca `todos`).
+eu, acervo do corretor em `GET /api/imoveis/` e o Sair; ver "Grupo acervo" abaixo); `situacao` (Fase 9: detalhe de
+gestão, POST de mudança de situação, histórico, as recusas 400/403 e o 404 de outra empresa no detalhe e no
+histórico; ver "Grupo situacao" abaixo); `todos` = `lista`, `detalhe`, `contato`, `perfis`, `anunciante`, `acervo` e
+`situacao`, nessa ordem. ATENÇÃO: `todos` reescreve as fixtures da lista e do detalhe (as URLs de foto mudam a cada
+banco novo); para acrescentar só um grupo rode `--grupo contato`, `--grupo perfis`, `--grupo anunciante`,
+`--grupo acervo` ou `--grupo situacao` (nunca `todos`).
 ATENÇÃO: cada POST de contato grava um Contato no banco do servidor; por isso o grupo `contato` só roda
 contra o SQLite temporário abaixo, NUNCA contra o banco do Web/.env.
 Sai com código 1 (e mensagem em português) quando alguma resposta esperada não é produzida.
@@ -74,6 +76,27 @@ Grupo acervo (credenciais NUNCA entram em arquivo: só por variável de ambiente
   Redação do token: o 200 do login é gravado com o valor de `token` trocado por 40 zeros, depois de
   conferir que a resposta tinha exatamente a chave `token`; a chave real fica só em memória e é
   revogada no fim (Sair). Não há fixture de 429 (não é capturável de forma determinística).
+
+Grupo situacao (Fase 9; credenciais também só por variável de ambiente):
+
+  Variáveis: CAPTURA_EMAIL_CORRETOR e CAPTURA_SENHA_CORRETOR (corretor da empresa demo) e
+  CAPTURA_EMAIL_OUTRA_EMPRESA e CAPTURA_SENHA_OUTRA_EMPRESA (corretor da segunda empresa, do `seed_demo`).
+  O grupo LÊ as fixtures do acervo já versionadas (`acervo_p1`, `acervo_busca`, `acervo_outra_empresa`): rode
+  antes o grupo `acervo` num banco novo semeado na mesma ordem (`migrate` -> `semear_vitrine_dev` -> `seed_demo`),
+  porque os ids precisam bater (a ferramenta confere ao vivo e para se não bater).
+  O POST de situação GRAVA no banco do servidor (RESERVADO no imóvel alvo): só rode contra o SQLite temporário.
+  O grupo prova ao vivo o 404 de outra empresa no detalhe E no histórico (mesmo corpo `{detail}`, IDOR).
+
+  Procedimento com o código da `origin/main` (o clone do web pode estar em qualquer branch, D-19; nada é escrito
+  no clone nem exigido dele):
+    CLONE=/caminho/do/clone/imoveis-aqui; PY="$CLONE/Web/.venv/bin/python"
+    EXTRACAO="$(mktemp -d "${TMPDIR:-/tmp}/imoveis-main-09.XXXXXX")"
+    git -C "$CLONE" archive origin/main Web | tar -x -C "$EXTRACAO"
+  Em "$EXTRACAO/Web", com DEBUG=True DJANGO_SECRET_KEY=captura-local DATABASE_URL="sqlite:///$EXTRACAO/captura.sqlite3":
+    migrate --noinput; semear_vitrine_dev; seed_demo (nessa ordem); defina a senha descartável do corretor demo
+    com `manage.py shell -c` lendo `os.environ`; suba `runserver 127.0.0.1:8000 --noreload` e rode, na raiz do
+    app, `python3 tool/capturar_fixtures_api.py http://127.0.0.1:8000 test/fixtures/api --grupo situacao`.
+  No fim: encerre o servidor, confira a porta 8000 livre, apague "$EXTRACAO" e limpe as variáveis CAPTURA_*.
 """
 
 import argparse
@@ -467,6 +490,196 @@ def capturar_acervo(base, pasta):
     print("  Sair conferido (204 e a mesma chave passou a dar 401)")
 
 
+CHAVES_LIDAS_DO_IMOVEL = (
+    "id",
+    "codigo",
+    "titulo",
+    "finalidade",
+    "preco_venda",
+    "preco_aluguel",
+    "situacao",
+    "situacao_desde",
+    "pode_mudar_situacao",
+)
+CHAVES_DO_HISTORICO = (
+    "id",
+    "situacao_anterior",
+    "situacao_nova",
+    "alterado_por",
+    "alterado_em",
+    "observacao",
+)
+OBSERVACAO_DA_CAPTURA = "Reservado na conversa com o cliente."
+
+
+def _ler_fixture(pasta, nome):
+    """Lê <pasta>/<nome>.json já versionado; sem ele a captura do grupo para."""
+    caminho = pasta / f"{nome}.json"
+    if not caminho.is_file():
+        raise ErroCaptura(f"falta {caminho}; rode antes o grupo acervo.")
+    return json.loads(caminho.read_text(encoding="utf-8"))
+
+
+def _exigir_chaves(dados, chaves, descricao):
+    """Exige que `dados` seja um objeto com todas as `chaves`."""
+    if not isinstance(dados, dict):
+        raise ErroCaptura(f"{descricao} deveria ser um objeto.")
+    faltando = [chave for chave in chaves if chave not in dados]
+    if faltando:
+        raise ErroCaptura(f"{descricao} sem as chaves {faltando}.")
+
+
+def _exigir_detail(corpo, descricao):
+    """Exige o corpo `{detail}` (recusa 403/404 do DRF)."""
+    if not isinstance(corpo, dict) or set(corpo) != {"detail"} or not corpo["detail"]:
+        raise ErroCaptura(f"{descricao} deveria ter exatamente a chave `detail`: {corpo!r}.")
+
+
+def capturar_situacao(base, pasta):
+    """Wire da mudança de situação: detalhe, POST, histórico, recusas e 404 de outra empresa.
+
+    O POST grava no banco do servidor: só rode contra o SQLite temporário.
+    """
+    imoveis = f"{base}/api/imoveis/"
+    auth = f"{base}/api/auth"
+
+    p1 = _ler_fixture(pasta, "acervo_p1")["results"][0]
+    if not p1.get("meu_imovel") or p1.get("situacao") != "DISPONIVEL":
+        raise ErroCaptura("o primeiro item de acervo_p1 deveria ser meu_imovel e DISPONIVEL.")
+    alvo = p1["id"]
+    alheio_item = _ler_fixture(pasta, "acervo_busca")["results"][0]
+    if alheio_item.get("meu_imovel"):
+        raise ErroCaptura("o item de acervo_busca deveria ser de outro corretor (meu_imovel falso).")
+    alheio = alheio_item["id"]
+    contrato_item = next(
+        (i for i in _ler_fixture(pasta, "acervo_outra_empresa")["results"] if i.get("codigo") == "DEMO-CASA-01"),
+        None,
+    )
+    if contrato_item is None:
+        raise ErroCaptura("acervo_outra_empresa não traz o imóvel DEMO-CASA-01.")
+    contrato = contrato_item["id"]
+    print(f"  alvo = id {alvo}, alheio = id {alheio}, contrato assinado = id {contrato}")
+
+    token = _entrar(base, "CAPTURA_EMAIL_CORRETOR", "CAPTURA_SENHA_CORRETOR")
+
+    primeira = obter(imoveis, token=token)["results"][0]
+    if primeira.get("id") != alvo or primeira.get("codigo") != p1["codigo"]:
+        raise ErroCaptura(
+            "os ids do banco não batem com acervo_p1/acervo_busca; recrie o banco na ordem "
+            "migrate → semear_vitrine_dev → seed_demo."
+        )
+    busca = obter(
+        f"{imoveis}?{urllib.parse.urlencode({'busca': alheio_item['codigo']})}", token=token
+    )
+    if [i["id"] for i in busca.get("results", [])] != [alheio]:
+        raise ErroCaptura(
+            "os ids do banco não batem com acervo_p1/acervo_busca; recrie o banco na ordem "
+            "migrate → semear_vitrine_dev → seed_demo."
+        )
+
+    # só confere: sem token a escrita é recusada (o corpo do 401 já está em erro_401.json)
+    sem_token = postar(f"{imoveis}{alvo}/situacao/", {"situacao": "RESERVADO"}, status_esperado=401)
+    if not isinstance(sem_token, dict) or "detail" not in sem_token:
+        raise ErroCaptura("o 401 do POST de situação deveria trazer `detail`.")
+
+    disponivel = obter(f"{imoveis}{alvo}/", token=token)
+    _exigir_chaves(disponivel, CHAVES_LIDAS_DO_IMOVEL, "o detalhe do imóvel")
+    if disponivel["pode_mudar_situacao"] is not True or disponivel["situacao"] != "DISPONIVEL":
+        raise ErroCaptura("o detalhe do alvo deveria ser DISPONIVEL com pode_mudar_situacao verdadeiro.")
+    salvar(pasta, "imovel_gestao_disponivel", disponivel)
+
+    vazio = obter(f"{imoveis}{alvo}/historico/", token=token)
+    if vazio != []:
+        raise ErroCaptura("o histórico do alvo deveria começar vazio (banco recém-semeado).")
+    salvar(pasta, "historico_vazio", vazio)
+
+    corpo = {"situacao": "RESERVADO", "observacao": OBSERVACAO_DA_CAPTURA}
+    mudou = postar(f"{imoveis}{alvo}/situacao/", corpo, token=token, status_esperado=200)
+    _exigir_chaves(mudou, CHAVES_LIDAS_DO_IMOVEL, "o 200 da mudança de situação")
+    if mudou["situacao"] != "RESERVADO":
+        raise ErroCaptura("o 200 da mudança deveria trazer situacao RESERVADO.")
+    salvar(pasta, "situacao_200", mudou)
+
+    reservado = obter(f"{imoveis}{alvo}/", token=token)
+    _exigir_chaves(reservado, CHAVES_LIDAS_DO_IMOVEL, "o detalhe relido")
+    if reservado["situacao"] != "RESERVADO":
+        raise ErroCaptura("o detalhe relido deveria estar RESERVADO.")
+    if reservado["situacao_desde"] == disponivel["situacao_desde"]:
+        raise ErroCaptura("situacao_desde deveria mudar depois da mudança de situação.")
+    salvar(pasta, "imovel_gestao_reservado", reservado)
+
+    historico = obter(f"{imoveis}{alvo}/historico/", token=token)
+    if not isinstance(historico, list) or len(historico) != 1:
+        raise ErroCaptura("o histórico do alvo deveria ter exatamente 1 item depois da mudança.")
+    item = historico[0]
+    if set(item) != set(CHAVES_DO_HISTORICO):
+        raise ErroCaptura(f"o item do histórico deveria ter as chaves {sorted(CHAVES_DO_HISTORICO)}: {sorted(item)}.")
+    if (
+        item["situacao_anterior"] != "DISPONIVEL"
+        or item["situacao_nova"] != "RESERVADO"
+        or item["observacao"] != OBSERVACAO_DA_CAPTURA
+    ):
+        raise ErroCaptura("o item do histórico deveria ser DISPONIVEL → RESERVADO com a observação enviada.")
+    salvar(pasta, "historico_um_item", historico)
+
+    mesma = postar(f"{imoveis}{alvo}/situacao/", {"situacao": "RESERVADO"}, token=token, status_esperado=400)
+    if (
+        not isinstance(mesma, dict)
+        or set(mesma) != {"situacao"}
+        or not isinstance(mesma["situacao"], list)
+        or not mesma["situacao"]
+    ):
+        raise ErroCaptura(f"o 400 de mesma situação deveria ser {{situacao: [...]}}: {mesma!r}.")
+    salvar(pasta, "erro_400_mesma_situacao", mesma)
+
+    sem_permissao = obter(f"{imoveis}{alheio}/", token=token)
+    _exigir_chaves(sem_permissao, CHAVES_LIDAS_DO_IMOVEL, "o detalhe do imóvel do colega")
+    if sem_permissao["pode_mudar_situacao"] is not False:
+        raise ErroCaptura("o imóvel do colega deveria ter pode_mudar_situacao falso.")
+    salvar(pasta, "imovel_gestao_sem_permissao", sem_permissao)
+
+    recusa = postar(f"{imoveis}{alheio}/situacao/", {"situacao": "RESERVADO"}, token=token, status_esperado=403)
+    _exigir_detail(recusa, "o 403 do colega")
+    salvar(pasta, "erro_403_situacao", recusa)
+
+    token_outra = _entrar(base, "CAPTURA_EMAIL_OUTRA_EMPRESA", "CAPTURA_SENHA_OUTRA_EMPRESA")
+    achado = obter(f"{imoveis}?{urllib.parse.urlencode({'busca': 'DEMO-CASA-01'})}", token=token_outra)
+    if [i["id"] for i in achado.get("results", [])] != [contrato]:
+        raise ErroCaptura(
+            "o id de DEMO-CASA-01 não bate com acervo_outra_empresa; recrie o banco na ordem "
+            "migrate → semear_vitrine_dev → seed_demo."
+        )
+    assinado = postar(
+        f"{imoveis}{contrato}/situacao/", {"situacao": "DISPONIVEL"}, token=token_outra, status_esperado=400
+    )
+    textos = assinado.get("situacao") if isinstance(assinado, dict) else None
+    if not textos or "contrato" not in " ".join(textos).lower():
+        raise ErroCaptura(f"o 400 do contrato assinado deveria citar o contrato: {assinado!r}.")
+    salvar(pasta, "erro_400_contrato_assinado", assinado)
+
+    do_contrato = obter(f"{imoveis}{contrato}/historico/", token=token_outra)
+    if not isinstance(do_contrato, list) or not do_contrato:
+        raise ErroCaptura("o histórico do imóvel com contrato deveria ser uma lista não vazia.")
+    salvar(pasta, "historico_contrato", do_contrato)
+
+    # IDOR entre empresas (T-09-02): o imóvel ALVO é da empresa demo, o token é da outra
+    nao_acha = obter(f"{imoveis}{alvo}/", status_esperado=404, token=token_outra)
+    _exigir_detail(nao_acha, "o 404 do detalhe de outra empresa")
+    salvar(pasta, "erro_404_imovel", nao_acha)
+    nao_acha_historico = obter(f"{imoveis}{alvo}/historico/", status_esperado=404, token=token_outra)
+    _exigir_detail(nao_acha_historico, "o 404 do histórico de outra empresa")
+    if nao_acha_historico != nao_acha:
+        raise ErroCaptura("o histórico de outra empresa não respondeu como o detalhe.")
+    salvar(pasta, "erro_404_historico", nao_acha_historico)
+    # só confere (não salva): a escrita também não distingue "existe" de "não existe"
+    postar(f"{imoveis}{alvo}/situacao/", {"situacao": "DISPONIVEL"}, token=token_outra, status_esperado=404)
+
+    # só confere: revoga as duas chaves
+    postar(f"{auth}/sair/", {}, token=token, status_esperado=204)
+    postar(f"{auth}/sair/", {}, token=token_outra, status_esperado=204)
+    print("  Sair conferido nas duas chaves")
+
+
 GRUPOS = {
     "lista": capturar_lista,
     "detalhe": capturar_detalhe,
@@ -474,6 +687,7 @@ GRUPOS = {
     "perfis": capturar_perfis,
     "anunciante": capturar_anunciante,
     "acervo": capturar_acervo,
+    "situacao": capturar_situacao,
 }
 
 
@@ -485,10 +699,10 @@ def main():
     analisador.add_argument("pasta_saida", nargs="?", default="test/fixtures/api")
     analisador.add_argument(
         "--grupo",
-        choices=["lista", "detalhe", "contato", "perfis", "anunciante", "acervo", "todos"],
+        choices=["lista", "detalhe", "contato", "perfis", "anunciante", "acervo", "situacao", "todos"],
         default="todos",
-        help="`lista` (lista e opções), `detalhe`, `contato` (POST de contato), `perfis`, `anunciante`, `acervo` "
-        "ou `todos` (os seis, nessa ordem; nunca use `todos` só para acrescentar um grupo).",
+        help="`lista` (lista e opções), `detalhe`, `contato` (POST de contato), `perfis`, `anunciante`, `acervo`, "
+        "`situacao` (mudança de situação, Fase 9; grava no banco) ou `todos` (os sete, nessa ordem; nunca use `todos` só para acrescentar um grupo).",
     )
     argumentos = analisador.parse_args()
 

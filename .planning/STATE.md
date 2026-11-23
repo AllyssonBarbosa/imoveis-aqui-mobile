@@ -1,19 +1,19 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 1
-current_phase_name: Localização, Escolha de Cidade e Contrato da API
+current_phase: 09
+current_phase_name: Mudança de Situação do Imóvel pelo App (APP 09)
 status: verifying
-stopped_at: Phase 08 complete, ready to verify Phase 1
-last_updated: "2026-11-22T12:00:00.000Z"
+stopped_at: Completed 09-13-PLAN.md
+last_updated: "2026-11-22T19:33:01.487Z"
 last_activity: 2026-11-22
-last_activity_desc: Merged origin/main (Phases 7, 07.1, 8) into feat/APP06 (Phase 6 complete)
-state_head: 6d141f8673d4e339425c24a261ce393f1a75cb9c
+last_activity_desc: Phase 09 execution started
+state_head: 551e430bd061731154c43cea6f0e687b4de58e65
 progress:
-  total_phases: 9
-  completed_phases: 3
-  total_plans: 84
-  completed_plans: 84
-  percent: 33
+  total_phases: 10
+  completed_phases: 0
+  total_plans: 97
+  completed_plans: 97
+  percent: 0
 ---
 
 # Project State
@@ -23,16 +23,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-11-21)
 
 **Core value:** A vitrine do app abre na cidade do usuário e mostra imóveis reais vindos da API, com a busca e o filtro resolvidos no servidor — o mesmo dado e a mesma regra do site, nunca recalculados dentro do aparelho.
-**Current focus:** Phase 1 — Localização, Escolha de Cidade e Contrato da API (verificação pendente)
+**Current focus:** Phase 09 — Mudança de Situação do Imóvel pelo App (APP 09)
 
 ## Current Position
 
-Phase: 1 — Localização, Escolha de Cidade e Contrato da API
-Plan: 4
+Phase: 09 (Mudança de Situação do Imóvel pelo App (APP 09)) — EXECUTING
+Plan: 13 of 13
 Status: Phase complete — ready for verification
-Last activity: 2026-11-22 — Merged origin/main (Phases 7, 07.1, 8) into feat/APP06 (Phase 6 complete)
+Last activity: 2026-11-22 — Phase 09 execution started
 
-Progress: [████████████████████] 72/72 plans ([███░░░░░░░] 33%)
+Progress: [████████████████████] 72/72 plans ([░░░░░░░░░░] 0%)
 
 ## Performance Metrics
 
@@ -127,6 +127,19 @@ Progress: [████████████████████] 72/72 p
 | Phase 08 P10 | 17min | 2 tasks | 14 files |
 | Phase 08 P11 | 22min | 2 tasks | 14 files |
 | Phase 08 P12 | 25min | 2 tasks | 6 files |
+| Phase 09 P01 | 10 min | 2 tasks | 17 files |
+| Phase 09 P02 | 5min | 2 tasks | 2 files |
+| Phase 09 P03 | 5 min | 2 tasks | 3 files |
+| Phase 9 P04 | 3 min | 2 tasks | 13 files |
+| Phase 9 P05 | 5 min | 2 tasks | 14 files |
+| Phase 09 P06 | 5 min | 2 tasks | 14 files |
+| Phase 09 P07 | 12 min | 2 tasks | 14 files |
+| Phase 09 P08 | 40 min | 2 tasks | 10 files |
+| Phase 09 P09 | 3 min | 2 tasks | 11 files |
+| Phase 09 P10 | 25min | 2 tasks | 14 files |
+| Phase 09 P11 | 5 min | 2 tasks | 4 files |
+| Phase 09 P12 | 31 min | 2 tasks | 9 files |
+| Phase 09 P13 | 30 min | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -203,6 +216,22 @@ Recent decisions affecting current work:
 - [Phase 08]: 08-11: sem acaoSessao a VitrineScreen mantem o SeletorCidadeTopo como filho direto da Column; so com a acao ele entra numa Row com Expanded
 - [Phase 08]: 08-11: SessaoCubit carregado sem await no initState de ImoveisAquiApp e provido acima do MaterialApp (AC-6)
 - [Phase 08]: 08-12: pilha real dos fluxos ponta a ponta montada num helper compartilhado (test/support/pilha_real.dart) trocando so os dois Dio e o ArmazenamentoToken
+- [Phase 09]: 09-01: wire da mudança de situação capturado do Django da origin/main 8bf4448 por git archive (clone da web intacto); 404 de outra empresa igual no detalhe, no histórico e no POST (T-09-02); limite de 500 da observação registrado no §16.6 como D-17, limite no servidor PENDENTE WEB (L8)
+- [Phase 09]: 09-02: rotas do corretor travadas por testes de caracterização na feat/APP09 do worktree da web (c02a506), sem código de produção
+- [Phase 09]: 09-03: mapa único código → enum em data/models/codigos_imovel_api.dart (finalidadeDoCodigo, situacaoDoCodigo); gestão (09-04) e histórico (09-06) leem por ele; ida e volta com codigoDaSituacao travada por teste
+- [Phase 9]: 09-04: 404 da leitura do imóvel de gestão reaproveita ImovelNaoEncontradoException; falhas genéricas viram FalhaDeConexaoException sem carregar o erro original — O detail em inglês do Django e corpos de 5xx nunca chegam à apresentação (T-09-05)
+- [Phase 9]: 09-05: abrirGestaoImovel é dono do Cubit (cria, carrega, push, close sem try/finally); título da AppBar = código do imóvel; todo cartão do acervo abre a gestão (D-02, supera ACV-04) — O servidor decide na_vitrine; o app não filtra o toque. A guarda de versão e o isClosed do GestaoImovelCubit foram provados por mutação, pois a Task 2 nasceu sem RED
+- [Phase 09]: 09-06: obterHistorico devolve List.unmodifiable na ordem do servidor; guarda de FormatException (corpo não-lista, item não-objeto) no DataSource; toString de MudancaSituacao sem nome/observação (T-09-06)
+- [Phase 09]: 09-07: retry do histórico com token próprio (_versaoHistorico) que também confere a versão da carga; Future.wait sobre imóvel e histórico com um único emit — Uma carga nova vence uma repetição antiga sem invalidar a leitura do imóvel em voo
+- [Phase 09]: 09-08: 401 em qualquer leitura (inclusive repetição do histórico) leva a tela de gestão toda para sessão expirada; helper único voltarAoLoginComSessaoTerminada compartilhado com o acervo — D-10, T-09-08
+- [Phase 09]: 09-08: recarregar() mantém o conteúdo numa falha e conta falhasAoAtualizar (SnackBar); GestaoImovelScreen virou StatefulWidget para tratar 401 que chega antes do primeiro quadro — AC-2, D-10
+- [Phase 09]: 09-09: ramo 400/403 no _executar compartilhado; recusa sem texto vira FalhaDeConexaoException; corte em 300 + reticências — Mensagem do servidor só para exibir (D-10); corpo sem texto não vira recusa vazia
+- [Phase 09]: 09-10: SnackBar usa a situação escolhida aceita com 200; a tela só muda pela releitura (registrarMudanca = mudou + recarregar)
+- [Phase 09]: 09-10: GestaoImovelCubit.carregar preserva mudou para que Ver na vitrine não volte após Tentar de novo (D-18)
+- [Phase 09]: 09-11: limite de 500 caracteres na observação só na interface (D-17); servidor não limita — Decisão do usuário, exceção à D-06, proteção T-09-09
+- [Phase 09]: 09-11: alça de arrasto da folha de mudança desligada (showDragHandle e enableDrag falsos) — A alça fecharia por Navigator.pop fora do PopScope, que segura o envio (T-09-07)
+- [Phase 09]: 09-12: só a recusa 400/403 exibe texto do servidor (texto simples, 6 linhas); 404 e rede/5xx com texto fixo; sem reenvio automático; 401 no envio volta ao login pelo helper único
+- [Phase 09]: 09-13: abrirGestaoImovel devolve o mudou lido do Cubit depois do push (cobre AppBar, botão do sistema e gesto do iOS); acervo chama recarregar() só com true — Botão voltar do sistema e gesto do iOS não passam resultado pelo pop; a tela não usa PopScope (desligaria o gesto do iOS)
 
 ### Pending Todos
 
@@ -228,6 +257,7 @@ None yet.
 - Phase 7 added: Perfis Públicos da Empresa e do Corretor (card APP 07); número 7 escolhido para casar com o card — fase 6 reservada ao APP 06
 - Phase 07.1 inserted after Phase 7: Integração da APP-07 com a API real (merge da APP-05, perfis na API real, endpoint da vitrine do anunciante no Django) (URGENT)
 - Phase 8 added: Login e Área do Corretor — o Acervo (card APP 08, tarefa A08)
+- Phase 9 added: Mudança de Situação do Imóvel pelo App (card APP 09, tarefa A09) — card do Kanban copiado para `../APP 09 · Mudança de situação do imóvel pelo app.md` (2026-11-22); depende da WEB 08
 
 ## Deferred Items
 
@@ -239,6 +269,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-21T22:40:00Z
-Stopped at: Phase 08 complete, ready to verify Phase 1
+Last session: 2026-11-22T19:33:01.403Z
+Stopped at: Completed 09-13-PLAN.md
 Resume file: None

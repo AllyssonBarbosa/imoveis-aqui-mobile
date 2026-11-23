@@ -114,8 +114,16 @@ class _Falha {
 /// (senão 401 com `erro_401.json`). O acervo do corretor (`GET /api/imoveis/`)
 /// também exige o token (senão 401) e serve `acervo_p1.json` (`acervo_p2.json`
 /// com `page=2`, `acervo_busca.json` com `busca` não vazia e
-/// `acervo_situacao_vazia.json` com `situacao=VENDIDO`). O contato (`POST /api/publico/imoveis/<id>/contato/`)
-/// responde 201 com `contato_201_<canal>.json` quando o `canal` do corpo está em
+/// `acervo_situacao_vazia.json` com `situacao=VENDIDO`). O imóvel de gestão
+/// (`GET /api/imoveis/<id>/`) também exige o token (senão 401) e serve o
+/// primeiro `imovel_gestao_*.json` (ordem alfabética) cujo `id` bate, senão 404
+/// com `erro_404_imovel.json`. O histórico de situações
+/// (`GET /api/imoveis/<id>/historico/`) também exige o token (senão 401) e serve
+/// `historico_vazio.json` (os testes trocam por `responder`). A mudança de
+/// situação (`POST /api/imoveis/<id>/situacao/`) responde 405 fora do POST, 401
+/// sem token e 200 `situacao_200.json` com token. O contato
+/// (`POST /api/publico/imoveis/<id>/contato/`) responde 201 com
+/// `contato_201_<canal>.json` quando o `canal` do corpo está em
 /// `canais_contato` do detalhe do id, 400 com `erro_400_canal_contato.json`
 /// quando não está, 404 para id fora das fixtures e 405 para outro método.
 /// Rota ainda não servida responde 404 com um objeto JSON vazio.
@@ -277,6 +285,31 @@ class ApiFalsa {
       }
       return _corpoJson(lerFixtureApi(fixture), 200);
     }
+    final idDoHistorico = _idDoHistoricoDeImovel(uri.path);
+    if (idDoHistorico != null && opcoes.method == 'GET') {
+      return _temToken(opcoes)
+          ? _corpoJson(lerFixtureApi('historico_vazio.json'), 200)
+          : _corpoJson(lerFixtureApi('erro_401.json'), 401);
+    }
+    final idDaSituacao = _idDaSituacaoDeImovel(uri.path);
+    if (idDaSituacao != null) {
+      if (opcoes.method != 'POST') {
+        return _corpoJson(const <String, Object?>{}, 405);
+      }
+      return _temToken(opcoes)
+          ? _corpoJson(lerFixtureApi('situacao_200.json'), 200)
+          : _corpoJson(lerFixtureApi('erro_401.json'), 401);
+    }
+    final idDaGestao = _idDoImovelDeGestao(uri.path);
+    if (idDaGestao != null && opcoes.method == 'GET') {
+      if (!_temToken(opcoes)) {
+        return _corpoJson(lerFixtureApi('erro_401.json'), 401);
+      }
+      final fixture = _fixtureDaGestao(idDaGestao);
+      return fixture == null
+          ? _corpoJson(lerFixtureApi('erro_404_imovel.json'), 404)
+          : _corpoJson(lerFixtureApi(fixture), 200);
+    }
     final idDoDetalhe = _idDoDetalheDeImovel(uri.path);
     if (idDoDetalhe != null) {
       final fixture = _fixtureDoDetalhe(idDoDetalhe);
@@ -366,6 +399,53 @@ class ApiFalsa {
         .firstMatch(caminho);
     if (casamento == null) return null;
     return int.parse(casamento.group(1)!);
+  }
+
+  /// Id do imóvel de `/api/imoveis/<id>/` (rota autenticada da gestão), ou nulo
+  /// se [caminho] não é essa rota.
+  int? _idDoImovelDeGestao(String caminho) {
+    final casamento = RegExp(r'^/api/imoveis/(\d+)/$').firstMatch(caminho);
+    if (casamento == null) return null;
+    return int.parse(casamento.group(1)!);
+  }
+
+  /// Id do imóvel de `/api/imoveis/<id>/historico/` (rota autenticada do
+  /// histórico de situações), ou nulo se [caminho] não é essa rota.
+  int? _idDoHistoricoDeImovel(String caminho) {
+    final casamento = RegExp(r'^/api/imoveis/(\d+)/historico/$')
+        .firstMatch(caminho);
+    if (casamento == null) return null;
+    return int.parse(casamento.group(1)!);
+  }
+
+  /// Id do imóvel de `/api/imoveis/<id>/situacao/` (rota autenticada da
+  /// mudança de situação), ou nulo se [caminho] não é essa rota.
+  int? _idDaSituacaoDeImovel(String caminho) {
+    final casamento = RegExp(r'^/api/imoveis/(\d+)/situacao/$')
+        .firstMatch(caminho);
+    if (casamento == null) return null;
+    return int.parse(casamento.group(1)!);
+  }
+
+  /// Nome do `test/fixtures/api/imovel_gestao_*.json` capturado cujo `id` é
+  /// [id] (o primeiro na ordem alfabética), ou nulo se nenhum bate.
+  String? _fixtureDaGestao(int id) {
+    final arquivos =
+        Directory('test/fixtures/api')
+            .listSync()
+            .whereType<File>()
+            .map((arquivo) => arquivo.uri.pathSegments.last)
+            .where(
+              (nome) =>
+                  nome.startsWith('imovel_gestao_') && nome.endsWith('.json'),
+            )
+            .toList()
+          ..sort();
+    for (final nome in arquivos) {
+      final corpo = lerFixtureApi(nome);
+      if (corpo is Map<String, Object?> && corpo['id'] == id) return nome;
+    }
+    return null;
   }
 
   /// Id do imóvel de `/api/publico/imoveis/<id>/`, ou nulo se [caminho] não é

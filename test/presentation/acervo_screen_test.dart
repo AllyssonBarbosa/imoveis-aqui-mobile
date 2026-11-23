@@ -39,7 +39,8 @@ ImovelAcervo _imovel(int id, {bool naVitrine = true, bool meuImovel = true}) =>
 
 void main() {
   late _AcervoCubitFalso cubit;
-  late List<Imovel> abertos;
+  late List<ImovelAcervo> abertos;
+  late bool resultadoGestao;
 
   setUpAll(() {
     registerFallbackValue(SituacaoImovel.disponivel);
@@ -48,6 +49,8 @@ void main() {
   setUp(() {
     cubit = _AcervoCubitFalso();
     abertos = [];
+    resultadoGestao = false;
+    when(() => cubit.recarregar()).thenReturn(null);
     when(() => cubit.carregarMais()).thenAnswer((_) async {});
     when(() => cubit.tentarNovamente()).thenAnswer((_) async {});
     when(() => cubit.escolherSituacao(any())).thenAnswer((_) async {});
@@ -59,7 +62,10 @@ void main() {
       MaterialApp(
         home: AcervoScreen(
           criarCubit: () => cubit,
-          aoAbrirImovel: (context, imovel) async => abertos.add(imovel),
+          aoAbrirGestao: (context, imovel) async {
+            abertos.add(imovel);
+            return resultadoGestao;
+          },
         ),
       ),
     );
@@ -270,8 +276,8 @@ void main() {
     });
   });
 
-  group('toque no cartão (D-07)', () {
-    testWidgets('naVitrine chama aoAbrirImovel com a prévia do item', (
+  group('toque no cartão (D-02 da Fase 9)', () {
+    testWidgets('naVitrine chama aoAbrirGestao com o ImovelAcervo do item', (
       tester,
     ) async {
       await montar(tester, carregada([_imovel(7)]));
@@ -280,15 +286,45 @@ void main() {
 
       expect(abertos, hasLength(1));
       expect(abertos.single.id, 7);
-      expect(abertos.single.titulo, 'Imóvel 7');
+      expect(abertos.single.codigo, 'DEV-7');
+      expect(abertos.single.naVitrine, isTrue);
     });
 
-    testWidgets('sem naVitrine nada acontece', (tester) async {
+    testWidgets('sem naVitrine também chama aoAbrirGestao com o item', (
+      tester,
+    ) async {
       await montar(tester, carregada([_imovel(8, naVitrine: false)]));
 
       await tester.tap(find.byType(CartaoImovelAcervo));
 
-      expect(abertos, isEmpty);
+      expect(abertos, hasLength(1));
+      expect(abertos.single.id, 8);
+      expect(abertos.single.codigo, 'DEV-8');
+      expect(abertos.single.naVitrine, isFalse);
+    });
+  });
+
+  group('volta da gestão (D-12)', () {
+    testWidgets('gestão devolvendo true: recarregar() uma vez', (tester) async {
+      resultadoGestao = true;
+      await montar(tester, carregada([_imovel(7)]));
+
+      await tester.tap(find.byType(CartaoImovelAcervo));
+      await tester.pump();
+
+      verify(() => cubit.recarregar()).called(1);
+    });
+
+    testWidgets('gestão devolvendo false: nenhuma chamada nova ao Cubit', (
+      tester,
+    ) async {
+      resultadoGestao = false;
+      await montar(tester, carregada([_imovel(7)]));
+
+      await tester.tap(find.byType(CartaoImovelAcervo));
+      await tester.pump();
+
+      verifyNever(() => cubit.recarregar());
     });
   });
 
@@ -328,7 +364,7 @@ void main() {
                     MaterialPageRoute<void>(
                       builder: (_) => AcervoScreen(
                         criarCubit: () => cubit,
-                        aoAbrirImovel: (context, imovel) async {},
+                        aoAbrirGestao: (context, imovel) async => false,
                       ),
                     ),
                   ),
@@ -367,7 +403,7 @@ void main() {
                             MaterialPageRoute<void>(
                               builder: (_) => AcervoScreen(
                                 criarCubit: () => cubit,
-                                aoAbrirImovel: (context, imovel) async {},
+                                aoAbrirGestao: (context, imovel) async => false,
                               ),
                             ),
                           ),

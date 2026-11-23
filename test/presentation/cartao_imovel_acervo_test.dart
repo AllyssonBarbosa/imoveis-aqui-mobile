@@ -140,7 +140,7 @@ void main() {
     });
   });
 
-  group('toque (D-07)', () {
+  group('toque (D-02 da Fase 9)', () {
     testWidgets('naVitrine: tocar chama aoTocar uma vez', (tester) async {
       var toques = 0;
       await montar(tester, _imovel(naVitrine: true), aoTocar: () => toques++);
@@ -150,7 +150,7 @@ void main() {
       expect(toques, 1);
     });
 
-    testWidgets('sem naVitrine: não há InkWell e tocar não chama nada', (
+    testWidgets('sem naVitrine: tocar também chama aoTocar uma vez', (
       tester,
     ) async {
       var toques = 0;
@@ -161,22 +161,26 @@ void main() {
           of: find.byType(CartaoImovelAcervo),
           matching: find.byType(InkWell),
         ),
-        findsNothing,
+        findsOneWidget,
       );
       await tester.tap(find.byType(CartaoImovelAcervo));
-      expect(toques, 0);
+      expect(toques, 1);
     });
 
-    testWidgets('naVitrine sem aoTocar não tem InkWell', (tester) async {
-      await montar(tester, _imovel(naVitrine: true));
+    for (final naVitrine in [true, false]) {
+      testWidgets('sem aoTocar não tem InkWell (naVitrine: $naVitrine)', (
+        tester,
+      ) async {
+        await montar(tester, _imovel(naVitrine: naVitrine));
 
-      expect(
-        find.descendant(
-          of: find.byType(CartaoImovelAcervo),
-          matching: find.byType(InkWell),
-        ),
-        findsNothing,
-      );
-    });
+        expect(
+          find.descendant(
+            of: find.byType(CartaoImovelAcervo),
+            matching: find.byType(InkWell),
+          ),
+          findsNothing,
+        );
+      });
+    }
   });
 }
