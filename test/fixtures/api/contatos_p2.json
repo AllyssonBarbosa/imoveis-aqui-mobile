@@ -1,0 +1,77 @@
+{
+  "count": 25,
+  "next": null,
+  "previous": "http://127.0.0.1:8000/api/contatos/",
+  "results": [
+    {
+      "id": 6,
+      "imovel": 35,
+      "imovel_codigo": "DEV-INDAIATUBA-03",
+      "imovel_titulo": "Terreno no bairro Centro",
+      "corretor": 1,
+      "corretor_nome": "Corretor Vitrine Demo",
+      "canal": "TELEFONE",
+      "canal_exibicao": "Telefone",
+      "criado_em": "2026-11-23T19:43:36.946021-03:00",
+      "retorno": "PENDENTE",
+      "retorno_exibicao": "Aguardando retorno",
+      "retorno_em": null
+    },
+    {
+      "id": 5,
+      "imovel": 36,
+      "imovel_codigo": "DEV-INDAIATUBA-04",
+      "imovel_titulo": "Lote no bairro Jardim Esplanada",
+      "corretor": 1,
+      "corretor_nome": "Corretor Vitrine Demo",
+      "canal": "TELEFONE",
+      "canal_exibicao": "Telefone",
+      "criado_em": "2026-11-23T19:43:36.928403-03:00",
+      "retorno": "PENDENTE",
+      "retorno_exibicao": "Aguardando retorno",
+      "retorno_em": null
+    },
+    {
+      "id": 4,
+      "imovel": 34,
+      "imovel_codigo": "DEV-INDAIATUBA-02",
+      "imovel_titulo": "Apartamento no bairro Jardim Esplanada",
+      "corretor": 1,
+      "corretor_nome": "Corretor Vitrine Demo",
+      "canal": "WHATSAPP",
+      "canal_exibicao": "WhatsApp",
+      "criado_em": "2026-11-23T19:43:36.910927-03:00",
+      "retorno": "PENDENTE",
+      "retorno_exibicao": "Aguardando retorno",
+      "retorno_em": null
+    },
+    {
+      "id": 3,
+      "imovel": 35,
+      "imovel_codigo": "DEV-INDAIATUBA-03",
+      "imovel_titulo": "Terreno no bairro Centro",
+      "corretor": 1,
+      "corretor_nome": "Corretor Vitrine Demo",
+      "canal": "WHATSAPP",
+      "canal_exibicao": "WhatsApp",
+      "criado_em": "2026-11-23T19:43:36.892581-03:00",
+      "retorno": "PENDENTE",
+      "retorno_exibicao": "Aguardando retorno",
+      "retorno_em": null
+    },
+    {
+      "id": 2,
+      "imovel": 36,
+      "imovel_codigo": "DEV-INDAIATUBA-04",
+      "imovel_titulo": "Lote no bairro Jardim Esplanada",
+      "corretor": 1,
+      "corretor_nome": "Corretor Vitrine Demo",
+      "canal": "WHATSAPP",
+      "canal_exibicao": "WhatsApp",
+      "criado_em": "2026-11-23T19:43:36.870580-03:00",
+      "retorno": "PENDENTE",
+      "retorno_exibicao": "Aguardando retorno",
+      "retorno_em": null
+    }
+  ]
+}

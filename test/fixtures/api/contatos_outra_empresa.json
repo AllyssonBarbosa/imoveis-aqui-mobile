@@ -1,0 +1,21 @@
+{
+  "count": 1,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": 1,
+      "imovel": 37,
+      "imovel_codigo": "DEMO-CASA-01",
+      "imovel_titulo": "Casa de demonstração com 3 quartos",
+      "corretor": 5,
+      "corretor_nome": "Corretor Demo",
+      "canal": "TELEFONE",
+      "canal_exibicao": "Telefone",
+      "criado_em": "2026-11-23T19:43:22.386629-03:00",
+      "retorno": "PENDENTE",
+      "retorno_exibicao": "Aguardando retorno",
+      "retorno_em": null
+    }
+  ]
+}
