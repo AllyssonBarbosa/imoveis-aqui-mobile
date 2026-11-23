@@ -151,6 +151,8 @@ import 'package:imoveis_aqui/presentation/acervo/acervo_cubit.dart' as _i587;
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_cubit.dart'
     as _i765;
 import 'package:imoveis_aqui/presentation/contato/contato_cubit.dart' as _i959;
+import 'package:imoveis_aqui/presentation/contatos/caixa_contatos_cubit.dart'
+    as _i157;
 import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_cubit.dart'
     as _i331;
 import 'package:imoveis_aqui/presentation/login/login_cubit.dart' as _i81;
@@ -413,6 +415,12 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i490.EntradaAreaCubit>(
       () => _i490.EntradaAreaCubit(gh<_i396.ObterPapelUseCase>()),
+    );
+    gh.factory<_i157.CaixaContatosCubit>(
+      () => _i157.CaixaContatosCubit(
+        gh<_i760.BuscarContatosUseCase>(),
+        gh<_i943.ObterSemRetornoUseCase>(),
+      ),
     );
     gh.lazySingleton<_i231.SessaoCubit>(
       () => _i231.SessaoCubit(

@@ -34,7 +34,10 @@ void main() {
   late _ObterSemRetornoFalso obterSemRetorno;
 
   final itensPagina1 = [_contato(1), _contato(2)];
-  final pagina1 = PaginaContatos(itens: itensPagina1, proximaPagina: 'pagina-2');
+  final pagina1 = PaginaContatos(
+    itens: itensPagina1,
+    proximaPagina: 'pagina-2',
+  );
   final pagina2 = PaginaContatos(itens: [_contato(2), _contato(3)]);
   final paginaVazia = PaginaContatos(itens: const []);
   final periodo = PeriodoContatos(
@@ -58,7 +61,8 @@ void main() {
   }
 
   void resumoResponde(int numero) {
-    when(() => obterSemRetorno()).thenAnswer((_) async => Result.success(numero));
+    when(() => obterSemRetorno())
+        .thenAnswer((_) async => Result.success(numero));
   }
 
   /// Deixa a fila de microtarefas esvaziar (as respostas dos falsos são
@@ -126,7 +130,8 @@ void main() {
     blocTest<CaixaContatosCubit, CaixaContatosState>(
       'lista vazia com filtro na consulta emite semResultado',
       build: construir,
-      seed: () => CaixaContatosState(consulta: ConsultaContatos(periodo: periodo)),
+      seed: () =>
+          CaixaContatosState(consulta: ConsultaContatos(periodo: periodo)),
       setUp: () {
         listaResponde(paginaVazia);
         resumoResponde(4);
@@ -137,9 +142,7 @@ void main() {
       },
       verify: (cubit) {
         expect(cubit.state.conteudo, const ConteudoCaixa.semResultado());
-        verify(
-          () => buscar(ConsultaContatos(periodo: periodo)),
-        ).called(1);
+        verify(() => buscar(ConsultaContatos(periodo: periodo))).called(1);
       },
     );
 
@@ -147,9 +150,8 @@ void main() {
       'falha genérica da lista emite erro',
       build: construir,
       setUp: () {
-        when(() => buscar(any())).thenAnswer(
-          (_) async => Result.failure(Exception('rede')),
-        );
+        when(() => buscar(any()))
+            .thenAnswer((_) async => Result.failure(Exception('rede')));
         resumoResponde(3);
       },
       act: (cubit) async {
@@ -166,9 +168,8 @@ void main() {
       build: construir,
       setUp: () {
         listaResponde(pagina1);
-        when(() => obterSemRetorno()).thenAnswer(
-          (_) async => Result.failure(Exception('500')),
-        );
+        when(() => obterSemRetorno())
+            .thenAnswer((_) async => Result.failure(Exception('500')));
       },
       act: (cubit) async {
         cubit.carregar();
@@ -283,9 +284,8 @@ void main() {
       final antiga = Completer<Result<PaginaContatos>>();
       final nova = Completer<Result<PaginaContatos>>();
       var chamadas = 0;
-      when(() => buscar(any())).thenAnswer(
-        (_) => ++chamadas == 1 ? antiga.future : nova.future,
-      );
+      when(() => buscar(any()))
+          .thenAnswer((_) => ++chamadas == 1 ? antiga.future : nova.future);
       resumoResponde(2);
       final cubit = construir();
 
@@ -308,9 +308,8 @@ void main() {
       final novo = Completer<Result<int>>();
       var chamadas = 0;
       listaResponde(pagina1);
-      when(() => obterSemRetorno()).thenAnswer(
-        (_) => ++chamadas == 1 ? antigo.future : novo.future,
-      );
+      when(() => obterSemRetorno())
+          .thenAnswer((_) => ++chamadas == 1 ? antigo.future : novo.future);
       final cubit = construir();
 
       cubit.carregar();
@@ -332,9 +331,8 @@ void main() {
       setUp: () {
         listaResponde(pagina1);
         resumoResponde(5);
-        when(
-          () => buscar.seguir('pagina-2'),
-        ).thenAnswer((_) async => Result.success(pagina2));
+        when(() => buscar.seguir('pagina-2'))
+            .thenAnswer((_) async => Result.success(pagina2));
       },
       act: (cubit) async {
         cubit.carregar();
@@ -375,9 +373,8 @@ void main() {
       setUp: () {
         listaResponde(pagina1);
         resumoResponde(5);
-        when(
-          () => buscar.seguir('pagina-2'),
-        ).thenAnswer((_) async => Result.failure(Exception('rede')));
+        when(() => buscar.seguir('pagina-2'))
+            .thenAnswer((_) async => Result.failure(Exception('rede')));
       },
       act: (cubit) async {
         cubit.carregar();
