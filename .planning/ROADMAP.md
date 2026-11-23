@@ -459,7 +459,7 @@ Plans:
   5. Contato de imóvel de outra empresa nunca aparece.
   6. A tela mostra quantos contatos ainda estão sem retorno anotado.
 
-**Plans:** 3/10 plans executed
+**Plans:** 4/10 plans executed
 
 Plans:
 **Wave 1**
@@ -472,7 +472,7 @@ Plans:
 - [x] 10-03-PLAN.md — §16 do contrato, exemplos, `contrato_contatos_test.dart` e registro de CXA-01..06, API-11, API-12 (API-11, CXA-04)
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 10-04-PLAN.md — App: domínio da caixa (entidades, interface do repositório, falha 404) e wire ↔ enum de canal e retorno (CXA-01, CXA-02, CXA-03, CXA-05)
+- [x] 10-04-PLAN.md — App: domínio da caixa (entidades, interface do repositório, falha 404) e wire ↔ enum de canal e retorno (CXA-01, CXA-02, CXA-03, CXA-05)
 
 **Wave 5** *(blocked on Wave 4 completion)*
 - [ ] 10-05-PLAN.md — App: os 4 Models freezed lidos contra todas as fixtures (CXA-01, CXA-02, CXA-03, CXA-05, API-11)
