@@ -3,6 +3,7 @@ import 'dart:async' show unawaited;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'app_localizacao.dart';
 import 'app_theme.dart';
 import 'di/injection.dart';
 import 'domain/entities/cidade.dart';
@@ -59,6 +60,8 @@ class _ImoveisAquiAppState extends State<ImoveisAquiApp> {
       child: MaterialApp(
         title: 'Imóveis Aqui',
         theme: AppTheme.tema,
+        localizationsDelegates: delegatesDeLocalizacao,
+        supportedLocales: localesSuportados,
         home: const _TelaInicial(),
       ),
     );
