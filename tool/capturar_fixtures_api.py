@@ -6,7 +6,7 @@ devolve (ensure_ascii=False, indent=2, quebra de linha final). Só biblioteca pa
 
 Uso:
     python3 tool/capturar_fixtures_api.py [URL_BASE] [PASTA_SAIDA]
-        [--grupo lista|detalhe|contato|perfis|anunciante|acervo|todos]
+        [--grupo lista|detalhe|contato|perfis|anunciante|acervo|contatos|todos]
 
 Padrões: URL_BASE=http://127.0.0.1:8000, PASTA_SAIDA=test/fixtures/api, --grupo=todos.
 Grupos: `lista` (cidades, listas de Campinas, bairros, características e o 400 de natureza);
@@ -16,10 +16,13 @@ contato: 201 de WhatsApp, telefone e e-mail, e o 400 de canal inválido; recusa 
 `perfis` (perfil do corretor, perfil da
 empresa e o 404 de perfil; descobre os ids ao vivo pelo corretor responsável de um detalhe); `anunciante`
 (p1 e p2 da vitrine de imóveis do corretor e da empresa); `acervo` (rotas autenticadas da Fase 8: login,
-eu, acervo do corretor em `GET /api/imoveis/` e o Sair; ver "Grupo acervo" abaixo); `todos` = `lista`,
-`detalhe`, `contato`, `perfis`, `anunciante` e `acervo`, nessa ordem. ATENÇÃO: `todos` reescreve as fixtures da lista e
-do detalhe (as URLs de foto mudam a cada banco novo); para acrescentar só um grupo rode
-`--grupo contato`, `--grupo perfis`, `--grupo anunciante` ou `--grupo acervo` (nunca `todos`).
+eu, acervo do corretor em `GET /api/imoveis/` e o Sair; ver "Grupo acervo" abaixo); `contatos` (caixa de
+contatos do corretor da Fase 10: 25 POSTs públicos, lista p1/p2 e filtros, contagem antes e depois de anotar,
+opções do filtro de imóvel, PATCH 200/400, a caixa da outra empresa e o 404 cruzado; ver "Grupo contatos"
+abaixo); `todos` = `lista`, `detalhe`, `contato`, `perfis`, `anunciante`, `acervo` e `contatos`, nessa ordem.
+ATENÇÃO: `todos` reescreve as fixtures da lista e do detalhe (as URLs de foto mudam a cada banco novo); para
+acrescentar só um grupo rode `--grupo contato`, `--grupo perfis`, `--grupo anunciante`, `--grupo acervo` ou
+`--grupo contatos` (nunca `todos`).
 ATENÇÃO: cada POST de contato grava um Contato no banco do servidor; por isso o grupo `contato` só roda
 contra o SQLite temporário abaixo, NUNCA contra o banco do Web/.env.
 Sai com código 1 (e mensagem em português) quando alguma resposta esperada não é produzida.
@@ -74,6 +77,26 @@ Grupo acervo (credenciais NUNCA entram em arquivo: só por variável de ambiente
   Redação do token: o 200 do login é gravado com o valor de `token` trocado por 40 zeros, depois de
   conferir que a resposta tinha exatamente a chave `token`; a chave real fica só em memória e é
   revogada no fim (Sair). Não há fixture de 429 (não é capturável de forma determinística).
+
+Grupo contatos (Fase 10; só contra o SQLite temporário: cada POST público grava um Contato):
+
+  Variáveis usadas: CAPTURA_EMAIL_CORRETOR e CAPTURA_SENHA_CORRETOR (corretor da empresa demo da vitrine, a
+  empresa A) e CAPTURA_EMAIL_OUTRA_EMPRESA e CAPTURA_SENHA_OUTRA_EMPRESA (corretor da empresa B, do
+  `seed_demo`). Nada de senha ou token em arquivo; o token nunca é salvo nem impresso.
+
+  Passos extras no SQLite temporário (além dos do grupo acervo: `migrate`, `semear_vitrine_dev`, `seed_demo` e a
+  senha descartável do corretor demo):
+    - crie o contato da empresa B ANTES da captura: o único imóvel dela (`DEMO-CASA-01`) está VENDIDO, fora da
+      vitrine, e a rota pública recusaria o POST. Com `manage.py shell -c`, crie 1 `Contato` com
+      `empresa_id` do imóvel, `imovel` = ele, `corretor` = o corretor responsável dele e canal `TELEFONE` (o mesmo
+      `Contato.objects.create` de `registrar_contato`). Sem ele a checagem de isolamento seria vazia e nunca
+      falharia; a captura exige exatamente 1 contato na caixa da empresa B.
+  Taxa: na `main` o POST público de contato não tem limite de taxa; se o `settings.py` tiver
+  CONTATO_TAXA_ANONIMA, suba o servidor com CONTATO_TAXA_ANONIMA=1000/min (os 25 POSTs saem em sequência).
+  Ordem do grupo: 25 POSTs públicos (até 3 imóveis da vitrine do corretor, 3 canais) -> resumo (25) -> lista p1
+  (20) -> p2 (5, seguindo o `next` real) -> filtro por imóvel -> período sem contato -> opções do filtro -> PATCH
+  FALEI (200) -> resumo (24) -> PATCH PENDENTE (400) -> caixa da empresa B (1 contato) -> PATCH cruzado (404);
+  por fim confere, sem salvar, o PATCH da A no contato da B (404), a lista sem token (401) e `?page=99` (404).
 """
 
 import argparse
@@ -112,6 +135,20 @@ def postar(url, corpo, token=None, status_esperado=200):
         data=json.dumps(corpo).encode("utf-8"),
         headers=cabecalhos,
         method="POST",
+    )
+    return _executar(requisicao, url, status_esperado)
+
+
+def enviar_patch(url, corpo, token=None, status_esperado=200):
+    """PATCH de `corpo` como JSON em `url`; devolve o JSON decodificado. Exige `status_esperado`."""
+    cabecalhos = {"Accept": "application/json", "Content-Type": "application/json"}
+    if token:
+        cabecalhos["Authorization"] = f"Token {token}"
+    requisicao = urllib.request.Request(
+        url,
+        data=json.dumps(corpo).encode("utf-8"),
+        headers=cabecalhos,
+        method="PATCH",
     )
     return _executar(requisicao, url, status_esperado)
 
@@ -467,6 +504,160 @@ def capturar_acervo(base, pasta):
     print("  Sair conferido (204 e a mesma chave passou a dar 401)")
 
 
+CANAIS_CONTATO = ("WHATSAPP", "TELEFONE", "EMAIL")
+_CHAVES_ITEM_CONTATO = 12
+_TOTAL_CONTATOS = 25
+_POR_PAGINA = 20
+
+
+def capturar_contatos(base, pasta):
+    """Caixa de contatos do corretor: 25 contatos públicos, lista, filtros, resumo, opções, PATCH e isolamento.
+
+    Cada POST público grava um Contato no banco do servidor: só rode contra o SQLite temporário, com o
+    contato da empresa B já criado (ver a docstring do arquivo). O token nunca vai para arquivo nem para o print.
+    """
+    caixa = f"{base}/api/contatos/"
+    publico = f"{base}/api/publico"
+
+    token_corretor = _entrar(base, "CAPTURA_EMAIL_CORRETOR", "CAPTURA_SENHA_CORRETOR")
+
+    acervo = obter(f"{base}/api/imoveis/", token=token_corretor)
+    escolhidos = [
+        item["id"]
+        for item in acervo.get("results", [])
+        if item.get("meu_imovel") and item.get("na_vitrine")
+    ][:3]
+    if len(escolhidos) < 2:
+        raise ErroCaptura(
+            "O acervo do corretor deveria ter ao menos 2 imóveis dele na vitrine (o seed rodou?)."
+        )
+    print(f"  imóveis escolhidos = {escolhidos}")
+
+    for i in range(_TOTAL_CONTATOS):
+        imovel = escolhidos[i % len(escolhidos)]
+        canal = CANAIS_CONTATO[(i // len(escolhidos)) % len(CANAIS_CONTATO)]
+        postar(f"{publico}/imoveis/{imovel}/contato/", {"canal": canal}, status_esperado=201)
+    print(f"  {_TOTAL_CONTATOS} contatos públicos criados")
+
+    resumo = obter(f"{caixa}resumo/", token=token_corretor)
+    if resumo != {"sem_retorno": _TOTAL_CONTATOS}:
+        raise ErroCaptura(
+            f"O resumo deveria ser {{'sem_retorno': {_TOTAL_CONTATOS}}}; veio {resumo!r} "
+            "(um número maior indica contato de outra empresa vazando)."
+        )
+    salvar(pasta, "contatos_resumo", resumo)
+
+    p1 = obter(caixa, token=token_corretor)
+    if p1.get("count") != _TOTAL_CONTATOS or len(p1.get("results", [])) != _POR_PAGINA:
+        raise ErroCaptura(
+            f"A p1 da caixa deveria ter count {_TOTAL_CONTATOS} e {_POR_PAGINA} resultados; "
+            f"veio count {p1.get('count')!r} e {len(p1.get('results', []))} resultados."
+        )
+    if not str(p1.get("next")).startswith(caixa):
+        raise ErroCaptura(f"O `next` da p1 deveria começar com {caixa}: {p1.get('next')!r}.")
+    for item in p1["results"]:
+        if item.get("retorno") != "PENDENTE" or item.get("retorno_em") is not None:
+            raise ErroCaptura(f"O contato {item.get('id')} deveria nascer PENDENTE e sem retorno_em.")
+    datas = [item["criado_em"] for item in p1["results"]]
+    if datas != sorted(datas, reverse=True):
+        raise ErroCaptura("A p1 da caixa deveria vir ordenada por criado_em não crescente.")
+    salvar(pasta, "contatos_p1", p1)
+
+    p2 = obter(p1["next"], token=token_corretor)
+    if (
+        len(p2.get("results", [])) != _TOTAL_CONTATOS - _POR_PAGINA
+        or not p2.get("previous")
+        or p2.get("next")
+    ):
+        raise ErroCaptura(
+            "A p2 da caixa deveria ter os 5 restantes, `previous` preenchido e `next` nulo."
+        )
+    salvar(pasta, "contatos_p2", p2)
+
+    do_imovel = obter(
+        f"{caixa}?{urllib.parse.urlencode({'imovel': escolhidos[0]})}", token=token_corretor
+    )
+    if do_imovel.get("count", 0) < 1 or any(
+        item["imovel"] != escolhidos[0] for item in do_imovel["results"]
+    ):
+        raise ErroCaptura("O filtro por imóvel deveria trazer só contatos do imóvel pedido (count >= 1).")
+    salvar(pasta, "contatos_imovel", do_imovel)
+
+    periodo_vazio = obter(
+        f"{caixa}?{urllib.parse.urlencode({'de': '2024-01-01', 'ate': '2024-01-31'})}",
+        token=token_corretor,
+    )
+    if periodo_vazio.get("count") != 0 or periodo_vazio.get("results") != []:
+        raise ErroCaptura("O período de janeiro de 2024 deveria vir com count 0 e results vazio.")
+    salvar(pasta, "contatos_periodo_vazio", periodo_vazio)
+
+    opcoes = obter(f"{caixa}imoveis/", token=token_corretor)
+    if not isinstance(opcoes, list) or any(set(o) != {"id", "codigo", "titulo"} for o in opcoes):
+        raise ErroCaptura("As opções do filtro deveriam ser uma lista de {id, codigo, titulo}.")
+    if {o["id"] for o in opcoes} != set(escolhidos):
+        raise ErroCaptura(
+            f"As opções do filtro deveriam ser exatamente os imóveis com contato {sorted(escolhidos)}; "
+            f"vieram {sorted(o['id'] for o in opcoes)} (o imóvel da empresa B nunca pode aparecer)."
+        )
+    if [o["codigo"] for o in opcoes] != sorted(o["codigo"] for o in opcoes):
+        raise ErroCaptura("As opções do filtro deveriam vir ordenadas por código.")
+    salvar(pasta, "contatos_imoveis", opcoes)
+
+    id_anotado = p1["results"][0]["id"]
+    anotado = enviar_patch(f"{caixa}{id_anotado}/", {"retorno": "FALEI"}, token=token_corretor)
+    if (
+        len(anotado) != _CHAVES_ITEM_CONTATO
+        or anotado.get("retorno") != "FALEI"
+        or not anotado.get("retorno_em")
+    ):
+        raise ErroCaptura("O PATCH FALEI deveria devolver o item de 12 chaves com retorno_em preenchido.")
+    salvar(pasta, "contato_patch_200", anotado)
+
+    resumo_apos = obter(f"{caixa}resumo/", token=token_corretor)
+    if resumo_apos != {"sem_retorno": _TOTAL_CONTATOS - 1}:
+        raise ErroCaptura(
+            f"Depois do PATCH o resumo deveria cair para {_TOTAL_CONTATOS - 1}; veio {resumo_apos!r}."
+        )
+    salvar(pasta, "contatos_resumo_apos", resumo_apos)
+
+    erro_retorno = enviar_patch(
+        f"{caixa}{id_anotado}/", {"retorno": "PENDENTE"}, token=token_corretor, status_esperado=400
+    )
+    if "retorno" not in erro_retorno:
+        raise ErroCaptura("O 400 do PATCH PENDENTE deveria trazer a chave `retorno`.")
+    salvar(pasta, "erro_400_retorno", erro_retorno)
+
+    token_outra = _entrar(base, "CAPTURA_EMAIL_OUTRA_EMPRESA", "CAPTURA_SENHA_OUTRA_EMPRESA")
+    outra = obter(caixa, token=token_outra)
+    if outra.get("count") == 0:
+        raise ErroCaptura(
+            "A caixa da empresa B veio vazia: crie o contato da empresa B no SQLite temporário "
+            "antes da captura (ver docstring)."
+        )
+    if outra.get("count") != 1 or len(outra.get("results", [])) != 1:
+        raise ErroCaptura(
+            f"A caixa da empresa B deveria ter exatamente 1 contato; veio count {outra.get('count')!r}."
+        )
+    ids_a = {item["id"] for item in p1["results"] + p2["results"]}
+    id_outra = outra["results"][0]["id"]
+    if id_outra in ids_a:
+        raise ErroCaptura("O contato da empresa B apareceu na caixa da empresa A (isolamento vazou).")
+    salvar(pasta, "contatos_outra_empresa", outra)
+
+    erro_404 = enviar_patch(
+        f"{caixa}{id_anotado}/", {"retorno": "FALEI"}, token=token_outra, status_esperado=404
+    )
+    if "detail" not in erro_404:
+        raise ErroCaptura("O 404 do PATCH cruzado deveria trazer a chave `detail`.")
+    salvar(pasta, "erro_404_contato", erro_404)
+
+    # só confere (não salva): isolamento no outro sentido, anônimo e página inexistente
+    enviar_patch(f"{caixa}{id_outra}/", {"retorno": "FALEI"}, token=token_corretor, status_esperado=404)
+    obter(caixa, status_esperado=401)
+    obter(f"{caixa}?page=99", status_esperado=404, token=token_corretor)
+    print("  isolamento conferido nos dois sentidos, anônimo 401 e page=99 404")
+
+
 GRUPOS = {
     "lista": capturar_lista,
     "detalhe": capturar_detalhe,
@@ -474,6 +665,7 @@ GRUPOS = {
     "perfis": capturar_perfis,
     "anunciante": capturar_anunciante,
     "acervo": capturar_acervo,
+    "contatos": capturar_contatos,
 }
 
 
@@ -485,10 +677,10 @@ def main():
     analisador.add_argument("pasta_saida", nargs="?", default="test/fixtures/api")
     analisador.add_argument(
         "--grupo",
-        choices=["lista", "detalhe", "contato", "perfis", "anunciante", "acervo", "todos"],
+        choices=["lista", "detalhe", "contato", "perfis", "anunciante", "acervo", "contatos", "todos"],
         default="todos",
-        help="`lista` (lista e opções), `detalhe`, `contato` (POST de contato), `perfis`, `anunciante`, `acervo` "
-        "ou `todos` (os seis, nessa ordem; nunca use `todos` só para acrescentar um grupo).",
+        help="`lista` (lista e opções), `detalhe`, `contato` (POST de contato), `perfis`, `anunciante`, `acervo`, "
+        "`contatos` (caixa de contatos) ou `todos` (os sete, nessa ordem; nunca use `todos` só para acrescentar um grupo).",
     )
     argumentos = analisador.parse_args()
 
