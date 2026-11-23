@@ -2,6 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../domain/entities/consulta_contatos.dart';
 import '../../domain/entities/contato_recebido.dart';
+import '../../domain/entities/imovel_com_contato.dart';
 
 part 'caixa_contatos_state.freezed.dart';
 
@@ -21,6 +22,10 @@ abstract class CaixaContatosState with _$CaixaContatosState {
     /// (D-22). O app nunca soma nem subtrai este número.
     int? semRetorno,
     @Default(ConteudoCaixa.carregando()) ConteudoCaixa conteudo,
+
+    /// Opções do filtro por imóvel, como o servidor devolveu (D-19). Pedidas a
+    /// cada abertura da folha — não fazem parte da lista nem da consulta.
+    @Default(OpcoesDeImovel.naoCarregadas()) OpcoesDeImovel opcoesDeImovel,
   }) = _CaixaContatosState;
 }
 
@@ -54,4 +59,23 @@ sealed class ConteudoCaixa with _$ConteudoCaixa {
     @Default(false) bool carregandoMais,
     @Default(false) bool erroAoCarregarMais,
   }) = CaixaCarregada;
+}
+
+/// Desfechos do pedido das opções do filtro por imóvel (D-19). São carregadas
+/// a cada abertura da folha (R3), então um imóvel que acabou de receber contato
+/// já aparece; a lista e a ordem são as do servidor.
+@freezed
+sealed class OpcoesDeImovel with _$OpcoesDeImovel {
+  /// A folha ainda não foi aberta.
+  const factory OpcoesDeImovel.naoCarregadas() = OpcoesNaoCarregadas;
+
+  /// Pedido em voo.
+  const factory OpcoesDeImovel.carregando() = OpcoesCarregando;
+
+  /// Imóveis que já receberam contato, na ordem do servidor.
+  const factory OpcoesDeImovel.carregadas(List<ImovelComContato> imoveis) =
+      OpcoesCarregadas;
+
+  /// Falha que não é de sessão (rede, 500): a folha oferece tentar de novo.
+  const factory OpcoesDeImovel.erro() = OpcoesComErro;
 }

@@ -5,8 +5,11 @@ import 'package:injectable/injectable.dart';
 
 import '../../core/result.dart';
 import '../../domain/entities/consulta_contatos.dart';
+import '../../domain/entities/imovel_com_contato.dart';
+import '../../domain/entities/periodo_contatos.dart';
 import '../../domain/repositories/falhas_autenticacao.dart';
 import '../../domain/usecases/buscar_contatos_usecase.dart';
+import '../../domain/usecases/listar_imoveis_dos_contatos_usecase.dart';
 import '../../domain/usecases/obter_sem_retorno_usecase.dart';
 import 'caixa_contatos_state.dart';
 
@@ -24,11 +27,15 @@ import 'caixa_contatos_state.dart';
 /// é conferido antes de todo `emit`, e [CaixaSessaoExpirada] é terminal.
 @injectable
 class CaixaContatosCubit extends Cubit<CaixaContatosState> {
-  CaixaContatosCubit(this._buscarContatos, this._obterSemRetorno)
-    : super(const CaixaContatosState());
+  CaixaContatosCubit(
+    this._buscarContatos,
+    this._obterSemRetorno,
+    this._listarImoveis,
+  ) : super(const CaixaContatosState());
 
   final BuscarContatosUseCase _buscarContatos;
   final ObterSemRetornoUseCase _obterSemRetorno;
+  final ListarImoveisDosContatosUseCase _listarImoveis;
 
   int _versaoConsulta = 0;
   int _versaoResumo = 0;
@@ -52,6 +59,64 @@ class CaixaContatosCubit extends Cubit<CaixaContatosState> {
     } else if (conteudo is CaixaCarregada && conteudo.erroAoCarregarMais) {
       await _carregarProximaPagina();
     }
+  }
+
+  /// Filtra a caixa por [imovel] (D-19), mantendo o período. Reinicia a lista
+  /// do topo e NÃO pede o número de novo (D-05, D-18). Sem efeito se o imóvel
+  /// já é o aplicado.
+  Future<void> aplicarImovel(ImovelComContato imovel) =>
+      _trocarConsulta(state.consulta.copyWith(imovel: imovel));
+
+  /// Tira o filtro de imóvel (D-18), mantendo o período.
+  Future<void> limparImovel() =>
+      _trocarConsulta(state.consulta.copyWith(limparImovel: true));
+
+  /// Filtra a caixa por [periodo] (D-20), mantendo o imóvel.
+  Future<void> aplicarPeriodo(PeriodoContatos periodo) =>
+      _trocarConsulta(state.consulta.copyWith(periodo: periodo));
+
+  /// Tira o filtro de período (D-18), mantendo o imóvel.
+  Future<void> limparPeriodo() =>
+      _trocarConsulta(state.consulta.copyWith(limparPeriodo: true));
+
+  /// Pede ao servidor as opções do filtro por imóvel (D-19) — chamado a cada
+  /// abertura da folha, então sempre recarrega. Uma chamada com o pedido ainda
+  /// em voo é ignorada. 401 encerra a sessão como na lista (D-23); qualquer
+  /// outra falha vira [OpcoesComErro].
+  Future<void> carregarOpcoesDeImovel() async {
+    if (state.opcoesDeImovel is OpcoesCarregando) return;
+    if (state.conteudo is CaixaSessaoExpirada) return;
+    emit(state.copyWith(opcoesDeImovel: const OpcoesDeImovel.carregando()));
+
+    final resultado = await _listarImoveis();
+
+    if (isClosed) return;
+    if (state.conteudo is CaixaSessaoExpirada) return;
+
+    switch (resultado) {
+      case Success(:final data):
+        emit(state.copyWith(opcoesDeImovel: OpcoesDeImovel.carregadas(data)));
+      case Failure(:final erro):
+        if (erro is SessaoExpiradaException) {
+          emit(
+            state.copyWith(
+              conteudo: const ConteudoCaixa.sessaoExpirada(),
+              opcoesDeImovel: const OpcoesDeImovel.naoCarregadas(),
+            ),
+          );
+        } else {
+          emit(state.copyWith(opcoesDeImovel: const OpcoesDeImovel.erro()));
+        }
+      case Loading():
+        break;
+    }
+  }
+
+  /// Recomeça a lista com [consulta] só se ela mudou (D-18). Nunca refaz o
+  /// resumo: o número de sem retorno vale para a caixa inteira (D-05).
+  Future<void> _trocarConsulta(ConsultaContatos consulta) async {
+    if (consulta == state.consulta) return;
+    await _aplicarConsulta(consulta);
   }
 
   /// Pede a próxima página (rolagem infinita, D-12) — sem efeito fora de

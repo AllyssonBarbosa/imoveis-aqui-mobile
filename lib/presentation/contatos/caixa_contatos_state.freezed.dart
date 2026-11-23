@@ -19,7 +19,9 @@ mixin _$CaixaContatosState {
  ConsultaContatos get consulta;/// Contatos sem retorno, como o servidor contou (D-04, D-06). `null` =
 /// ainda não veio ou falhou: a tela some com a linha e a lista segue
 /// (D-22). O app nunca soma nem subtrai este número.
- int? get semRetorno; ConteudoCaixa get conteudo;
+ int? get semRetorno; ConteudoCaixa get conteudo;/// Opções do filtro por imóvel, como o servidor devolveu (D-19). Pedidas a
+/// cada abertura da folha — não fazem parte da lista nem da consulta.
+ OpcoesDeImovel get opcoesDeImovel;
 /// Create a copy of CaixaContatosState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -31,20 +33,20 @@ $CaixaContatosStateCopyWith<CaixaContatosState> get copyWith => _$CaixaContatosS
 @override
 bool operator ==(Object other) {
   final _this = this as CaixaContatosState;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CaixaContatosState&&(identical(other.consulta, _this.consulta) || other.consulta == _this.consulta)&&(identical(other.semRetorno, _this.semRetorno) || other.semRetorno == _this.semRetorno)&&(identical(other.conteudo, _this.conteudo) || other.conteudo == _this.conteudo));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CaixaContatosState&&(identical(other.consulta, _this.consulta) || other.consulta == _this.consulta)&&(identical(other.semRetorno, _this.semRetorno) || other.semRetorno == _this.semRetorno)&&(identical(other.conteudo, _this.conteudo) || other.conteudo == _this.conteudo)&&(identical(other.opcoesDeImovel, _this.opcoesDeImovel) || other.opcoesDeImovel == _this.opcoesDeImovel));
 }
 
 
 @override
 int get hashCode {
   final _this = this as CaixaContatosState;
-  return Object.hash(runtimeType,_this.consulta,_this.semRetorno,_this.conteudo);
+  return Object.hash(runtimeType,_this.consulta,_this.semRetorno,_this.conteudo,_this.opcoesDeImovel);
 }
 
 @override
 String toString() {
   final _this = this as CaixaContatosState;
-  return 'CaixaContatosState(consulta: ${_this.consulta}, semRetorno: ${_this.semRetorno}, conteudo: ${_this.conteudo})';
+  return 'CaixaContatosState(consulta: ${_this.consulta}, semRetorno: ${_this.semRetorno}, conteudo: ${_this.conteudo}, opcoesDeImovel: ${_this.opcoesDeImovel})';
 }
 
 
@@ -55,11 +57,11 @@ abstract mixin class $CaixaContatosStateCopyWith<$Res>  {
   factory $CaixaContatosStateCopyWith(CaixaContatosState value, $Res Function(CaixaContatosState) _then) = _$CaixaContatosStateCopyWithImpl;
 @useResult
 $Res call({
- ConsultaContatos consulta, int? semRetorno, ConteudoCaixa conteudo
+ ConsultaContatos consulta, int? semRetorno, ConteudoCaixa conteudo, OpcoesDeImovel opcoesDeImovel
 });
 
 
-$ConteudoCaixaCopyWith<$Res> get conteudo;
+$ConteudoCaixaCopyWith<$Res> get conteudo;$OpcoesDeImovelCopyWith<$Res> get opcoesDeImovel;
 
 }
 /// @nodoc
@@ -72,12 +74,13 @@ class _$CaixaContatosStateCopyWithImpl<$Res>
 
 /// Create a copy of CaixaContatosState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? consulta = null,Object? semRetorno = freezed,Object? conteudo = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? consulta = null,Object? semRetorno = freezed,Object? conteudo = null,Object? opcoesDeImovel = null,}) {
   return _then(CaixaContatosState(
 consulta: null == consulta ? _self.consulta : consulta // ignore: cast_nullable_to_non_nullable
 as ConsultaContatos,semRetorno: freezed == semRetorno ? _self.semRetorno : semRetorno // ignore: cast_nullable_to_non_nullable
 as int?,conteudo: null == conteudo ? _self.conteudo : conteudo // ignore: cast_nullable_to_non_nullable
-as ConteudoCaixa,
+as ConteudoCaixa,opcoesDeImovel: null == opcoesDeImovel ? _self.opcoesDeImovel : opcoesDeImovel // ignore: cast_nullable_to_non_nullable
+as OpcoesDeImovel,
   ));
 }
 /// Create a copy of CaixaContatosState
@@ -88,6 +91,15 @@ $ConteudoCaixaCopyWith<$Res> get conteudo {
   
   return $ConteudoCaixaCopyWith<$Res>(_self.conteudo, (value) {
     return _then(_self.copyWith(conteudo: value));
+  });
+}/// Create a copy of CaixaContatosState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$OpcoesDeImovelCopyWith<$Res> get opcoesDeImovel {
+  
+  return $OpcoesDeImovelCopyWith<$Res>(_self.opcoesDeImovel, (value) {
+    return _then(_self.copyWith(opcoesDeImovel: value));
   });
 }
 }
@@ -171,10 +183,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( ConsultaContatos consulta,  int? semRetorno,  ConteudoCaixa conteudo)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( ConsultaContatos consulta,  int? semRetorno,  ConteudoCaixa conteudo,  OpcoesDeImovel opcoesDeImovel)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CaixaContatosState() when $default != null:
-return $default(_that.consulta,_that.semRetorno,_that.conteudo);case _:
+return $default(_that.consulta,_that.semRetorno,_that.conteudo,_that.opcoesDeImovel);case _:
   return orElse();
 
 }
@@ -192,10 +204,10 @@ return $default(_that.consulta,_that.semRetorno,_that.conteudo);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( ConsultaContatos consulta,  int? semRetorno,  ConteudoCaixa conteudo)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( ConsultaContatos consulta,  int? semRetorno,  ConteudoCaixa conteudo,  OpcoesDeImovel opcoesDeImovel)  $default,) {final _that = this;
 switch (_that) {
 case _CaixaContatosState():
-return $default(_that.consulta,_that.semRetorno,_that.conteudo);case _:
+return $default(_that.consulta,_that.semRetorno,_that.conteudo,_that.opcoesDeImovel);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -212,10 +224,10 @@ return $default(_that.consulta,_that.semRetorno,_that.conteudo);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( ConsultaContatos consulta,  int? semRetorno,  ConteudoCaixa conteudo)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( ConsultaContatos consulta,  int? semRetorno,  ConteudoCaixa conteudo,  OpcoesDeImovel opcoesDeImovel)?  $default,) {final _that = this;
 switch (_that) {
 case _CaixaContatosState() when $default != null:
-return $default(_that.consulta,_that.semRetorno,_that.conteudo);case _:
+return $default(_that.consulta,_that.semRetorno,_that.conteudo,_that.opcoesDeImovel);case _:
   return null;
 
 }
@@ -227,7 +239,7 @@ return $default(_that.consulta,_that.semRetorno,_that.conteudo);case _:
 
 
 class _CaixaContatosState implements CaixaContatosState {
-  const _CaixaContatosState({this.consulta = const ConsultaContatos(), this.semRetorno, this.conteudo = const ConteudoCaixa.carregando()});
+  const _CaixaContatosState({this.consulta = const ConsultaContatos(), this.semRetorno, this.conteudo = const ConteudoCaixa.carregando(), this.opcoesDeImovel = const OpcoesDeImovel.naoCarregadas()});
   
 
 /// Consulta aplicada à lista (imóvel e período); sem filtro por padrão.
@@ -237,6 +249,9 @@ class _CaixaContatosState implements CaixaContatosState {
 /// (D-22). O app nunca soma nem subtrai este número.
 @override final  int? semRetorno;
 @override@JsonKey() final  ConteudoCaixa conteudo;
+/// Opções do filtro por imóvel, como o servidor devolveu (D-19). Pedidas a
+/// cada abertura da folha — não fazem parte da lista nem da consulta.
+@override@JsonKey() final  OpcoesDeImovel opcoesDeImovel;
 
 /// Create a copy of CaixaContatosState
 /// with the given fields replaced by the non-null parameter values.
@@ -248,18 +263,18 @@ _$CaixaContatosStateCopyWith<_CaixaContatosState> get copyWith => __$CaixaContat
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CaixaContatosState&&(identical(other.consulta, consulta) || other.consulta == consulta)&&(identical(other.semRetorno, semRetorno) || other.semRetorno == semRetorno)&&(identical(other.conteudo, conteudo) || other.conteudo == conteudo));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CaixaContatosState&&(identical(other.consulta, consulta) || other.consulta == consulta)&&(identical(other.semRetorno, semRetorno) || other.semRetorno == semRetorno)&&(identical(other.conteudo, conteudo) || other.conteudo == conteudo)&&(identical(other.opcoesDeImovel, opcoesDeImovel) || other.opcoesDeImovel == opcoesDeImovel));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,consulta,semRetorno,conteudo);
+    return Object.hash(runtimeType,consulta,semRetorno,conteudo,opcoesDeImovel);
 }
 
 @override
 String toString() {
-    return 'CaixaContatosState(consulta: $consulta, semRetorno: $semRetorno, conteudo: $conteudo)';
+    return 'CaixaContatosState(consulta: $consulta, semRetorno: $semRetorno, conteudo: $conteudo, opcoesDeImovel: $opcoesDeImovel)';
 }
 
 
@@ -270,11 +285,11 @@ abstract mixin class _$CaixaContatosStateCopyWith<$Res> implements $CaixaContato
   factory _$CaixaContatosStateCopyWith(_CaixaContatosState value, $Res Function(_CaixaContatosState) _then) = __$CaixaContatosStateCopyWithImpl;
 @override @useResult
 $Res call({
- ConsultaContatos consulta, int? semRetorno, ConteudoCaixa conteudo
+ ConsultaContatos consulta, int? semRetorno, ConteudoCaixa conteudo, OpcoesDeImovel opcoesDeImovel
 });
 
 
-@override $ConteudoCaixaCopyWith<$Res> get conteudo;
+@override $ConteudoCaixaCopyWith<$Res> get conteudo;@override $OpcoesDeImovelCopyWith<$Res> get opcoesDeImovel;
 
 }
 /// @nodoc
@@ -287,12 +302,13 @@ class __$CaixaContatosStateCopyWithImpl<$Res>
 
 /// Create a copy of CaixaContatosState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? consulta = null,Object? semRetorno = freezed,Object? conteudo = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? consulta = null,Object? semRetorno = freezed,Object? conteudo = null,Object? opcoesDeImovel = null,}) {
   return _then(_CaixaContatosState(
 consulta: null == consulta ? _self.consulta : consulta // ignore: cast_nullable_to_non_nullable
 as ConsultaContatos,semRetorno: freezed == semRetorno ? _self.semRetorno : semRetorno // ignore: cast_nullable_to_non_nullable
 as int?,conteudo: null == conteudo ? _self.conteudo : conteudo // ignore: cast_nullable_to_non_nullable
-as ConteudoCaixa,
+as ConteudoCaixa,opcoesDeImovel: null == opcoesDeImovel ? _self.opcoesDeImovel : opcoesDeImovel // ignore: cast_nullable_to_non_nullable
+as OpcoesDeImovel,
   ));
 }
 
@@ -304,6 +320,15 @@ $ConteudoCaixaCopyWith<$Res> get conteudo {
   
   return $ConteudoCaixaCopyWith<$Res>(_self.conteudo, (value) {
     return _then(_self.copyWith(conteudo: value));
+  });
+}/// Create a copy of CaixaContatosState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$OpcoesDeImovelCopyWith<$Res> get opcoesDeImovel {
+  
+  return $OpcoesDeImovelCopyWith<$Res>(_self.opcoesDeImovel, (value) {
+    return _then(_self.copyWith(opcoesDeImovel: value));
   });
 }
 }
@@ -731,5 +756,347 @@ as bool,
 
 
 }
+
+/// @nodoc
+mixin _$OpcoesDeImovel {
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is OpcoesDeImovel);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+    return 'OpcoesDeImovel()';
+}
+
+
+}
+
+/// @nodoc
+class $OpcoesDeImovelCopyWith<$Res>  {
+$OpcoesDeImovelCopyWith(OpcoesDeImovel _, $Res Function(OpcoesDeImovel) __);
+}
+
+
+/// Adds pattern-matching-related methods to [OpcoesDeImovel].
+extension OpcoesDeImovelPatterns on OpcoesDeImovel {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( OpcoesNaoCarregadas value)?  naoCarregadas,TResult Function( OpcoesCarregando value)?  carregando,TResult Function( OpcoesCarregadas value)?  carregadas,TResult Function( OpcoesComErro value)?  erro,required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case OpcoesNaoCarregadas() when naoCarregadas != null:
+return naoCarregadas(_that);case OpcoesCarregando() when carregando != null:
+return carregando(_that);case OpcoesCarregadas() when carregadas != null:
+return carregadas(_that);case OpcoesComErro() when erro != null:
+return erro(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( OpcoesNaoCarregadas value)  naoCarregadas,required TResult Function( OpcoesCarregando value)  carregando,required TResult Function( OpcoesCarregadas value)  carregadas,required TResult Function( OpcoesComErro value)  erro,}){
+final _that = this;
+switch (_that) {
+case OpcoesNaoCarregadas():
+return naoCarregadas(_that);case OpcoesCarregando():
+return carregando(_that);case OpcoesCarregadas():
+return carregadas(_that);case OpcoesComErro():
+return erro(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( OpcoesNaoCarregadas value)?  naoCarregadas,TResult? Function( OpcoesCarregando value)?  carregando,TResult? Function( OpcoesCarregadas value)?  carregadas,TResult? Function( OpcoesComErro value)?  erro,}){
+final _that = this;
+switch (_that) {
+case OpcoesNaoCarregadas() when naoCarregadas != null:
+return naoCarregadas(_that);case OpcoesCarregando() when carregando != null:
+return carregando(_that);case OpcoesCarregadas() when carregadas != null:
+return carregadas(_that);case OpcoesComErro() when erro != null:
+return erro(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  naoCarregadas,TResult Function()?  carregando,TResult Function( List<ImovelComContato> imoveis)?  carregadas,TResult Function()?  erro,required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case OpcoesNaoCarregadas() when naoCarregadas != null:
+return naoCarregadas();case OpcoesCarregando() when carregando != null:
+return carregando();case OpcoesCarregadas() when carregadas != null:
+return carregadas(_that.imoveis);case OpcoesComErro() when erro != null:
+return erro();case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  naoCarregadas,required TResult Function()  carregando,required TResult Function( List<ImovelComContato> imoveis)  carregadas,required TResult Function()  erro,}) {final _that = this;
+switch (_that) {
+case OpcoesNaoCarregadas():
+return naoCarregadas();case OpcoesCarregando():
+return carregando();case OpcoesCarregadas():
+return carregadas(_that.imoveis);case OpcoesComErro():
+return erro();}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  naoCarregadas,TResult? Function()?  carregando,TResult? Function( List<ImovelComContato> imoveis)?  carregadas,TResult? Function()?  erro,}) {final _that = this;
+switch (_that) {
+case OpcoesNaoCarregadas() when naoCarregadas != null:
+return naoCarregadas();case OpcoesCarregando() when carregando != null:
+return carregando();case OpcoesCarregadas() when carregadas != null:
+return carregadas(_that.imoveis);case OpcoesComErro() when erro != null:
+return erro();case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class OpcoesNaoCarregadas implements OpcoesDeImovel {
+  const OpcoesNaoCarregadas();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is OpcoesNaoCarregadas);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+    return 'OpcoesDeImovel.naoCarregadas()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class OpcoesCarregando implements OpcoesDeImovel {
+  const OpcoesCarregando();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is OpcoesCarregando);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+    return 'OpcoesDeImovel.carregando()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class OpcoesCarregadas implements OpcoesDeImovel {
+  const OpcoesCarregadas( List<ImovelComContato> imoveis): _imoveis = imoveis;
+  
+
+ final  List<ImovelComContato> _imoveis;
+ List<ImovelComContato> get imoveis {
+  if (_imoveis is EqualUnmodifiableListView) return _imoveis;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_imoveis);
+}
+
+
+/// Create a copy of OpcoesDeImovel
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$OpcoesCarregadasCopyWith<OpcoesCarregadas> get copyWith => _$OpcoesCarregadasCopyWithImpl<OpcoesCarregadas>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is OpcoesCarregadas&&const DeepCollectionEquality().equals(other.imoveis, _imoveis));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_imoveis));
+}
+
+@override
+String toString() {
+    return 'OpcoesDeImovel.carregadas(imoveis: $imoveis)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $OpcoesCarregadasCopyWith<$Res> implements $OpcoesDeImovelCopyWith<$Res> {
+  factory $OpcoesCarregadasCopyWith(OpcoesCarregadas value, $Res Function(OpcoesCarregadas) _then) = _$OpcoesCarregadasCopyWithImpl;
+@useResult
+$Res call({
+ List<ImovelComContato> imoveis
+});
+
+
+
+
+}
+/// @nodoc
+class _$OpcoesCarregadasCopyWithImpl<$Res>
+    implements $OpcoesCarregadasCopyWith<$Res> {
+  _$OpcoesCarregadasCopyWithImpl(this._self, this._then);
+
+  final OpcoesCarregadas _self;
+  final $Res Function(OpcoesCarregadas) _then;
+
+/// Create a copy of OpcoesDeImovel
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? imoveis = null,}) {
+  return _then(OpcoesCarregadas(
+null == imoveis ? _self._imoveis : imoveis // ignore: cast_nullable_to_non_nullable
+as List<ImovelComContato>,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class OpcoesComErro implements OpcoesDeImovel {
+  const OpcoesComErro();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is OpcoesComErro);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+    return 'OpcoesDeImovel.erro()';
+}
+
+
+}
+
+
+
 
 // dart format on

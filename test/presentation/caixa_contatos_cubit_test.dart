@@ -547,9 +547,8 @@ void main() {
         cubit.state.consulta,
         ConsultaContatos(imovel: imovelA, periodo: periodo),
       );
-      verify(
-        () => buscar(ConsultaContatos(imovel: imovelA, periodo: periodo)),
-      ).called(1);
+      verify(() => buscar(ConsultaContatos(imovel: imovelA, periodo: periodo)))
+          .called(1);
       await cubit.close();
     });
 
@@ -624,37 +623,44 @@ void main() {
       await cubit.close();
     });
 
-    test('trocar ou limpar filtro não pede o resumo e mantém o número', () async {
-      final cubit = await carregado();
+    test(
+      'trocar ou limpar filtro não pede o resumo e mantém o número',
+      () async {
+        final cubit = await carregado();
 
-      await cubit.aplicarImovel(imovelA);
-      await cubit.aplicarPeriodo(periodo);
-      await cubit.limparImovel();
-      await cubit.limparPeriodo();
+        await cubit.aplicarImovel(imovelA);
+        await cubit.aplicarPeriodo(periodo);
+        await cubit.limparImovel();
+        await cubit.limparPeriodo();
 
-      verifyNever(() => obterSemRetorno());
-      expect(cubit.state.semRetorno, 25);
-      await cubit.close();
-    });
+        verifyNever(() => obterSemRetorno());
+        expect(cubit.state.semRetorno, 25);
+        await cubit.close();
+      },
+    );
 
-    test('trocar de filtro emite carregando uma vez e depois a lista', () async {
-      final cubit = await carregado();
-      final estados = <CaixaContatosState>[];
-      final inscricao = cubit.stream.listen(estados.add);
+    test(
+      'trocar de filtro emite carregando uma vez e depois a lista',
+      () async {
+        final cubit = await carregado();
+        final estados = <CaixaContatosState>[];
+        final inscricao = cubit.stream.listen(estados.add);
 
-      await cubit.aplicarImovel(imovelA);
-      await inscricao.cancel();
+        await cubit.aplicarImovel(imovelA);
+        await assentar();
+        await inscricao.cancel();
 
-      expect(estados.map((e) => e.conteudo), [
-        const ConteudoCaixa.carregando(),
-        ConteudoCaixa.carregada(
-          itens: itensPagina1,
-          proximaPagina: 'pagina-2',
-        ),
-      ]);
-      expect(estados.every((e) => e.semRetorno == 25), isTrue);
-      await cubit.close();
-    });
+        expect(estados.map((e) => e.conteudo), [
+          const ConteudoCaixa.carregando(),
+          ConteudoCaixa.carregada(
+            itens: itensPagina1,
+            proximaPagina: 'pagina-2',
+          ),
+        ]);
+        expect(estados.every((e) => e.semRetorno == 25), isTrue);
+        await cubit.close();
+      },
+    );
 
     test('resposta de antes da troca de filtro é descartada', () async {
       final antiga = Completer<Result<PaginaContatos>>();

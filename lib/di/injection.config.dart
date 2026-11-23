@@ -398,6 +398,13 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i587.AcervoCubit>(
       () => _i587.AcervoCubit(gh<_i89.BuscarAcervoUseCase>()),
     );
+    gh.factory<_i157.CaixaContatosCubit>(
+      () => _i157.CaixaContatosCubit(
+        gh<_i760.BuscarContatosUseCase>(),
+        gh<_i943.ObterSemRetornoUseCase>(),
+        gh<_i864.ListarImoveisDosContatosUseCase>(),
+      ),
+    );
     gh.factory<_i551.DescartarSessaoUseCase>(
       () => _i551.DescartarSessaoUseCase(gh<_i550.AutenticacaoRepository>()),
     );
@@ -415,12 +422,6 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i490.EntradaAreaCubit>(
       () => _i490.EntradaAreaCubit(gh<_i396.ObterPapelUseCase>()),
-    );
-    gh.factory<_i157.CaixaContatosCubit>(
-      () => _i157.CaixaContatosCubit(
-        gh<_i760.BuscarContatosUseCase>(),
-        gh<_i943.ObterSemRetornoUseCase>(),
-      ),
     );
     gh.lazySingleton<_i231.SessaoCubit>(
       () => _i231.SessaoCubit(
