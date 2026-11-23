@@ -107,8 +107,8 @@ class PilhaReal {
   }
 
   /// Confere o que o app mandou em cada rota: o login e as rotas públicas
-  /// nunca levam `Authorization`; `eu`, `acervo` e `sair` sempre levam o
-  /// token (T-08-45).
+  /// nunca levam `Authorization`; `eu`, `acervo`, `sair` e as rotas da caixa
+  /// de contatos (`/api/contatos/...`) sempre levam o token (T-08-45).
   void conferirCabecalhosDeAutorizacao() {
     for (final pedido in api.requisicoesGravadas) {
       final caminho = pedido.uri.path;
@@ -116,7 +116,8 @@ class PilhaReal {
       final autenticada =
           caminho == '/api/auth/eu/' ||
           caminho == '/api/auth/sair/' ||
-          caminho == '/api/imoveis/';
+          caminho == '/api/imoveis/' ||
+          caminho.startsWith('/api/contatos/');
       if (autenticada) {
         expect(
           autorizacao,
