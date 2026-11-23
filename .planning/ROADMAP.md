@@ -29,6 +29,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 7: Perfis Públicos da Empresa e do Corretor** - Card APP 07: página da empresa e página do corretor com a vitrine do anunciante, dados da API de perfis públicos (WEB 02) e aviso para corretor desativado. (Fase 6 reservada ao card APP 06, de outro colega — fase N = card APP 0N.) (completed 2026-11-20)
 - [x] **Phase 07.1: Integração da APP-07 com a API real** (completed 2026-11-20)
 - [x] **Phase 8: Login e Área do Corretor — o Acervo** (completed 2026-11-21)
+- [ ] **Phase 10: Contatos Recebidos e Retorno Anotado (APP 10)** - Card APP 10: caixa de contatos do corretor (lista da API, filtro por imóvel e por período, contagem dos sem retorno) e retorno anotado gravado pela API. (Fase 9 reservada ao card APP 09, de outro colega — fase N = card APP 0N.)
 
 ## Phase Details
 
@@ -443,3 +444,22 @@ Plans:
 
 **Wave 10** *(blocked on Wave 9 completion)*
 - [x] 08-12-PLAN.md — Fluxos ponta a ponta sobre a `ApiFalsa`, README do app, REQUIREMENTS e gates finais dos dois repositórios + human-check (emulador, iOS no Mac, taxas, autorização da nota do CLAUDE.md) (AUTH-01..06, ACV-01..04, API-09, API-10)
+
+### Phase 10: Contatos Recebidos e Retorno Anotado (APP 10)
+
+**Goal:** Como corretor, eu quero ver quem procurou pelos meus imóveis para retornar e não perder negócio. A lista traz os contatos mais recentes primeiro, com o imóvel, o canal e a data, e permite filtrar por imóvel e por período. O corretor anota o retorno: falei, visita agendada, sem resposta ou descartado. Card APP 10 (tarefa A10).
+**Requirements**: TBD
+**Depends on:** Phase 8 (login, sessão e `Dio` autenticado do app) e Phase 6 (contato registrado pela API pública). Externamente: WEB 11 (feito, na main da web) — `GET /api/contatos/` (`?imovel=&de=&ate=`) e `PATCH /api/contatos/{id}/` (`ContatoViewSet`, `PertenceAUmaEmpresa`, `restringir_ao_perfil`).
+**Success Criteria** (what must be TRUE):
+
+  1. Lista dos contatos recebidos, mais recentes primeiro, vinda da API.
+  2. Cada item mostra o imóvel, o canal e a data do contato.
+  3. Filtro por imóvel e por período.
+  4. O corretor anota o retorno, e a anotação é gravada pela API.
+  5. Contato de imóvel de outra empresa nunca aparece.
+  6. A tela mostra quantos contatos ainda estão sem retorno anotado.
+
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 10 to break down)
