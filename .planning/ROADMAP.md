@@ -459,26 +459,35 @@ Plans:
   5. Contato de imóvel de outra empresa nunca aparece.
   6. A tela mostra quantos contatos ainda estão sem retorno anotado.
 
-**Plans:** 7 plans
+**Plans:** 10 plans
 
 Plans:
 **Wave 1**
 - [ ] 10-01-PLAN.md — Web (feat/APP10): TRACER da caixa paginada com token (login → `GET /api/contatos/` em envelope de 20) + `resumo` (sem retorno), `imoveis` (opções do filtro), PATCH `{}` → 400, isolamento e README (API-12, CXA-01..05)
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 10-02-PLAN.md — Wire real: grupo `contatos` na captura, 11 fixtures, §16 do contrato, `contrato_contatos_test.dart` e registro de CXA-01..06, API-11, API-12 (API-11, CXA-04)
+- [ ] 10-02-PLAN.md — Wire real: grupo `contatos` na ferramenta de captura e as 11 fixtures, com a outra empresa tendo 1 contato (isolamento que pode falhar) (API-11, CXA-04)
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 10-03-PLAN.md — App: domínio da caixa (entidades, interface do repositório, falha 404) e Models lidos contra todas as fixtures (CXA-01, CXA-02, CXA-03, CXA-05, API-11)
+- [ ] 10-03-PLAN.md — §16 do contrato, exemplos, `contrato_contatos_test.dart` e registro de CXA-01..06, API-11, API-12 (API-11, CXA-04)
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 10-04-PLAN.md — App: parâmetros, DataSource no `Dio` autenticado, repositório com falhas tipadas, 4 use cases e rotas da caixa na `ApiFalsa` (CXA-01, CXA-02, CXA-03, CXA-05, CXA-06)
+- [ ] 10-04-PLAN.md — App: domínio da caixa (entidades, interface do repositório, falha 404) e wire ↔ enum de canal e retorno (CXA-01, CXA-02, CXA-03, CXA-05)
 
 **Wave 5** *(blocked on Wave 4 completion)*
-- [ ] 10-05-PLAN.md — App: "Meus contatos" pelo ícone do acervo — lista paginada, item, número de sem retorno do servidor, estados e 401 (CXA-01, CXA-05, CXA-06)
+- [ ] 10-05-PLAN.md — App: os 4 Models freezed lidos contra todas as fixtures (CXA-01, CXA-02, CXA-03, CXA-05, API-11)
 
 **Wave 6** *(blocked on Wave 5 completion)*
-- [ ] 10-06-PLAN.md — App: pt-BR do Material, filtros por imóvel (folha com opções do servidor) e por período (`showDateRangePicker`) (CXA-02, CXA-06)
+- [ ] 10-06-PLAN.md — App: parâmetros, DataSource no `Dio` autenticado, repositório com falhas tipadas, 4 use cases e rotas da caixa na `ApiFalsa` (CXA-01, CXA-02, CXA-03, CXA-05, CXA-06)
 
 **Wave 7** *(blocked on Wave 6 completion)*
-- [ ] 10-07-PLAN.md — App: anotar o retorno (folha, item em voo, SnackBar fixa, número de novo do servidor) + fluxo ponta a ponta, REQUIREMENTS completos, gates finais e human-check (CXA-01..06, API-11, API-12)
+- [ ] 10-07-PLAN.md — App: apresentação da caixa (textos, rótulos, item, rodapé) e pt-BR do Material com o seletor de período (CXA-01, CXA-02, CXA-05, CXA-06)
+
+**Wave 8** *(blocked on Wave 7 completion)*
+- [ ] 10-08-PLAN.md — App: "Meus contatos" pelo ícone do acervo — Cubit, tela, número de sem retorno do servidor, estados, 401 e fluxo ponta a ponta base (CXA-01, CXA-05, CXA-06)
+
+**Wave 9** *(blocked on Wave 8 completion)*
+- [ ] 10-09-PLAN.md — App: filtros por imóvel (folha com opções do servidor) e por período, com o caso ponta a ponta do filtro (CXA-02, CXA-06)
+
+**Wave 10** *(blocked on Wave 9 completion)*
+- [ ] 10-10-PLAN.md — App: anotar o retorno (folha, item em voo, SnackBar fixa, número de novo do servidor) + casos ponta a ponta de anotação e 404, REQUIREMENTS completos, gates finais e human-check (CXA-01..06, API-11, API-12)
