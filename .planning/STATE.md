@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 10
 current_phase_name: Contatos Recebidos e Retorno Anotado (APP 10)
 status: executing
-stopped_at: Completed 10-07-PLAN.md
-last_updated: "2026-11-23T23:38:29.584Z"
+stopped_at: Completed 10-08-PLAN.md
+last_updated: "2026-11-23T23:52:14.658Z"
 last_activity: 2026-11-23
 last_activity_desc: Phase 10 execution started
-state_head: 6a94016fd0b848ad8623975bd85d9452c01e9515
+state_head: 2fde07989d75a31f246773cc16f11bcbe793d107
 progress:
   total_phases: 10
   completed_phases: 3
   total_plans: 94
-  completed_plans: 91
+  completed_plans: 92
   percent: 30
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-11-21)
 ## Current Position
 
 Phase: 10 (Contatos Recebidos e Retorno Anotado (APP 10)) — EXECUTING
-Plan: 8 of 10
+Plan: 9 of 10
 Status: Ready to execute
 Last activity: 2026-11-23 — Phase 10 execution started
 
@@ -134,6 +134,7 @@ Progress: [████████████████████] 72/72 p
 | Phase 10 P05 | 15 min | 2 tasks | 14 files |
 | Phase 10 P06 | 30min | 2 tasks | 14 files |
 | Phase 10 P07 | 25 min | 2 tasks | 12 files |
+| Phase 10 P08 | 55 min | 3 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -221,6 +222,8 @@ Recent decisions affecting current work:
 - [Phase 10]: 10-06: 404 vira ContatoNaoEncontradoException so no anotarRetorno (flag notFoundEhContato); nos demais metodos segue DioException generica
 - [Phase 10]: 10-07: ignore deprecated_member_use so em GlobalMaterialLocalizations.delegates (app_localizacao.dart); material_ui nao adotado
 - [Phase 10]: 10-07: cor do chip Aguardando retorno = tertiaryContainer/onTertiaryContainer; confirmar no human-check do fim da fase
+- [Phase 10]: 10-08: um unico CaixaContatosCubit para a tela inteira (lista + contagem; filtros no 10-09, anotacao no 10-10), com um so caminho de 401 terminal e versoes proprias para a lista e para o resumo
+- [Phase 10]: 10-08: o numero de sem retorno so recebe o inteiro do servidor; troca de consulta usa copyWith para nao apagar o numero (D-05)
 
 ### Pending Todos
 
@@ -258,6 +261,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-23T23:38:27.230Z
-Stopped at: Completed 10-07-PLAN.md
+Last session: 2026-11-23T23:52:12.441Z
+Stopped at: Completed 10-08-PLAN.md
 Resume file: None

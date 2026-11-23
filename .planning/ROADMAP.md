@@ -459,7 +459,7 @@ Plans:
   5. Contato de imóvel de outra empresa nunca aparece.
   6. A tela mostra quantos contatos ainda estão sem retorno anotado.
 
-**Plans:** 7/10 plans executed
+**Plans:** 8/10 plans executed
 
 Plans:
 **Wave 1**
@@ -484,7 +484,7 @@ Plans:
 - [x] 10-07-PLAN.md — App: apresentação da caixa (textos, rótulos, item, rodapé) e pt-BR do Material com o seletor de período (CXA-01, CXA-02, CXA-05, CXA-06)
 
 **Wave 8** *(blocked on Wave 7 completion)*
-- [ ] 10-08-PLAN.md — App: "Meus contatos" pelo ícone do acervo — Cubit, tela, número de sem retorno do servidor, estados, 401 e fluxo ponta a ponta base (CXA-01, CXA-05, CXA-06)
+- [x] 10-08-PLAN.md — App: "Meus contatos" pelo ícone do acervo — Cubit, tela, número de sem retorno do servidor, estados, 401 e fluxo ponta a ponta base (CXA-01, CXA-05, CXA-06)
 
 **Wave 9** *(blocked on Wave 8 completion)*
 - [ ] 10-09-PLAN.md — App: filtros por imóvel (folha com opções do servidor) e por período, com o caso ponta a ponta do filtro (CXA-02, CXA-06)
