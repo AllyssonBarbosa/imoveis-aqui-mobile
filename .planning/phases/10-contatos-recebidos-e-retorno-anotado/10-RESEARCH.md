@@ -777,20 +777,22 @@ BlocListener<CaixaContatosCubit, CaixaContatosState>(
 | A8 | `page_size = 20` como constante local da caixa (o mesmo da APP-05/08) | R1 | Nenhum risco funcional; só convenção |
 | A9 | O Brasil sem horário de verão atual (`America/Sao_Paulo` fixo em `-03:00`) | R6 | Se o governo reinstituir o horário de verão, o offset do fio varia sazonalmente; o app continua correto porque usa `DateTime.parse` com offset |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Aprovar o endurecimento do PATCH (corpo vazio → 400)?**
+> Resolvidas pelo orquestrador em 2026-11-22, por delegação do Allysson ("decida pelas instruções do card"); registradas em `10-CONTEXT.md`.
+
+1. **Aprovar o endurecimento do PATCH (corpo vazio → 400)?** — **RESOLVED:** incluído (emenda do D-25 em `10-CONTEXT.md`).
    - What we know: `PATCH {}` hoje levanta `KeyError` (500); correção de 3 linhas verificada; contraria a letra do D-25 ("o `ContatoSerializer` não muda").
    - What's unclear: se o Allysson aceita a exceção ao D-25.
    - Recommendation: incluir (1 linha de produção + 1 teste `test_patch_sem_retorno_e_400`); rotular no plano como desvio explícito do D-25 e registrar no §16.
 
-2. **`firstDate` do seletor (2024 vs 2026)?**
+2. **`firstDate` do seletor (2024 vs 2026)?** — **RESOLVED:** `DateTime(2024)`, `lastDate` = hoje (`10-CONTEXT.md`, Claude's Discretion).
    - What we know: nenhum contato anterior à W11 (2026) existe; o picker só limita a navegação.
    - Recommendation: `DateTime(2024)` (folga) — constante em `apresentacao_contatos.dart`.
 
-3. **Confirmar no human-check:** ícone da entrada (`Icons.inbox_outlined`), cor do chip "Aguardando retorno" (sugestão: `tertiaryContainer`/`primaryContainer` do `ColorScheme`, sem cor fixa), textos longos do item (2 linhas).
+3. **RESOLVED (adiado de propósito para o human-check de fim de fase, D-29 / `10-VALIDATION.md` Manual-Only):** confirmar no human-check: ícone da entrada (`Icons.inbox_outlined`), cor do chip "Aguardando retorno" (sugestão: `tertiaryContainer`/`primaryContainer` do `ColorScheme`, sem cor fixa), textos longos do item (2 linhas).
 
-4. **Rodar `build_runner` e conferir CRLF** (D-29) ao gerar `*.freezed.dart`, `*.g.dart` e `injection.config.dart` — sem dúvida de design, só procedimento.
+4. **RESOLVED (procedimento, D-29):** rodar `build_runner` e conferir CRLF (D-29) ao gerar `*.freezed.dart`, `*.g.dart` e `injection.config.dart` — sem dúvida de design, só procedimento.
 
 ## Environment Availability
 
