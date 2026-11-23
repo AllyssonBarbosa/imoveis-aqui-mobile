@@ -29,7 +29,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 7: Perfis Públicos da Empresa e do Corretor** - Card APP 07: página da empresa e página do corretor com a vitrine do anunciante, dados da API de perfis públicos (WEB 02) e aviso para corretor desativado. (Fase 6 reservada ao card APP 06, de outro colega — fase N = card APP 0N.) (completed 2026-11-20)
 - [x] **Phase 07.1: Integração da APP-07 com a API real** (completed 2026-11-20)
 - [x] **Phase 8: Login e Área do Corretor — o Acervo** (completed 2026-11-21)
-- [ ] **Phase 9: Mudança de Situação do Imóvel pelo App (APP 09)** - Corretor responsável troca a situação do imóvel (disponível/reservado/vendido/alugado) com observação pela API (a data é a do servidor; o gestor segue pela web até a APP-12), vê o histórico na tela do imóvel; recusa do servidor mantém a situação anterior.
+- [x] **Phase 9: Mudança de Situação do Imóvel pelo App (APP 09)** - Corretor responsável troca a situação do imóvel (disponível/reservado/vendido/alugado) com observação pela API (a data é a do servidor; o gestor segue pela web até a APP-12), vê o histórico na tela do imóvel; recusa do servidor mantém a situação anterior. (completed 2026-11-23)
 
 ## Phase Details
 
@@ -483,7 +483,7 @@ Plans:
   5. A vitrine reflete a mudança na consulta seguinte (o servidor decide a publicação; verificado no UAT).
   6. Só quem o servidor autoriza consegue mudar: pelo app, só o corretor responsável (botão só com `pode_mudar_situacao`; quem forçar recebe 403); o gestor da empresa continua mudando pela web e a área dele no app é da APP-12 (D-07 da fase).
 
-**Plans:** 13/13 plans executed
+**Plans:** 13/13 plans complete
 
 Plans:
 **Wave 1**

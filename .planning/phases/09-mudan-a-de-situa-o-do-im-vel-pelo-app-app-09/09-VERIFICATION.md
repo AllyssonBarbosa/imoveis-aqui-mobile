@@ -1,10 +1,37 @@
 ---
 phase: 09-mudan-a-de-situa-o-do-im-vel-pelo-app-app-09
 verified: 2026-11-22T21:00:00Z
-status: human_needed
+status: passed
 score: 6/6 must-haves verified
 covered_files:
+
   - ".planning/REQUIREMENTS.md"
+  - ".planning/phases/09-mudan-a-de-situa-o-do-im-vel-pelo-app-app-09/09-01-PLAN.md"
+  - ".planning/phases/09-mudan-a-de-situa-o-do-im-vel-pelo-app-app-09/09-01-SUMMARY.md"
+  - ".planning/phases/09-mudan-a-de-situa-o-do-im-vel-pelo-app-app-09/09-02-PLAN.md"
+  - ".planning/phases/09-mudan-a-de-situa-o-do-im-vel-pelo-app-app-09/09-02-SUMMARY.md"
+  - ".planning/phases/09-mudan-a-de-situa-o-do-im-vel-pelo-app-app-09/09-03-PLAN.md"
+  - ".planning/phases/09-mudan-a-de-situa-o-do-im-vel-pelo-app-app-09/09-03-SUMMARY.md"
+  - ".planning/phases/09-mudan-a-de-situa-o-do-im-vel-pelo-app-app-09/09-04-PLAN.md"
+  - ".planning/phases/09-mudan-a-de-situa-o-do-im-vel-pelo-app-app-09/09-04-SUMMARY.md"
+  - ".planning/phases/09-mudan-a-de-situa-o-do-im-vel-pelo-app-app-09/09-05-PLAN.md"
+  - ".planning/phases/09-mudan-a-de-situa-o-do-im-vel-pelo-app-app-09/09-05-SUMMARY.md"
+  - ".planning/phases/09-mudan-a-de-situa-o-do-im-vel-pelo-app-app-09/09-06-PLAN.md"
+  - ".planning/phases/09-mudan-a-de-situa-o-do-im-vel-pelo-app-app-09/09-06-SUMMARY.md"
+  - ".planning/phases/09-mudan-a-de-situa-o-do-im-vel-pelo-app-app-09/09-07-PLAN.md"
+  - ".planning/phases/09-mudan-a-de-situa-o-do-im-vel-pelo-app-app-09/09-07-SUMMARY.md"
+  - ".planning/phases/09-mudan-a-de-situa-o-do-im-vel-pelo-app-app-09/09-08-PLAN.md"
+  - ".planning/phases/09-mudan-a-de-situa-o-do-im-vel-pelo-app-app-09/09-08-SUMMARY.md"
+  - ".planning/phases/09-mudan-a-de-situa-o-do-im-vel-pelo-app-app-09/09-09-PLAN.md"
+  - ".planning/phases/09-mudan-a-de-situa-o-do-im-vel-pelo-app-app-09/09-09-SUMMARY.md"
+  - ".planning/phases/09-mudan-a-de-situa-o-do-im-vel-pelo-app-app-09/09-10-PLAN.md"
+  - ".planning/phases/09-mudan-a-de-situa-o-do-im-vel-pelo-app-app-09/09-10-SUMMARY.md"
+  - ".planning/phases/09-mudan-a-de-situa-o-do-im-vel-pelo-app-app-09/09-11-PLAN.md"
+  - ".planning/phases/09-mudan-a-de-situa-o-do-im-vel-pelo-app-app-09/09-11-SUMMARY.md"
+  - ".planning/phases/09-mudan-a-de-situa-o-do-im-vel-pelo-app-app-09/09-12-PLAN.md"
+  - ".planning/phases/09-mudan-a-de-situa-o-do-im-vel-pelo-app-app-09/09-12-SUMMARY.md"
+  - ".planning/phases/09-mudan-a-de-situa-o-do-im-vel-pelo-app-app-09/09-13-PLAN.md"
+  - ".planning/phases/09-mudan-a-de-situa-o-do-im-vel-pelo-app-app-09/09-13-SUMMARY.md"
   - "lib/data/datasources/gestao_imovel_remote_datasource.dart"
   - "lib/data/repositories/gestao_imovel_repository_impl.dart"
   - "lib/presentation/acervo/acervo_cubit.dart"
@@ -13,10 +40,12 @@ covered_files:
   - "lib/presentation/gestao_imovel/gestao_imovel_screen.dart"
   - "lib/presentation/gestao_imovel/mudar_situacao_cubit.dart"
   - "lib/presentation/gestao_imovel/widgets/mudar_situacao_sheet.dart"
-covered_digest: "v1:sha256:5c0f35a39ba7e681e9b48713a1d1d66106d362d8a45e8df3818c7bda1dc2f6bb"
+
+covered_digest: "v1:sha256:5646035bef1167e5e40effa0fe312085b26db0d65f311559116ad09f202a0356"
 behavior_unverified: 0
 overrides_applied: 0
 human_verification:
+
   - test: "AC-5 ponta a ponta contra o Django real: reservar um imóvel `DEV-*` pelo app, abrir a vitrine pública da cidade e conferir que ele sumiu; voltar a Disponível pelo app e conferir que reaparece na consulta seguinte"
     expected: "Reservado não aparece na vitrine pública; ao voltar a Disponível reaparece; o acervo do corretor recarrega com o chip certo"
     why_human: "Depende do Django rodando com dados semeados e do app num aparelho/emulador; os testes automáticos provam a regra do servidor (VitrinePublicaTests) e a recarga do app separadamente, mas nenhum teste liga as duas pontas"
@@ -33,6 +62,7 @@ human_verification:
     expected: "Decisão registrada pelo usuário"
     why_human: "Decisão do usuário; nenhum plano pode fazer push sem autorização explícita"
 advisory:
+
   - finding: "WR-01 (09-REVIEW): `recarregar()` durante `tentarNovamenteHistorico()` com falha do imóvel pode deixar o histórico preso em carregando"
     category: other
     reason: "Corrida rara de duas ações do usuário seguidas de falha de rede; recuperável com novo puxar-para-atualizar; não quebra nenhum dos 6 critérios"
