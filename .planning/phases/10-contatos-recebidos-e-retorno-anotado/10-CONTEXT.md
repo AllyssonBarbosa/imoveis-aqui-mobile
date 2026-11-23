@@ -150,8 +150,10 @@ contato novo e qualquer dado do visitante (o `Contato` da W11 não guarda nenhum
 
 ### Web (lacunas do card, branch `feat/APP10`)
 - **D-24:** Repo web em `C:\Users\allys\OneDrive\Área de Trabalho\Imoveis-aqui` (pasta `Web` =
-  Django), **não** `../imoveis-aqui/Web`. A `main` local está **5 commits atrás** de
-  `origin/main` (`8bf4448`): atualizar antes de criar a `feat/APP10`.
+  Django), **não** `../imoveis-aqui/Web`. A `main` local foi atualizada em 2026-11-22
+  (fast-forward até `origin/main` = `8bf4448`, sem migração nova; as taxas novas do login têm valor
+  padrão no `settings.py`). A `feat/APP10` da web nasce dessa `main` no primeiro plano que mexer no
+  Django.
 - **D-25:** Mudanças na web, todas atrás de `PertenceAUmaEmpresa` +
   `EmpresaScopedQuerySetMixin` + `restringir_ao_perfil`:
   1. paginação na listagem do `ContatoViewSet` (D-12), mantendo os filtros e a ordem;
