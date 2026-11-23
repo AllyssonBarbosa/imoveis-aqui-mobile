@@ -459,7 +459,7 @@ Plans:
   5. Contato de imóvel de outra empresa nunca aparece.
   6. A tela mostra quantos contatos ainda estão sem retorno anotado.
 
-**Plans:** 5/10 plans executed
+**Plans:** 6/10 plans executed
 
 Plans:
 **Wave 1**
@@ -478,7 +478,7 @@ Plans:
 - [x] 10-05-PLAN.md — App: os 4 Models freezed lidos contra todas as fixtures (CXA-01, CXA-02, CXA-03, CXA-05, API-11)
 
 **Wave 6** *(blocked on Wave 5 completion)*
-- [ ] 10-06-PLAN.md — App: parâmetros, DataSource no `Dio` autenticado, repositório com falhas tipadas, 4 use cases e rotas da caixa na `ApiFalsa` (CXA-01, CXA-02, CXA-03, CXA-05, CXA-06)
+- [x] 10-06-PLAN.md — App: parâmetros, DataSource no `Dio` autenticado, repositório com falhas tipadas, 4 use cases e rotas da caixa na `ApiFalsa` (CXA-01, CXA-02, CXA-03, CXA-05, CXA-06)
 
 **Wave 7** *(blocked on Wave 6 completion)*
 - [ ] 10-07-PLAN.md — App: apresentação da caixa (textos, rótulos, item, rodapé) e pt-BR do Material com o seletor de período (CXA-01, CXA-02, CXA-05, CXA-06)
