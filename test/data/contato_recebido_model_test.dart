@@ -151,9 +151,8 @@ void main() {
       final bruto = lerFixtureApi('contatos_imoveis.json')! as List<Object?>;
       final opcoes = [
         for (final item in bruto)
-          ImovelComContatoModel.fromJson(
-            item! as Map<String, Object?>,
-          ).paraEntidade(),
+          ImovelComContatoModel.fromJson(item! as Map<String, Object?>)
+              .paraEntidade(),
       ];
 
       expect(opcoes, hasLength(bruto.length));

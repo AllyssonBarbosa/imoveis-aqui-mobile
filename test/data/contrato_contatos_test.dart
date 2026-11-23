@@ -193,7 +193,9 @@ void main() {
     });
 
     test('o next tem a mesma origem da base URL do app (§16.8)', () {
-      final proximo = Uri.parse(_fixture('contatos_p1.json')['next']! as String);
+      final proximo = Uri.parse(
+        _fixture('contatos_p1.json')['next']! as String,
+      );
       final base = Uri.parse(urlBaseApiFalsa);
 
       expect(proximo.scheme, base.scheme);
@@ -266,9 +268,8 @@ void main() {
 
     test('o 200 é o mesmo contato da primeira página, agora anotado', () {
       final anotado = _fixture('contato_patch_200.json');
-      final original = _itens('contatos_p1.json').firstWhere(
-        (item) => item['id'] == anotado['id'],
-      );
+      final original = _itens('contatos_p1.json')
+          .firstWhere((item) => item['id'] == anotado['id']);
 
       expect(original['retorno'], 'PENDENTE');
       expect(original['retorno_em'], isNull);
@@ -288,7 +289,10 @@ void main() {
 
   group('contagem dos sem retorno', () {
     test('o resumo tem exatamente sem_retorno, com inteiro', () {
-      for (final nome in ['contatos_resumo.json', 'contatos_resumo_apos.json']) {
+      for (final nome in [
+        'contatos_resumo.json',
+        'contatos_resumo_apos.json',
+      ]) {
         final resumo = _fixture(nome);
 
         _exigirChavesExatas(resumo, _chavesResumo, nome);
@@ -332,9 +336,8 @@ void main() {
     });
 
     test('as opções são exatamente os imóveis dos contatos da caixa', () {
-      final dosContatos = _idsDosImoveis(
-        'contatos_p1.json',
-      ).union(_idsDosImoveis('contatos_p2.json'));
+      final dosContatos = _idsDosImoveis('contatos_p1.json')
+          .union(_idsDosImoveis('contatos_p2.json'));
       final dasOpcoes = {
         for (final opcao in _opcoesDeImovel()) opcao['id']! as int,
       };
@@ -352,9 +355,8 @@ void main() {
     });
 
     test('nenhum contato da empresa B aparece na caixa da empresa A', () {
-      final empresaA = _idsDosContatos(
-        'contatos_p1.json',
-      ).union(_idsDosContatos('contatos_p2.json'));
+      final empresaA = _idsDosContatos('contatos_p1.json')
+          .union(_idsDosContatos('contatos_p2.json'));
       final empresaB = _idsDosContatos('contatos_outra_empresa.json');
 
       expect(empresaB, isNotEmpty);
@@ -383,9 +385,8 @@ void main() {
   group('Models leem toda fixture de contatos', () {
     for (final nome in _fixturesDeLista) {
       test('$nome vira uma página, com todos os itens', () {
-        final pagina = ContatosEnvelopeModel.fromJson(
-          _fixture(nome),
-        ).paraPagina();
+        final pagina = ContatosEnvelopeModel.fromJson(_fixture(nome))
+            .paraPagina();
 
         expect(pagina.itens, hasLength(_itens(nome).length));
         expect(pagina.proximaPagina, _fixture(nome)['next']);
