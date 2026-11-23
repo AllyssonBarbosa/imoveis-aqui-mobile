@@ -5,6 +5,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../di/injection.dart';
+import '../contatos/caixa_contatos_screen.dart';
 import '../detalhe_imovel/detalhe_imovel_screen.dart';
 import '../login/apresentacao_login.dart';
 import '../login/login_screen.dart';
@@ -23,7 +24,8 @@ import 'widgets/chips_situacao.dart';
 /// (D-09) e rolagem infinita na ordem do servidor (D-10). A tela só apresenta
 /// o que o [AcervoCubit] entrega — nenhuma regra, rede ou filtro aqui.
 ///
-/// A `AppBar` tem Sair com confirmação; quando o servidor recusa o token (401)
+/// A `AppBar` tem o ícone "Meus contatos", que abre a caixa de contatos
+/// recebidos (D-01), e Sair com confirmação; quando o servidor recusa o token (401)
 /// a sessão fica anônima e o login reabre com o aviso, deixando só a vitrine
 /// embaixo na pilha (T-08-54).
 class AcervoScreen extends StatelessWidget {
@@ -31,6 +33,7 @@ class AcervoScreen extends StatelessWidget {
     super.key,
     this.criarCubit,
     this.aoAbrirImovel = abrirDetalheImovel,
+    this.aoAbrirContatos = abrirCaixaContatos,
   });
 
   /// Cria o Cubit da tela; `null` usa o localizador de serviços. Existe para
@@ -41,12 +44,19 @@ class AcervoScreen extends StatelessWidget {
   /// `Navigator.push`; testes injetam um falso.
   final AoAbrirImovel aoAbrirImovel;
 
+  /// Abre a caixa "Meus contatos" — o padrão navega por `Navigator.push`;
+  /// injetável para o teste do acervo não depender de DI.
+  final AoAbrirCaixaContatos aoAbrirContatos;
+
   @override
   Widget build(BuildContext context) {
     final criar = criarCubit ?? () => getIt<AcervoCubit>();
     return BlocProvider<AcervoCubit>(
       create: (_) => criar()..carregar(),
-      child: _CorpoAcervo(aoAbrirImovel: aoAbrirImovel),
+      child: _CorpoAcervo(
+        aoAbrirImovel: aoAbrirImovel,
+        aoAbrirContatos: aoAbrirContatos,
+      ),
     );
   }
 }
@@ -55,9 +65,13 @@ class AcervoScreen extends StatelessWidget {
 /// (estado efêmero de interface); a guarda contra disparos duplicados vive
 /// inteira no Cubit.
 class _CorpoAcervo extends StatefulWidget {
-  const _CorpoAcervo({required this.aoAbrirImovel});
+  const _CorpoAcervo({
+    required this.aoAbrirImovel,
+    required this.aoAbrirContatos,
+  });
 
   final AoAbrirImovel aoAbrirImovel;
+  final AoAbrirCaixaContatos aoAbrirContatos;
 
   @override
   State<_CorpoAcervo> createState() => _CorpoAcervoState();
@@ -144,6 +158,11 @@ class _CorpoAcervoState extends State<_CorpoAcervo> {
         appBar: AppBar(
           title: const Text(tituloAcervo),
           actions: [
+            IconButton(
+              icon: const Icon(Icons.inbox_outlined),
+              tooltip: 'Meus contatos',
+              onPressed: () => widget.aoAbrirContatos(context),
+            ),
             IconButton(
               icon: const Icon(Icons.logout),
               tooltip: 'Sair',
