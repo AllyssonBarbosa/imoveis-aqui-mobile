@@ -160,7 +160,11 @@ contato novo e qualquer dado do visitante (o `Contato` da W11 não guarda nenhum
   2. contagem dos sem retorno (D-04 a D-06);
   3. opções do filtro de imóvel (D-19).
 
-  O PATCH e o `ContatoSerializer` não mudam (a menos que a pesquisa escolha a variante de D-06). Os
+  O PATCH e o `ContatoSerializer` não mudam (a menos que a pesquisa escolha a variante de D-06), com
+  **uma exceção decidida depois da pesquisa (2026-11-22)**: a pesquisa achou que `PATCH {}` (sem
+  `retorno`) derruba o servidor com `KeyError` (500). O `ContatoSerializer` ganha a validação mínima
+  que transforma isso em 400 (`{"retorno": [...]}`), com um teste. É endurecimento de segurança, no
+  espírito do F8/D-A ("necessário + segurança"), e não muda nenhum outro comportamento do PATCH. Os
   testes vão em `contatos/tests.py`, no padrão de `IsolamentoTests`, `CaixaDeContatosTests` e
   `AnotarRetornoTests`. Cobrem paginação; contagem só de `PENDENTE` e só dos visíveis; opções só com
   imóveis dos contatos visíveis; e outra empresa ou outro corretor nunca aparecendo nas rotas novas.
@@ -200,8 +204,9 @@ contato novo e qualquer dado do visitante (o `Contato` da W11 não guarda nenhum
   diferença.
 - Valor de retorno ou canal desconhecido vindo do servidor: tratar como falha de formato na camada
   de dados, como os outros Models fazem (a pesquisa confere o padrão vigente).
-- Quando carregar as opções do filtro de imóvel (ao abrir a tela ou ao abrir a folha), e o
-  `firstDate` do seletor de período.
+- Quando carregar as opções do filtro de imóvel (ao abrir a tela ou ao abrir a folha). O
+  `firstDate` do seletor de período foi decidido depois da pesquisa: `DateTime(2024)`, com
+  `lastDate` = hoje.
 - **UI-SPEC:** como na F4/D-20, F7/D-16 e F8, as decisões D-01 a D-22 servem de contrato de UI, com
   confirmação no human-check de fim de fase. `/gsd-ui-phase 10` é opcional.
 
