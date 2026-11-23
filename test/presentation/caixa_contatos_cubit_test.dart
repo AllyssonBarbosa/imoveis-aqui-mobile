@@ -6,11 +6,13 @@ import 'package:imoveis_aqui/core/result.dart';
 import 'package:imoveis_aqui/domain/entities/canal_contato.dart';
 import 'package:imoveis_aqui/domain/entities/consulta_contatos.dart';
 import 'package:imoveis_aqui/domain/entities/contato_recebido.dart';
+import 'package:imoveis_aqui/domain/entities/imovel_com_contato.dart';
 import 'package:imoveis_aqui/domain/entities/pagina_contatos.dart';
 import 'package:imoveis_aqui/domain/entities/periodo_contatos.dart';
 import 'package:imoveis_aqui/domain/entities/retorno_contato.dart';
 import 'package:imoveis_aqui/domain/repositories/falhas_autenticacao.dart';
 import 'package:imoveis_aqui/domain/usecases/buscar_contatos_usecase.dart';
+import 'package:imoveis_aqui/domain/usecases/listar_imoveis_dos_contatos_usecase.dart';
 import 'package:imoveis_aqui/domain/usecases/obter_sem_retorno_usecase.dart';
 import 'package:imoveis_aqui/presentation/contatos/caixa_contatos_cubit.dart';
 import 'package:imoveis_aqui/presentation/contatos/caixa_contatos_state.dart';
@@ -19,6 +21,9 @@ import 'package:mocktail/mocktail.dart';
 class _BuscarContatosFalso extends Mock implements BuscarContatosUseCase {}
 
 class _ObterSemRetornoFalso extends Mock implements ObterSemRetornoUseCase {}
+
+class _ListarImoveisFalso extends Mock
+    implements ListarImoveisDosContatosUseCase {}
 
 ContatoRecebido _contato(int id) => ContatoRecebido(
   id: id,
@@ -32,6 +37,7 @@ ContatoRecebido _contato(int id) => ContatoRecebido(
 void main() {
   late _BuscarContatosFalso buscar;
   late _ObterSemRetornoFalso obterSemRetorno;
+  late _ListarImoveisFalso listarImoveis;
 
   final itensPagina1 = [_contato(1), _contato(2)];
   final pagina1 = PaginaContatos(
@@ -52,9 +58,11 @@ void main() {
   setUp(() {
     buscar = _BuscarContatosFalso();
     obterSemRetorno = _ObterSemRetornoFalso();
+    listarImoveis = _ListarImoveisFalso();
   });
 
-  CaixaContatosCubit construir() => CaixaContatosCubit(buscar, obterSemRetorno);
+  CaixaContatosCubit construir() =>
+      CaixaContatosCubit(buscar, obterSemRetorno, listarImoveis);
 
   void listaResponde(PaginaContatos pagina) {
     when(() => buscar(any())).thenAnswer((_) async => Result.success(pagina));
@@ -490,6 +498,330 @@ void main() {
         );
       },
     );
+  });
+
+  group('filtros (D-05, D-18, D-19, D-20)', () {
+    const imovelA = ImovelComContato(id: 7, codigo: 'DEV-7', titulo: 'Casa 7');
+    const imovelB = ImovelComContato(id: 8, codigo: 'DEV-8', titulo: 'Casa 8');
+
+    /// Cubit já com a lista carregada e o número 25, sem chamadas pendentes
+    /// nos falsos (o histórico de chamadas é zerado).
+    Future<CaixaContatosCubit> carregado({PaginaContatos? pagina}) async {
+      listaResponde(pagina ?? pagina1);
+      resumoResponde(25);
+      final cubit = construir()..carregar();
+      await assentar();
+      clearInteractions(buscar);
+      clearInteractions(obterSemRetorno);
+      return cubit;
+    }
+
+    test('aplicarImovel reinicia a lista com o imóvel na consulta', () async {
+      final cubit = await carregado();
+
+      await cubit.aplicarImovel(imovelA);
+
+      expect(cubit.state.consulta, const ConsultaContatos(imovel: imovelA));
+      verify(() => buscar(const ConsultaContatos(imovel: imovelA))).called(1);
+      await cubit.close();
+    });
+
+    test('aplicar o mesmo imóvel de novo não chama a API', () async {
+      final cubit = await carregado();
+      await cubit.aplicarImovel(imovelA);
+      clearInteractions(buscar);
+
+      await cubit.aplicarImovel(imovelA);
+
+      verifyNever(() => buscar(any()));
+      await cubit.close();
+    });
+
+    test('aplicarPeriodo com imóvel já aplicado busca com os dois', () async {
+      final cubit = await carregado();
+      await cubit.aplicarImovel(imovelA);
+
+      await cubit.aplicarPeriodo(periodo);
+
+      expect(
+        cubit.state.consulta,
+        ConsultaContatos(imovel: imovelA, periodo: periodo),
+      );
+      verify(
+        () => buscar(ConsultaContatos(imovel: imovelA, periodo: periodo)),
+      ).called(1);
+      await cubit.close();
+    });
+
+    test('aplicar outro imóvel troca só o imóvel e mantém o período', () async {
+      final cubit = await carregado();
+      await cubit.aplicarImovel(imovelA);
+      await cubit.aplicarPeriodo(periodo);
+
+      await cubit.aplicarImovel(imovelB);
+
+      expect(
+        cubit.state.consulta,
+        ConsultaContatos(imovel: imovelB, periodo: periodo),
+      );
+      await cubit.close();
+    });
+
+    test('limparImovel mantém o período', () async {
+      final cubit = await carregado();
+      await cubit.aplicarImovel(imovelA);
+      await cubit.aplicarPeriodo(periodo);
+      clearInteractions(buscar);
+
+      await cubit.limparImovel();
+
+      expect(cubit.state.consulta, ConsultaContatos(periodo: periodo));
+      verify(() => buscar(ConsultaContatos(periodo: periodo))).called(1);
+      await cubit.close();
+    });
+
+    test('limparPeriodo mantém o imóvel', () async {
+      final cubit = await carregado();
+      await cubit.aplicarImovel(imovelA);
+      await cubit.aplicarPeriodo(periodo);
+      clearInteractions(buscar);
+
+      await cubit.limparPeriodo();
+
+      expect(cubit.state.consulta, const ConsultaContatos(imovel: imovelA));
+      verify(() => buscar(const ConsultaContatos(imovel: imovelA))).called(1);
+      await cubit.close();
+    });
+
+    test('limpar o que já está vazio não chama a API', () async {
+      final cubit = await carregado();
+
+      await cubit.limparImovel();
+      await cubit.limparPeriodo();
+
+      verifyNever(() => buscar(any()));
+      await cubit.close();
+    });
+
+    test('resultado vazio com filtro emite semResultado', () async {
+      final cubit = await carregado();
+      listaResponde(paginaVazia);
+
+      await cubit.aplicarImovel(imovelA);
+
+      expect(cubit.state.conteudo, const ConteudoCaixa.semResultado());
+      await cubit.close();
+    });
+
+    test('limpar todos os filtros e vir vazio emite vazia', () async {
+      final cubit = await carregado();
+      listaResponde(paginaVazia);
+      await cubit.aplicarImovel(imovelA);
+
+      await cubit.limparImovel();
+
+      expect(cubit.state.conteudo, const ConteudoCaixa.vazio());
+      await cubit.close();
+    });
+
+    test('trocar ou limpar filtro não pede o resumo e mantém o número', () async {
+      final cubit = await carregado();
+
+      await cubit.aplicarImovel(imovelA);
+      await cubit.aplicarPeriodo(periodo);
+      await cubit.limparImovel();
+      await cubit.limparPeriodo();
+
+      verifyNever(() => obterSemRetorno());
+      expect(cubit.state.semRetorno, 25);
+      await cubit.close();
+    });
+
+    test('trocar de filtro emite carregando uma vez e depois a lista', () async {
+      final cubit = await carregado();
+      final estados = <CaixaContatosState>[];
+      final inscricao = cubit.stream.listen(estados.add);
+
+      await cubit.aplicarImovel(imovelA);
+      await inscricao.cancel();
+
+      expect(estados.map((e) => e.conteudo), [
+        const ConteudoCaixa.carregando(),
+        ConteudoCaixa.carregada(
+          itens: itensPagina1,
+          proximaPagina: 'pagina-2',
+        ),
+      ]);
+      expect(estados.every((e) => e.semRetorno == 25), isTrue);
+      await cubit.close();
+    });
+
+    test('resposta de antes da troca de filtro é descartada', () async {
+      final antiga = Completer<Result<PaginaContatos>>();
+      final cubit = await carregado();
+      when(() => buscar(const ConsultaContatos(imovel: imovelA)))
+          .thenAnswer((_) => antiga.future);
+      when(() => buscar(const ConsultaContatos(imovel: imovelB)))
+          .thenAnswer((_) async => Result.success(pagina2));
+
+      final primeira = cubit.aplicarImovel(imovelA);
+      await cubit.aplicarImovel(imovelB);
+      antiga.complete(Result.success(pagina1));
+      await primeira;
+      await assentar();
+
+      expect(cubit.state.consulta, const ConsultaContatos(imovel: imovelB));
+      expect(
+        cubit.state.conteudo,
+        ConteudoCaixa.carregada(itens: pagina2.itens),
+      );
+      await cubit.close();
+    });
+
+    test('a sessão expirada na lista filtrada segue terminal', () async {
+      final cubit = await carregado();
+      when(() => buscar(any())).thenAnswer(
+        (_) async => Result.failure(const SessaoExpiradaException()),
+      );
+
+      await cubit.aplicarPeriodo(periodo);
+
+      expect(cubit.state.conteudo, const ConteudoCaixa.sessaoExpirada());
+      await cubit.close();
+    });
+  });
+
+  group('carregarOpcoesDeImovel (D-19, D-23)', () {
+    const opcoes = [
+      ImovelComContato(id: 7, codigo: 'DEV-7', titulo: 'Casa 7'),
+      ImovelComContato(id: 3, codigo: 'DEV-3', titulo: 'Casa 3'),
+    ];
+
+    test('estado inicial: opções não carregadas', () {
+      expect(
+        construir().state.opcoesDeImovel,
+        const OpcoesDeImovel.naoCarregadas(),
+      );
+    });
+
+    blocTest<CaixaContatosCubit, CaixaContatosState>(
+      'emite carregando e depois carregadas, na ordem do servidor',
+      build: construir,
+      setUp: () {
+        when(() => listarImoveis())
+            .thenAnswer((_) async => Result.success(opcoes));
+      },
+      act: (cubit) => cubit.carregarOpcoesDeImovel(),
+      expect: () => [
+        const CaixaContatosState(opcoesDeImovel: OpcoesDeImovel.carregando()),
+        const CaixaContatosState(
+          opcoesDeImovel: OpcoesDeImovel.carregadas(opcoes),
+        ),
+      ],
+    );
+
+    blocTest<CaixaContatosCubit, CaixaContatosState>(
+      'falha genérica emite erro',
+      build: construir,
+      setUp: () {
+        when(() => listarImoveis())
+            .thenAnswer((_) async => Result.failure(Exception('rede')));
+      },
+      act: (cubit) => cubit.carregarOpcoesDeImovel(),
+      expect: () => [
+        const CaixaContatosState(opcoesDeImovel: OpcoesDeImovel.carregando()),
+        const CaixaContatosState(opcoesDeImovel: OpcoesDeImovel.erro()),
+      ],
+    );
+
+    test('sessão expirada leva a sessaoExpirada', () async {
+      when(() => listarImoveis()).thenAnswer(
+        (_) async => Result.failure(const SessaoExpiradaException()),
+      );
+      final cubit = construir();
+
+      await cubit.carregarOpcoesDeImovel();
+
+      expect(cubit.state.conteudo, const ConteudoCaixa.sessaoExpirada());
+      await cubit.close();
+    });
+
+    test('chamar de novo recarrega com nova requisição', () async {
+      when(() => listarImoveis())
+          .thenAnswer((_) async => Result.success(opcoes));
+      final cubit = construir();
+
+      await cubit.carregarOpcoesDeImovel();
+      await cubit.carregarOpcoesDeImovel();
+
+      verify(() => listarImoveis()).called(2);
+      expect(
+        cubit.state.opcoesDeImovel,
+        const OpcoesDeImovel.carregadas(opcoes),
+      );
+      await cubit.close();
+    });
+
+    test('depois de um erro, chamar de novo tenta outra vez', () async {
+      var chamadas = 0;
+      when(() => listarImoveis()).thenAnswer((_) async {
+        chamadas++;
+        return chamadas == 1
+            ? Result.failure(Exception('rede'))
+            : Result.success(opcoes);
+      });
+      final cubit = construir();
+
+      await cubit.carregarOpcoesDeImovel();
+      expect(cubit.state.opcoesDeImovel, const OpcoesDeImovel.erro());
+      await cubit.carregarOpcoesDeImovel();
+
+      expect(
+        cubit.state.opcoesDeImovel,
+        const OpcoesDeImovel.carregadas(opcoes),
+      );
+      await cubit.close();
+    });
+
+    test('enquanto carrega, uma segunda chamada é ignorada', () async {
+      final resposta = Completer<Result<List<ImovelComContato>>>();
+      when(() => listarImoveis()).thenAnswer((_) => resposta.future);
+      final cubit = construir();
+
+      final primeira = cubit.carregarOpcoesDeImovel();
+      await cubit.carregarOpcoesDeImovel();
+      resposta.complete(Result.success(opcoes));
+      await primeira;
+
+      verify(() => listarImoveis()).called(1);
+      await cubit.close();
+    });
+
+    test('nenhum emit depois de close()', () async {
+      final resposta = Completer<Result<List<ImovelComContato>>>();
+      when(() => listarImoveis()).thenAnswer((_) => resposta.future);
+      final cubit = construir();
+
+      final pendente = cubit.carregarOpcoesDeImovel();
+      await cubit.close();
+      resposta.complete(Result.success(opcoes));
+      await pendente;
+
+      expect(cubit.isClosed, isTrue);
+    });
+
+    test('não mexe na lista nem no número', () async {
+      when(() => listarImoveis())
+          .thenAnswer((_) async => Result.success(opcoes));
+      final cubit = construir();
+
+      await cubit.carregarOpcoesDeImovel();
+
+      verifyNever(() => buscar(any()));
+      verifyNever(() => obterSemRetorno());
+      expect(cubit.state.conteudo, const ConteudoCaixa.carregando());
+      await cubit.close();
+    });
   });
 
   test('nenhum emit depois de close()', () async {
