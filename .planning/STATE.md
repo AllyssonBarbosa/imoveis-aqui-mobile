@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 10
 current_phase_name: Contatos Recebidos e Retorno Anotado (APP 10)
 status: executing
-stopped_at: Completed 10-04-PLAN.md
-last_updated: "2026-11-23T23:04:14.602Z"
+stopped_at: Completed 10-05-PLAN.md
+last_updated: "2026-11-23T23:14:44.158Z"
 last_activity: 2026-11-23
 last_activity_desc: Phase 10 execution started
-state_head: 57b59d5191de40664b7a8bcf7a8cc6904e7f8ed9
+state_head: 41fb70ca68131db47efcea9521d0b10050afb376
 progress:
   total_phases: 10
   completed_phases: 3
   total_plans: 94
-  completed_plans: 88
+  completed_plans: 89
   percent: 30
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-11-21)
 ## Current Position
 
 Phase: 10 (Contatos Recebidos e Retorno Anotado (APP 10)) — EXECUTING
-Plan: 5 of 10
+Plan: 6 of 10
 Status: Ready to execute
 Last activity: 2026-11-23 — Phase 10 execution started
 
@@ -131,6 +131,7 @@ Progress: [████████████████████] 72/72 p
 | Phase 10 P02 | 6 min | 2 tasks | 12 files |
 | Phase 10 P03 | 6 min | 2 tasks | 8 files |
 | Phase 10 P04 | 6 min | 2 tasks | 12 files |
+| Phase 10 P05 | 15 min | 2 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -213,6 +214,7 @@ Recent decisions affecting current work:
 - [Phase 10]: 10-02: CONTATO_TAXA_ANONIMA não existe no settings.py da feat/APP10; captura dos 25 POSTs públicos sem ajuste de taxa
 - [Phase 10]: 10-03: API-11 e CXA-04 permanecem Pending no REQUIREMENTS até os planos 10-05 e 10-10 (declaram os mesmos IDs; gate de ID compartilhado) — requirements.ready-ids bloqueia IDs compartilhados com planos sem SUMMARY; a aceitação da Task 2 também exige Pending
 - [Phase 10]: 10-04: canal/retorno desconhecido do wire vira FormatException (canalContatoDaApi/retornoContatoDaApi em data/models); repositório do 10-06 converte em falha
+- [Phase 10]: 10-05: Models da caixa não leem campos de exibição nem corretor; hora local por toLocal() só em ContatoRecebidoModel.paraEntidade
 
 ### Pending Todos
 
@@ -250,6 +252,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-23T23:04:11.348Z
-Stopped at: Completed 10-04-PLAN.md
+Last session: 2026-11-23T23:14:42.050Z
+Stopped at: Completed 10-05-PLAN.md
 Resume file: None
