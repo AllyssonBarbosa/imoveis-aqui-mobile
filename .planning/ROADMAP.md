@@ -459,7 +459,26 @@ Plans:
   5. Contato de imóvel de outra empresa nunca aparece.
   6. A tela mostra quantos contatos ainda estão sem retorno anotado.
 
-**Plans:** 0 plans
+**Plans:** 7 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 10 to break down)
+**Wave 1**
+- [ ] 10-01-PLAN.md — Web (feat/APP10): TRACER da caixa paginada com token (login → `GET /api/contatos/` em envelope de 20) + `resumo` (sem retorno), `imoveis` (opções do filtro), PATCH `{}` → 400, isolamento e README (API-12, CXA-01..05)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 10-02-PLAN.md — Wire real: grupo `contatos` na captura, 11 fixtures, §16 do contrato, `contrato_contatos_test.dart` e registro de CXA-01..06, API-11, API-12 (API-11, CXA-04)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 10-03-PLAN.md — App: domínio da caixa (entidades, interface do repositório, falha 404) e Models lidos contra todas as fixtures (CXA-01, CXA-02, CXA-03, CXA-05, API-11)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 10-04-PLAN.md — App: parâmetros, DataSource no `Dio` autenticado, repositório com falhas tipadas, 4 use cases e rotas da caixa na `ApiFalsa` (CXA-01, CXA-02, CXA-03, CXA-05, CXA-06)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 10-05-PLAN.md — App: "Meus contatos" pelo ícone do acervo — lista paginada, item, número de sem retorno do servidor, estados e 401 (CXA-01, CXA-05, CXA-06)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [ ] 10-06-PLAN.md — App: pt-BR do Material, filtros por imóvel (folha com opções do servidor) e por período (`showDateRangePicker`) (CXA-02, CXA-06)
+
+**Wave 7** *(blocked on Wave 6 completion)*
+- [ ] 10-07-PLAN.md — App: anotar o retorno (folha, item em voo, SnackBar fixa, número de novo do servidor) + fluxo ponta a ponta, REQUIREMENTS completos, gates finais e human-check (CXA-01..06, API-11, API-12)
