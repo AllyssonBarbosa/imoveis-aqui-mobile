@@ -98,21 +98,24 @@ void main() {
       });
     });
 
-    test('seguir(next) pede page=2 com o token e devolve contatos_p2', () async {
-      final p1 = await datasource.buscar(const ConsultaContatos());
+    test(
+      'seguir(next) pede page=2 com o token e devolve contatos_p2',
+      () async {
+        final p1 = await datasource.buscar(const ConsultaContatos());
 
-      final p2 = await datasource.seguir(p1.next!);
+        final p2 = await datasource.seguir(p1.next!);
 
-      expect(api.requisicoes.last.queryParameters['page'], '2');
-      expect(
-        api.requisicoesGravadas.last.cabecalho('Authorization'),
-        'Token token-de-teste',
-      );
-      expect(
-        p2.results,
-        hasLength((fixture('contatos_p2.json')['results']! as List).length),
-      );
-    });
+        expect(api.requisicoes.last.queryParameters['page'], '2');
+        expect(
+          api.requisicoesGravadas.last.cabecalho('Authorization'),
+          'Token token-de-teste',
+        );
+        expect(
+          p2.results,
+          hasLength((fixture('contatos_p2.json')['results']! as List).length),
+        );
+      },
+    );
 
     test('seguir com next de outra origem lança FormatException e não gera '
         'pedido', () async {
@@ -165,17 +168,20 @@ void main() {
       },
     );
 
-    test('depois do PATCH aceito o resumo cai (contatos_resumo_apos)', () async {
-      final id = fixture('contato_patch_200.json')['id']! as int;
-      await datasource.anotarRetorno(id, RetornoContato.falei);
+    test(
+      'depois do PATCH aceito o resumo cai (contatos_resumo_apos)',
+      () async {
+        final id = fixture('contato_patch_200.json')['id']! as int;
+        await datasource.anotarRetorno(id, RetornoContato.falei);
 
-      final resumo = await datasource.contarSemRetorno();
+        final resumo = await datasource.contarSemRetorno();
 
-      expect(
-        resumo.semRetorno,
-        fixture('contatos_resumo_apos.json')['sem_retorno'],
-      );
-    });
+        expect(
+          resumo.semRetorno,
+          fixture('contatos_resumo_apos.json')['sem_retorno'],
+        );
+      },
+    );
 
     test('anotarRetorno de outro id responde 404', () async {
       await expectLater(
@@ -204,32 +210,35 @@ void main() {
       );
     });
 
-    test('sem token toda rota da caixa falha com SessaoExpiradaException', () async {
-      final semToken = criar(ArmazenamentoTokenEmMemoria());
-      Matcher sessaoExpirada() => throwsA(
-        isA<DioException>().having(
-          (e) => e.error,
-          'error',
-          isA<SessaoExpiradaException>(),
-        ),
-      );
+    test(
+      'sem token toda rota da caixa falha com SessaoExpiradaException',
+      () async {
+        final semToken = criar(ArmazenamentoTokenEmMemoria());
+        Matcher sessaoExpirada() => throwsA(
+          isA<DioException>().having(
+            (e) => e.error,
+            'error',
+            isA<SessaoExpiradaException>(),
+          ),
+        );
 
-      await expectLater(
-        semToken.buscar(const ConsultaContatos()),
-        sessaoExpirada(),
-      );
-      await expectLater(semToken.contarSemRetorno(), sessaoExpirada());
-      await expectLater(semToken.listarImoveis(), sessaoExpirada());
-      await expectLater(
-        semToken.anotarRetorno(1, RetornoContato.falei),
-        sessaoExpirada(),
-      );
-      expect(
-        api.requisicoesGravadas.every(
-          (r) => r.cabecalho('Authorization') == null,
-        ),
-        isTrue,
-      );
-    });
+        await expectLater(
+          semToken.buscar(const ConsultaContatos()),
+          sessaoExpirada(),
+        );
+        await expectLater(semToken.contarSemRetorno(), sessaoExpirada());
+        await expectLater(semToken.listarImoveis(), sessaoExpirada());
+        await expectLater(
+          semToken.anotarRetorno(1, RetornoContato.falei),
+          sessaoExpirada(),
+        );
+        expect(
+          api.requisicoesGravadas.every(
+            (r) => r.cabecalho('Authorization') == null,
+          ),
+          isTrue,
+        );
+      },
+    );
   });
 }

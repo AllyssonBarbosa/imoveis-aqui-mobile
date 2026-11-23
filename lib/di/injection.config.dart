@@ -24,6 +24,10 @@ import 'package:imoveis_aqui/data/datasources/autenticacao_datasource.dart'
     as _i887;
 import 'package:imoveis_aqui/data/datasources/autenticacao_remote_datasource.dart'
     as _i652;
+import 'package:imoveis_aqui/data/datasources/caixa_contatos_datasource.dart'
+    as _i594;
+import 'package:imoveis_aqui/data/datasources/caixa_contatos_remote_datasource.dart'
+    as _i1054;
 import 'package:imoveis_aqui/data/datasources/cidade_prefs_datasource.dart'
     as _i94;
 import 'package:imoveis_aqui/data/datasources/cidade_remote_datasource.dart'
@@ -325,6 +329,11 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i744.AcervoDataSource>(
       () => _i659.AcervoRemoteDataSource(
+        gh<_i361.Dio>(instanceName: 'autenticado'),
+      ),
+    );
+    gh.lazySingleton<_i594.CaixaContatosDataSource>(
+      () => _i1054.CaixaContatosRemoteDataSource(
         gh<_i361.Dio>(instanceName: 'autenticado'),
       ),
     );
