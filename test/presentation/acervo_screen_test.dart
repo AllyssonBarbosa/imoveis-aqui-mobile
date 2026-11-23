@@ -10,6 +10,7 @@ import 'package:imoveis_aqui/presentation/acervo/acervo_cubit.dart';
 import 'package:imoveis_aqui/presentation/acervo/acervo_screen.dart';
 import 'package:imoveis_aqui/presentation/acervo/acervo_state.dart';
 import 'package:imoveis_aqui/presentation/acervo/widgets/cartao_imovel_acervo.dart';
+import 'package:imoveis_aqui/presentation/contatos/caixa_contatos_screen.dart';
 import 'package:imoveis_aqui/presentation/login/login_cubit.dart';
 import 'package:imoveis_aqui/presentation/login/login_screen.dart';
 import 'package:imoveis_aqui/presentation/login/login_state.dart';
@@ -523,5 +524,55 @@ void main() {
         expect(find.byType(AcervoScreen), findsNothing);
       },
     );
+  });
+
+  group('entrada "Meus contatos" (D-01, D-02)', () {
+    testWidgets('a AppBar tem o ícone de caixa de entrada com o tooltip', (
+      tester,
+    ) async {
+      await montar(tester, carregada([_imovel(1)]));
+
+      expect(find.byIcon(Icons.inbox_outlined), findsOneWidget);
+      expect(find.byTooltip('Meus contatos'), findsOneWidget);
+    });
+
+    testWidgets('o ícone vem antes do Sair e não tem selo', (tester) async {
+      await montar(tester, carregada([_imovel(1)]));
+
+      final contatos = tester.getTopLeft(find.byTooltip('Meus contatos')).dx;
+      final sair = tester.getTopLeft(find.byTooltip('Sair')).dx;
+      expect(contatos, lessThan(sair));
+      expect(find.byType(Badge), findsNothing);
+    });
+
+    testWidgets('tocar chama aoAbrirContatos com o context do acervo', (
+      tester,
+    ) async {
+      BuildContext? recebido;
+      whenListen(
+        cubit,
+        const Stream<AcervoState>.empty(),
+        initialState: carregada([_imovel(1)]),
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: AcervoScreen(
+            criarCubit: () => cubit,
+            aoAbrirImovel: (context, imovel) async {},
+            aoAbrirContatos: (context) async => recebido = context,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byTooltip('Meus contatos'));
+
+      expect(recebido, isNotNull);
+      expect(find.byType(AcervoScreen), findsOneWidget);
+    });
+
+    test('o padrão de aoAbrirContatos é abrirCaixaContatos', () {
+      expect(const AcervoScreen().aoAbrirContatos, same(abrirCaixaContatos));
+    });
   });
 }
