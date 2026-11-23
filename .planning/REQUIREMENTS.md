@@ -67,6 +67,17 @@ Requisitos da primeira entrega (tarefas APP01, APP02, APP03, APP04, APP07, APP08
 - [x] **API-09**: O §14 de `01-CONTRATO-API.md` congela login, "quem sou eu", Sair e a lista do acervo (parâmetros, envelope, as 10 chaves do item, 400/401/403/404/429 e o efeito do Sair nos outros aparelhos), com fixtures capturadas do Django e testes de contrato nos dois repositórios.
 - [x] **API-10**: A web entrega, com testes, `GET /api/auth/eu/`, `POST /api/auth/sair/`, o limite de tentativas no login e a lista do acervo paginada, filtrada e enxuta em `GET /api/imoveis/`.
 
+### Caixa de contatos (APP10)
+
+- [ ] **CXA-01**: O corretor vê "Meus contatos": a lista dos contatos que recebeu, mais recentes primeiro, vinda de `GET /api/contatos/` (paginada, rolagem infinita); cada item traz imóvel ("código — título"), canal, data e retorno atual.
+- [ ] **CXA-02**: Filtro por imóvel (opções vindas de `GET /api/contatos/imoveis/`) e por período (`de`/`ate`, `showDateRangePicker` em pt-BR); os dois se combinam e o servidor resolve.
+- [ ] **CXA-03**: O corretor anota o retorno (Falei, Visita agendada, Sem resposta, Descartado) com um toque; a anotação é gravada por `PATCH /api/contatos/<id>/` e o app espera o servidor; falhas viram SnackBar com texto fixo.
+- [ ] **CXA-04**: Contato de outra empresa ou de outro corretor nunca aparece na lista, na contagem nem nas opções do filtro, e o PATCH pelo id dá 404 — garantido e testado no Django.
+- [ ] **CXA-05**: A tela mostra quantos contatos estão sem retorno anotado (`GET /api/contatos/resumo/` → `{"sem_retorno": N}`), calculado no Django, sem filtros, atualizado ao abrir e depois de cada anotação.
+- [ ] **CXA-06**: A caixa abre por um ícone na `AppBar` do "Meu acervo" (só o corretor); qualquer 401 encerra a sessão e abre o login com o aviso "Sua sessão terminou. Entre de novo."; os textos de estado são fixos do app.
+- [ ] **API-11**: O §16 de `01-CONTRATO-API.md` congela a lista paginada, os parâmetros, os 12 campos do item, o PATCH (valores, resposta, 400/401/403/404/405), a contagem, as opções do imóvel, o fuso e o isolamento, com fixtures capturadas do Django e testes de contrato nos dois repositórios.
+- [ ] **API-12**: A web entrega, com testes, a paginação de `GET /api/contatos/`, `GET /api/contatos/resumo/`, `GET /api/contatos/imoveis/` e o PATCH sem `retorno` respondendo 400, todas atrás de `PertenceAUmaEmpresa` e do escopo de empresa e perfil.
+
 ### API pública (endpoints que o app consome)
 
 - [x] **API-01**: Auditar a API atual e congelar por escrito o contrato de `/cidades` e `/imoveis` (nomes de campos, enums, nomes dos params de filtro, envelope de paginação) antes de codar APP02/APP03 ou o endpoint real.
@@ -175,15 +186,23 @@ Excluídos de propósito. Documentados para evitar scope creep.
 | ACV-04 | Phase 8 | Complete |
 | API-09 | Phase 8 | Complete |
 | API-10 | Phase 8 | Complete |
+| CXA-01 | Phase 10 | Pending |
+| CXA-02 | Phase 10 | Pending |
+| CXA-03 | Phase 10 | Pending |
+| CXA-04 | Phase 10 | Pending |
+| CXA-05 | Phase 10 | Pending |
+| CXA-06 | Phase 10 | Pending |
+| API-11 | Phase 10 | Pending |
+| API-12 | Phase 10 | Pending |
 
 Planos da Phase 6 que cobrem cada ID (frontmatter `requirements` dos `06-NN-PLAN.md`): APP06-C1 → 06-07, 06-09, 06-10; APP06-C2 → 06-02, 06-03, 06-04, 06-05, 06-06, 06-07, 06-10; APP06-C3 → 06-03, 06-04, 06-05, 06-06, 06-08, 06-09, 06-10; APP06-C4 → 06-01, 06-03, 06-05, 06-06, 06-07, 06-08, 06-10; APP06-C5 → 06-01, 06-09, 06-10; APP06-C6 → 06-01, 06-02, 06-05, 06-07, 06-09, 06-10; APP06-API-1 → 06-01, 06-03, 06-04, 06-10; APP06-API-2 → 06-02, 06-10.
 
 **Coverage:**
 
-- v1 requirements: 57 total
-- Mapped to phases: 57 (roadmap complete)
+- v1 requirements: 65 total
+- Mapped to phases: 65 (roadmap complete)
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-09-21*
-*Last updated: 2026-11-22 after merging origin/main (Phases 7, 07.1, 8) into feat/APP06 (Phase 6, APP06-C1..C6, APP06-API-1/2)*
+*Last updated: 2026-11-23 after planning Phase 10 (CXA-01..06, API-11, API-12)*

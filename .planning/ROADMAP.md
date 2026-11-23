@@ -448,7 +448,7 @@ Plans:
 ### Phase 10: Contatos Recebidos e Retorno Anotado (APP 10)
 
 **Goal:** Como corretor, eu quero ver quem procurou pelos meus imóveis para retornar e não perder negócio. A lista traz os contatos mais recentes primeiro, com o imóvel, o canal e a data, e permite filtrar por imóvel e por período. O corretor anota o retorno: falei, visita agendada, sem resposta ou descartado. Card APP 10 (tarefa A10).
-**Requirements**: TBD
+**Requirements**: CXA-01, CXA-02, CXA-03, CXA-04, CXA-05, CXA-06, API-11, API-12
 **Depends on:** Phase 8 (login, sessão e `Dio` autenticado do app) e Phase 6 (contato registrado pela API pública). Externamente: WEB 11 (feito, na main da web) — `GET /api/contatos/` (`?imovel=&de=&ate=`) e `PATCH /api/contatos/{id}/` (`ContatoViewSet`, `PertenceAUmaEmpresa`, `restringir_ao_perfil`).
 **Success Criteria** (what must be TRUE):
 
