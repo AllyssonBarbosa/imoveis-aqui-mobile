@@ -60,9 +60,8 @@ void main() {
     ) async {
       await montar(tester, _contato());
 
-      final esquema = Theme.of(
-        tester.element(find.byType(ItemContato)),
-      ).colorScheme;
+      final esquema = Theme.of(tester.element(find.byType(ItemContato)))
+          .colorScheme;
       final texto = tester.widget<Text>(find.text('Aguardando retorno'));
       expect(texto.style?.color, esquema.onTertiaryContainer);
       final caixa = tester.widget<DecoratedBox>(
@@ -148,7 +147,10 @@ void main() {
 
     testWidgets('sem mensagemErro mantem o texto de imoveis', (tester) async {
       await montarRodape(tester);
-      expect(find.text('Não foi possível carregar mais imóveis'), findsOneWidget);
+      expect(
+        find.text('Não foi possível carregar mais imóveis'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('com mensagemErro mostra o texto dado', (tester) async {
