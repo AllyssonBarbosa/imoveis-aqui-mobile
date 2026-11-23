@@ -39,7 +39,10 @@ void main() {
         RetornoContato.semResposta,
         RetornoContato.descartado,
       ]);
-      expect(RetornoContato.anotaveis, isNot(contains(RetornoContato.pendente)));
+      expect(
+        RetornoContato.anotaveis,
+        isNot(contains(RetornoContato.pendente)),
+      );
     });
 
     test('não pode ser alterada', () {
@@ -80,18 +83,16 @@ void main() {
     });
 
     test('copyWith(imovel) mantém o período', () {
-      final consulta = ConsultaContatos(
-        periodo: _periodo,
-      ).copyWith(imovel: _imovel);
+      final consulta = ConsultaContatos(periodo: _periodo)
+          .copyWith(imovel: _imovel);
 
       expect(consulta.imovel, _imovel);
       expect(consulta.periodo, _periodo);
     });
 
     test('copyWith(periodo) mantém o imóvel', () {
-      final consulta = const ConsultaContatos(
-        imovel: _imovel,
-      ).copyWith(periodo: _periodo);
+      final consulta = const ConsultaContatos(imovel: _imovel)
+          .copyWith(periodo: _periodo);
 
       expect(consulta.imovel, _imovel);
       expect(consulta.periodo, _periodo);
@@ -107,16 +108,18 @@ void main() {
       expect(consulta.periodo, _periodo);
     });
 
-    test('copyWith(limparPeriodo) volta o período a null e mantém o imóvel',
-        () {
-      final consulta = ConsultaContatos(
-        imovel: _imovel,
-        periodo: _periodo,
-      ).copyWith(limparPeriodo: true);
+    test(
+      'copyWith(limparPeriodo) volta o período a null e mantém o imóvel',
+      () {
+        final consulta = ConsultaContatos(
+          imovel: _imovel,
+          periodo: _periodo,
+        ).copyWith(limparPeriodo: true);
 
-      expect(consulta.imovel, _imovel);
-      expect(consulta.periodo, isNull);
-    });
+        expect(consulta.imovel, _imovel);
+        expect(consulta.periodo, isNull);
+      },
+    );
 
     test('copyWith sem argumentos não muda nada', () {
       final consulta = ConsultaContatos(imovel: _imovel, periodo: _periodo);
@@ -192,10 +195,7 @@ void main() {
       expect(_contato(), _contato());
       expect(_contato().hashCode, _contato().hashCode);
       expect(_contato(), isNot(_contato(id: 8)));
-      expect(
-        _contato(),
-        isNot(_contato(retorno: RetornoContato.falei)),
-      );
+      expect(_contato(), isNot(_contato(retorno: RetornoContato.falei)));
     });
 
     test('retornoEm entra na igualdade', () {
