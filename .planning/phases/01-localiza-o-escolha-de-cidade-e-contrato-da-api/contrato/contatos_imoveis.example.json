@@ -1,0 +1,17 @@
+[
+  {
+    "id": 34,
+    "codigo": "DEV-INDAIATUBA-02",
+    "titulo": "Apartamento no bairro Jardim Esplanada"
+  },
+  {
+    "id": 35,
+    "codigo": "DEV-INDAIATUBA-03",
+    "titulo": "Terreno no bairro Centro"
+  },
+  {
+    "id": 36,
+    "codigo": "DEV-INDAIATUBA-04",
+    "titulo": "Lote no bairro Jardim Esplanada"
+  }
+]

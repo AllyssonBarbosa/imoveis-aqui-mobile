@@ -14,6 +14,8 @@ até ela entrar na `main` dela. Ver §13.
 lista do acervo em `GET /api/imoveis/`) vêm da branch `feat/APP08` da web, até ela entrar na `main` dela. Ver §14; os
 exemplos `acervo`, `eu` e `login` são travados por `test/data/contrato_acervo_test.dart`.
 
+**Caixa de contatos do corretor (Fase 10):** a lista paginada, a contagem dos sem retorno, as opções do filtro de imóvel e o PATCH do retorno vêm da branch `feat/APP10` da web, até ela entrar na `main` dela. Ver §16; os exemplos `contatos`, `contatos_resumo`, `contatos_imoveis` e `contato_patch` são travados por `test/data/contrato_contatos_test.dart`.
+
 **Histórico:** as propostas congeladas nas Fases 1 a 4 (paginação por cursor, `GET /api/publico/imoveis/?cidade=`,
 `ordenacao`, sufixo `_min`, `bairro`/`caracteristicas` por nome, `corretor{slug}`, `lote.preco`,
 `posicao_solar` livre etc.) foram **substituídas** na Fase 5 pelo formato real da API, que é dona
@@ -675,3 +677,204 @@ O visitante escolhe um canal e o servidor registra o contato e devolve o link pr
 **No app (D-13, D-14, D-15):** o app lê `canais_contato` do detalhe (§11.2) e só mostra os canais que o servidor
 mandou; ao tocar, faz este POST, e abre o `link` recebido. Qualquer falha (400, 404, 429, rede) é um estado de
 erro com "Tentar de novo", sem nova tentativa automática e sem montar link no aparelho.
+
+---
+
+## 16. Caixa de contatos do corretor (Fase 10)
+
+A Fase 10 acrescenta a **caixa de contatos**: a lista dos contatos que o corretor recebeu pelo botão de contato da página
+do imóvel (§15), a contagem dos que ainda não tiveram retorno, as opções do filtro de imóvel e o PATCH que anota o
+retorno. Estas rotas vivem na branch `feat/APP10` da web até ela entrar na `main` dela. Este § foi escrito a partir do
+que o Django **entrega** (D-26) e não muda os §1 a §15. As respostas de exemplo são capturadas (§16.10), nunca escritas à
+mão.
+
+### 16.1 Rotas e autenticação
+
+Todas as rotas exigem `Authorization: Token <chave>` e a permissão `PertenceAUmaEmpresa`.
+
+| Rota | Método | Sucesso |
+|------|--------|---------|
+| `/api/contatos/` | `GET` | 200 envelope do §4 (`page_size = 20`, `next`/`previous` absolutos) |
+| `/api/contatos/resumo/` | `GET` | 200 `{"sem_retorno": N}` |
+| `/api/contatos/imoveis/` | `GET` | 200 lista de opções (sem envelope, sem paginação) |
+| `/api/contatos/<id>/` | `PATCH` | 200 item completo (12 chaves) |
+
+- `GET /api/contatos/<id>/` também existe, mas o app **não** o usa. `PUT`, `POST` e `DELETE` respondem **405**
+  (`{"detail": "Método \"PUT\" não é permitido."}`).
+- Sem token, ou com chave inválida ou revogada: **401** `{"detail": ...}` com o cabeçalho `WWW-Authenticate: Token`.
+- **Administrador** (não pertence a nenhuma empresa): **403**
+  `{"detail": "Este recurso é restrito a usuários vinculados a uma empresa."}`.
+- **Gestor** passa e vê todos os contatos da empresa, mas o app **não oferece a entrada** da caixa a ele (D-03): a
+  caixa abre por um ícone na `AppBar` do "Meu acervo", que só o corretor tem.
+- **Barra final obrigatória** (`/api/contatos/<id>/`): sem ela o `APPEND_SLASH` não redireciona um `PATCH`, e o `Dio`
+  autenticado tem `followRedirects: false`.
+
+### 16.2 Lista
+
+`GET /api/contatos/` devolve os contatos visíveis ao usuário logado no envelope do §4: `{count, next, previous,
+results}`, **`page_size = 20`** fixo (o cliente não escolhe o tamanho) e `next`/`previous` **absolutos**, com os filtros
+já embutidos.
+
+**Parâmetros:**
+
+| Parâmetro | Regra |
+|-----------|-------|
+| `imovel` | id inteiro do imóvel; valor não numérico → 400 |
+| `de` | `AAAA-MM-DD`, **inclusiva**, dia de São Paulo (§16.7) |
+| `ate` | `AAAA-MM-DD`, **inclusiva**, dia de São Paulo; `de` depois de `ate` → 400 |
+| `page` | número da página (20 por página) |
+
+Os filtros se combinam e é o servidor quem os resolve. **Ordem fixa:** `-criado_em, -id` (o `id` desempata, senão a
+página pode repetir ou pular contato).
+
+**Item: exatamente 12 chaves** (`ContatoSerializer`; exemplo: `contrato/contatos.example.json`, cópia byte a byte de
+`test/fixtures/api/contatos_p1.json`):
+
+| Chave | Tipo | Observação |
+|-------|------|------------|
+| `id` | inteiro | |
+| `imovel` | inteiro | id do imóvel (o app não usa) |
+| `imovel_codigo` | string | código interno do imóvel na empresa (não é público na vitrine) |
+| `imovel_titulo` | string | |
+| `corretor` | inteiro ou `null` | `null` quando o corretor foi desativado e o contato foi para a empresa (só o gestor vê esses) |
+| `corretor_nome` | string ou `null` | o app não mostra (coluna só do gestor, D-09) |
+| `canal` | string | `WHATSAPP`, `TELEFONE` ou `EMAIL` |
+| `canal_exibicao` | string | `WhatsApp`, `Telefone`, `E-mail` (o app usa texto próprio) |
+| `criado_em` | ISO-8601 com offset `-03:00` | |
+| `retorno` | string | `PENDENTE`, `FALEI`, `VISITA_AGENDADA`, `SEM_RESPOSTA` ou `DESCARTADO` |
+| `retorno_exibicao` | string | o app usa texto próprio (D-10) |
+| `retorno_em` | ISO-8601 ou `null` | instante da última anotação; `null` enquanto `PENDENTE` |
+
+**Nenhum dado do visitante** existe na tabela de contatos: sem nome, telefone, e-mail nem texto livre.
+
+**Erros da lista:**
+
+- **400** com `{"<campo>": "<mensagem>"}` (o valor é uma **string**, não uma lista), por exemplo
+  `{"de": "A data inicial não pode ser depois da final."}`, `{"imovel": "Informe o id do imóvel."}` ou
+  `{"de": "Informe a data no formato AAAA-MM-DD."}`. O app ignora o texto.
+- `?page` fora do intervalo → **404** `{"detail": "Página inválida."}`.
+
+**Mudança de formato:** antes da Fase 10 a lista de contatos era um array simples; agora é o envelope paginado. Não há
+outro consumidor conhecido além do app.
+
+### 16.3 Anotar o retorno
+
+`PATCH /api/contatos/<id>/` com `Content-Type: application/json` e corpo `{"retorno": "<valor>"}`. Valores aceitos
+(`RETORNOS_ANOTAVEIS`): `FALEI`, `VISITA_AGENDADA`, `SEM_RESPOSTA`, `DESCARTADO`. `PENDENTE` **não** é anotável: o
+contato nasce `PENDENTE` e o app não o devolve a esse estado.
+
+| Caso | Status | Corpo |
+|------|--------|-------|
+| Sucesso | **200** | o item completo, com as 12 chaves do §16.2 e `retorno_em` preenchido (`contrato/contato_patch.example.json`, cópia byte a byte de `contato_patch_200.json`) |
+| `retorno` = `PENDENTE`, valor inválido ou `""` | **400** | `{"retorno": ["\"PENDENTE\" não é uma escolha válida."]}` (`erro_400_retorno.json`) |
+| corpo sem `retorno` (por exemplo `{}`) | **400** | `{"retorno": ["Este campo é obrigatório."]}` |
+| contato de **outro corretor** da mesma empresa | **404** | `{"detail": "No Contato matches the given query."}` (`erro_404_contato.json`) |
+| contato de **outra empresa** | **404** | idêntico ao anterior (sem canal de enumeração) |
+| administrador | **403** | `{"detail": "Este recurso é restrito a usuários vinculados a uma empresa."}` |
+| sem token ou chave inválida | **401** | `{"detail": ...}` + `WWW-Authenticate: Token` |
+| `PUT`, `POST`, `DELETE` | **405** | `{"detail": "Método ... não é permitido."}` |
+
+- **Emenda pós-pesquisa ao D-25:** o corpo sem `retorno` respondia **500** (`KeyError`) no servidor; o `validate()` do
+  serializer agora o transforma em **400**.
+- Campos extras no corpo (`canal`, `imovel`, `id`...) são **ignorados**: só o `retorno` muda.
+- **Cada anotação grava um `retorno_em` novo** e a troca de retorno é aceita (de `FALEI` para `SEM_RESPOSTA`, por
+  exemplo) — D-15. O app espera o servidor responder antes de mostrar o novo valor (D-16) e só olha o **status** e o
+  item do 200, nunca o texto do erro (D-17).
+
+### 16.4 Contagem
+
+`GET /api/contatos/resumo/` devolve exatamente `{"sem_retorno": <inteiro ≥ 0>}` (exemplo:
+`contrato/contatos_resumo.example.json`). É sempre o total de contatos **visíveis ao usuário com `retorno = PENDENTE`**;
+**ignora** `imovel`, `de`, `ate` e `page` (D-05): a contagem não muda quando o corretor filtra a lista. O app só mostra o
+número que o servidor mandou, nunca soma nem subtrai; depois de uma anotação ele pede a contagem de novo (na captura,
+25 antes e 24 depois, `contatos_resumo.json` e `contatos_resumo_apos.json`).
+
+### 16.5 Opções do filtro de imóvel
+
+`GET /api/contatos/imoveis/` devolve uma **lista** (sem envelope e sem paginação) de objetos com exatamente 3 chaves:
+`{"id": <inteiro>, "codigo": "<string>", "titulo": "<string>"}` (exemplo: `contrato/contatos_imoveis.example.json`).
+Só entram os imóveis que aparecem em contatos **visíveis ao usuário** (a mesma regra de `ContatoListView`, nada de
+imóvel de outra empresa nem de outro corretor), ordenados por `codigo`.
+
+### 16.6 Isolamento (D-13)
+
+O filtro por **empresa** é a primeira camada (`EmpresaScopedQuerySetMixin`/`contatos_visiveis_para`); depois vem o
+**perfil**: corretor só vê os contatos dele, gestor vê todos os da empresa, administrador não vê nada (403). Isso vale
+para a lista (com e sem filtros), para a contagem, para as opções do filtro e para o PATCH (404 pelo id de outro corretor
+ou de outra empresa).
+
+**Evidência no wire:** a captura dá **1 contato à empresa B** (`contatos_outra_empresa.json`, `count` 1, canal
+`TELEFONE`) e **25** à empresa A (`contatos_p1.json` + `contatos_p2.json`). O teste do app exige que a caixa da B **não
+seja vazia** (senão a prova seria vazia), que nenhum id dela apareça na caixa da A, que o imóvel dela não apareça nas
+opções da A e que a contagem da A seja só a dela. A captura também confere o PATCH cruzado: **404 nos dois sentidos**. A
+cobertura completa por perfil (corretor × corretor, gestor, administrador) fica nas classes do Django (§16.10).
+
+### 16.7 Fuso
+
+O servidor usa `TIME_ZONE = 'America/Sao_Paulo'` com `USE_TZ = True`.
+
+- `criado_em` e `retorno_em` saem em ISO-8601 **com offset de São Paulo** (`-03:00`), por exemplo
+  `2026-11-23T19:43:37.310766-03:00`; `retorno_em` ainda sem anotação é `null`.
+- `de` e `ate` são **dias de São Paulo**: o recorte usa `criado_em__date`, que com `USE_TZ = True` interpreta o dia em
+  `America/Sao_Paulo`. O app manda a data escolhida no seletor, formatada do `DateTime` local, sem `toUtc()`.
+- O app mostra a hora **do aparelho** (`toLocal()`). Num aparelho no fuso de Brasília ela bate com a do site; em outro
+  fuso a hora mostrada difere do site em 1 ou 2 horas, e o dia escolhido no seletor continua valendo como dia de São
+  Paulo. Risco aceito (A3).
+
+### 16.8 No app
+
+- **`Dio` `@Named('autenticado')` em todas as rotas** da caixa (lista, contagem, opções e PATCH): o `InterceptadorSessao`
+  coloca `Authorization: Token <chave>` só quando a origem do pedido é a da API configurada.
+- **401 → sessão terminada** (`SessaoExpiradaException`, como no §14.7): o app abre o login com o aviso "Sua sessão
+  terminou. Entre de novo.".
+- **`next` só na mesma origem** da base URL configurada (o mesmo teste do §4): o token nunca viaja para outro host.
+  **`followRedirects: false`**.
+- **Textos e rótulos fixos do app:** os campos `canal_exibicao` e `retorno_exibicao` **não** são usados (D-10); o mesmo
+  vale para a mensagem de erro do servidor (D-17).
+- **Canal ou retorno desconhecido** (valor fora das listas do §16.2) vira **falha de formato** da página: o app não
+  adivinha o que o servidor mandou.
+- As falhas do PATCH (rede, timeout, 5xx, 400 e 404) viram um aviso com texto fixo do app e o item fica como estava
+  (D-17); no 404 a lista e a contagem são recarregadas; o app não repete a anotação sozinho.
+
+### 16.9 PENDENTE WEB e riscos aceitos
+
+| Risco | Tratamento |
+|-------|-----------|
+| **A lista deixou de ser array e virou envelope paginado.** | Aceito: sem outro consumidor conhecido além do app. |
+| **`/api/contatos/imoveis/` sem paginação**: o limite é o tamanho do acervo do corretor. | Aceito agora; a **APP-12 deve revisitar** (acervo grande). |
+| **Hora local do aparelho ≠ hora do site fora do fuso de Brasília** (§16.7). | Aceito (A3); o dia do filtro continua sendo o de São Paulo. |
+| **Enum novo no servidor** (canal ou retorno novo) **quebra a página no app antigo** (falha de formato). | Aceito: o app não inventa rótulo; atualizar o app junto com o servidor. |
+| **O POST público de contato (§15) não tem limite de taxa** na `main@8bf4448`; `CONTATO_TAXA_ANONIMA` não existe no `settings.py` da `feat/APP10`. | **PENDENTE WEB**: o §15 descreve o balde `contato_publico`, mas ele não existe nesta base; a captura roda sem ele. |
+
+### 16.10 Sincronização
+
+Capturar só o grupo novo e copiar byte a byte para `contrato/`:
+
+```bash
+python3 tool/capturar_fixtures_api.py http://127.0.0.1:8000 test/fixtures/api --grupo contatos
+```
+
+| Fixture capturada | Exemplo do contrato |
+|-------------------|---------------------|
+| `contatos_p1.json` | `contatos.example.json` |
+| `contatos_resumo.json` | `contatos_resumo.example.json` |
+| `contatos_imoveis.json` | `contatos_imoveis.example.json` |
+| `contato_patch_200.json` | `contato_patch.example.json` |
+
+As demais fixtures do grupo (`contatos_p2`, `contatos_imovel`, `contatos_periodo_vazio`, `contatos_outra_empresa`,
+`contatos_resumo_apos`, `erro_400_retorno`, `erro_404_contato`) não têm exemplo no contrato, mas o teste do app confere as
+chaves e os valores delas.
+
+O grupo faz login pela API, então as credenciais vêm **só por variável de ambiente** (nunca em arquivo):
+`CAPTURA_EMAIL_CORRETOR`, `CAPTURA_SENHA_CORRETOR`, `CAPTURA_EMAIL_OUTRA_EMPRESA` e `CAPTURA_SENHA_OUTRA_EMPRESA`.
+Procedimento: SQLite temporário fora dos dois repositórios (nunca o banco do `Web/.env`), com `migrate`,
+`semear_vitrine_dev` **e** `seed_demo`; o imóvel da segunda empresa está fora da vitrine, então o **1 contato da empresa
+B** é criado pelo ORM nesse SQLite temporário; a senha do corretor demo é uma **senha descartável**, definida lendo
+`os.environ`. O detalhe está no docstring de `tool/capturar_fixtures_api.py`.
+
+**Nunca `--grupo todos`:** ele reescreveria as fixtures das fases anteriores (o sufixo aleatório das fotos do seed
+mudaria as fixtures já travadas).
+
+Travas: no app, `test/data/contrato_contatos_test.dart` (chaves exatas do envelope, do item, do resumo e das opções,
+exemplo = fixture e isolamento entre empresas no wire); no Django, `PaginacaoDaCaixaTests`, `ResumoSemRetornoTests`,
+`OpcoesDeImovelDaCaixaTests`, `IsolamentoTests` e `AnotarRetornoTests`.
