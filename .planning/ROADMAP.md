@@ -459,7 +459,7 @@ Plans:
   5. Contato de imóvel de outra empresa nunca aparece.
   6. A tela mostra quantos contatos ainda estão sem retorno anotado.
 
-**Plans:** 9/10 plans executed
+**Plans:** 10/10 plans executed
 
 Plans:
 **Wave 1**
@@ -490,4 +490,4 @@ Plans:
 - [x] 10-09-PLAN.md — App: filtros por imóvel (folha com opções do servidor) e por período, com o caso ponta a ponta do filtro (CXA-02, CXA-06)
 
 **Wave 10** *(blocked on Wave 9 completion)*
-- [ ] 10-10-PLAN.md — App: anotar o retorno (folha, item em voo, SnackBar fixa, número de novo do servidor) + casos ponta a ponta de anotação e 404, REQUIREMENTS completos, gates finais e human-check (CXA-01..06, API-11, API-12)
+- [x] 10-10-PLAN.md — App: anotar o retorno (folha, item em voo, SnackBar fixa, número de novo do servidor) + casos ponta a ponta de anotação e 404, REQUIREMENTS completos, gates finais e human-check (CXA-01..06, API-11, API-12)

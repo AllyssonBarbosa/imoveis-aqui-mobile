@@ -2,17 +2,17 @@
 gsd_state_version: "1.0"
 current_phase: 10
 current_phase_name: Contatos Recebidos e Retorno Anotado (APP 10)
-status: executing
-stopped_at: Completed 10-09-PLAN.md
-last_updated: "2026-11-24T00:06:48.014Z"
+status: verifying
+stopped_at: Completed 10-10-PLAN.md
+last_updated: "2026-11-24T00:22:59.051Z"
 last_activity: 2026-11-23
 last_activity_desc: Phase 10 execution started
-state_head: b3de25c0f1ced1700b8fc80084aae3bea7cadb74
+state_head: f338a5e05cdb4f253f9394d94e7fb1510e821603
 progress:
   total_phases: 10
   completed_phases: 3
   total_plans: 94
-  completed_plans: 93
+  completed_plans: 94
   percent: 30
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-11-21)
 
 Phase: 10 (Contatos Recebidos e Retorno Anotado (APP 10)) — EXECUTING
 Plan: 10 of 10
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-11-23 — Phase 10 execution started
 
 Progress: [████████████████████] 72/72 plans ([███░░░░░░░] 30%)
@@ -136,6 +136,7 @@ Progress: [████████████████████] 72/72 p
 | Phase 10 P07 | 25 min | 2 tasks | 12 files |
 | Phase 10 P08 | 55 min | 3 tasks | 11 files |
 | Phase 10 P09 | 40 min | 2 tasks | 12 files |
+| Phase 10 P10 | 10 min | 3 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -226,6 +227,9 @@ Recent decisions affecting current work:
 - [Phase 10]: 10-08: um unico CaixaContatosCubit para a tela inteira (lista + contagem; filtros no 10-09, anotacao no 10-10), com um so caminho de 401 terminal e versoes proprias para a lista e para o resumo
 - [Phase 10]: 10-08: o numero de sem retorno so recebe o inteiro do servidor; troca de consulta usa copyWith para nao apagar o numero (D-05)
 - [Phase 10]: 10-09: filtros no mesmo CaixaContatosCubit; _trocarConsulta so reinicia a lista (consulta igual nao chama a API) e nunca pede o resumo (D-05); opcoes do imovel pedidas a cada abertura da folha, 401 terminal
+- [Phase 10]: 10-10: anotacao sem otimismo — o retorno do item so muda no 200 do servidor (item em voo em CaixaCarregada.anotando) e o numero de sem retorno e pedido de novo apos sucesso e 404, nunca calculado no app
+- [Phase 10]: 10-10: aviso de falha e one-shot no estado (AvisoCaixa); toda anotacao limpa o aviso antes, entao duas falhas seguidas geram duas SnackBars de texto fixo (D-17), nunca texto do servidor
+- [Phase 10]: 10-10: tocar a opcao que ja e a atual so fecha a folha, sem chamar a API (A6); a guarda fica no Cubit
 
 ### Pending Todos
 
@@ -263,6 +267,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-24T00:06:45.678Z
-Stopped at: Completed 10-09-PLAN.md
+Last session: 2026-11-24T00:22:56.887Z
+Stopped at: Completed 10-10-PLAN.md
 Resume file: None
