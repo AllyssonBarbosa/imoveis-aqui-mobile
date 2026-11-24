@@ -1,10 +1,57 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/domain/entities/canal_contato.dart';
 import 'package:imoveis_aqui/domain/entities/contato_recebido.dart';
+import 'package:imoveis_aqui/domain/entities/imovel_com_contato.dart';
+import 'package:imoveis_aqui/domain/entities/periodo_contatos.dart';
 import 'package:imoveis_aqui/domain/entities/retorno_contato.dart';
 import 'package:imoveis_aqui/presentation/contatos/apresentacao_contatos.dart';
 
 void main() {
+  group('filtros da caixa (D-18, D-19, D-20)', () {
+    test('textos fixos da folha e dos chips', () {
+      expect(textoTodosOsImoveis, 'Todos os imóveis');
+      expect(tituloFolhaFiltroImovel, 'Filtrar por imóvel');
+      expect(textoErroOpcoesDeImovel, 'Não foi possível carregar os imóveis.');
+      expect(tooltipLimparImovel, 'Limpar filtro de imóvel');
+      expect(tooltipLimparPeriodo, 'Limpar filtro de período');
+    });
+
+    test('rotuloChipImovel: "Imóvel" sem filtro, o código com filtro', () {
+      expect(rotuloChipImovel(null), 'Imóvel');
+      expect(
+        rotuloChipImovel(
+          const ImovelComContato(id: 7, codigo: 'DEV-7', titulo: 'Casa'),
+        ),
+        'DEV-7',
+      );
+    });
+
+    test(
+      'rotuloChipPeriodo: "Período" sem filtro, as duas datas com filtro',
+      () {
+        expect(rotuloChipPeriodo(null), 'Período');
+        expect(
+          rotuloChipPeriodo(
+            PeriodoContatos(
+              de: DateTime(2026, 11, 1),
+              ate: DateTime(2026, 11, 22),
+            ),
+          ),
+          '01/11/2026 – 22/11/2026',
+        );
+      },
+    );
+
+    test('rotuloOpcaoDeImovel junta código e título com travessão', () {
+      expect(
+        rotuloOpcaoDeImovel(
+          const ImovelComContato(id: 7, codigo: 'DEV-7', titulo: 'Casa 7'),
+        ),
+        'DEV-7 — Casa 7',
+      );
+    });
+  });
+
   group('textos fixos da caixa (D-07, D-21)', () {
     test('constantes de texto', () {
       expect(tituloCaixaContatos, 'Meus contatos');

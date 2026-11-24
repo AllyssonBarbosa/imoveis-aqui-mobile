@@ -1,10 +1,15 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/di/injection.dart';
 import 'package:imoveis_aqui/domain/entities/canal_contato.dart';
+import 'package:imoveis_aqui/domain/entities/consulta_contatos.dart';
 import 'package:imoveis_aqui/domain/entities/contato_recebido.dart';
+import 'package:imoveis_aqui/domain/entities/imovel_com_contato.dart';
+import 'package:imoveis_aqui/domain/entities/periodo_contatos.dart';
 import 'package:imoveis_aqui/domain/entities/retorno_contato.dart';
 import 'package:imoveis_aqui/presentation/contatos/caixa_contatos_cubit.dart';
 import 'package:imoveis_aqui/presentation/contatos/caixa_contatos_screen.dart';
@@ -54,10 +59,22 @@ CaixaContatosState _carregada(
 void main() {
   late _CaixaCubitFalso cubit;
 
+  setUpAll(() {
+    registerFallbackValue(
+      PeriodoContatos(de: DateTime(2026), ate: DateTime(2026)),
+    );
+    registerFallbackValue(
+      const ImovelComContato(id: 0, codigo: '', titulo: ''),
+    );
+  });
+
   setUp(() {
     cubit = _CaixaCubitFalso();
     when(() => cubit.carregarMais()).thenAnswer((_) async {});
     when(() => cubit.tentarNovamente()).thenAnswer((_) async {});
+    when(() => cubit.carregarOpcoesDeImovel()).thenAnswer((_) async {});
+    when(() => cubit.limparImovel()).thenAnswer((_) async {});
+    when(() => cubit.limparPeriodo()).thenAnswer((_) async {});
   });
 
   Future<void> montar(WidgetTester tester, CaixaContatosState estado) async {
@@ -258,6 +275,439 @@ void main() {
       await montar(tester, _carregada([_contato(1)]));
 
       verifyNever(() => cubit.carregarMais());
+    });
+  });
+
+  group('chips de filtro (D-18)', () {
+    const imovel = ImovelComContato(
+      id: 7,
+      codigo: 'DEV-7',
+      titulo: 'Casa de 7 quartos',
+    );
+    final periodo = PeriodoContatos(
+      de: DateTime(2026, 11, 1),
+      ate: DateTime(2026, 11, 22),
+    );
+
+    Finder chip(String rotulo) => find.widgetWithText(InputChip, rotulo);
+
+    testWidgets('sem filtro: "Imóvel" e "Período" não selecionados e sem "x"', (
+      tester,
+    ) async {
+      await montar(tester, _carregada([_contato(1)]));
+
+      expect(tester.widget<InputChip>(chip('Imóvel')).selected, isFalse);
+      expect(tester.widget<InputChip>(chip('Período')).selected, isFalse);
+      expect(find.byTooltip('Limpar filtro de imóvel'), findsNothing);
+      expect(find.byTooltip('Limpar filtro de período'), findsNothing);
+    });
+
+    testWidgets('os chips ficam entre a linha do número e a lista', (
+      tester,
+    ) async {
+      await montar(tester, _carregada([_contato(1)], semRetorno: 2));
+
+      final linha = tester
+          .getBottomLeft(find.text('2 contatos sem retorno'))
+          .dy;
+      final chips = tester.getTopLeft(chip('Imóvel')).dy;
+      final lista = tester.getTopLeft(find.byType(ItemContato)).dy;
+      expect(chips, greaterThanOrEqualTo(linha));
+      expect(chips, lessThan(lista));
+    });
+
+    testWidgets('com imóvel: o chip mostra o código, selecionado, e o "x" '
+        'chama limparImovel()', (tester) async {
+      await montar(
+        tester,
+        CaixaContatosState(
+          consulta: const ConsultaContatos(imovel: imovel),
+          conteudo: ConteudoCaixa.carregada(itens: [_contato(1)]),
+        ),
+      );
+
+      expect(tester.widget<InputChip>(chip('DEV-7')).selected, isTrue);
+      expect(chip('Imóvel'), findsNothing);
+      await tester.tap(find.byTooltip('Limpar filtro de imóvel'));
+
+      verify(() => cubit.limparImovel()).called(1);
+      verifyNever(() => cubit.limparPeriodo());
+    });
+
+    testWidgets('com período: o chip mostra as datas, selecionado, e o "x" '
+        'chama limparPeriodo()', (tester) async {
+      await montar(
+        tester,
+        CaixaContatosState(
+          consulta: ConsultaContatos(periodo: periodo),
+          conteudo: ConteudoCaixa.carregada(itens: [_contato(1)]),
+        ),
+      );
+
+      expect(
+        tester.widget<InputChip>(chip('01/11/2026 – 22/11/2026')).selected,
+        isTrue,
+      );
+      await tester.tap(find.byTooltip('Limpar filtro de período'));
+
+      verify(() => cubit.limparPeriodo()).called(1);
+      verifyNever(() => cubit.limparImovel());
+    });
+
+    testWidgets('os dois filtros aparecem juntos', (tester) async {
+      await montar(
+        tester,
+        CaixaContatosState(
+          consulta: ConsultaContatos(imovel: imovel, periodo: periodo),
+          conteudo: ConteudoCaixa.carregada(itens: [_contato(1)]),
+        ),
+      );
+
+      expect(chip('DEV-7'), findsOneWidget);
+      expect(chip('01/11/2026 – 22/11/2026'), findsOneWidget);
+    });
+
+    for (final conteudo in <ConteudoCaixa>[
+      const ConteudoCaixa.semResultado(),
+      const ConteudoCaixa.erro(),
+      const ConteudoCaixa.carregando(),
+      const ConteudoCaixa.vazio(),
+    ]) {
+      testWidgets('os chips aparecem em $conteudo', (tester) async {
+        await montar(
+          tester,
+          CaixaContatosState(
+            consulta: const ConsultaContatos(imovel: imovel),
+            conteudo: conteudo,
+          ),
+        );
+
+        expect(chip('DEV-7'), findsOneWidget);
+        expect(chip('Período'), findsOneWidget);
+      });
+    }
+
+    testWidgets('sessaoExpirada não mostra os chips', (tester) async {
+      await montar(
+        tester,
+        const CaixaContatosState(conteudo: ConteudoCaixa.sessaoExpirada()),
+      );
+
+      expect(find.byType(InputChip), findsNothing);
+    });
+  });
+
+  group('chip "Período" (D-20)', () {
+    final escolhido = PeriodoContatos(
+      de: DateTime(2026, 11, 1),
+      ate: DateTime(2026, 11, 22),
+    );
+
+    testWidgets('tocar abre o seletor com a consulta atual e aplica o '
+        'intervalo escolhido', (tester) async {
+      PeriodoContatos? recebidoComoAtual = escolhido;
+      var chamadas = 0;
+      whenListen(
+        cubit,
+        const Stream<CaixaContatosState>.empty(),
+        initialState: _carregada([_contato(1)]),
+      );
+      when(() => cubit.aplicarPeriodo(any())).thenAnswer((_) async {});
+      await tester.pumpWidget(
+        MaterialApp(
+          home: CaixaContatosScreen(
+            criarCubit: () => cubit,
+            escolherPeriodo: (context, atual) async {
+              chamadas++;
+              recebidoComoAtual = atual;
+              return escolhido;
+            },
+          ),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.widgetWithText(InputChip, 'Período'));
+      await tester.pump();
+
+      expect(chamadas, 1);
+      expect(recebidoComoAtual, isNull);
+      verify(() => cubit.aplicarPeriodo(escolhido)).called(1);
+    });
+
+    testWidgets('com período aplicado o seletor recebe o período atual', (
+      tester,
+    ) async {
+      PeriodoContatos? recebidoComoAtual;
+      whenListen(
+        cubit,
+        const Stream<CaixaContatosState>.empty(),
+        initialState: CaixaContatosState(
+          consulta: ConsultaContatos(periodo: escolhido),
+          conteudo: ConteudoCaixa.carregada(itens: [_contato(1)]),
+        ),
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: CaixaContatosScreen(
+            criarCubit: () => cubit,
+            escolherPeriodo: (context, atual) async {
+              recebidoComoAtual = atual;
+              return null;
+            },
+          ),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(
+        find.widgetWithText(InputChip, '01/11/2026 – 22/11/2026'),
+      );
+      await tester.pump();
+
+      expect(recebidoComoAtual, escolhido);
+    });
+
+    testWidgets('fechar o seletor sem escolher não chama nada', (tester) async {
+      whenListen(
+        cubit,
+        const Stream<CaixaContatosState>.empty(),
+        initialState: _carregada([_contato(1)]),
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: CaixaContatosScreen(
+            criarCubit: () => cubit,
+            escolherPeriodo: (context, atual) async => null,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.widgetWithText(InputChip, 'Período'));
+      await tester.pump();
+
+      verifyNever(() => cubit.aplicarPeriodo(any()));
+      verifyNever(() => cubit.limparPeriodo());
+    });
+  });
+
+  group('folha "Filtrar por imóvel" (D-19, D-23)', () {
+    const opcaoA = ImovelComContato(
+      id: 34,
+      codigo: 'DEV-34',
+      titulo: 'Apartamento A',
+    );
+    const opcaoB = ImovelComContato(
+      id: 35,
+      codigo: 'DEV-35',
+      titulo: 'Terreno B',
+    );
+
+    CaixaContatosState comOpcoes(
+      OpcoesDeImovel opcoes, {
+      ImovelComContato? escolhido,
+    }) => CaixaContatosState(
+      consulta: ConsultaContatos(imovel: escolhido),
+      conteudo: ConteudoCaixa.carregada(itens: [_contato(1)]),
+      opcoesDeImovel: opcoes,
+    );
+
+    Future<void> abrirFolha(WidgetTester tester) async {
+      await tester.tap(find.widgetWithText(InputChip, 'Imóvel'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('abrir pede as opções ao Cubit e mostra título, "Todos os '
+        'imóveis" e "código — título" na ordem recebida', (tester) async {
+      await montar(
+        tester,
+        comOpcoes(const OpcoesDeImovel.carregadas([opcaoA, opcaoB])),
+      );
+
+      await abrirFolha(tester);
+
+      verify(() => cubit.carregarOpcoesDeImovel()).called(1);
+      expect(find.text('Filtrar por imóvel'), findsOneWidget);
+      expect(find.text('Todos os imóveis'), findsOneWidget);
+      final rotuloA = find.text('DEV-34 — Apartamento A');
+      final rotuloB = find.text('DEV-35 — Terreno B');
+      expect(rotuloA, findsOneWidget);
+      expect(rotuloB, findsOneWidget);
+      expect(
+        tester.getTopLeft(rotuloA).dy,
+        lessThan(tester.getTopLeft(rotuloB).dy),
+      );
+    });
+
+    testWidgets('sem imóvel escolhido, "Todos os imóveis" leva o check', (
+      tester,
+    ) async {
+      await montar(
+        tester,
+        comOpcoes(const OpcoesDeImovel.carregadas([opcaoA, opcaoB])),
+      );
+
+      await abrirFolha(tester);
+
+      expect(
+        find.descendant(
+          of: find.widgetWithText(ListTile, 'Todos os imóveis'),
+          matching: find.byIcon(Icons.check),
+        ),
+        findsOneWidget,
+      );
+      expect(find.byIcon(Icons.check), findsOneWidget);
+    });
+
+    testWidgets('o imóvel escolhido leva o check e fica selecionado', (
+      tester,
+    ) async {
+      await montar(
+        tester,
+        comOpcoes(
+          const OpcoesDeImovel.carregadas([opcaoA, opcaoB]),
+          escolhido: opcaoB,
+        ),
+      );
+
+      await abrirFolha(tester);
+
+      final itemB = find.widgetWithText(ListTile, 'DEV-35 — Terreno B');
+      expect(tester.widget<ListTile>(itemB).selected, isTrue);
+      expect(
+        find.descendant(of: itemB, matching: find.byIcon(Icons.check)),
+        findsOneWidget,
+      );
+      expect(find.byIcon(Icons.check), findsOneWidget);
+    });
+
+    testWidgets('tocar uma opção fecha a folha e chama aplicarImovel(opção)', (
+      tester,
+    ) async {
+      when(() => cubit.aplicarImovel(opcaoA)).thenAnswer((_) async {});
+      await montar(
+        tester,
+        comOpcoes(const OpcoesDeImovel.carregadas([opcaoA, opcaoB])),
+      );
+      await abrirFolha(tester);
+
+      await tester.tap(find.text('DEV-34 — Apartamento A'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Filtrar por imóvel'), findsNothing);
+      verify(() => cubit.aplicarImovel(opcaoA)).called(1);
+    });
+
+    testWidgets('tocar "Todos os imóveis" fecha a folha e chama '
+        'limparImovel()', (tester) async {
+      await montar(
+        tester,
+        comOpcoes(
+          const OpcoesDeImovel.carregadas([opcaoA, opcaoB]),
+          escolhido: opcaoA,
+        ),
+      );
+      await abrirFolha(tester);
+
+      await tester.tap(find.text('Todos os imóveis'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Filtrar por imóvel'), findsNothing);
+      verify(() => cubit.limparImovel()).called(1);
+      verifyNever(() => cubit.aplicarImovel(any()));
+    });
+
+    testWidgets('carregando mostra um indicador e nenhuma opção', (
+      tester,
+    ) async {
+      await montar(tester, comOpcoes(const OpcoesDeImovel.carregando()));
+
+      await tester.tap(find.widgetWithText(InputChip, 'Imóvel'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(find.text('Filtrar por imóvel'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.byType(CircularProgressIndicator),
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Todos os imóveis'), findsNothing);
+    });
+
+    testWidgets('a folha acompanha o Cubit: carregando e depois as opções', (
+      tester,
+    ) async {
+      final controle = StreamController<CaixaContatosState>.broadcast();
+      addTearDown(controle.close);
+      whenListen(
+        cubit,
+        controle.stream,
+        initialState: comOpcoes(const OpcoesDeImovel.carregando()),
+      );
+      await tester.pumpWidget(
+        MaterialApp(home: CaixaContatosScreen(criarCubit: () => cubit)),
+      );
+      await tester.pump();
+      await tester.tap(find.widgetWithText(InputChip, 'Imóvel'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.text('Todos os imóveis'), findsNothing);
+
+      controle.add(
+        comOpcoes(const OpcoesDeImovel.carregadas([opcaoA, opcaoB])),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(find.text('Todos os imóveis'), findsOneWidget);
+      expect(find.text('DEV-34 — Apartamento A'), findsOneWidget);
+    });
+
+    testWidgets('erro mostra o texto fixo e "Tentar de novo" pede as opções '
+        'outra vez', (tester) async {
+      await montar(tester, comOpcoes(const OpcoesDeImovel.erro()));
+      await abrirFolha(tester);
+
+      expect(
+        find.text('Não foi possível carregar os imóveis.'),
+        findsOneWidget,
+      );
+      verify(() => cubit.carregarOpcoesDeImovel()).called(1);
+
+      await tester.tap(find.text('Tentar de novo'));
+      await tester.pumpAndSettle();
+
+      verify(() => cubit.carregarOpcoesDeImovel()).called(2);
+      expect(find.text('Todos os imóveis'), findsNothing);
+    });
+  });
+
+  group('volta ao topo ao trocar de filtro (D-18)', () {
+    testWidgets('carregando depois de rolar recomeça a lista no topo', (
+      tester,
+    ) async {
+      final muitos = [for (var i = 1; i <= 30; i++) _contato(i)];
+      final controle = StreamController<CaixaContatosState>.broadcast();
+      addTearDown(controle.close);
+      whenListen(cubit, controle.stream, initialState: _carregada(muitos));
+      await tester.pumpWidget(
+        MaterialApp(home: CaixaContatosScreen(criarCubit: () => cubit)),
+      );
+      await tester.pump();
+      await tester.drag(find.byType(ListView), const Offset(0, -1500));
+      await tester.pump();
+      expect(find.byKey(const ValueKey('contato-1')), findsNothing);
+
+      controle.add(const CaixaContatosState());
+      await tester.pump();
+      controle.add(_carregada(muitos));
+      await tester.pump();
+
+      expect(find.byKey(const ValueKey('contato-1')), findsOneWidget);
     });
   });
 

@@ -202,5 +202,57 @@ void main() {
         }
       },
     );
+
+    testWidgets(
+      'chip "Imóvel" -> folha com as opções do servidor -> escolher manda '
+      '?imovel=<id>, mostra os itens do servidor e não pede o resumo de novo '
+      '(CXA-02, D-05, D-19)',
+      (tester) async {
+        final pilha = await abrirAcervo(tester);
+        await abrirCaixa(tester);
+        final resumosAntes = pilha.api.requisicoes
+            .where((u) => u.path == '/api/contatos/resumo/')
+            .length;
+
+        await tester.tap(find.widgetWithText(InputChip, 'Imóvel'));
+        await assentar(tester, quadros: 10);
+
+        final opcoes =
+            (lerFixtureApi('contatos_imoveis.json')! as List<Object?>)
+                .cast<Map<String, Object?>>();
+        expect(find.text('Filtrar por imóvel'), findsOneWidget);
+        expect(find.text('Todos os imóveis'), findsOneWidget);
+        for (final opcao in opcoes) {
+          expect(
+            find.text('${opcao['codigo']} — ${opcao['titulo']}'),
+            findsOneWidget,
+          );
+        }
+
+        final escolhida = opcoes.first;
+        await tester.tap(
+          find.text('${escolhida['codigo']} — ${escolhida['titulo']}'),
+        );
+        await assentar(tester, quadros: 10);
+
+        final pedidos = pilha.api.requisicoes
+            .where((u) => u.path == '/api/contatos/')
+            .toList();
+        expect(pedidos.last.queryParameters['imovel'], '${escolhida['id']}');
+        final primeiro = contatosDa('contatos_imovel.json').first;
+        expect(itemDoContato(primeiro), findsOneWidget);
+        expect(
+          find.widgetWithText(InputChip, '${escolhida['codigo']}'),
+          findsOneWidget,
+        );
+        expect(
+          pilha.api.requisicoes
+              .where((u) => u.path == '/api/contatos/resumo/')
+              .length,
+          resumosAntes,
+        );
+        pilha.conferirCabecalhosDeAutorizacao();
+      },
+    );
   });
 }
