@@ -13,6 +13,7 @@ class RodapePaginacaoLista extends StatelessWidget {
     required this.erroAoCarregarMais,
     required this.temProximaPagina,
     required this.aoTentarDeNovo,
+    this.mensagemErro = 'Não foi possível carregar mais imóveis',
   });
 
   final bool carregandoMais;
@@ -21,6 +22,10 @@ class RodapePaginacaoLista extends StatelessWidget {
 
   /// "Tentar de novo" — único caminho de nova tentativa depois de uma falha.
   final VoidCallback aoTentarDeNovo;
+
+  /// Texto do erro-ao-carregar-mais. O padrão é o da vitrine, do acervo e dos
+  /// perfis; a caixa de contatos passa o seu.
+  final String mensagemErro;
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +49,7 @@ class RodapePaginacaoLista extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Não foi possível carregar mais imóveis',
+              mensagemErro,
               style: Theme.of(context).textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),

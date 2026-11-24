@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:imoveis_aqui/app_localizacao.dart';
 import 'package:imoveis_aqui/di/injection.dart';
 import 'package:imoveis_aqui/domain/entities/cidade.dart';
 import 'package:imoveis_aqui/domain/usecases/obter_cidade_salva_usecase.dart';
@@ -108,6 +109,25 @@ void main() {
 
     expect(find.byType(PrimingScreen), findsOneWidget);
     verifyNever(() => cubit.iniciarNaAberturaComCidadeSalva(any()));
+  });
+
+  testWidgets('o MaterialApp fala pt-BR nos widgets do Material (D-20)', (
+    tester,
+  ) async {
+    when(() => obterCidadeSalva()).thenAnswer((_) async => null);
+    whenListen(
+      cubit,
+      const Stream<CidadeSelecaoState>.empty(),
+      initialState: const CidadeSelecaoState.localizando(),
+    );
+
+    await tester.pumpWidget(const ImoveisAquiApp());
+    await tester.pump();
+    await tester.pump();
+
+    final app = tester.widget<MaterialApp>(find.byType(MaterialApp));
+    expect(app.supportedLocales, localesSuportados);
+    expect(app.localizationsDelegates, delegatesDeLocalizacao);
   });
 
   testWidgets(

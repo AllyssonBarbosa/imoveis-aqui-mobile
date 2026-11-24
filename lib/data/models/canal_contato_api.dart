@@ -9,3 +9,15 @@ extension CanalContatoNaApi on CanalContato {
     CanalContato.email => 'EMAIL',
   };
 }
+
+/// Lê o canal do wire (inverso de [CanalContatoNaApi.valorApi]). Um valor fora
+/// do conjunto conhecido lança [FormatException]: o Model da caixa (10-05) deixa
+/// a exceção subir e o repositório a converte em falha (D-10).
+CanalContato canalContatoDaApi(String valor) {
+  return switch (valor) {
+    'WHATSAPP' => CanalContato.whatsapp,
+    'TELEFONE' => CanalContato.telefone,
+    'EMAIL' => CanalContato.email,
+    _ => throw FormatException('canal desconhecido: $valor'),
+  };
+}

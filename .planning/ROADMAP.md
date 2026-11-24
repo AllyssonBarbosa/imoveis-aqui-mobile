@@ -30,6 +30,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 07.1: Integração da APP-07 com a API real** (completed 2026-11-20)
 - [x] **Phase 8: Login e Área do Corretor — o Acervo** (completed 2026-11-21)
 - [ ] **Phase 9: Mudança de Situação do Imóvel pelo App (APP 09)** - Corretor responsável troca a situação do imóvel (disponível/reservado/vendido/alugado) com observação pela API (a data é a do servidor; o gestor segue pela web até a APP-12), vê o histórico na tela do imóvel; recusa do servidor mantém a situação anterior.
+- [x] **Phase 10: Contatos Recebidos e Retorno Anotado (APP 10)** - Card APP 10: caixa de contatos do corretor (lista da API, filtro por imóvel e por período, contagem dos sem retorno) e retorno anotado gravado pela API. (Fase 9 reservada ao card APP 09, de outro colega — fase N = card APP 0N.) (completed 2026-11-24)
 
 ## Phase Details
 
@@ -531,3 +532,50 @@ Plans:
 **Wave 11** *(blocked on Wave 10 completion)*
 
 - [x] 09-13-PLAN.md — Volta ao acervo recarrega da API (D-12), fluxos ponta a ponta, README, REQUIREMENTS (todos Complete, nota no ACV-04), gates dos dois repositórios + human-check do UAT (SIT-01..07, API-11, API-12)
+
+### Phase 10: Contatos Recebidos e Retorno Anotado (APP 10)
+
+**Goal:** Como corretor, eu quero ver quem procurou pelos meus imóveis para retornar e não perder negócio. A lista traz os contatos mais recentes primeiro, com o imóvel, o canal e a data, e permite filtrar por imóvel e por período. O corretor anota o retorno: falei, visita agendada, sem resposta ou descartado. Card APP 10 (tarefa A10).
+**Requirements**: CXA-01, CXA-02, CXA-03, CXA-04, CXA-05, CXA-06, API-13, API-14
+**Depends on:** Phase 8 (login, sessão e `Dio` autenticado do app) e Phase 6 (contato registrado pela API pública). Externamente: WEB 11 (feito, na main da web) — `GET /api/contatos/` (`?imovel=&de=&ate=`) e `PATCH /api/contatos/{id}/` (`ContatoViewSet`, `PertenceAUmaEmpresa`, `restringir_ao_perfil`).
+**Success Criteria** (what must be TRUE):
+
+  1. Lista dos contatos recebidos, mais recentes primeiro, vinda da API.
+  2. Cada item mostra o imóvel, o canal e a data do contato.
+  3. Filtro por imóvel e por período.
+  4. O corretor anota o retorno, e a anotação é gravada pela API.
+  5. Contato de imóvel de outra empresa nunca aparece.
+  6. A tela mostra quantos contatos ainda estão sem retorno anotado.
+
+**Plans:** 10/10 plans complete
+
+Plans:
+**Wave 1**
+- [x] 10-01-PLAN.md — Web (feat/APP10): TRACER da caixa paginada com token (login → `GET /api/contatos/` em envelope de 20) + `resumo` (sem retorno), `imoveis` (opções do filtro), PATCH `{}` → 400, isolamento e README (API-14, CXA-01..05)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [x] 10-02-PLAN.md — Wire real: grupo `contatos` na ferramenta de captura e as 11 fixtures, com a outra empresa tendo 1 contato (isolamento que pode falhar) (API-13, CXA-04)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [x] 10-03-PLAN.md — §17 do contrato, exemplos, `contrato_contatos_test.dart` e registro de CXA-01..06, API-13, API-14 (API-13, CXA-04)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [x] 10-04-PLAN.md — App: domínio da caixa (entidades, interface do repositório, falha 404) e wire ↔ enum de canal e retorno (CXA-01, CXA-02, CXA-03, CXA-05)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [x] 10-05-PLAN.md — App: os 4 Models freezed lidos contra todas as fixtures (CXA-01, CXA-02, CXA-03, CXA-05, API-13)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [x] 10-06-PLAN.md — App: parâmetros, DataSource no `Dio` autenticado, repositório com falhas tipadas, 4 use cases e rotas da caixa na `ApiFalsa` (CXA-01, CXA-02, CXA-03, CXA-05, CXA-06)
+
+**Wave 7** *(blocked on Wave 6 completion)*
+- [x] 10-07-PLAN.md — App: apresentação da caixa (textos, rótulos, item, rodapé) e pt-BR do Material com o seletor de período (CXA-01, CXA-02, CXA-05, CXA-06)
+
+**Wave 8** *(blocked on Wave 7 completion)*
+- [x] 10-08-PLAN.md — App: "Meus contatos" pelo ícone do acervo — Cubit, tela, número de sem retorno do servidor, estados, 401 e fluxo ponta a ponta base (CXA-01, CXA-05, CXA-06)
+
+**Wave 9** *(blocked on Wave 8 completion)*
+- [x] 10-09-PLAN.md — App: filtros por imóvel (folha com opções do servidor) e por período, com o caso ponta a ponta do filtro (CXA-02, CXA-06)
+
+**Wave 10** *(blocked on Wave 9 completion)*
+- [x] 10-10-PLAN.md — App: anotar o retorno (folha, item em voo, SnackBar fixa, número de novo do servidor) + casos ponta a ponta de anotação e 404, REQUIREMENTS completos, gates finais e human-check (CXA-01..06, API-13, API-14)

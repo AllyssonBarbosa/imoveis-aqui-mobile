@@ -1,0 +1,14 @@
+{
+  "id": 26,
+  "imovel": 36,
+  "imovel_codigo": "DEV-INDAIATUBA-04",
+  "imovel_titulo": "Lote no bairro Jardim Esplanada",
+  "corretor": 1,
+  "corretor_nome": "Corretor Vitrine Demo",
+  "canal": "EMAIL",
+  "canal_exibicao": "E-mail",
+  "criado_em": "2026-11-23T19:43:37.310766-03:00",
+  "retorno": "FALEI",
+  "retorno_exibicao": "Falei",
+  "retorno_em": "2026-11-23T19:43:37.413585-03:00"
+}

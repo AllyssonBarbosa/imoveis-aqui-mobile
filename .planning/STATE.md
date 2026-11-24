@@ -3,42 +3,42 @@ gsd_state_version: "1.0"
 current_phase: 09
 current_phase_name: Mudança de Situação do Imóvel pelo App (APP 09)
 status: verifying
-stopped_at: Completed 09-13-PLAN.md
-last_updated: "2026-11-22T19:33:01.487Z"
-last_activity: 2026-11-22
-last_activity_desc: Phase 09 execution started
-state_head: 551e430bd061731154c43cea6f0e687b4de58e65
+stopped_at: Phase 10 complete, ready to verify Phase 1
+last_updated: "2026-11-24T22:24:05.500Z"
+last_activity: 2026-11-24
+last_activity_desc: Phase 10 complete, transitioned to Phase 1
+state_head: 8f0be90653357cab17d9b72814cfa8d517318e00
 progress:
   total_phases: 10
-  completed_phases: 0
-  total_plans: 97
-  completed_plans: 97
-  percent: 0
+  completed_phases: 3
+  total_plans: 107
+  completed_plans: 107
+  percent: 30
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-11-21)
+See: .planning/PROJECT.md (updated 2026-11-24)
 
 **Core value:** A vitrine do app abre na cidade do usuário e mostra imóveis reais vindos da API, com a busca e o filtro resolvidos no servidor — o mesmo dado e a mesma regra do site, nunca recalculados dentro do aparelho.
-**Current focus:** Phase 09 — Mudança de Situação do Imóvel pelo App (APP 09)
+**Current focus:** Phase 10 (APP 10) concluída em 2026-11-24 (UAT 6/6, SECURITY verificado). A posição abaixo aponta a Phase 1 só porque as fases 1–4 nunca passaram pela transição no ROADMAP (todas com planos feitos) — não há trabalho pendente nelas por isso. Próximo passo real: push/PR das duas `feat/APP10` (app e web), só com autorização do Allysson; opcionais da Phase 10: `/gsd-code-review 10`, `/gsd-validate-phase 10`, `/gsd-ui-review 10`. A Phase 9 (APP-09, do colega) entrou pela `main` em 2026-11-24 (merge na `feat/APP10`): 13/13 planos e UAT completos na `main`, ainda sem a transição no ROADMAP.
 
 ## Current Position
 
 Phase: 09 (Mudança de Situação do Imóvel pelo App (APP 09)) — EXECUTING
 Plan: 13 of 13
 Status: Phase complete — ready for verification
-Last activity: 2026-11-22 — Phase 09 execution started
+Last activity: 2026-11-24 — Phase 10 complete; main (APP-09) merged into feat/APP10
 
-Progress: [████████████████████] 72/72 plans ([░░░░░░░░░░] 0%)
+Progress: [████████████████████] 107/107 plans (100%)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 62
+- Total plans completed: 72
 - Average duration: - min
 - Total execution time: 0 hours
 
@@ -51,6 +51,7 @@ Progress: [████████████████████] 72/72 p
 | 07.1 | 6 | - | - |
 | 07 | 12 | - | - |
 | 08 | 12 | - | - |
+| 10 | 10 | - | - |
 
 **Recent Trend:**
 
@@ -140,6 +141,16 @@ Progress: [████████████████████] 72/72 p
 | Phase 09 P11 | 5 min | 2 tasks | 4 files |
 | Phase 09 P12 | 31 min | 2 tasks | 9 files |
 | Phase 09 P13 | 30 min | 2 tasks | 9 files |
+| Phase 10 P01 | 25 min | 2 tasks | 4 files |
+| Phase 10 P02 | 6 min | 2 tasks | 12 files |
+| Phase 10 P03 | 6 min | 2 tasks | 8 files |
+| Phase 10 P04 | 6 min | 2 tasks | 12 files |
+| Phase 10 P05 | 15 min | 2 tasks | 14 files |
+| Phase 10 P06 | 30min | 2 tasks | 14 files |
+| Phase 10 P07 | 25 min | 2 tasks | 12 files |
+| Phase 10 P08 | 55 min | 3 tasks | 11 files |
+| Phase 10 P09 | 40 min | 2 tasks | 12 files |
+| Phase 10 P10 | 10 min | 3 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -232,6 +243,23 @@ Recent decisions affecting current work:
 - [Phase 09]: 09-11: alça de arrasto da folha de mudança desligada (showDragHandle e enableDrag falsos) — A alça fecharia por Navigator.pop fora do PopScope, que segura o envio (T-09-07)
 - [Phase 09]: 09-12: só a recusa 400/403 exibe texto do servidor (texto simples, 6 linhas); 404 e rede/5xx com texto fixo; sem reenvio automático; 401 no envio volta ao login pelo helper único
 - [Phase 09]: 09-13: abrirGestaoImovel devolve o mudou lido do Cubit depois do push (cobre AppBar, botão do sistema e gesto do iOS); acervo chama recarregar() só com true — Botão voltar do sistema e gesto do iOS não passam resultado pelo pop; a tela não usa PopScope (desligaria o gesto do iOS)
+- [Phase 10]: planejamento aceito pelo Allysson com 0 bloqueios e avisos do verificador (rodada 2): tipo `tracer` do 10-01 (valido no GSD), 8 planos com 10-14 arquivos (abaixo do bloqueio de 15; inclui gerados), truths tecnicas em 10-02/04/05 e 5 comandos fora da raiz (repo web, forma provada na fase 8)
+- [Phase 10]: 10-01: GET /api/contatos/ paginada em envelope de 20 (D-12); resumo e imoveis partem de contatos_visiveis_para; PATCH {} -> 400; anônimo 401 nas rotas novas
+- [Phase 10]: 10-02: contato da empresa B criado pelo ORM só no SQLite temporário (DEMO-CASA-01 está fora da vitrine); nenhum seed/arquivo do repo web alterado
+- [Phase 10]: 10-02: CONTATO_TAXA_ANONIMA não existe no settings.py da feat/APP10; captura dos 25 POSTs públicos sem ajuste de taxa
+- [Phase 10]: 10-03: API-13 e CXA-04 permanecem Pending no REQUIREMENTS até os planos 10-05 e 10-10 (declaram os mesmos IDs; gate de ID compartilhado) — requirements.ready-ids bloqueia IDs compartilhados com planos sem SUMMARY; a aceitação da Task 2 também exige Pending
+- [Phase 10]: 10-04: canal/retorno desconhecido do wire vira FormatException (canalContatoDaApi/retornoContatoDaApi em data/models); repositório do 10-06 converte em falha
+- [Phase 10]: 10-05: Models da caixa não leem campos de exibição nem corretor; hora local por toLocal() só em ContatoRecebidoModel.paraEntidade
+- [Phase 10]: 10-06: o mapeamento do Model roda dentro do try do _executar da caixa; wire malformado vira Failure, nunca escapa
+- [Phase 10]: 10-06: 404 vira ContatoNaoEncontradoException so no anotarRetorno (flag notFoundEhContato); nos demais metodos segue DioException generica
+- [Phase 10]: 10-07: ignore deprecated_member_use so em GlobalMaterialLocalizations.delegates (app_localizacao.dart); material_ui nao adotado
+- [Phase 10]: 10-07: cor do chip Aguardando retorno = tertiaryContainer/onTertiaryContainer; confirmar no human-check do fim da fase
+- [Phase 10]: 10-08: um unico CaixaContatosCubit para a tela inteira (lista + contagem; filtros no 10-09, anotacao no 10-10), com um so caminho de 401 terminal e versoes proprias para a lista e para o resumo
+- [Phase 10]: 10-08: o numero de sem retorno so recebe o inteiro do servidor; troca de consulta usa copyWith para nao apagar o numero (D-05)
+- [Phase 10]: 10-09: filtros no mesmo CaixaContatosCubit; _trocarConsulta so reinicia a lista (consulta igual nao chama a API) e nunca pede o resumo (D-05); opcoes do imovel pedidas a cada abertura da folha, 401 terminal
+- [Phase 10]: 10-10: anotacao sem otimismo — o retorno do item so muda no 200 do servidor (item em voo em CaixaCarregada.anotando) e o numero de sem retorno e pedido de novo apos sucesso e 404, nunca calculado no app
+- [Phase 10]: 10-10: aviso de falha e one-shot no estado (AvisoCaixa); toda anotacao limpa o aviso antes, entao duas falhas seguidas geram duas SnackBars de texto fixo (D-17), nunca texto do servidor
+- [Phase 10]: 10-10: tocar a opcao que ja e a atual so fecha a folha, sem chamar a API (A6); a guarda fica no Cubit
 
 ### Pending Todos
 
@@ -241,6 +269,8 @@ None yet.
 
 - [Phase 5]: Externally blocked on the `Imóvel` model (owned by teammate E2 in `../imoveis-aqui/Web`) — Phases 1-3 do not require it (mock-first build), but Phase 5 cannot complete until that model lands.
 - [Phase 07.1]: PENDENTE WEB no §13.7 do contrato (D-20): limite de taxa nas views de perfil e extensão do seed — aceito fora do escopo do app, depende da frente web.
+- [Phase 10]: PENDENTE WEB — o POST público de contato não tem limite de taxa na `feat/APP10` (`CONTATO_TAXA_ANONIMA` não existe no `settings.py`); fora do escopo do app, avisar a frente web.
+- [Phase 10]: `GET /api/contatos/imoveis/` sem paginação (risco aceito AR-10-01) — revisar quando a APP-12 levar a caixa ao gestor.
 - [Phase 1]: API-AUDIT needs live coordination with the teammate on exact `Imóvel` field names/enum values (natureza, finalidade, características shape, quartos/suítes/vagas exact-vs-range semantics) — not resolvable from docs alone.
 
 ### Quick Tasks Completed
@@ -258,6 +288,7 @@ None yet.
 - Phase 07.1 inserted after Phase 7: Integração da APP-07 com a API real (merge da APP-05, perfis na API real, endpoint da vitrine do anunciante no Django) (URGENT)
 - Phase 8 added: Login e Área do Corretor — o Acervo (card APP 08, tarefa A08)
 - Phase 9 added: Mudança de Situação do Imóvel pelo App (card APP 09, tarefa A09) — card do Kanban copiado para `../APP 09 · Mudança de situação do imóvel pelo app.md` (2026-11-22); depende da WEB 08
+- Phase 10 added: Contatos Recebidos e Retorno Anotado (card APP 10, tarefa A10); número 10 escolhido para casar com o card — fase 9 reservada ao APP 09 de outro colega
 
 ## Deferred Items
 
@@ -269,6 +300,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-22T19:33:01.403Z
-Stopped at: Completed 09-13-PLAN.md
+Last session: 2026-11-24
+Stopped at: Phase 10 complete (UAT 6/6 no emulador contra o Django real, SECURITY threats_open 0) — próximo: push/PR das feat/APP10 com autorização
 Resume file: None

@@ -121,9 +121,21 @@ class _Falha {
 /// (`GET /api/imoveis/<id>/historico/`) também exige o token (senão 401) e serve
 /// `historico_vazio.json` (os testes trocam por `responder`). A mudança de
 /// situação (`POST /api/imoveis/<id>/situacao/`) responde 405 fora do POST, 401
-/// sem token e 200 `situacao_200.json` com token. O contato
-/// (`POST /api/publico/imoveis/<id>/contato/`) responde 201 com
-/// `contato_201_<canal>.json` quando o `canal` do corpo está em
+/// sem token e 200 `situacao_200.json` com token. A caixa de contatos do
+/// corretor também exige o token (senão 401): `GET /api/contatos/` serve
+/// `contatos_p1.json` (`contatos_p2.json` com `page=2`, `contatos_imovel.json`
+/// com `imovel` não vazio e `contatos_periodo_vazio.json` com `de` ou `ate`),
+/// `GET /api/contatos/resumo/` serve `contatos_resumo.json` (e
+/// `contatos_resumo_apos.json` depois de um PATCH aceito, o número cai pelo
+/// servidor), `GET /api/contatos/imoveis/` serve `contatos_imoveis.json` e
+/// `PATCH /api/contatos/<id>/` responde 200 com `contato_patch_200.json` para o
+/// id dessa fixture, 400 com `erro_400_retorno.json` para retorno fora do
+/// conjunto anotável e 404 com `erro_404_contato.json` para outro id. Atenção:
+/// [falharProximas] casa por PREFIXO do caminho, então `'/api/contatos/'`
+/// também falha `/api/contatos/resumo/`; para falhar só a lista use
+/// `responder((uri) => uri.path == '/api/contatos/', ...)`.
+/// O contato (`POST /api/publico/imoveis/<id>/contato/`)
+/// responde 201 com `contato_201_<canal>.json` quando o `canal` do corpo está em
 /// `canais_contato` do detalhe do id, 400 com `erro_400_canal_contato.json`
 /// quando não está, 404 para id fora das fixtures e 405 para outro método.
 /// Rota ainda não servida responde 404 com um objeto JSON vazio.
@@ -142,6 +154,10 @@ class ApiFalsa {
   final List<RequisicaoGravada> _gravadas = [];
   final List<_Sobrescrita> _sobrescritas = [];
   final List<_Falha> _falhas = [];
+
+  /// Verdadeiro depois que um `PATCH /api/contatos/<id>/` foi aceito: o resumo
+  /// passa a servir `contatos_resumo_apos.json` (o número cai pelo servidor).
+  bool _retornoAnotado = false;
 
   /// Todas as URIs requisitadas, na ordem.
   List<Uri> get requisicoes => List.unmodifiable(_requisicoes);
@@ -162,6 +178,15 @@ class ApiFalsa {
     return null;
   }
 
+  /// Última requisição a uma rota da caixa de contatos (caminho que começa com
+  /// `/api/contatos/`), ou nulo se ainda não houve.
+  Uri? get ultimaRequisicaoDaCaixa {
+    for (final uri in _requisicoes.reversed) {
+      if (uri.path.startsWith('/api/contatos/')) return uri;
+    }
+    return null;
+  }
+
   /// Registra uma resposta que vale para as URIs em que [quando] é verdadeiro.
   /// Vale a última registrada. [fixture] é o nome do arquivo em
   /// `test/fixtures/api/`; [corpo] serve um valor JSON derivado de uma
@@ -176,9 +201,7 @@ class ApiFalsa {
     Object? corpo,
     Map<String, List<String>>? cabecalhos,
   }) {
-    _sobrescritas.add(
-      _Sobrescrita(quando, status, fixture, corpo, cabecalhos),
-    );
+    _sobrescritas.add(_Sobrescrita(quando, status, fixture, corpo, cabecalhos));
   }
 
   /// As próximas [vezes] requisições cujo caminho começa com [caminho]
@@ -269,6 +292,8 @@ class ApiFalsa {
           ? _semCorpo(204)
           : _corpoJson(lerFixtureApi('erro_401.json'), 401);
     }
+    final rotaDaCaixa = _atenderCaixa(uri, opcoes);
+    if (rotaDaCaixa != null) return rotaDaCaixa;
     if (uri.path == '/api/imoveis/' && opcoes.method == 'GET') {
       if (!_temToken(opcoes)) {
         return _corpoJson(lerFixtureApi('erro_401.json'), 401);
@@ -355,6 +380,80 @@ class ApiFalsa {
       return _corpoJson(lerFixtureApi(fixture), 200);
     }
     return _corpoJson(const <String, Object?>{}, 404);
+  }
+
+  /// Atende as rotas da caixa de contatos (`/api/contatos/...`), todas com
+  /// token (senão 401); nulo se [uri] não é uma delas.
+  ResponseBody? _atenderCaixa(Uri uri, RequestOptions opcoes) {
+    final metodo = opcoes.method.toUpperCase();
+    final idDoContato = _idDoContatoDaCaixa(uri.path);
+    final ehRotaDaCaixa =
+        (metodo == 'GET' &&
+            (uri.path == '/api/contatos/' ||
+                uri.path == '/api/contatos/resumo/' ||
+                uri.path == '/api/contatos/imoveis/')) ||
+        (metodo == 'PATCH' && idDoContato != null);
+    if (!ehRotaDaCaixa) return null;
+    if (!_temToken(opcoes)) {
+      return _corpoJson(lerFixtureApi('erro_401.json'), 401);
+    }
+    if (idDoContato != null) return _anotarRetorno(idDoContato, opcoes);
+    if (uri.path == '/api/contatos/resumo/') {
+      return _corpoJson(
+        lerFixtureApi(
+          _retornoAnotado
+              ? 'contatos_resumo_apos.json'
+              : 'contatos_resumo.json',
+        ),
+        200,
+      );
+    }
+    if (uri.path == '/api/contatos/imoveis/') {
+      return _corpoJson(lerFixtureApi('contatos_imoveis.json'), 200);
+    }
+    final String fixture;
+    if (uri.queryParameters['page'] == '2') {
+      fixture = 'contatos_p2.json';
+    } else if ((uri.queryParameters['imovel'] ?? '').isNotEmpty) {
+      fixture = 'contatos_imovel.json';
+    } else if ((uri.queryParameters['de'] ?? '').isNotEmpty ||
+        (uri.queryParameters['ate'] ?? '').isNotEmpty) {
+      fixture = 'contatos_periodo_vazio.json';
+    } else {
+      fixture = 'contatos_p1.json';
+    }
+    return _corpoJson(lerFixtureApi(fixture), 200);
+  }
+
+  /// `PATCH /api/contatos/<id>/`: 400 se o `retorno` do corpo não é um valor
+  /// anotável, 200 com `contato_patch_200.json` (e o resumo passa a cair) se o
+  /// id é o dessa fixture, 404 nos demais.
+  ResponseBody _anotarRetorno(int id, RequestOptions opcoes) {
+    const anotaveis = {
+      'FALEI',
+      'VISITA_AGENDADA',
+      'SEM_RESPOSTA',
+      'DESCARTADO',
+    };
+    final dados = opcoes.data;
+    final corpo = dados is String ? jsonDecode(dados) : dados;
+    final retorno = corpo is Map<Object?, Object?> ? corpo['retorno'] : null;
+    if (retorno is! String || !anotaveis.contains(retorno)) {
+      return _corpoJson(lerFixtureApi('erro_400_retorno.json'), 400);
+    }
+    if (id == _idDaFixture('contato_patch_200.json')) {
+      _retornoAnotado = true;
+      return _corpoJson(lerFixtureApi('contato_patch_200.json'), 200);
+    }
+    return _corpoJson(lerFixtureApi('erro_404_contato.json'), 404);
+  }
+
+  /// Id do contato de `/api/contatos/<id>/`, ou nulo se [caminho] não é essa
+  /// rota.
+  int? _idDoContatoDaCaixa(String caminho) {
+    final casamento = RegExp(r'^/api/contatos/(\d+)/$').firstMatch(caminho);
+    if (casamento == null) return null;
+    return int.parse(casamento.group(1)!);
   }
 
   /// Atende `POST /api/publico/imoveis/<id>/contato/` com as respostas
