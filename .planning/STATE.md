@@ -1,13 +1,13 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 10
-current_phase_name: Contatos Recebidos e Retorno Anotado (APP 10)
+current_phase: 1
+current_phase_name: Localização, Escolha de Cidade e Contrato da API
 status: verifying
-stopped_at: Completed 10-10-PLAN.md
-last_updated: "2026-11-24T00:22:59.051Z"
-last_activity: 2026-11-23
-last_activity_desc: Phase 10 execution started
-state_head: f338a5e05cdb4f253f9394d94e7fb1510e821603
+stopped_at: Phase 10 complete, ready to verify Phase 1
+last_updated: "2026-11-24T22:24:05.500Z"
+last_activity: 2026-11-24
+last_activity_desc: Phase 10 complete, transitioned to Phase 1
+state_head: 8f0be90653357cab17d9b72814cfa8d517318e00
 progress:
   total_phases: 10
   completed_phases: 3
@@ -20,25 +20,25 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-11-21)
+See: .planning/PROJECT.md (updated 2026-11-24)
 
 **Core value:** A vitrine do app abre na cidade do usuário e mostra imóveis reais vindos da API, com a busca e o filtro resolvidos no servidor — o mesmo dado e a mesma regra do site, nunca recalculados dentro do aparelho.
-**Current focus:** Phase 10 — Contatos Recebidos e Retorno Anotado (APP 10)
+**Current focus:** Phase 10 (APP 10) concluída em 2026-11-24 (UAT 6/6, SECURITY verificado). A posição abaixo aponta a Phase 1 só porque as fases 1–4 nunca passaram pela transição no ROADMAP (todas com planos feitos) — não há trabalho pendente nelas por isso. Próximo passo real: push/PR das duas `feat/APP10` (app e web), só com autorização do Allysson; opcionais da Phase 10: `/gsd-code-review 10`, `/gsd-validate-phase 10`, `/gsd-ui-review 10`.
 
 ## Current Position
 
-Phase: 10 (Contatos Recebidos e Retorno Anotado (APP 10)) — EXECUTING
-Plan: 10 of 10
+Phase: 1 — Localização, Escolha de Cidade e Contrato da API
+Plan: 4
 Status: Phase complete — ready for verification
-Last activity: 2026-11-23 — Phase 10 execution started
+Last activity: 2026-11-24 — Phase 10 complete, transitioned to Phase 1
 
-Progress: [████████████████████] 72/72 plans ([███░░░░░░░] 30%)
+Progress: [████████████████████] 94/94 plans (100%)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 62
+- Total plans completed: 72
 - Average duration: - min
 - Total execution time: 0 hours
 
@@ -51,6 +51,7 @@ Progress: [████████████████████] 72/72 p
 | 07.1 | 6 | - | - |
 | 07 | 12 | - | - |
 | 08 | 12 | - | - |
+| 10 | 10 | - | - |
 
 **Recent Trend:**
 
@@ -239,6 +240,8 @@ None yet.
 
 - [Phase 5]: Externally blocked on the `Imóvel` model (owned by teammate E2 in `../imoveis-aqui/Web`) — Phases 1-3 do not require it (mock-first build), but Phase 5 cannot complete until that model lands.
 - [Phase 07.1]: PENDENTE WEB no §13.7 do contrato (D-20): limite de taxa nas views de perfil e extensão do seed — aceito fora do escopo do app, depende da frente web.
+- [Phase 10]: PENDENTE WEB — o POST público de contato não tem limite de taxa na `feat/APP10` (`CONTATO_TAXA_ANONIMA` não existe no `settings.py`); fora do escopo do app, avisar a frente web.
+- [Phase 10]: `GET /api/contatos/imoveis/` sem paginação (risco aceito AR-10-01) — revisar quando a APP-12 levar a caixa ao gestor.
 - [Phase 1]: API-AUDIT needs live coordination with the teammate on exact `Imóvel` field names/enum values (natureza, finalidade, características shape, quartos/suítes/vagas exact-vs-range semantics) — not resolvable from docs alone.
 
 ### Quick Tasks Completed
@@ -267,6 +270,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-24T00:22:56.887Z
-Stopped at: Completed 10-10-PLAN.md
+Last session: 2026-11-24
+Stopped at: Phase 10 complete (UAT 6/6 no emulador contra o Django real, SECURITY threats_open 0) — próximo: push/PR das feat/APP10 com autorização
 Resume file: None

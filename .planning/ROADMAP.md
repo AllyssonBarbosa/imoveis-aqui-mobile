@@ -29,7 +29,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 7: Perfis Públicos da Empresa e do Corretor** - Card APP 07: página da empresa e página do corretor com a vitrine do anunciante, dados da API de perfis públicos (WEB 02) e aviso para corretor desativado. (Fase 6 reservada ao card APP 06, de outro colega — fase N = card APP 0N.) (completed 2026-11-20)
 - [x] **Phase 07.1: Integração da APP-07 com a API real** (completed 2026-11-20)
 - [x] **Phase 8: Login e Área do Corretor — o Acervo** (completed 2026-11-21)
-- [ ] **Phase 10: Contatos Recebidos e Retorno Anotado (APP 10)** - Card APP 10: caixa de contatos do corretor (lista da API, filtro por imóvel e por período, contagem dos sem retorno) e retorno anotado gravado pela API. (Fase 9 reservada ao card APP 09, de outro colega — fase N = card APP 0N.)
+- [x] **Phase 10: Contatos Recebidos e Retorno Anotado (APP 10)** - Card APP 10: caixa de contatos do corretor (lista da API, filtro por imóvel e por período, contagem dos sem retorno) e retorno anotado gravado pela API. (Fase 9 reservada ao card APP 09, de outro colega — fase N = card APP 0N.) (completed 2026-11-24)
 
 ## Phase Details
 
@@ -459,7 +459,7 @@ Plans:
   5. Contato de imóvel de outra empresa nunca aparece.
   6. A tela mostra quantos contatos ainda estão sem retorno anotado.
 
-**Plans:** 10/10 plans executed
+**Plans:** 10/10 plans complete
 
 Plans:
 **Wave 1**
