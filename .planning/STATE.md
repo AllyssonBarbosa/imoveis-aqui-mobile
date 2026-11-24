@@ -1,19 +1,19 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 09
-current_phase_name: Mudança de Situação do Imóvel pelo App (APP 09)
+current_phase: 1
+current_phase_name: Localização, Escolha de Cidade e Contrato da API
 status: verifying
 stopped_at: Phase 10 complete, ready to verify Phase 1
-last_updated: "2026-11-24T22:24:05.500Z"
+last_updated: "2026-11-24T23:11:33.421Z"
 last_activity: 2026-11-24
 last_activity_desc: Phase 10 complete, transitioned to Phase 1
-state_head: 8f0be90653357cab17d9b72814cfa8d517318e00
+state_head: 2d719534f0ff4a61eb7f3128d9dac09bbcac461a
 progress:
-  total_phases: 10
+  total_phases: 11
   completed_phases: 3
   total_plans: 107
   completed_plans: 107
-  percent: 30
+  percent: 27
 ---
 
 # Project State
@@ -23,14 +23,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-11-24)
 
 **Core value:** A vitrine do app abre na cidade do usuário e mostra imóveis reais vindos da API, com a busca e o filtro resolvidos no servidor — o mesmo dado e a mesma regra do site, nunca recalculados dentro do aparelho.
-**Current focus:** Phase 10 (APP 10) concluída em 2026-11-24 (UAT 6/6, SECURITY verificado). A posição abaixo aponta a Phase 1 só porque as fases 1–4 nunca passaram pela transição no ROADMAP (todas com planos feitos) — não há trabalho pendente nelas por isso. Próximo passo real: push/PR das duas `feat/APP10` (app e web), só com autorização do Allysson; opcionais da Phase 10: `/gsd-code-review 10`, `/gsd-validate-phase 10`, `/gsd-ui-review 10`. A Phase 9 (APP-09, do colega) entrou pela `main` em 2026-11-24 (merge na `feat/APP10`): 13/13 planos e UAT completos na `main`, ainda sem a transição no ROADMAP.
+**Current focus:** Phase 10 (APP 10) concluída e na `main` (app PR #2, web PR #9) em 2026-11-24 — UAT 6/6, SECURITY verificado e re-verificação passed depois do merge com a APP-09 (caixa = §17 do contrato, requisitos API-13/API-14). A posição abaixo aponta a Phase 1 só porque as fases 1–4 nunca passaram pela transição no ROADMAP (todas com planos feitos). A Phase 9 (APP-09, do colega) está na `main` com 13/13 planos e UAT completo, ainda sem a transição no ROADMAP. Opcionais da Phase 10: `/gsd-code-review 10`, `/gsd-validate-phase 10`, `/gsd-ui-review 10`.
 
 ## Current Position
 
-Phase: 09 (Mudança de Situação do Imóvel pelo App (APP 09)) — EXECUTING
-Plan: 13 of 13
+Phase: 1 — Localização, Escolha de Cidade e Contrato da API
+Plan: 4
 Status: Phase complete — ready for verification
-Last activity: 2026-11-24 — Phase 10 complete; main (APP-09) merged into feat/APP10
+Last activity: 2026-11-24 — Phase 10 complete, transitioned to Phase 1
 
 Progress: [████████████████████] 107/107 plans (100%)
 
@@ -301,5 +301,5 @@ Items acknowledged and deferred at milestone close, most recent first:
 ## Session Continuity
 
 Last session: 2026-11-24
-Stopped at: Phase 10 complete (UAT 6/6 no emulador contra o Django real, SECURITY threats_open 0) — próximo: push/PR das feat/APP10 com autorização
+Stopped at: Phase 10 re-verificada (passed) após o merge com a APP-09; APP-10 na main (app PR #2, web PR #9)
 Resume file: None
