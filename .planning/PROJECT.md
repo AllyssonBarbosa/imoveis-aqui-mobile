@@ -24,7 +24,7 @@ recalculados dentro do aparelho.
 
 ### Validated
 
-- ✓ **APP10** — Caixa de contatos do corretor ("Meus contatos", pelo ícone no "Meu acervo"): lista paginada dos contatos recebidos (mais recentes primeiro, com imóvel, canal e data), número de sem retorno calculado no Django, filtros por imóvel e por período (seletor em pt-BR) resolvidos no servidor e retorno anotado com um toque (falei, visita agendada, sem resposta, descartado), gravado pela API; isolamento por empresa e corretor — Phase 10 (UAT 6/6 contra o Django real; CXA-01..06, API-11, API-12)
+- ✓ **APP10** — Caixa de contatos do corretor ("Meus contatos", pelo ícone no "Meu acervo"): lista paginada dos contatos recebidos (mais recentes primeiro, com imóvel, canal e data), número de sem retorno calculado no Django, filtros por imóvel e por período (seletor em pt-BR) resolvidos no servidor e retorno anotado com um toque (falei, visita agendada, sem resposta, descartado), gravado pela API; isolamento por empresa e corretor — Phase 10 (UAT 6/6 contra o Django real; CXA-01..06, API-13, API-14)
 - ✓ **APP08** — Login do corretor no mesmo app (token da API em `flutter_secure_storage`), "Meu acervo" com os imóveis dele e da imobiliária, busca e filtro por situação resolvidos no servidor, isolamento por empresa, Sair que revoga o token; gestor e administrador veem um aviso — Phase 8
 - ✓ **PERF-03** — Vitrine do anunciante (corretor e empresa) paginada e recortada no servidor, via `GET /api/publico/corretores/<id>/imoveis/` e `/api/publico/empresas/<id>/imoveis/` — Phase 07.1
 - ✓ **PERF-04** — Perfis do corretor e da empresa vindos da API real (WEB 02) por DataSource trocável, sem mock em `lib/` — Phase 07.1
@@ -95,7 +95,7 @@ recalculados dentro do aparelho.
 | `GET /api/imoveis/` virou envelope paginado (`count`/`next`/`results`) filtrado no servidor | O acervo do corretor rola e filtra sem baixar tudo; o time da web precisa saber da mudança de formato | ✓ Good — Phase 8 |
 | Limite de login 10/hour por e-mail e 30/hour por IP | Freia tentativa de senha sem travar o uso normal; taxas ajustáveis pelo `.env` | ✓ Good — Phase 8 (aceito no UAT 4) |
 | Número de contatos sem retorno vem do Django por rota própria (`GET /api/contatos/resumo/`), pedido de novo após cada anotação; o app nunca soma nem subtrai | Regra que muda estado não é decidida no aparelho; o número ignora os filtros da lista | ✓ Good — Phase 10 (UAT 4: 25 → 24 vindo do servidor) |
-| `ContatoViewSet` paginado (20 por página, `PageNumberPagination`) e `GET /api/contatos/imoveis/` para as opções do filtro, com a mesma regra de visibilidade do site | A caixa rola e filtra sem baixar tudo; o app não monta a lista de imóveis | ✓ Good — Phase 10 (§16 do contrato, 766 testes no web) |
+| `ContatoViewSet` paginado (20 por página, `PageNumberPagination`) e `GET /api/contatos/imoveis/` para as opções do filtro, com a mesma regra de visibilidade do site | A caixa rola e filtra sem baixar tudo; o app não monta a lista de imóveis | ✓ Good — Phase 10 (§17 do contrato, 766 testes no web) |
 | Anotação sem otimismo: o item só muda com o 200 do servidor; 404 recarrega lista e número; falha mostra texto fixo | O retorno é estado do servidor; o app não finge sucesso | ✓ Good — Phase 10 (UAT com Django parado e com contato apagado) |
 | pt-BR do Material ligado no app inteiro (`flutter_localizations`, do SDK) | O seletor de período precisava estar em português; nenhum pacote de terceiros | ✓ Good — Phase 10 (UAT 3) |
 

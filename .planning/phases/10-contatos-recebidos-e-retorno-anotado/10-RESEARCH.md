@@ -92,7 +92,7 @@ Ferramentas: Flutter 3.50.1 / Dart 3.14.0; Python 3.11.9, Django 5.2.17, DRF 3.1
   O PATCH e o `ContatoSerializer` não mudam (a menos que a pesquisa escolha a variante de D-06). Os testes vão em `contatos/tests.py`, no padrão de `IsolamentoTests`, `CaixaDeContatosTests` e `AnotarRetornoTests`. Cobrem paginação; contagem só de `PENDENTE` e só dos visíveis; opções só com imóveis dos contatos visíveis; e outra empresa ou outro corretor nunca aparecendo nas rotas novas. `python manage.py test` verde.
 
 **Contrato e rastreabilidade**
-- **D-26:** Novo **§16** em `01-CONTRATO-API.md`, no padrão dos §14 e §15: caixa de contatos (lista com parâmetros, envelope paginado e campos), PATCH do retorno (valores aceitos, resposta, 400/401/404), contagem, opções do filtro de imóvel e a regra de isolamento.
+- **D-26:** Novo **§17** em `01-CONTRATO-API.md`, no padrão dos §14 e §15: caixa de contatos (lista com parâmetros, envelope paginado e campos), PATCH do retorno (valores aceitos, resposta, 400/401/404), contagem, opções do filtro de imóvel e a regra de isolamento.
 - **D-27:** Novos IDs em `REQUIREMENTS.md`, seção "Caixa de contatos (APP10)", mapeados para a Phase 10 no ROADMAP (`**Requirements**:`, hoje TBD) e na tabela de rastreabilidade. Cobrem os critérios 1 a 6 e as rotas da web, como as Phases 7 e 8 fizeram. Os nomes dos IDs ficam para o planejador.
 
 **Regras do projeto (carregadas das fases anteriores)**
@@ -102,7 +102,7 @@ Ferramentas: Flutter 3.50.1 / Dart 3.14.0; Python 3.11.9, Django 5.2.17, DRF 3.1
 ### Claude's Discretion
 - Nomes de classes, arquivos e estados. Sugestão: `lib/presentation/contatos/` com `ContatosScreen`, `ContatosCubit`, `widgets/item_contato.dart`, `widgets/folha_anotar_retorno.dart`, `widgets/folha_filtro_imovel.dart`; entidades `ContatoRecebido`, `RetornoContato`, `ConsultaContatos`, `PaginaContatos`, `ImovelComContato` em `domain/`; `ContatosRepository` e use cases; `ContatosRemoteDataSource` no `Dio` autenticado. O número de Cubits (um para a tela, ou um separado para o filtro de imóvel) fica para o planejador.
 - Ícone exato da entrada (D-01) e da linha do número, cores do chip de retorno (só do `ColorScheme`) e espaçamentos. Tudo é confirmado no human-check de fim de fase.
-- Fuso da data mostrada: hora local do aparelho (`toLocal()`). A pesquisa confere o `TIME_ZONE` do Django, que vale para o recorte `criado_em__date` dos filtros `de`/`ate`, e anota no §16 se houver diferença.
+- Fuso da data mostrada: hora local do aparelho (`toLocal()`). A pesquisa confere o `TIME_ZONE` do Django, que vale para o recorte `criado_em__date` dos filtros `de`/`ate`, e anota no §17 se houver diferença.
 - Valor de retorno ou canal desconhecido vindo do servidor: tratar como falha de formato na camada de dados, como os outros Models fazem (a pesquisa confere o padrão vigente).
 - Quando carregar as opções do filtro de imóvel (ao abrir a tela ou ao abrir a folha), e o `firstDate` do seletor de período.
 - **UI-SPEC:** como na F4/D-20, F7/D-16 e F8, as decisões D-01 a D-22 servem de contrato de UI, com confirmação no human-check de fim de fase. `/gsd-ui-phase 10` é opcional.
@@ -119,7 +119,7 @@ Ferramentas: Flutter 3.50.1 / Dart 3.14.0; Python 3.11.9, Django 5.2.17, DRF 3.1
 <phase_requirements>
 ## Phase Requirements
 
-> O ROADMAP diz `Requirements: TBD` e o `REQUIREMENTS.md` ainda não tem a seção "Caixa de contatos (APP10)". Por D-27 o planejador cria os IDs. Abaixo vai uma **proposta pronta para adoção**: prefixo novo `CXA` (caixa) e `API-11`/`API-12` continuando a série `API-xx`, que hoje termina em `API-10` [VERIFIED: `.planning/REQUIREMENTS.md:67-68` — `API-09` e `API-10`; tabela de rastreabilidade termina em `| API-10 | Phase 8 | Complete |`]. Registrar é a primeira tarefa da fase (padrão das Phases 7 e 8).
+> O ROADMAP diz `Requirements: TBD` e o `REQUIREMENTS.md` ainda não tem a seção "Caixa de contatos (APP10)". Por D-27 o planejador cria os IDs. Abaixo vai uma **proposta pronta para adoção**: prefixo novo `CXA` (caixa) e `API-13`/`API-14` continuando a série `API-xx`, que hoje termina em `API-10` [VERIFIED: `.planning/REQUIREMENTS.md:67-68` — `API-09` e `API-10`; tabela de rastreabilidade termina em `| API-10 | Phase 8 | Complete |`]. Registrar é a primeira tarefa da fase (padrão das Phases 7 e 8).
 
 | ID | Descrição proposta (texto para o REQUIREMENTS.md) | Critério / decisão | Research Support |
 |----|---------------------------------------------------|--------------------|------------------|
@@ -129,8 +129,8 @@ Ferramentas: Flutter 3.50.1 / Dart 3.14.0; Python 3.11.9, Django 5.2.17, DRF 3.1
 | CXA-04 | Contato de outra empresa ou de outro corretor nunca aparece na lista, na contagem nem nas opções do filtro, e o PATCH pelo id dá 404 — garantido e testado no Django. | Crit. 5; D-13 | R2, R3, R10 |
 | CXA-05 | A tela mostra quantos contatos estão sem retorno anotado (`GET /api/contatos/resumo/` → `{"sem_retorno": N}`), calculado no Django, sem filtros, atualizado ao abrir e depois de cada anotação. | Crit. 6; D-04..D-07, D-22 | R2, R8 |
 | CXA-06 | A caixa abre por um ícone na `AppBar` do "Meu acervo" (só o corretor); qualquer 401 encerra a sessão e abre o login com o aviso "Sua sessão terminou. Entre de novo."; os textos de estado são fixos do app. | D-01..D-03, D-21..D-23 | R7, R8 |
-| API-11 | O §16 de `01-CONTRATO-API.md` congela a lista paginada, os parâmetros, os 12 campos do item, o PATCH (valores, resposta, 400/401/403/404/405), a contagem, as opções do imóvel, o fuso e o isolamento, com fixtures capturadas do Django e testes de contrato nos dois repositórios. | D-26 | R9 |
-| API-12 | A web entrega, com testes, a paginação de `GET /api/contatos/`, `GET /api/contatos/resumo/` e `GET /api/contatos/imoveis/`, todas atrás de `PertenceAUmaEmpresa` e do escopo de empresa e perfil. | D-25 | R1, R2, R3 |
+| API-13 | O §17 de `01-CONTRATO-API.md` congela a lista paginada, os parâmetros, os 12 campos do item, o PATCH (valores, resposta, 400/401/403/404/405), a contagem, as opções do imóvel, o fuso e o isolamento, com fixtures capturadas do Django e testes de contrato nos dois repositórios. | D-26 | R9 |
+| API-14 | A web entrega, com testes, a paginação de `GET /api/contatos/`, `GET /api/contatos/resumo/` e `GET /api/contatos/imoveis/`, todas atrás de `PertenceAUmaEmpresa` e do escopo de empresa e perfil. | D-25 | R1, R2, R3 |
 </phase_requirements>
 
 ## Project Constraints (from CLAUDE.md)
@@ -153,7 +153,7 @@ A web já entrega 80% da fase: `ContatoViewSet` lista, filtra, mostra o detalhe 
 
 No app, quase tudo é reaproveitamento do stack do acervo: DataSource fino no `Dio` `@Named('autenticado')` com `seguir(next)` + `mesmaOrigem`, Repository que traduz 401/403/404/demais em falhas tipadas, Cubit paginado com token de versão, `RodapePaginacaoLista`, o fluxo de sessão expirada e o `ApiFalsa` com fixtures capturadas. O trabalho novo de verdade é (a) o estado "anotando este item" dentro de um estado freezed imutável, (b) o seletor de período em pt-BR, que exige `flutter_localizations` (já é dependência **transitiva**; basta declará-la) e `localizationsDelegates`/`supportedLocales` no `MaterialApp` de `lib/main.dart`, e (c) novas fixtures capturadas do Django (grupo `contatos` na ferramenta de captura).
 
-**Primary recommendation:** Faça a web primeiro (paginação + `resumo` + `imoveis` + um endurecimento de 3 linhas no PATCH, ver Achado 2) e congele o §16 com fixtures capturadas; no app use **um único Cubit** (`lista + contagem + opções do imóvel + anotando`), um `Set<int>` de itens em anotação dentro do estado `carregada`, e um campo one-shot `aviso` para a SnackBar, repetindo o padrão `ContatoCubit`/`BarraContato`.
+**Primary recommendation:** Faça a web primeiro (paginação + `resumo` + `imoveis` + um endurecimento de 3 linhas no PATCH, ver Achado 2) e congele o §17 com fixtures capturadas; no app use **um único Cubit** (`lista + contagem + opções do imóvel + anotando`), um `Set<int>` de itens em anotação dentro do estado `carregada`, e um campo one-shot `aviso` para a SnackBar, repetindo o padrão `ContatoCubit`/`BarraContato`.
 
 ### Achados que mudam o plano (não estavam no CONTEXT)
 
@@ -213,7 +213,7 @@ Resultados medidos (cenário `ContatoBase` com 4 contatos: 2 do corretor, 1 do c
 ```
 [VERIFIED: `contatos/views.py:46-50`] Experimento: corretor → `[{'id': 1, 'codigo': 'CASA-INTERNO-1', ...}, {'id': 2, 'codigo': 'CASA-INTERNO-2', ...}]`; gestor → 3 imóveis (inclui `DO-CORRETOR-2`); corretor da outra empresa → só `OUTRA-1`; admin 403; anônimo 401.
 
-**Sem paginação é aceitável:** o resultado é limitado aos imóveis que têm pelo menos um contato visível; para o corretor, ≤ o acervo dele; para o gestor (não usado no app nesta fase, D-03) ≤ o acervo da empresa. Estimativa: ~90 bytes por item → 1.000 imóveis ≈ 90 KB. A APP-12 (caixa do gestor) pode precisar de busca/limite, anotado como risco aceito no §16. [ASSUMED: tamanho médio por item; ordem de grandeza, não medido em produção]
+**Sem paginação é aceitável:** o resultado é limitado aos imóveis que têm pelo menos um contato visível; para o corretor, ≤ o acervo dele; para o gestor (não usado no app nesta fase, D-03) ≤ o acervo da empresa. Estimativa: ~90 bytes por item → 1.000 imóveis ≈ 90 KB. A APP-12 (caixa do gestor) pode precisar de busca/limite, anotado como risco aceito no §17. [ASSUMED: tamanho médio por item; ordem de grandeza, não medido em produção]
 
 **Quando carregar (discricionário):** recomendação = **ao abrir a folha** (carga preguiçosa), guardando o resultado só enquanto a folha existe; reabrir busca de novo. Motivos: não custa uma requisição se o corretor nunca filtra por imóvel; a lista é atual (um contato novo pode ter trazido um imóvel novo); o chip "Imóvel" só precisa de `id` + `codigo` do item escolhido, que o Cubit já guarda em `consulta.imovel` — não depende de pré-carga.
 
@@ -281,7 +281,7 @@ class Canal(models.TextChoices):
 - `config/settings.py`: `TIME_ZONE = 'America/Sao_Paulo'`, `USE_TZ = True`, `LANGUAGE_CODE = 'pt-br'`. [VERIFIED: `config/settings.py:117-123`]
 - **No fio**, `criado_em` e `retorno_em` saem em ISO-8601 **com offset de São Paulo**: `"2026-11-22T21:48:24.683322-03:00"`; `retorno_em` nulo → `null` (medido em respostas reais do `ContatoSerializer`). `DateTime.parse` do Dart converte para UTC (`isUtc == true`); `toLocal()` devolve a hora do aparelho.
 - **Recorte dos filtros:** `filtrar_contatos` usa `criado_em__date__gte/lte`, que com `USE_TZ=True` interpreta o dia **em `America/Sao_Paulo`**. Prova: contato com `criado_em = 2026-01-10T01:30Z` (= 09/01 22:30 em SP) → `de=ate=2026-01-09` **acha**; `de=ate=2026-01-10` **não acha** (experimento). `README.md:152` já documenta "dia de São Paulo" nos relatórios.
-- **Conclusão para o §16:** `de`/`ate` são **dias de São Paulo**; `criado_em`/`retorno_em` vêm com offset `-03:00` (o Brasil não tem horário de verão desde 2019 [ASSUMED: sem DST atual; o `zoneinfo` do servidor é quem decide]). `toLocal()` bate com o site em aparelho no fuso de Brasília; em aparelho em outro fuso (Manaus `-04:00`, Rio Branco `-05:00`, Noronha `-02:00`) a hora mostrada difere do site em 1-2 h, e o dia escolhido no seletor continua valendo como dia de SP. Documentar como risco aceito; manter `toLocal()` (decisão do CONTEXT). Ver A3.
+- **Conclusão para o §17:** `de`/`ate` são **dias de São Paulo**; `criado_em`/`retorno_em` vêm com offset `-03:00` (o Brasil não tem horário de verão desde 2019 [ASSUMED: sem DST atual; o `zoneinfo` do servidor é quem decide]). `toLocal()` bate com o site em aparelho no fuso de Brasília; em aparelho em outro fuso (Manaus `-04:00`, Rio Branco `-05:00`, Noronha `-02:00`) a hora mostrada difere do site em 1-2 h, e o dia escolhido no seletor continua valendo como dia de SP. Documentar como risco aceito; manter `toLocal()` (decisão do CONTEXT). Ver A3.
 
 ### R7 — Mapa de reaproveitamento do app (leitura do código)
 
@@ -358,7 +358,7 @@ A tela mostra o item com `LinearProgressIndicator`/spinner e `onTap: null` quand
 
 **Opções do imóvel:** `OpcoesDeImovel` sealed (`naoCarregadas | carregando | carregadas(List<ImovelComContato>) | erro`); `carregarOpcoesDeImovel()` chamado ao abrir a folha; 401 → mesmo `sessaoExpirada` da tela (a folha fecha e o `BlocListener` da tela navega).
 
-### R9 — Contrato §16 (formato do §14/§15)
+### R9 — Contrato §17 (formato do §14/§15)
 
 Seguir `## 16. Caixa de contatos do corretor (Fase 10)` com os subitens do §14 (`16.1 Rotas e autenticação`, `16.2 Lista`, `16.3 Anotar o retorno`, `16.4 Contagem`, `16.5 Opções do filtro de imóvel`, `16.6 Erros`, `16.7 Fuso`, `16.8 No app`, `16.9 PENDENTE WEB e riscos aceitos`, `16.10 Sincronização`) e a abertura "Elas vivem na branch `feat/APP10` da web até entrarem na `main` dela". **Congelar exatamente:**
 
@@ -769,7 +769,7 @@ BlocListener<CaixaContatosCubit, CaixaContatosState>(
 |---|-------|---------|---------------|
 | A1 | ~90 bytes por item de `GET /api/contatos/imoveis/` (1.000 imóveis ≈ 90 KB) — ordem de grandeza, não medida em produção | R3 | Se um gestor tiver milhares de imóveis a lista cresce; a APP-12 deve revisitar (busca/limite) |
 | A2 | `canal`/`retorno` desconhecidos viram `FormatException` e derrubam a página inteira (erro genérico "Não foi possível carregar os contatos.") — é o que o CONTEXT delega e o padrão vigente faz com `finalidade`/`perfil` | R7 | Se a web criar um canal/retorno novo, apps antigos mostram erro em toda a caixa até atualizar; alternativa seria ignorar só o item ou cair num valor `desconhecido` (decisão de produto) |
-| A3 | `toLocal()` basta: o Brasil não tem horário de verão desde 2019 e a maioria dos corretores usa o fuso de Brasília; em outros fusos a hora difere do site em 1-2 h | R6 | Contato "de ontem à noite" pode aparecer com data diferente da do site; aceito e documentado no §16 |
+| A3 | `toLocal()` basta: o Brasil não tem horário de verão desde 2019 e a maioria dos corretores usa o fuso de Brasília; em outros fusos a hora difere do site em 1-2 h | R6 | Contato "de ontem à noite" pode aparecer com data diferente da do site; aceito e documentado no §17 |
 | A4 | `firstDate = DateTime(2024)` e `lastDate = hoje` para o seletor | R5 | Se o Allysson quiser outro limite (p.ex. `DateTime(2026)`), é uma constante; sem impacto no servidor |
 | A5 | Incluir o endurecimento do PATCH (`validate()` → 400) apesar do D-25 dizer que o serializer não muda | Achado 2 | Se o Allysson preferir não tocar no serializer, fica o 500 em `PATCH {}` (só alcançável por cliente que não seja o app) |
 | A6 | Tocar na opção que já é a atual na folha apenas fecha a folha, sem chamar a API | R8 | Se o Allysson quiser re-gravar `retorno_em` ao tocar na mesma opção, basta remover a guarda |
@@ -784,7 +784,7 @@ BlocListener<CaixaContatosCubit, CaixaContatosState>(
 1. **Aprovar o endurecimento do PATCH (corpo vazio → 400)?** — **RESOLVED:** incluído (emenda do D-25 em `10-CONTEXT.md`).
    - What we know: `PATCH {}` hoje levanta `KeyError` (500); correção de 3 linhas verificada; contraria a letra do D-25 ("o `ContatoSerializer` não muda").
    - What's unclear: se o Allysson aceita a exceção ao D-25.
-   - Recommendation: incluir (1 linha de produção + 1 teste `test_patch_sem_retorno_e_400`); rotular no plano como desvio explícito do D-25 e registrar no §16.
+   - Recommendation: incluir (1 linha de produção + 1 teste `test_patch_sem_retorno_e_400`); rotular no plano como desvio explícito do D-25 e registrar no §17.
 
 2. **`firstDate` do seletor (2024 vs 2026)?** — **RESOLVED:** `DateTime(2024)`, `lastDate` = hoje (`10-CONTEXT.md`, Claude's Discretion).
    - What we know: nenhum contato anterior à W11 (2026) existe; o picker só limita a navegação.
@@ -826,19 +826,19 @@ BlocListener<CaixaContatosCubit, CaixaContatosState>(
 ### Phase Requirements → Test Map
 | Req ID | Behavior | Test Type | Automated Command | File Exists? |
 |--------|----------|-----------|-------------------|-------------|
-| API-12 / CXA-01 | Lista paginada: envelope `count/next/previous/results`, 20 por página (`mock.patch.object(PaginacaoContatos, "page_size", 1)`), `next` mantém filtros, `page` inválida 404, cliente não muda tamanho, retrieve/PATCH não paginam | integration (Django) | `manage.py test contatos.tests.PaginacaoDaCaixaTests --noinput` | ❌ Wave 0 |
-| API-12 / CXA-05 | `resumo`: só `PENDENTE`, só visíveis, ignora `imovel/de/ate/page`, cai após PATCH, gestor ≠ corretor, outra empresa isolada, corretor `None` só no gestor, admin 403, anônimo 401, rota não colide com `{pk}` | integration (Django) | `manage.py test contatos.tests.ResumoSemRetornoTests --noinput` | ❌ Wave 0 |
-| API-12 / CXA-02 | `imoveis`: exatamente `id/codigo/titulo`, só imóveis de contatos visíveis, ordem por `codigo`, igual a `ContatoListView.context["imoveis"]`, admin 403, anônimo 401 | integration (Django) | `manage.py test contatos.tests.OpcoesDeImovelDaCaixaTests --noinput` | ❌ Wave 0 |
+| API-14 / CXA-01 | Lista paginada: envelope `count/next/previous/results`, 20 por página (`mock.patch.object(PaginacaoContatos, "page_size", 1)`), `next` mantém filtros, `page` inválida 404, cliente não muda tamanho, retrieve/PATCH não paginam | integration (Django) | `manage.py test contatos.tests.PaginacaoDaCaixaTests --noinput` | ❌ Wave 0 |
+| API-14 / CXA-05 | `resumo`: só `PENDENTE`, só visíveis, ignora `imovel/de/ate/page`, cai após PATCH, gestor ≠ corretor, outra empresa isolada, corretor `None` só no gestor, admin 403, anônimo 401, rota não colide com `{pk}` | integration (Django) | `manage.py test contatos.tests.ResumoSemRetornoTests --noinput` | ❌ Wave 0 |
+| API-14 / CXA-02 | `imoveis`: exatamente `id/codigo/titulo`, só imóveis de contatos visíveis, ordem por `codigo`, igual a `ContatoListView.context["imoveis"]`, admin 403, anônimo 401 | integration (Django) | `manage.py test contatos.tests.OpcoesDeImovelDaCaixaTests --noinput` | ❌ Wave 0 |
 | CXA-04 | Isolamento nas rotas novas (corretor×corretor, empresa×empresa, gestor) — estender `IsolamentoTests` | integration (Django) | `manage.py test contatos.tests.IsolamentoTests --noinput` | ✅ estender |
-| CXA-03 / API-11 | PATCH 200 item completo, 400 (PENDENTE/XYZ/""/{}), 404 (outro corretor/outra empresa), 405 PUT; fuso (`-03:00`; dia de SP no filtro) | integration (Django) | `manage.py test contatos.tests.AnotarRetornoTests --noinput` | ✅ estender |
-| API-11 | Contrato: chaves exatas do envelope, do item (12), do `resumo`, das opções (3); exemplo = fixture; `canal`/`retorno` ∈ enums; isolamento entre empresas | contract (app) | `flutter test test/data/contrato_contatos_test.dart` | ❌ Wave 0 |
+| CXA-03 / API-13 | PATCH 200 item completo, 400 (PENDENTE/XYZ/""/{}), 404 (outro corretor/outra empresa), 405 PUT; fuso (`-03:00`; dia de SP no filtro) | integration (Django) | `manage.py test contatos.tests.AnotarRetornoTests --noinput` | ✅ estender |
+| API-13 | Contrato: chaves exatas do envelope, do item (12), do `resumo`, das opções (3); exemplo = fixture; `canal`/`retorno` ∈ enums; isolamento entre empresas | contract (app) | `flutter test test/data/contrato_contatos_test.dart` | ❌ Wave 0 |
 | CXA-01 | Models/Repository/DataSource: parse do envelope, `FormatException` em enum desconhecido, 401/403/404 tipados, `seguir` rejeita outra origem, PATCH em `/api/contatos/<id>/` com `{'retorno': ...}` | unit (app) | `flutter test test/data/caixa_contatos_remote_datasource_test.dart test/data/caixa_contatos_repository_impl_test.dart test/data/contato_recebido_model_test.dart` | ❌ Wave 0 |
 | CXA-02 | `parametrosDaConsultaContatos`: `imovel`, `de`, `ate` `AAAA-MM-DD` (sem `toUtc`), vazio não gera chave | unit (app) | `flutter test test/data/parametros_consulta_contatos_test.dart` | ❌ Wave 0 |
 | CXA-01..05 | `CaixaContatosCubit` (bloc_test): carregar, vazio×semResultado, erro, 401, carregarMais/retry/dedupe, troca de filtro com versão, contagem falhando não derruba a lista, `anotarRetorno` sucesso/404/401/falha/duplo toque, aviso one-shot | unit (app) | `flutter test test/presentation/caixa_contatos_cubit_test.dart` | ❌ Wave 0 |
 | CXA-01..06 | `CaixaContatosScreen` (widget): linha do número (0/1/N/ausente), item (código — título, canal, data `dd/MM/yyyy HH:mm`, chip de retorno, "anotado em"), chips Imóvel/Período com "x", folha de 4 opções com a atual marcada, item em voo sem toque, SnackBar com texto fixo, estados vazio/sem resultado/erro, 401 → login com aviso | widget (app) | `flutter test test/presentation/caixa_contatos_screen_test.dart` | ❌ Wave 0 |
 | CXA-02 | Seletor de período em pt-BR com os delegates de `app_localizacao.dart` ("Salvar", "Data de início") | widget (app) | `flutter test test/presentation/seletor_periodo_pt_br_test.dart` | ❌ Wave 0 |
 | CXA-06 | `AcervoScreen` tem o ícone "Meus contatos" que chama o destino; `MaterialApp` de produção tem `supportedLocales == [pt_BR]` | widget (app) | `flutter test test/presentation/acervo_screen_test.dart test/main_launch_routing_test.dart` | ✅ estender |
-| CXA-03 / API-11 | Fluxo ponta a ponta com `ApiFalsa` + fixtures reais (lista → anotar → resumo atualizado; 404 recarrega) | integration (app) | `flutter test test/presentation/caixa_contatos_fluxo_test.dart` | ❌ Wave 0 |
+| CXA-03 / API-13 | Fluxo ponta a ponta com `ApiFalsa` + fixtures reais (lista → anotar → resumo atualizado; 404 recarrega) | integration (app) | `flutter test test/presentation/caixa_contatos_fluxo_test.dart` | ❌ Wave 0 |
 
 ### Sampling Rate
 - **Per task commit:** `flutter test <arquivos da tarefa>` e/ou `manage.py test contatos --noinput`.
@@ -881,7 +881,7 @@ BlocListener<CaixaContatosCubit, CaixaContatosState>(
 | Token vazando via `next` de outra origem | Information Disclosure | `mesmaOrigem` no DataSource + só anexar token à origem da base URL no interceptor |
 | Token em log/fixture | Information Disclosure | Sem log de cabeçalhos; fixture `login_200` com 40 zeros; credenciais de captura só por env |
 | 500 em `PATCH {}` (traceback com `DEBUG=True`) | Information Disclosure / DoS | `validate()` → 400 |
-| `imoveis/` sem paginação para gestor com acervo enorme | DoS (leve) | Aceito (risco no §16); o app só oferece a caixa ao corretor |
+| `imoveis/` sem paginação para gestor com acervo enorme | DoS (leve) | Aceito (risco no §17); o app só oferece a caixa ao corretor |
 | PII de visitante | Information Disclosure | Inexistente por desenho: `Contato` não guarda nome/telefone/e-mail/texto livre |
 | Enumeração por `?page` | Information Disclosure | 404 padrão do DRF, sem canal de enumeração (escopo já aplicado antes) |
 

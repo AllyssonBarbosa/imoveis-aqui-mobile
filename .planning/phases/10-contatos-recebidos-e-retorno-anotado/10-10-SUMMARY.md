@@ -18,7 +18,7 @@ provides:
   - "ItemContato.anotando (LinearProgressIndicator + toque desligado)"
   - "CaixaContatosScreen: toque no item abre a folha; BlocListener do aviso -> SnackBar com texto fixo"
   - "fluxo ponta a ponta com anotacao 'Falei' e 404 sobre a pilha real"
-  - "CXA-01..06, API-11 e API-12 completos em REQUIREMENTS.md"
+  - "CXA-01..06, API-13 e API-14 completos em REQUIREMENTS.md"
 affects: []
 
 commits: 5
@@ -62,7 +62,7 @@ key-decisions:
   - "Tocar a opcao que ja e a atual nao chama a API (A6); a guarda fica no Cubit, a folha continua marcando a atual e fechando"
   - "O resumo e pedido de novo depois de qualquer resposta do servidor (sucesso e 404), mesmo se a lista foi reiniciada por troca de filtro enquanto o PATCH estava em voo (Pitfall 3); nesse caso o item so e trocado se a lista atual ainda for CaixaCarregada com ele"
 
-requirements-completed: [CXA-01, CXA-02, CXA-03, CXA-04, CXA-05, CXA-06, API-11, API-12]
+requirements-completed: [CXA-01, CXA-02, CXA-03, CXA-04, CXA-05, CXA-06, API-13, API-14]
 
 coverage:
   - id: D1
@@ -144,7 +144,7 @@ status: complete
 
 # Phase 10 Plan 10: Anotar retorno e fechamento da fase Summary
 
-**O corretor anota o retorno de um contato com um toque na folha "Anotar retorno": o `CaixaContatosCubit` espera o servidor (item em voo, sem otimismo), troca o item pelo que o Django devolve e pede de novo o numero de sem retorno; falhas viram SnackBar com texto fixo (404 recarrega lista e numero, 401 volta ao login) e tudo e provado ponta a ponta sobre o DI de producao; CXA-01..06, API-11 e API-12 estao completos e os gates dos dois repositorios passam.**
+**O corretor anota o retorno de um contato com um toque na folha "Anotar retorno": o `CaixaContatosCubit` espera o servidor (item em voo, sem otimismo), troca o item pelo que o Django devolve e pede de novo o numero de sem retorno; falhas viram SnackBar com texto fixo (404 recarrega lista e numero, 401 volta ao login) e tudo e provado ponta a ponta sobre o DI de producao; CXA-01..06, API-13 e API-14 estao completos e os gates dos dois repositorios passam.**
 
 ## Performance
 
@@ -161,7 +161,7 @@ status: complete
 - `ItemContato.anotando`: `LinearProgressIndicator` no pe do cartao e `onTap: null`.
 - `CaixaContatosScreen`: toque no item abre a folha (Cubit lido antes de abrir), item recebe `anotando`, e um segundo `BlocListener` (`listenWhen: atual.aviso != null && anterior.aviso != atual.aviso`) mostra a SnackBar com `if (state.aviso case final aviso?)`.
 - Fluxo ponta a ponta: "Falei" no primeiro contato (PATCH `/api/contatos/26/` com `{'retorno': 'FALEI'}`, item com "Falei" e "anotado em <retorno_em local>", linha "24 contatos sem retorno" vinda de `contatos_resumo_apos.json`, um resumo a mais pedido) e 404 num outro contato (SnackBar fixa, lista sem `page` e resumo pedidos de novo, item segue "Aguardando retorno").
-- REQUIREMENTS: CXA-01..06, API-11 e API-12 em `- [x]` e `Complete`; `Last updated` atualizado.
+- REQUIREMENTS: CXA-01..06, API-13 e API-14 em `- [x]` e `Complete`; `Last updated` atualizado.
 
 ## Task Commits
 

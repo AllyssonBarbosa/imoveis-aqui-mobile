@@ -7,7 +7,7 @@ part 'contatos_envelope_model.freezed.dart';
 part 'contatos_envelope_model.g.dart';
 
 /// Envelope `PageNumberPagination` de `GET /api/contatos/` (caixa de contatos,
-/// §16): `count` é ignorado; `next` é uma URL absoluta ou nulo — não-genérico
+/// §17): `count` é ignorado; `next` é uma URL absoluta ou nulo — não-genérico
 /// de propósito, como `AcervoEnvelopeModel`.
 @freezed
 abstract class ContatosEnvelopeModel with _$ContatosEnvelopeModel {

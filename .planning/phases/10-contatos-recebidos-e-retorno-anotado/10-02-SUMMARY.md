@@ -11,7 +11,7 @@ provides:
   - "grupo `contatos` em tool/capturar_fixtures_api.py (enviar_patch, CANAIS_CONTATO, capturar_contatos)"
   - "11 fixtures reais da caixa de contatos em test/fixtures/api/ (lista p1/p2, filtros, resumo antes/depois, opções, PATCH 200/400/404, caixa da empresa B)"
   - "evidência no wire do isolamento entre empresas (empresa B com 1 contato de verdade)"
-affects: [10-03 contrato §16, 10-05, 10-06, 10-07, 10-08, 10-09, 10-10]
+affects: [10-03 contrato §17, 10-05, 10-06, 10-07, 10-08, 10-09, 10-10]
 
 commits: 2
 plan_head_before: e70b498209043daeea8fb176424eb368c0ac6c01
@@ -49,12 +49,12 @@ key-decisions:
   - "Contato da empresa B criado pelo ORM só no SQLite temporário (DEMO-CASA-01 está VENDIDO, fora da vitrine; a rota pública recusaria); nenhum seed nem arquivo do repo web mudou"
   - "Na main@8bf4448 o POST público de contato não tem limite de taxa e CONTATO_TAXA_ANONIMA não existe no settings.py da feat/APP10; o servidor subiu sem ela (só LOGIN_TAXA_* = 100/hour)"
 
-requirements-completed: [API-11, CXA-04]
+requirements-completed: [API-13, CXA-04]
 
 coverage:
   - id: D1
     description: "Wire real da caixa de contatos capturado do Django: p1 (20 itens, count 25, next absoluto), p2 (5), filtro por imóvel, período vazio, opções do filtro, PATCH 200/400/404"
-    requirement: "API-11"
+    requirement: "API-13"
     verification:
       - kind: command
         ref: "python3 tool/capturar_fixtures_api.py http://127.0.0.1:8000 test/fixtures/api --grupo contatos (exit 0, todas as checagens internas) + asserts Python sobre as 11 fixtures"
@@ -62,7 +62,7 @@ coverage:
     human_judgment: false
   - id: D2
     description: "Contagem do resumo vinda do servidor cai exatamente 1 depois do PATCH FALEI (25 -> 24)"
-    requirement: "API-11"
+    requirement: "API-13"
     verification:
       - kind: command
         ref: "contatos_resumo.json == {sem_retorno: 25}; contatos_resumo_apos.json == {sem_retorno: 24}"
@@ -133,7 +133,7 @@ None - nenhuma superfície nova além das previstas em T-10-07, T-10-09, T-10-10
 
 ## Next Phase Readiness
 
-Pronto para o 10-03 (§16 do contrato congelando estas respostas e teste de contrato). Nenhum arquivo Dart mudou neste plano (fim da onda 2, D-29). Nenhum `git push` em nenhum repositório.
+Pronto para o 10-03 (§17 do contrato congelando estas respostas e teste de contrato). Nenhum arquivo Dart mudou neste plano (fim da onda 2, D-29). Nenhum `git push` em nenhum repositório.
 
 ## Self-Check: PASSED
 

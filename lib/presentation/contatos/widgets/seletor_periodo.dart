@@ -19,7 +19,7 @@ final DateTime primeiraDataDoSeletor = DateTime(2024);
 /// sem atalhos de período (D-20).
 ///
 /// As datas são inclusivas e só o dia importa: o servidor as lê como dias de
-/// São Paulo (§16.7), então o app não converte fuso nem recalcula nada.
+/// São Paulo (§17.7), então o app não converte fuso nem recalcula nada.
 Future<PeriodoContatos?> escolherPeriodoComSeletor(
   BuildContext context,
   PeriodoContatos? atual,

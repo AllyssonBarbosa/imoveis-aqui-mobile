@@ -10,7 +10,7 @@ requires:
 provides:
   - "ContatoRecebidoModel com paraEntidade (toLocal num único ponto) e ContatosEnvelopeModel com paraPagina"
   - "ResumoContatosModel (sem_retorno) e ImovelComContatoModel com paraEntidade"
-  - "Grupo 'Models leem toda fixture de contatos' no teste de contrato (parte do antidrift de API-11)"
+  - "Grupo 'Models leem toda fixture de contatos' no teste de contrato (parte do antidrift de API-13)"
 affects: [10-06, 10-07, 10-08, 10-09, 10-10]
 
 commits: 4
@@ -73,7 +73,7 @@ coverage:
     human_judgment: false
   - id: D3
     description: "Toda fixture capturada da caixa (inclusive a da outra empresa e o PATCH) é lida pelos Models"
-    requirement: "API-11"
+    requirement: "API-13"
     verification:
       - kind: test
         ref: "test/data/contrato_contatos_test.dart#Models leem toda fixture de contatos"

@@ -12,7 +12,7 @@ import '../../domain/entities/consulta_contatos.dart';
 ///
 /// As datas saem do `DateTime` local como estão, SEM converter para UTC:
 /// converter deslocaria o dia. O servidor lê `de`/`ate` como dias de São Paulo
-/// (§16.7 do contrato) e é ele quem decide em que dia cada contato cai.
+/// (§17.7 do contrato) e é ele quem decide em que dia cada contato cai.
 Map<String, String> parametrosDaConsultaContatos(ConsultaContatos consulta) {
   final params = <String, String>{};
   final imovel = consulta.imovel;

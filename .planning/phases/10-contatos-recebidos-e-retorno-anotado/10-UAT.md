@@ -29,7 +29,7 @@ expected: Com a API da feat/APP10 rodando, anotar "Falei" num contato mostra o r
 result: pass
 
 ### 5. Hora do app × hora do site (fuso de Brasília)
-expected: Data e hora de um mesmo contato coincidem no app e na caixa do site com o aparelho no fuso de Brasília; em outro fuso podem diferir 1 ou 2 horas (risco aceito A3, §16.7), e o dia usado pelo filtro de período continua sendo o de São Paulo.
+expected: Data e hora de um mesmo contato coincidem no app e na caixa do site com o aparelho no fuso de Brasília; em outro fuso podem diferir 1 ou 2 horas (risco aceito A3, §17.7), e o dia usado pelo filtro de período continua sendo o de São Paulo.
 result: pass
 
 ### 6. Proibições de julgamento (revisão humana)

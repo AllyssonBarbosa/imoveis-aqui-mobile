@@ -3,7 +3,7 @@
 > Full coverage by default. Opt-outs are explicit, reasoned decisions.
 >
 > A API é a do próprio projeto (repo web, branch `feat/APP10`), completada nesta fase pelo 10-01, capturada pelo 10-02
-> e congelada no §16 do contrato pelo 10-03. A superfície abaixo é a da caixa de contatos autenticada (`PertenceAUmaEmpresa`); `PUT`,
+> e congelada no §17 do contrato pelo 10-03. A superfície abaixo é a da caixa de contatos autenticada (`PertenceAUmaEmpresa`); `PUT`,
 > `POST` e `DELETE` respondem 405 e não são capacidades da rota.
 
 | capability | decision | reason |

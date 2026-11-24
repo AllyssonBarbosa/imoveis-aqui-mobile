@@ -13,7 +13,7 @@ provides:
   - "GET /api/contatos/imoveis/ -> [{id,codigo,titulo}] por código, mesma regra do seletor do site"
   - "PATCH /api/contatos/<id>/ com corpo sem retorno devolvendo 400 em vez de 500"
   - "branch local feat/APP10 no repo web (2 commits sobre 8bf4448, sem push)"
-affects: [10-02 captura do wire, 10-03 contrato §16, 10-04, 10-05, 10-06, 10-07, 10-08, 10-09, 10-10]
+affects: [10-02 captura do wire, 10-03 contrato §17, 10-04, 10-05, 10-06, 10-07, 10-08, 10-09, 10-10]
 
 # Medido: commits de produção no repo WEB (o repo do app só recebe este SUMMARY e o STATE/ROADMAP).
 # plan_head_* referem-se ao repo web; no repo do app o ledger registra 0 commits de código (408d148).
@@ -47,12 +47,12 @@ key-decisions:
   - "Anônimo recebe 401 nas rotas novas (medido em teste, WWW-Authenticate: Token) — nenhum fallback para 403 foi necessário"
   - "Base de teste CenarioDeIsolamento extraída do setUp de IsolamentoTests, sem mudar o comportamento dele"
 
-requirements-completed: [API-12, CXA-01, CXA-02, CXA-03, CXA-04, CXA-05]
+requirements-completed: [API-14, CXA-01, CXA-02, CXA-03, CXA-04, CXA-05]
 
 coverage:
   - id: D1
     description: "Caixa paginada ponta a ponta com token real: login -> GET /api/contatos/ em envelope de 20, 12 chaves por item, ordem -criado_em,-id, filtros no next, page=99 em 404, page_size ignorado"
-    requirement: "API-12"
+    requirement: "API-14"
     verification:
       - kind: integration
         ref: "contatos.tests.PaginacaoDaCaixaTests (7 testes, incl. test_ponta_a_ponta_com_login_real_e_token)"
@@ -133,7 +133,7 @@ Commits no repo web (`C:/Users/allys/OneDrive/Área de Trabalho/Imoveis-aqui`), 
 
 ## Decisions Made
 
-- Anônimo nas rotas novas: 401 com `WWW-Authenticate: Token`, como medido na pesquisa (sem precisar do fallback 401/403). Registrar no §16 (10-03).
+- Anônimo nas rotas novas: 401 com `WWW-Authenticate: Token`, como medido na pesquisa (sem precisar do fallback 401/403). Registrar no §17 (10-03).
 - `IsolamentoTests` agora herda de `CenarioDeIsolamento` (o `setUp` foi movido sem alteração); as duas classes novas reaproveitam o mesmo cenário.
 - Edição dos arquivos preservando CRLF (o repo web usa `core.autocrlf=true`; os arquivos de trabalho são CRLF).
 
@@ -170,7 +170,7 @@ None — as rotas novas são as já previstas em T-10-01..T-10-05 (mitigadas por
 
 ## Next Phase Readiness
 
-Pronto para o 10-02 (captura do wire real: login -> `GET /api/contatos/`, `resumo`, `imoveis`, PATCH 200/400/404) e o 10-03 (§16 do contrato). A `feat/APP10` da web está local, com árvore limpa e sem `origin/feat/APP10`; nenhum push foi feito (D-B).
+Pronto para o 10-02 (captura do wire real: login -> `GET /api/contatos/`, `resumo`, `imoveis`, PATCH 200/400/404) e o 10-03 (§17 do contrato). A `feat/APP10` da web está local, com árvore limpa e sem `origin/feat/APP10`; nenhum push foi feito (D-B).
 
 ## Self-Check: PASSED
 

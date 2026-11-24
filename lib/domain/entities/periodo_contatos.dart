@@ -2,7 +2,7 @@
 ///
 /// As datas são inclusivas e só o dia importa: [de] e [ate] vão ao servidor
 /// como datas (sem hora). Quem decide em que dia um contato cai é o servidor,
-/// com os dias de São Paulo (§16.7 do contrato) — o app não recalcula.
+/// com os dias de São Paulo (§17.7 do contrato) — o app não recalcula.
 class PeriodoContatos {
   const PeriodoContatos({required this.de, required this.ate});
 

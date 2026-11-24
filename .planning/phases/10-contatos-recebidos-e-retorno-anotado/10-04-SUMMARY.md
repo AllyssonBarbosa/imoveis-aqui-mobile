@@ -6,7 +6,7 @@ tags: [dominio, caixa-contatos, wire, enum, clean-architecture]
 
 requires:
   - phase: 10-03
-    provides: "§16 do contrato congelando o wire da caixa de contatos"
+    provides: "§17 do contrato congelando o wire da caixa de contatos"
 provides:
   - "Domínio da caixa sem valor do wire: RetornoContato (com anotaveis), ContatoRecebido, ImovelComContato, PeriodoContatos, ConsultaContatos, PaginaContatos"
   - "Interface CaixaContatosRepository (buscar, seguir, contarSemRetorno, listarImoveis, anotarRetorno) e ContatoNaoEncontradoException"

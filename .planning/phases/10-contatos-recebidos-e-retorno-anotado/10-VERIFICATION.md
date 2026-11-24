@@ -49,7 +49,7 @@ human_verification:
     expected: "Item mostra o retorno devolvido pelo servidor e o número 'sem retorno' cai em 1; 404 mostra 'Este contato não está mais na sua caixa.' e recarrega lista e número; falha mostra 'Não foi possível anotar o retorno. Tente de novo.'."
     why_human: "Os testes usam a ApiFalsa com fixtures capturadas; a prova contra o servidor vivo e a captura real da falha exigem execução manual."
   - test: "Hora do app x hora do site (fuso de Brasília): comparar data e hora de um mesmo contato no app e na caixa do site, em aparelho no fuso de Brasília e em outro fuso."
-    expected: "Em Brasília coincidem; em outro fuso diferem em 1 ou 2 horas (risco aceito A3, §16.7), e o dia do filtro continua sendo o de São Paulo."
+    expected: "Em Brasília coincidem; em outro fuso diferem em 1 ou 2 horas (risco aceito A3, §17.7), e o dia do filtro continua sendo o de São Paulo."
     why_human: "Depende do fuso do aparelho; não há teste automatizado que troque o fuso do dispositivo."
   - test: "Prohibições de tier 'judgment' (revisão humana recomendada, unverified-prohibition): (a) nenhum push/PR/merge do repo web nesta fase; (b) as rotas novas nunca devolvem contato, imóvel ou contagem de outra empresa/corretor."
     expected: "(a) A feat/APP10 da web continua só local. (b) A evidência abaixo é suficiente."
@@ -75,10 +75,10 @@ human_verification:
 | 4 | SC4: o corretor anota o retorno e a API grava | ✓ VERIFIED | `anotarRetorno` faz `PATCH /api/contatos/$id/` com `{'retorno': valorApi}` (barra final); `folha_anotar_retorno.dart` mostra as 4 opções anotáveis; Cubit espera o servidor (item em voo, sem otimismo), troca o item pelo devolvido e pede o resumo de novo. Comportamento (transição/invariante) provado por testes nomeados do Cubit (`anotarRetorno (D-06, D-15, D-16, D-17, D-23)`, guarda de duplo toque, 404/401/falha) e pelo fluxo "tocar o item -> Falei grava o PATCH". Servidor: `AnotarRetornoTests` (inclui PUT 405 e 12 chaves). |
 | 5 | SC5: contato de outra empresa/corretor nunca aparece (lista, contagem, opções, PATCH 404) | ✓ VERIFIED | Rotas atrás de `PertenceAUmaEmpresa`; `resumo` e `imoveis` partem de `contatos_visiveis_para(request.user)`, `get_queryset` aplica `restringir_ao_perfil`. `IsolamentoTests` (corretor x corretor, outra empresa, trocar id → 404, admin 403, anônimo 401, resumo/opções batem). Fixture real `contatos_outra_empresa.json` (count 1, não vazia) usada em `contrato_contatos_test.dart`. Rodei `manage.py test contatos`: 57 testes OK. |
 | 6 | SC6: a tela mostra quantos contatos estão sem retorno | ✓ VERIFIED | `GET /api/contatos/resumo/` → `{"sem_retorno": N}` (ignora filtros; `ResumoSemRetornoTests`); `ResumoContatosModel` → `obterSemRetorno` → `state.semRetorno` → `_LinhaSemRetorno`/`textoSemRetorno`; o app nunca soma/subtrai, recarrega ao abrir e depois de cada anotação. Fixtures capturadas 25 → 24. |
-| 7 | PATCH sem `retorno` responde 400 (e não 500) | ✓ VERIFIED | `ContatoSerializer.validate` levanta `ValidationError({"retorno": [...]})`; `test_api_patch_sem_retorno_da_400_e_nao_muda_o_contato`; §16.3 do contrato. |
+| 7 | PATCH sem `retorno` responde 400 (e não 500) | ✓ VERIFIED | `ContatoSerializer.validate` levanta `ValidationError({"retorno": [...]})`; `test_api_patch_sem_retorno_da_400_e_nao_muda_o_contato`; §17.3 do contrato. |
 | 8 | 401 em qualquer rota da caixa encerra a sessão e abre o login com "Sua sessão terminou. Entre de novo." | ✓ VERIFIED | Repositório traduz 401 (direto ou em `DioException.error`) em `SessaoExpiradaException`; Cubit torna `CaixaSessaoExpirada` terminal (lista, página seguinte, resumo, opções, PATCH); tela chama `encerrarPorExpiracao` + `pushAndRemoveUntil(LoginScreen(aviso: avisoSessaoTerminou))`; `caixa_contatos_fluxo_test` ("401 na lista leva ao login…"). Textos de estado e SnackBar são fixos do app (`apresentacao_contatos.dart`). |
 | 9 | A caixa abre por ícone na `AppBar` do "Meu acervo", só corretor | ✓ VERIFIED | `acervo_screen.dart` linha ~161: `IconButton(Icons.inbox_outlined, tooltip: 'Meus contatos')` → `aoAbrirContatos` (padrão `abrirCaixaContatos`, `Navigator.push`). O acervo só é aberto para corretor (`login_screen.dart`/`entrada_area_screen.dart` mandam gestor/administrador a `AvisoAreaScreen`). `acervo_screen_test` cobre a entrada. |
-| 10 | §16 do contrato congela a API com fixtures capturadas e testes de contrato nos dois repositórios (API-11) | ✓ VERIFIED | §16.1 a §16.10 em `01-CONTRATO-API.md` (rotas, 12 chaves, PATCH, contagem, opções, isolamento, fuso, riscos); `contrato/contatos*.example.json` idênticos (`cmp`) às fixtures `test/fixtures/api/contatos_p1/resumo/imoveis/contato_patch_200.json`; `tool/capturar_fixtures_api.py --grupo contatos`; `contrato_contatos_test.dart` passa; testes de contrato do lado Django (`contatos/tests.py`). |
+| 10 | §17 do contrato congela a API com fixtures capturadas e testes de contrato nos dois repositórios (API-13) | ✓ VERIFIED | §17.1 a §17.10 em `01-CONTRATO-API.md` (rotas, 12 chaves, PATCH, contagem, opções, isolamento, fuso, riscos); `contrato/contatos*.example.json` idênticos (`cmp`) às fixtures `test/fixtures/api/contatos_p1/resumo/imoveis/contato_patch_200.json`; `tool/capturar_fixtures_api.py --grupo contatos`; `contrato_contatos_test.dart` passa; testes de contrato do lado Django (`contatos/tests.py`). |
 
 **Score:** 10/10 verdades verificadas (0 presentes com comportamento não verificado)
 
@@ -144,8 +144,8 @@ Os 8 IDs aparecem no frontmatter dos PLANs (10-01 a 10-10) e em REQUIREMENTS.md 
 | CXA-04 | 10-01, 02, 03, 10 | Isolamento por empresa/corretor testado no Django | ✓ SATISFIED | Verdade 5 |
 | CXA-05 | 10-01, 04..08, 10 | Contagem de sem retorno do servidor, sem filtros, atualizada após anotar | ✓ SATISFIED | Verdade 6 |
 | CXA-06 | 10-06..10 | Ícone no acervo (só corretor), 401 → login com aviso, textos fixos | ✓ SATISFIED | Verdades 8 e 9 |
-| API-11 | 10-02, 03, 05, 10 | §16 do contrato, fixtures capturadas, testes de contrato nos dois repos | ✓ SATISFIED | Verdade 10 |
-| API-12 | 10-01, 10 | Web entrega paginação, resumo, opções, PATCH `{}` → 400, atrás de `PertenceAUmaEmpresa` | ✓ SATISFIED | Verdades 5 e 7; 57 testes de `contatos` |
+| API-13 | 10-02, 03, 05, 10 | §17 do contrato, fixtures capturadas, testes de contrato nos dois repos | ✓ SATISFIED | Verdade 10 |
+| API-14 | 10-01, 10 | Web entrega paginação, resumo, opções, PATCH `{}` → 400, atrás de `PertenceAUmaEmpresa` | ✓ SATISFIED | Verdades 5 e 7; 57 testes de `contatos` |
 
 ### Anti-Padrões Encontrados
 
@@ -154,7 +154,7 @@ Os 8 IDs aparecem no frontmatter dos PLANs (10-01 a 10-10) e em REQUIREMENTS.md 
 ### Itens Fora do Escopo / Observações
 
 - Review de código, secure-phase, validate-phase (Nyquist) e ui-review não foram executados por escolha do usuário; não contam como lacuna.
-- Riscos aceitos já documentados no §16.9 (lista deixou de ser array; `/api/contatos/imoveis/` sem paginação, APP-12 deve revisitar; hora local do aparelho x site; enum novo no servidor; POST público sem limite de taxa na base atual) — não são lacunas desta fase.
+- Riscos aceitos já documentados no §17.9 (lista deixou de ser array; `/api/contatos/imoveis/` sem paginação, APP-12 deve revisitar; hora local do aparelho x site; enum novo no servidor; POST público sem limite de taxa na base atual) — não são lacunas desta fase.
 - Caixa do gestor é a APP-12 (OPT-OUT explícito em `COVERAGE.md`), não deferida por lacuna.
 - Nenhuma verdade marcada como `coincidental-reliance`.
 

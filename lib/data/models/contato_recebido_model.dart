@@ -8,7 +8,7 @@ part 'contato_recebido_model.freezed.dart';
 part 'contato_recebido_model.g.dart';
 
 /// Modelo de transporte para um item da caixa de contatos do corretor
-/// (`GET /api/contatos/` e o 200 do `PATCH`, §16.2).
+/// (`GET /api/contatos/` e o 200 do `PATCH`, §17.2).
 ///
 /// Lê só o que o app usa (D-09): imóvel (código e título), canal, quando
 /// chegou e o retorno anotado. As chaves a mais são ignoradas de propósito —

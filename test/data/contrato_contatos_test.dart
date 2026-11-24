@@ -9,7 +9,7 @@ import 'package:imoveis_aqui/data/models/resumo_contatos_model.dart';
 
 import '../support/api_falsa.dart';
 
-/// Teste de contrato da caixa de contatos do corretor (API-11, §16 de
+/// Teste de contrato da caixa de contatos do corretor (API-13, §17 de
 /// `01-CONTRATO-API.md`): os exemplos do contrato (`contrato/*.example.json`)
 /// são cópias EXATAS das respostas capturadas do Django da `feat/APP10` da web
 /// (`test/fixtures/api/`, nenhum wire escrito à mão), e o conjunto de chaves de
@@ -29,7 +29,7 @@ const _pastaContrato =
 
 const _chavesEnvelope = {'count', 'next', 'previous', 'results'};
 
-/// As 12 chaves do item da caixa (`ContatoSerializer`, §16.2).
+/// As 12 chaves do item da caixa (`ContatoSerializer`, §17.2).
 const _chavesItemContato = {
   'id',
   'imovel',
@@ -129,7 +129,7 @@ void _exigirValoresDoItem(Map<String, Object?> item, String rotulo) {
     isNotNull,
     reason: '$rotulo: criado_em não é ISO-8601',
   );
-  // O wire de São Paulo vem sempre com offset explícito (§16.7).
+  // O wire de São Paulo vem sempre com offset explícito (§17.7).
   expect(criadoEm, matches(RegExp(r'(Z|[+-]\d{2}:\d{2})$')));
 
   final retornoEm = item['retorno_em'];
@@ -192,7 +192,7 @@ void main() {
       expect(Uri.parse(p1['next']! as String).hasAuthority, isTrue);
     });
 
-    test('o next tem a mesma origem da base URL do app (§16.8)', () {
+    test('o next tem a mesma origem da base URL do app (§17.8)', () {
       final proximo = Uri.parse(
         _fixture('contatos_p1.json')['next']! as String,
       );

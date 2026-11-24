@@ -171,7 +171,7 @@ contato novo e qualquer dado do visitante (o `Contato` da W11 não guarda nenhum
   `python manage.py test` verde.
 
 ### Contrato e rastreabilidade
-- **D-26:** Novo **§16** em `01-CONTRATO-API.md`, no padrão dos §14 e §15: caixa de contatos (lista
+- **D-26:** Novo **§17** em `01-CONTRATO-API.md`, no padrão dos §14 e §15: caixa de contatos (lista
   com parâmetros, envelope paginado e campos), PATCH do retorno (valores aceitos, resposta,
   400/401/404), contagem, opções do filtro de imóvel e a regra de isolamento.
 - **D-27:** Novos IDs em `REQUIREMENTS.md`, seção "Caixa de contatos (APP10)", mapeados para a
@@ -200,7 +200,7 @@ contato novo e qualquer dado do visitante (o `Contato` da W11 não guarda nenhum
 - Ícone exato da entrada (D-01) e da linha do número, cores do chip de retorno (só do
   `ColorScheme`) e espaçamentos. Tudo é confirmado no human-check de fim de fase.
 - Fuso da data mostrada: hora local do aparelho (`toLocal()`). A pesquisa confere o `TIME_ZONE` do
-  Django, que vale para o recorte `criado_em__date` dos filtros `de`/`ate`, e anota no §16 se houver
+  Django, que vale para o recorte `criado_em__date` dos filtros `de`/`ate`, e anota no §17 se houver
   diferença.
 - Valor de retorno ou canal desconhecido vindo do servidor: tratar como falha de formato na camada
   de dados, como os outros Models fazem (a pesquisa confere o padrão vigente).
@@ -224,7 +224,7 @@ contato novo e qualquer dado do visitante (o `Contato` da W11 não guarda nenhum
 - `.planning/PROJECT.md` — core value e restrições (nada de regra no aparelho).
 
 ### Contrato da API
-- `.planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/01-CONTRATO-API.md` §14 (login e acervo, padrão do envelope paginado autenticado e dos 401) e §15 (contato público da W11) — o §16 novo segue o mesmo formato (D-26).
+- `.planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/01-CONTRATO-API.md` §14 (login e acervo, padrão do envelope paginado autenticado e dos 401) e §15 (contato público da W11) — o §17 novo segue o mesmo formato (D-26).
 
 ### Decisões das fases anteriores
 - `.planning/phases/08-login-e-rea-do-corretor-o-acervo/08-CONTEXT.md` — sessão, 401, `Dio` autenticado, paginação do acervo, textos fixos, disciplina de testes (D-17/D-18).

@@ -73,7 +73,7 @@ created: "2026-11-24"
 
 | Risk ID | Threat Ref | Rationale | Accepted By | Date |
 |---------|------------|-----------|-------------|------|
-| AR-10-01 | T-10-06 | `GET /api/contatos/imoveis/` não é paginado; o volume fica limitado aos imóveis com contato visível ao usuário, e o app só oferece a caixa ao corretor (D-03). Risco registrado no §16 do contrato para a APP-12 (área do gestor). | Planejamento da Phase 10 (plano aceito pelo Allysson) | 2026-11-24 |
+| AR-10-01 | T-10-06 | `GET /api/contatos/imoveis/` não é paginado; o volume fica limitado aos imóveis com contato visível ao usuário, e o app só oferece a caixa ao corretor (D-03). Risco registrado no §17 do contrato para a APP-12 (área do gestor). | Planejamento da Phase 10 (plano aceito pelo Allysson) | 2026-11-24 |
 | AR-10-02 | T-10-21 | O gestor não alcança a caixa pelo app: a entrada só existe no `AcervoScreen`, que só o corretor vê; a API já atende o gestor com o escopo da empresa (D-03). Confirmado no UAT de 24/11/2026. | Planejamento da Phase 10 (plano aceito pelo Allysson) | 2026-11-24 |
 
 *Accepted risks do not resurface in future audit runs.*
