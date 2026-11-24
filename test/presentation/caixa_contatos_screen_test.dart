@@ -514,7 +514,7 @@ void main() {
     );
 
     Future<void> abrirFolha(WidgetTester tester) async {
-      await tester.tap(find.widgetWithText(InputChip, 'Imóvel'));
+      await tester.tap(find.byType(InputChip).first);
       await tester.pumpAndSettle();
     }
 
@@ -681,7 +681,9 @@ void main() {
       await tester.tap(find.text('Tentar de novo'));
       await tester.pumpAndSettle();
 
-      verify(() => cubit.carregarOpcoesDeImovel()).called(2);
+      // O mocktail só conta as chamadas ainda não verificadas: a da abertura
+      // já foi conferida acima, sobra a do "Tentar de novo".
+      verify(() => cubit.carregarOpcoesDeImovel()).called(1);
       expect(find.text('Todos os imóveis'), findsNothing);
     });
   });

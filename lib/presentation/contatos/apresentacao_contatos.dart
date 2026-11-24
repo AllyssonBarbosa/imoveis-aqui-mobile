@@ -2,6 +2,8 @@ import 'package:intl/intl.dart';
 
 import '../../domain/entities/canal_contato.dart';
 import '../../domain/entities/contato_recebido.dart';
+import '../../domain/entities/imovel_com_contato.dart';
+import '../../domain/entities/periodo_contatos.dart';
 import '../../domain/entities/retorno_contato.dart';
 
 /// Funções puras e textos da caixa "Meus contatos" — a tela e os widgets só
@@ -24,6 +26,39 @@ const String textoErroCaixa = 'Não foi possível carregar os contatos.';
 /// Falha ao carregar uma página seguinte; vai no rodapé da lista (D-12).
 const String textoErroAoCarregarMaisContatos =
     'Não foi possível carregar mais contatos';
+
+/// Rótulo do chip do filtro por imóvel: "Imóvel" sem filtro, o código com
+/// filtro (D-18).
+String rotuloChipImovel(ImovelComContato? imovel) =>
+    imovel == null ? 'Imóvel' : imovel.codigo;
+
+/// Rótulo do chip do filtro por período: "Período" sem filtro, as duas datas
+/// com filtro (D-18, D-20). O `DateFormat` não leva locale, como em
+/// [formatarDataHoraContato]; o período é de dias, sem hora.
+String rotuloChipPeriodo(PeriodoContatos? periodo) {
+  if (periodo == null) return 'Período';
+  final formato = DateFormat('dd/MM/yyyy');
+  return '${formato.format(periodo.de)} – ${formato.format(periodo.ate)}';
+}
+
+/// "código — título" de uma opção da folha de imóvel (D-19).
+String rotuloOpcaoDeImovel(ImovelComContato imovel) =>
+    '${imovel.codigo} — ${imovel.titulo}';
+
+/// Primeira opção da folha de imóvel: tira o filtro (D-19).
+const String textoTodosOsImoveis = 'Todos os imóveis';
+
+/// Título da folha do filtro por imóvel (D-19).
+const String tituloFolhaFiltroImovel = 'Filtrar por imóvel';
+
+/// Falha ao carregar as opções do filtro por imóvel (Claude's Discretion).
+const String textoErroOpcoesDeImovel = 'Não foi possível carregar os imóveis.';
+
+/// Tooltip do "x" do chip de imóvel (D-18).
+const String tooltipLimparImovel = 'Limpar filtro de imóvel';
+
+/// Tooltip do "x" do chip de período (D-18).
+const String tooltipLimparPeriodo = 'Limpar filtro de período';
 
 /// Linha do número de contatos sem retorno (D-07).
 String textoSemRetorno(int quantidade) {

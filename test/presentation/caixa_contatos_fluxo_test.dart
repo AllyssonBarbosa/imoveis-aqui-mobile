@@ -222,17 +222,18 @@ void main() {
                 .cast<Map<String, Object?>>();
         expect(find.text('Filtrar por imóvel'), findsOneWidget);
         expect(find.text('Todos os imóveis'), findsOneWidget);
+        // A lista de baixo repete "código — título" nos itens: as opções são
+        // procuradas só dentro da folha.
+        Finder naFolha(Map<String, Object?> opcao) => find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.text('${opcao['codigo']} — ${opcao['titulo']}'),
+        );
         for (final opcao in opcoes) {
-          expect(
-            find.text('${opcao['codigo']} — ${opcao['titulo']}'),
-            findsOneWidget,
-          );
+          expect(naFolha(opcao), findsOneWidget);
         }
 
         final escolhida = opcoes.first;
-        await tester.tap(
-          find.text('${escolhida['codigo']} — ${escolhida['titulo']}'),
-        );
+        await tester.tap(naFolha(escolhida));
         await assentar(tester, quadros: 10);
 
         final pedidos = pilha.api.requisicoes

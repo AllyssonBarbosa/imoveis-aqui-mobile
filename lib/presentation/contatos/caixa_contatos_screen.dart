@@ -13,7 +13,10 @@ import '../sessao/sessao_cubit.dart';
 import 'apresentacao_contatos.dart';
 import 'caixa_contatos_cubit.dart';
 import 'caixa_contatos_state.dart';
+import 'widgets/chips_filtros_contatos.dart';
+import 'widgets/folha_filtro_imovel.dart';
 import 'widgets/item_contato.dart';
+import 'widgets/seletor_periodo.dart';
 
 /// Assinatura de quem abre a caixa "Meus contatos" a partir do acervo —
 /// `AcervoScreen` recebe uma por parâmetro (padrão [abrirCaixaContatos]) para
@@ -37,18 +40,26 @@ Future<void> abrirCaixaContatos(BuildContext context) {
 /// Quando o servidor recusa o token (401) a sessão fica anônima e o login
 /// reabre com o aviso, deixando só a vitrine embaixo na pilha (D-23).
 class CaixaContatosScreen extends StatelessWidget {
-  const CaixaContatosScreen({super.key, this.criarCubit});
+  const CaixaContatosScreen({
+    super.key,
+    this.criarCubit,
+    this.escolherPeriodo = escolherPeriodoComSeletor,
+  });
 
   /// Cria o Cubit da tela; `null` usa o localizador de serviços. Existe para
   /// os testes de widget não dependerem do DI.
   final CaixaContatosCubit Function()? criarCubit;
+
+  /// Abre o seletor de período do chip "Período" (D-20). Injetável para os
+  /// testes de widget trocarem o diálogo do Material por um falso.
+  final EscolherPeriodo escolherPeriodo;
 
   @override
   Widget build(BuildContext context) {
     final criar = criarCubit ?? () => getIt<CaixaContatosCubit>();
     return BlocProvider<CaixaContatosCubit>(
       create: (_) => criar()..carregar(),
-      child: const _CorpoCaixaContatos(),
+      child: _CorpoCaixaContatos(escolherPeriodo: escolherPeriodo),
     );
   }
 }
@@ -56,7 +67,9 @@ class CaixaContatosScreen extends StatelessWidget {
 /// `StatefulWidget` só para hospedar o controlador de rolagem (estado efêmero
 /// de interface); a guarda contra disparos duplicados vive inteira no Cubit.
 class _CorpoCaixaContatos extends StatefulWidget {
-  const _CorpoCaixaContatos();
+  const _CorpoCaixaContatos({required this.escolherPeriodo});
+
+  final EscolherPeriodo escolherPeriodo;
 
   @override
   State<_CorpoCaixaContatos> createState() => _CorpoCaixaContatosState();
@@ -95,6 +108,19 @@ class _CorpoCaixaContatosState extends State<_CorpoCaixaContatos> {
       ),
       eRotaDaVitrine,
     );
+  }
+
+  /// Chip "Período": abre o seletor com o período atual e, se o usuário
+  /// escolheu um intervalo, entrega ao Cubit (D-20). O Cubit é lido antes do
+  /// await: depois dele o contexto pode já não ser o da tela.
+  Future<void> _aoTocarPeriodo() async {
+    final cubit = context.read<CaixaContatosCubit>();
+    final periodo = await widget.escolherPeriodo(
+      context,
+      cubit.state.consulta.periodo,
+    );
+    if (periodo == null || !mounted) return;
+    await cubit.aplicarPeriodo(periodo);
   }
 
   void _aoRolar() {
@@ -139,6 +165,26 @@ class _CorpoCaixaContatosState extends State<_CorpoCaixaContatos> {
               builder: (context, semRetorno) => semRetorno == null
                   ? const SizedBox.shrink()
                   : _LinhaSemRetorno(quantidade: semRetorno),
+            ),
+            BlocBuilder<CaixaContatosCubit, CaixaContatosState>(
+              buildWhen: (anterior, atual) =>
+                  anterior.consulta != atual.consulta ||
+                  (anterior.conteudo is CaixaSessaoExpirada) !=
+                      (atual.conteudo is CaixaSessaoExpirada),
+              builder: (context, state) {
+                if (state.conteudo is CaixaSessaoExpirada) {
+                  return const SizedBox.shrink();
+                }
+                final cubit = context.read<CaixaContatosCubit>();
+                return ChipsFiltrosContatos(
+                  consulta: state.consulta,
+                  aoTocarImovel: () =>
+                      mostrarFolhaFiltroImovel(context, cubit: cubit),
+                  aoLimparImovel: cubit.limparImovel,
+                  aoTocarPeriodo: _aoTocarPeriodo,
+                  aoLimparPeriodo: cubit.limparPeriodo,
+                );
+              },
             ),
             Expanded(
               child: BlocConsumer<CaixaContatosCubit, CaixaContatosState>(
