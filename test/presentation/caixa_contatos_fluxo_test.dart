@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/di/injection.dart';
+import 'package:intl/intl.dart';
 
 import '../support/api_falsa.dart';
 import '../support/pilha_real.dart';
@@ -251,6 +252,155 @@ void main() {
               .where((u) => u.path == '/api/contatos/resumo/')
               .length,
           resumosAntes,
+        );
+        pilha.conferirCabecalhosDeAutorizacao();
+      },
+    );
+
+    testWidgets(
+      'tocar o item -> "Falei" grava o PATCH, o item mostra o retorno do '
+      'servidor e o número vem de novo do servidor (CXA-03, D-06, D-16)',
+      (tester) async {
+        final pilha = await abrirAcervo(tester);
+        await abrirCaixa(tester);
+        final anotado =
+            lerFixtureApi('contato_patch_200.json')! as Map<String, Object?>;
+        final item = contatosDa('contatos_p1.json')
+            .firstWhere((contato) => contato['id'] == anotado['id']);
+        final semRetornoAntes =
+            (lerFixtureApi('contatos_resumo.json')!
+                    as Map<String, Object?>)['sem_retorno']!
+                as int;
+        final semRetornoDepois =
+            (lerFixtureApi('contatos_resumo_apos.json')!
+                    as Map<String, Object?>)['sem_retorno']!
+                as int;
+        expect(
+          find.text('$semRetornoAntes contatos sem retorno'),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(
+            of: itemDoContato(item),
+            matching: find.text('Aguardando retorno'),
+          ),
+          findsOneWidget,
+        );
+        final resumosAntes = pilha.api.requisicoes
+            .where((u) => u.path == '/api/contatos/resumo/')
+            .length;
+
+        await tester.tap(itemDoContato(item));
+        await assentar(tester, quadros: 10);
+        expect(find.text('Anotar retorno'), findsOneWidget);
+        await tester.tap(
+          find.descendant(
+            of: find.byType(BottomSheet),
+            matching: find.text('Falei'),
+          ),
+        );
+        await assentar(tester, quadros: 12);
+
+        final patches = pilha.api.chamadas
+            .where((chamada) => chamada.metodo == 'PATCH')
+            .toList();
+        expect(patches, hasLength(1));
+        expect(patches.single.uri.path, '/api/contatos/${anotado['id']}/');
+        expect(patches.single.corpo, {'retorno': 'FALEI'});
+        final anotadoEm = DateTime.parse(anotado['retorno_em']! as String)
+            .toLocal();
+        expect(
+          find.descendant(
+            of: itemDoContato(item),
+            matching: find.text('Falei'),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(
+            of: itemDoContato(item),
+            matching: find.text(
+              'anotado em ${DateFormat('dd/MM/yyyy HH:mm').format(anotadoEm)}',
+            ),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(
+            of: itemDoContato(item),
+            matching: find.text('Aguardando retorno'),
+          ),
+          findsNothing,
+        );
+        expect(
+          find.text('$semRetornoDepois contatos sem retorno'),
+          findsOneWidget,
+        );
+        expect(
+          pilha.api.requisicoes
+              .where((u) => u.path == '/api/contatos/resumo/')
+              .length,
+          resumosAntes + 1,
+        );
+        expect(find.byType(SnackBar), findsNothing);
+        pilha.conferirCabecalhosDeAutorizacao();
+      },
+    );
+
+    testWidgets(
+      '404 ao anotar mostra "Este contato não está mais na sua caixa." e '
+      'pede de novo a lista (sem page) e o número (D-17)',
+      (tester) async {
+        final pilha = await abrirAcervo(tester);
+        await abrirCaixa(tester);
+        final idAceito =
+            (lerFixtureApi('contato_patch_200.json')!
+                    as Map<String, Object?>)['id']!
+                as int;
+        final outro = contatosDa('contatos_p1.json')
+            .firstWhere((contato) => contato['id'] != idAceito);
+        int pedidosDaLista() => pilha.api.requisicoes
+            .where(
+              (u) =>
+                  u.path == '/api/contatos/' &&
+                  !u.queryParameters.containsKey('page'),
+            )
+            .length;
+        int pedidosDoResumo() => pilha.api.requisicoes
+            .where((u) => u.path == '/api/contatos/resumo/')
+            .length;
+        final listasAntes = pedidosDaLista();
+        final resumosAntes = pedidosDoResumo();
+
+        await tester.tap(itemDoContato(outro));
+        await assentar(tester, quadros: 10);
+        await tester.tap(
+          find.descendant(
+            of: find.byType(BottomSheet),
+            matching: find.text('Descartado'),
+          ),
+        );
+        await assentar(tester, quadros: 12);
+
+        final patches = pilha.api.chamadas
+            .where((chamada) => chamada.metodo == 'PATCH')
+            .toList();
+        expect(patches, hasLength(1));
+        expect(patches.single.uri.path, '/api/contatos/${outro['id']}/');
+        expect(patches.single.corpo, {'retorno': 'DESCARTADO'});
+        expect(
+          find.text('Este contato não está mais na sua caixa.'),
+          findsOneWidget,
+        );
+        expect(pedidosDaLista(), listasAntes + 1);
+        expect(pedidosDoResumo(), resumosAntes + 1);
+        // O item segue como o servidor listou: nada foi anotado no aparelho.
+        expect(
+          find.descendant(
+            of: itemDoContato(outro),
+            matching: find.text('Aguardando retorno'),
+          ),
+          findsOneWidget,
         );
         pilha.conferirCabecalhosDeAutorizacao();
       },
