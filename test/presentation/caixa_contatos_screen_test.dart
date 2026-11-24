@@ -789,9 +789,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(BottomSheet), findsNothing);
-      verify(
-        () => cubit.anotarRetorno(2, RetornoContato.descartado),
-      ).called(1);
+      verify(() => cubit.anotarRetorno(2, RetornoContato.descartado)).called(1);
       verifyNever(() => cubit.anotarRetorno(1, any()));
     });
 
@@ -805,7 +803,8 @@ void main() {
 
       expect(find.byType(LinearProgressIndicator), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('contato-1')));
-      await tester.pumpAndSettle();
+      // O indicador indeterminado anima sem parar: pumpAndSettle não assenta.
+      await tester.pump(const Duration(milliseconds: 500));
 
       expect(find.byType(BottomSheet), findsNothing);
     });
@@ -828,9 +827,8 @@ void main() {
       }
 
       Future<void> fecharSnackBar(WidgetTester tester) async {
-        ScaffoldMessenger.of(
-          tester.element(find.byType(Scaffold).first),
-        ).hideCurrentSnackBar();
+        ScaffoldMessenger.of(tester.element(find.byType(Scaffold).first))
+            .hideCurrentSnackBar();
         await tester.pumpAndSettle();
       }
 
@@ -852,9 +850,7 @@ void main() {
       testWidgets('contatoSumiu mostra o texto fixo', (tester) async {
         await montarComStream(tester);
 
-        controle.add(
-          _carregada([_contato(1)], aviso: AvisoCaixa.contatoSumiu),
-        );
+        controle.add(_carregada([_contato(1)], aviso: AvisoCaixa.contatoSumiu));
         await tester.pump();
         await tester.pump();
 
@@ -899,18 +895,16 @@ void main() {
         tester,
       ) async {
         await montarComStream(tester);
-        controle.add(
-          _carregada([_contato(1)], aviso: AvisoCaixa.contatoSumiu),
-        );
+        controle.add(_carregada([_contato(1)], aviso: AvisoCaixa.contatoSumiu));
         await tester.pump();
         await tester.pump();
         await fecharSnackBar(tester);
 
         controle.add(
-          _carregada(
-            [_contato(1), _contato(2)],
-            aviso: AvisoCaixa.contatoSumiu,
-          ),
+          _carregada([
+            _contato(1),
+            _contato(2),
+          ], aviso: AvisoCaixa.contatoSumiu),
         );
         await tester.pump();
         await tester.pump();

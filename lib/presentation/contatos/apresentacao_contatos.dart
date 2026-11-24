@@ -5,6 +5,7 @@ import '../../domain/entities/contato_recebido.dart';
 import '../../domain/entities/imovel_com_contato.dart';
 import '../../domain/entities/periodo_contatos.dart';
 import '../../domain/entities/retorno_contato.dart';
+import 'caixa_contatos_state.dart';
 
 /// Funções puras e textos da caixa "Meus contatos" — a tela e os widgets só
 /// apresentam, nunca decidem nada de negócio. Todo texto mostrado é fixo do
@@ -53,6 +54,17 @@ const String tituloFolhaFiltroImovel = 'Filtrar por imóvel';
 
 /// Falha ao carregar as opções do filtro por imóvel (Claude's Discretion).
 const String textoErroOpcoesDeImovel = 'Não foi possível carregar os imóveis.';
+
+/// Título da folha de anotação do retorno (D-14).
+const String tituloFolhaAnotarRetorno = 'Anotar retorno';
+
+/// Texto fixo da `SnackBar` de uma anotação que não valeu (D-17). Nunca vem do
+/// servidor: o Cubit decide só pelo TIPO da falha e a tela escolhe o texto.
+String textoDoAviso(AvisoCaixa aviso) => switch (aviso) {
+  AvisoCaixa.falhouAoAnotar =>
+    'Não foi possível anotar o retorno. Tente de novo.',
+  AvisoCaixa.contatoSumiu => 'Este contato não está mais na sua caixa.',
+};
 
 /// Tooltip do "x" do chip de imóvel (D-18).
 const String tooltipLimparImovel = 'Limpar filtro de imóvel';

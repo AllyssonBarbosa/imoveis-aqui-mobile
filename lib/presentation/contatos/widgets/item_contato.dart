@@ -8,12 +8,19 @@ import '../apresentacao_contatos.dart';
 /// Um contato da caixa (D-09, D-10): "código — título" do imóvel, o canal
 /// (ícone + nome), quando chegou e o retorno anotado. Não mostra quem é o
 /// corretor. Só apresenta: o toque sai por [aoTocar] (abre a edição na
-/// tela, 10-09); sem ele, tocar não faz nada.
+/// tela); sem ele, tocar não faz nada. Com [anotando] (PATCH em voo, D-16) o
+/// item mostra um carregamento no pé do cartão e ignora novos toques.
 class ItemContato extends StatelessWidget {
-  const ItemContato({super.key, required this.contato, this.aoTocar});
+  const ItemContato({
+    super.key,
+    required this.contato,
+    this.aoTocar,
+    this.anotando = false,
+  });
 
   final ContatoRecebido contato;
   final VoidCallback? aoTocar;
+  final bool anotando;
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +30,7 @@ class ItemContato extends StatelessWidget {
 
     return Card(
       child: InkWell(
-        onTap: aoTocar,
+        onTap: anotando ? null : aoTocar,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -72,6 +79,10 @@ class ItemContato extends StatelessWidget {
                     ),
                 ],
               ),
+              if (anotando) ...[
+                const SizedBox(height: 12),
+                const LinearProgressIndicator(),
+              ],
             ],
           ),
         ),

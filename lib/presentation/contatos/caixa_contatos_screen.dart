@@ -5,6 +5,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../di/injection.dart';
+import '../../domain/entities/contato_recebido.dart';
 import '../login/apresentacao_login.dart';
 import '../login/login_screen.dart';
 import '../perfis/widgets/rodape_paginacao_lista.dart';
@@ -14,6 +15,7 @@ import 'apresentacao_contatos.dart';
 import 'caixa_contatos_cubit.dart';
 import 'caixa_contatos_state.dart';
 import 'widgets/chips_filtros_contatos.dart';
+import 'widgets/folha_anotar_retorno.dart';
 import 'widgets/folha_filtro_imovel.dart';
 import 'widgets/item_contato.dart';
 import 'widgets/seletor_periodo.dart';
@@ -123,6 +125,18 @@ class _CorpoCaixaContatosState extends State<_CorpoCaixaContatos> {
     await cubit.aplicarPeriodo(periodo);
   }
 
+  /// Toque num item (D-11): abre a folha "Anotar retorno" e entrega a opção
+  /// escolhida ao Cubit, que grava e espera o servidor (D-16). O Cubit é lido
+  /// antes de abrir a folha, porque a rota do modal fica fora do provider.
+  void _aoTocarContato(BuildContext context, ContatoRecebido contato) {
+    final cubit = context.read<CaixaContatosCubit>();
+    mostrarFolhaAnotarRetorno(
+      context,
+      atual: contato.retorno,
+      aoEscolher: (retorno) => cubit.anotarRetorno(contato.id, retorno),
+    );
+  }
+
   void _aoRolar() {
     if (!_controleDeRolagem.hasClients) return;
     final posicao = _controleDeRolagem.position;
@@ -155,102 +169,119 @@ class _CorpoCaixaContatosState extends State<_CorpoCaixaContatos> {
           anterior.conteudo is! CaixaSessaoExpirada &&
           atual.conteudo is CaixaSessaoExpirada,
       listener: (context, state) => unawaited(_aoSessaoExpirar()),
-      child: Scaffold(
-        appBar: AppBar(title: const Text(tituloCaixaContatos)),
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            BlocSelector<CaixaContatosCubit, CaixaContatosState, int?>(
-              selector: (state) => state.semRetorno,
-              builder: (context, semRetorno) => semRetorno == null
-                  ? const SizedBox.shrink()
-                  : _LinhaSemRetorno(quantidade: semRetorno),
-            ),
-            BlocBuilder<CaixaContatosCubit, CaixaContatosState>(
-              buildWhen: (anterior, atual) =>
-                  anterior.consulta != atual.consulta ||
-                  (anterior.conteudo is CaixaSessaoExpirada) !=
-                      (atual.conteudo is CaixaSessaoExpirada),
-              builder: (context, state) {
-                if (state.conteudo is CaixaSessaoExpirada) {
-                  return const SizedBox.shrink();
-                }
-                final cubit = context.read<CaixaContatosCubit>();
-                return ChipsFiltrosContatos(
-                  consulta: state.consulta,
-                  aoTocarImovel: () =>
-                      mostrarFolhaFiltroImovel(context, cubit: cubit),
-                  aoLimparImovel: cubit.limparImovel,
-                  aoTocarPeriodo: _aoTocarPeriodo,
-                  aoLimparPeriodo: cubit.limparPeriodo,
-                );
-              },
-            ),
-            Expanded(
-              child: BlocConsumer<CaixaContatosCubit, CaixaContatosState>(
-                // Uma consulta nova volta ao topo; o estado `carregando` só
-                // reaparece nesses reinícios, nunca em `carregarMais()`.
-                listener: (context, state) {
-                  if (state.conteudo is CaixaCarregando &&
-                      _controleDeRolagem.hasClients) {
-                    _controleDeRolagem.jumpTo(0);
-                  }
-                },
+      // Aviso one-shot de uma anotação que não valeu (D-17): o Cubit limpa o
+      // aviso a cada anotação, então cada falha nova é uma emissão nova.
+      child: BlocListener<CaixaContatosCubit, CaixaContatosState>(
+        listenWhen: (anterior, atual) =>
+            atual.aviso != null && anterior.aviso != atual.aviso,
+        listener: (context, state) {
+          if (state.aviso case final aviso?) {
+            ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar()
+              ..showSnackBar(SnackBar(content: Text(textoDoAviso(aviso))));
+          }
+        },
+        child: Scaffold(
+          appBar: AppBar(title: const Text(tituloCaixaContatos)),
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              BlocSelector<CaixaContatosCubit, CaixaContatosState, int?>(
+                selector: (state) => state.semRetorno,
+                builder: (context, semRetorno) => semRetorno == null
+                    ? const SizedBox.shrink()
+                    : _LinhaSemRetorno(quantidade: semRetorno),
+              ),
+              BlocBuilder<CaixaContatosCubit, CaixaContatosState>(
+                buildWhen: (anterior, atual) =>
+                    anterior.consulta != atual.consulta ||
+                    (anterior.conteudo is CaixaSessaoExpirada) !=
+                        (atual.conteudo is CaixaSessaoExpirada),
                 builder: (context, state) {
-                  final conteudo = state.conteudo;
-                  _agendarCarregarMaisSeNaoPreencheATela(conteudo);
-                  return switch (conteudo) {
-                    CaixaCarregando() => const Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                    CaixaVazia() => const _MensagemDaCaixa(
-                      texto: textoCaixaVazia,
-                    ),
-                    CaixaSemResultado() => const _MensagemDaCaixa(
-                      texto: textoCaixaSemResultado,
-                    ),
-                    CaixaErro() => _MensagemDaCaixa(
-                      texto: textoErroCaixa,
-                      aoTentarDeNovo: () =>
-                          context.read<CaixaContatosCubit>().tentarNovamente(),
-                    ),
-                    CaixaSessaoExpirada() => const _MensagemDaCaixa(
-                      texto: avisoSessaoTerminou,
-                    ),
-                    CaixaCarregada(
-                      :final itens,
-                      :final proximaPagina,
-                      :final carregandoMais,
-                      :final erroAoCarregarMais,
-                    ) =>
-                      ListView.builder(
-                        controller: _controleDeRolagem,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: itens.length + 1,
-                        itemBuilder: (context, index) {
-                          if (index == itens.length) {
-                            return RodapePaginacaoLista(
-                              carregandoMais: carregandoMais,
-                              erroAoCarregarMais: erroAoCarregarMais,
-                              temProximaPagina: proximaPagina != null,
-                              mensagemErro: textoErroAoCarregarMaisContatos,
-                              aoTentarDeNovo: () => context
-                                  .read<CaixaContatosCubit>()
-                                  .tentarNovamente(),
-                            );
-                          }
-                          final contato = itens[index];
-                          return ItemContato(
-                            key: ValueKey('contato-${contato.id}'),
-                            contato: contato,
-                          );
-                        },
-                      ),
-                  };
+                  if (state.conteudo is CaixaSessaoExpirada) {
+                    return const SizedBox.shrink();
+                  }
+                  final cubit = context.read<CaixaContatosCubit>();
+                  return ChipsFiltrosContatos(
+                    consulta: state.consulta,
+                    aoTocarImovel: () =>
+                        mostrarFolhaFiltroImovel(context, cubit: cubit),
+                    aoLimparImovel: cubit.limparImovel,
+                    aoTocarPeriodo: _aoTocarPeriodo,
+                    aoLimparPeriodo: cubit.limparPeriodo,
+                  );
                 },
               ),
-            ),
-          ],
+              Expanded(
+                child: BlocConsumer<CaixaContatosCubit, CaixaContatosState>(
+                  // Uma consulta nova volta ao topo; o estado `carregando` só
+                  // reaparece nesses reinícios, nunca em `carregarMais()`.
+                  listener: (context, state) {
+                    if (state.conteudo is CaixaCarregando &&
+                        _controleDeRolagem.hasClients) {
+                      _controleDeRolagem.jumpTo(0);
+                    }
+                  },
+                  builder: (context, state) {
+                    final conteudo = state.conteudo;
+                    _agendarCarregarMaisSeNaoPreencheATela(conteudo);
+                    return switch (conteudo) {
+                      CaixaCarregando() => const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                      CaixaVazia() => const _MensagemDaCaixa(
+                        texto: textoCaixaVazia,
+                      ),
+                      CaixaSemResultado() => const _MensagemDaCaixa(
+                        texto: textoCaixaSemResultado,
+                      ),
+                      CaixaErro() => _MensagemDaCaixa(
+                        texto: textoErroCaixa,
+                        aoTentarDeNovo: () => context
+                            .read<CaixaContatosCubit>()
+                            .tentarNovamente(),
+                      ),
+                      CaixaSessaoExpirada() => const _MensagemDaCaixa(
+                        texto: avisoSessaoTerminou,
+                      ),
+                      CaixaCarregada(
+                        :final itens,
+                        :final proximaPagina,
+                        :final carregandoMais,
+                        :final erroAoCarregarMais,
+                        :final anotando,
+                      ) =>
+                        ListView.builder(
+                          controller: _controleDeRolagem,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          itemCount: itens.length + 1,
+                          itemBuilder: (context, index) {
+                            if (index == itens.length) {
+                              return RodapePaginacaoLista(
+                                carregandoMais: carregandoMais,
+                                erroAoCarregarMais: erroAoCarregarMais,
+                                temProximaPagina: proximaPagina != null,
+                                mensagemErro: textoErroAoCarregarMaisContatos,
+                                aoTentarDeNovo: () => context
+                                    .read<CaixaContatosCubit>()
+                                    .tentarNovamente(),
+                              );
+                            }
+                            final contato = itens[index];
+                            return ItemContato(
+                              key: ValueKey('contato-${contato.id}'),
+                              contato: contato,
+                              anotando: anotando.contains(contato.id),
+                              aoTocar: () => _aoTocarContato(context, contato),
+                            );
+                          },
+                        ),
+                    };
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

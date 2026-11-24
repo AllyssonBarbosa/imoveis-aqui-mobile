@@ -137,12 +137,7 @@ void main() {
       tester,
     ) async {
       var toques = 0;
-      await montar(
-        tester,
-        _contato(),
-        aoTocar: () => toques++,
-        anotando: true,
-      );
+      await montar(tester, _contato(), aoTocar: () => toques++, anotando: true);
 
       expect(find.byType(LinearProgressIndicator), findsOneWidget);
       await tester.tap(find.byType(ItemContato));
