@@ -5,8 +5,26 @@ import 'package:imoveis_aqui/domain/entities/imovel_com_contato.dart';
 import 'package:imoveis_aqui/domain/entities/periodo_contatos.dart';
 import 'package:imoveis_aqui/domain/entities/retorno_contato.dart';
 import 'package:imoveis_aqui/presentation/contatos/apresentacao_contatos.dart';
+import 'package:imoveis_aqui/presentation/contatos/caixa_contatos_state.dart';
 
 void main() {
+  group('anotar retorno (D-14, D-17)', () {
+    test('título da folha', () {
+      expect(tituloFolhaAnotarRetorno, 'Anotar retorno');
+    });
+
+    test('textoDoAviso: textos fixos do app, nunca do servidor', () {
+      expect(
+        textoDoAviso(AvisoCaixa.falhouAoAnotar),
+        'Não foi possível anotar o retorno. Tente de novo.',
+      );
+      expect(
+        textoDoAviso(AvisoCaixa.contatoSumiu),
+        'Este contato não está mais na sua caixa.',
+      );
+    });
+  });
+
   group('filtros da caixa (D-18, D-19, D-20)', () {
     test('textos fixos da folha e dos chips', () {
       expect(textoTodosOsImoveis, 'Todos os imóveis');

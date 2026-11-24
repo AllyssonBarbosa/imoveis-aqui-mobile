@@ -27,12 +27,17 @@ void main() {
     WidgetTester tester,
     ContatoRecebido contato, {
     VoidCallback? aoTocar,
+    bool anotando = false,
   }) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.tema,
         home: Scaffold(
-          body: ItemContato(contato: contato, aoTocar: aoTocar),
+          body: ItemContato(
+            contato: contato,
+            aoTocar: aoTocar,
+            anotando: anotando,
+          ),
         ),
       ),
     );
@@ -118,6 +123,31 @@ void main() {
       await tester.tap(find.byType(ItemContato));
       await tester.pump();
       expect(toques, 1);
+    });
+  });
+
+  group('ItemContato em voo (D-16)', () {
+    testWidgets('sem anotando não mostra carregamento', (tester) async {
+      await montar(tester, _contato(), aoTocar: () {});
+
+      expect(find.byType(LinearProgressIndicator), findsNothing);
+    });
+
+    testWidgets('anotando mostra o carregamento e ignora o toque', (
+      tester,
+    ) async {
+      var toques = 0;
+      await montar(
+        tester,
+        _contato(),
+        aoTocar: () => toques++,
+        anotando: true,
+      );
+
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+      await tester.tap(find.byType(ItemContato));
+      await tester.pump();
+      expect(toques, 0);
     });
   });
 

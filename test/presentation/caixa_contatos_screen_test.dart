@@ -46,13 +46,17 @@ CaixaContatosState _carregada(
   String? proximaPagina,
   bool carregandoMais = false,
   bool erroAoCarregarMais = false,
+  Set<int> anotando = const {},
+  AvisoCaixa? aviso,
 }) => CaixaContatosState(
   semRetorno: semRetorno,
+  aviso: aviso,
   conteudo: ConteudoCaixa.carregada(
     itens: itens,
     proximaPagina: proximaPagina,
     carregandoMais: carregandoMais,
     erroAoCarregarMais: erroAoCarregarMais,
+    anotando: anotando,
   ),
 );
 
@@ -66,6 +70,7 @@ void main() {
     registerFallbackValue(
       const ImovelComContato(id: 0, codigo: '', titulo: ''),
     );
+    registerFallbackValue(RetornoContato.falei);
   });
 
   setUp(() {
@@ -75,6 +80,7 @@ void main() {
     when(() => cubit.carregarOpcoesDeImovel()).thenAnswer((_) async {});
     when(() => cubit.limparImovel()).thenAnswer((_) async {});
     when(() => cubit.limparPeriodo()).thenAnswer((_) async {});
+    when(() => cubit.anotarRetorno(any(), any())).thenAnswer((_) async {});
   });
 
   Future<void> montar(WidgetTester tester, CaixaContatosState estado) async {
@@ -710,6 +716,210 @@ void main() {
       await tester.pump();
 
       expect(find.byKey(const ValueKey('contato-1')), findsOneWidget);
+    });
+  });
+
+  group('anotar retorno (D-11, D-14, D-15, D-16, D-17)', () {
+    ContatoRecebido anotado(int id, RetornoContato retorno) => ContatoRecebido(
+      id: id,
+      imovelCodigo: 'DEV-$id',
+      imovelTitulo: 'Imóvel $id',
+      canal: CanalContato.whatsapp,
+      criadoEm: DateTime(2026, 11, 20, 9, 30),
+      retorno: retorno,
+      retornoEm: DateTime(2026, 11, 21, 10, 15),
+    );
+
+    Finder naFolha(Finder alvo) =>
+        find.descendant(of: find.byType(BottomSheet), matching: alvo);
+
+    testWidgets('tocar o item abre a folha com as 4 opções, sem Salvar', (
+      tester,
+    ) async {
+      await montar(tester, _carregada([_contato(1)]));
+
+      await tester.tap(find.byKey(const ValueKey('contato-1')));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(BottomSheet), findsOneWidget);
+      expect(naFolha(find.text('Anotar retorno')), findsOneWidget);
+      for (final rotulo in [
+        'Falei',
+        'Visita agendada',
+        'Sem resposta',
+        'Descartado',
+      ]) {
+        expect(naFolha(find.text(rotulo)), findsOneWidget);
+      }
+      expect(naFolha(find.text('Aguardando retorno')), findsNothing);
+      expect(find.text('Salvar'), findsNothing);
+      expect(naFolha(find.byIcon(Icons.check)), findsNothing);
+    });
+
+    testWidgets('a opção atual vem marcada e o contato já anotado reabre', (
+      tester,
+    ) async {
+      await montar(
+        tester,
+        _carregada([anotado(1, RetornoContato.visitaAgendada)]),
+      );
+
+      await tester.tap(find.byKey(const ValueKey('contato-1')));
+      await tester.pumpAndSettle();
+
+      expect(naFolha(find.byIcon(Icons.check)), findsOneWidget);
+      final marcada = tester.widget<ListTile>(
+        find.ancestor(
+          of: naFolha(find.text('Visita agendada')),
+          matching: find.byType(ListTile),
+        ),
+      );
+      expect(marcada.selected, isTrue);
+      expect(marcada.trailing, isNotNull);
+    });
+
+    testWidgets('tocar uma opção fecha a folha e chama o Cubit uma vez', (
+      tester,
+    ) async {
+      await montar(tester, _carregada([_contato(1), _contato(2)]));
+
+      await tester.tap(find.byKey(const ValueKey('contato-2')));
+      await tester.pumpAndSettle();
+      await tester.tap(naFolha(find.text('Descartado')));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(BottomSheet), findsNothing);
+      verify(
+        () => cubit.anotarRetorno(2, RetornoContato.descartado),
+      ).called(1);
+      verifyNever(() => cubit.anotarRetorno(1, any()));
+    });
+
+    testWidgets('item em voo mostra carregamento e não abre a folha', (
+      tester,
+    ) async {
+      await montar(
+        tester,
+        _carregada([_contato(1), _contato(2)], anotando: {1}),
+      );
+
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('contato-1')));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(BottomSheet), findsNothing);
+    });
+
+    group('SnackBar do aviso (D-17)', () {
+      late StreamController<CaixaContatosState> controle;
+
+      setUp(() {
+        controle = StreamController<CaixaContatosState>.broadcast();
+        addTearDown(controle.close);
+      });
+
+      Future<void> montarComStream(WidgetTester tester) async {
+        final inicial = _carregada([_contato(1)]);
+        whenListen(cubit, controle.stream, initialState: inicial);
+        await tester.pumpWidget(
+          MaterialApp(home: CaixaContatosScreen(criarCubit: () => cubit)),
+        );
+        await tester.pump();
+      }
+
+      Future<void> fecharSnackBar(WidgetTester tester) async {
+        ScaffoldMessenger.of(
+          tester.element(find.byType(Scaffold).first),
+        ).hideCurrentSnackBar();
+        await tester.pumpAndSettle();
+      }
+
+      testWidgets('falhouAoAnotar mostra o texto fixo', (tester) async {
+        await montarComStream(tester);
+
+        controle.add(
+          _carregada([_contato(1)], aviso: AvisoCaixa.falhouAoAnotar),
+        );
+        await tester.pump();
+        await tester.pump();
+
+        expect(
+          find.text('Não foi possível anotar o retorno. Tente de novo.'),
+          findsOneWidget,
+        );
+      });
+
+      testWidgets('contatoSumiu mostra o texto fixo', (tester) async {
+        await montarComStream(tester);
+
+        controle.add(
+          _carregada([_contato(1)], aviso: AvisoCaixa.contatoSumiu),
+        );
+        await tester.pump();
+        await tester.pump();
+
+        expect(
+          find.text('Este contato não está mais na sua caixa.'),
+          findsOneWidget,
+        );
+      });
+
+      testWidgets(
+        'uma segunda falha, depois de um estado sem aviso, mostra a SnackBar '
+        'de novo',
+        (tester) async {
+          await montarComStream(tester);
+          controle.add(
+            _carregada([_contato(1)], aviso: AvisoCaixa.falhouAoAnotar),
+          );
+          await tester.pump();
+          await tester.pump();
+          await fecharSnackBar(tester);
+          expect(
+            find.text('Não foi possível anotar o retorno. Tente de novo.'),
+            findsNothing,
+          );
+
+          controle.add(_carregada([_contato(1)], anotando: {1}));
+          await tester.pump();
+          controle.add(
+            _carregada([_contato(1)], aviso: AvisoCaixa.falhouAoAnotar),
+          );
+          await tester.pump();
+          await tester.pump();
+
+          expect(
+            find.text('Não foi possível anotar o retorno. Tente de novo.'),
+            findsOneWidget,
+          );
+        },
+      );
+
+      testWidgets('o mesmo aviso mantido em estados seguintes não repete', (
+        tester,
+      ) async {
+        await montarComStream(tester);
+        controle.add(
+          _carregada([_contato(1)], aviso: AvisoCaixa.contatoSumiu),
+        );
+        await tester.pump();
+        await tester.pump();
+        await fecharSnackBar(tester);
+
+        controle.add(
+          _carregada(
+            [_contato(1), _contato(2)],
+            aviso: AvisoCaixa.contatoSumiu,
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+
+        expect(
+          find.text('Este contato não está mais na sua caixa.'),
+          findsNothing,
+        );
+      });
     });
   });
 
