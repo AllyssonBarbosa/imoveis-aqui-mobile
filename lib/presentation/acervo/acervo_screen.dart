@@ -5,21 +5,19 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../di/injection.dart';
+import '../../domain/entities/imovel_acervo.dart';
 import '../contatos/caixa_contatos_screen.dart';
-import '../detalhe_imovel/detalhe_imovel_screen.dart';
-import '../login/apresentacao_login.dart';
-import '../login/login_screen.dart';
+import '../gestao_imovel/gestao_imovel_screen.dart';
 import '../perfis/widgets/rodape_paginacao_lista.dart';
 import '../sessao/dialogo_sair.dart';
-import '../sessao/rota_vitrine.dart';
-import '../sessao/sessao_cubit.dart';
+import '../sessao/sessao_expirada.dart';
 import 'acervo_cubit.dart';
 import 'acervo_state.dart';
 import 'apresentacao_acervo.dart';
 import 'widgets/cartao_imovel_acervo.dart';
 import 'widgets/chips_situacao.dart';
 
-/// Tela "Meu acervo" (ACV-01, ACV-02, ACV-04): os imóveis do corretor e os da
+/// Tela "Meu acervo" (ACV-01, ACV-02, SIT-07): os imóveis do corretor e os da
 /// imobiliária, com busca por código ou título (D-08), chips de situação
 /// (D-09) e rolagem infinita na ordem do servidor (D-10). A tela só apresenta
 /// o que o [AcervoCubit] entrega — nenhuma regra, rede ou filtro aqui.
@@ -32,7 +30,7 @@ class AcervoScreen extends StatelessWidget {
   const AcervoScreen({
     super.key,
     this.criarCubit,
-    this.aoAbrirImovel = abrirDetalheImovel,
+    this.aoAbrirGestao = abrirGestaoImovel,
     this.aoAbrirContatos = abrirCaixaContatos,
   });
 
@@ -40,9 +38,9 @@ class AcervoScreen extends StatelessWidget {
   /// os testes de widget não dependerem do DI.
   final AcervoCubit Function()? criarCubit;
 
-  /// Abre a página pública do imóvel tocado — o padrão navega por
-  /// `Navigator.push`; testes injetam um falso.
-  final AoAbrirImovel aoAbrirImovel;
+  /// Abre a gestão do imóvel tocado — de TODO cartão (D-02 da Fase 9); o
+  /// padrão navega por `Navigator.push`; testes injetam um falso.
+  final AoAbrirGestao aoAbrirGestao;
 
   /// Abre a caixa "Meus contatos" — o padrão navega por `Navigator.push`;
   /// injetável para o teste do acervo não depender de DI.
@@ -54,7 +52,7 @@ class AcervoScreen extends StatelessWidget {
     return BlocProvider<AcervoCubit>(
       create: (_) => criar()..carregar(),
       child: _CorpoAcervo(
-        aoAbrirImovel: aoAbrirImovel,
+        aoAbrirGestao: aoAbrirGestao,
         aoAbrirContatos: aoAbrirContatos,
       ),
     );
@@ -66,11 +64,11 @@ class AcervoScreen extends StatelessWidget {
 /// inteira no Cubit.
 class _CorpoAcervo extends StatefulWidget {
   const _CorpoAcervo({
-    required this.aoAbrirImovel,
+    required this.aoAbrirGestao,
     required this.aoAbrirContatos,
   });
 
-  final AoAbrirImovel aoAbrirImovel;
+  final AoAbrirGestao aoAbrirGestao;
   final AoAbrirCaixaContatos aoAbrirContatos;
 
   @override
@@ -107,19 +105,13 @@ class _CorpoAcervoState extends State<_CorpoAcervo> {
     context.read<AcervoCubit>().limparBusca();
   }
 
-  /// A sessão terminou (401 na lista): descarta o token local, deixa a sessão
-  /// anônima e abre o login com o aviso, mantendo só a rota da vitrine
-  /// embaixo.
-  Future<void> _aoSessaoExpirar() async {
-    final navegador = Navigator.of(context);
-    await context.read<SessaoCubit>().encerrarPorExpiracao();
-    if (!mounted) return;
-    navegador.pushAndRemoveUntil(
-      MaterialPageRoute<void>(
-        builder: (_) => const LoginScreen(aviso: avisoSessaoTerminou),
-      ),
-      eRotaDaVitrine,
-    );
+  /// Abre a gestão do imóvel e, se ela voltou com "mudou" (D-12), relê o acervo
+  /// da API. O Cubit é capturado ANTES do `await` e a tela precisa seguir
+  /// montada na volta.
+  Future<void> _abrirGestao(ImovelAcervo imovel) async {
+    final cubit = context.read<AcervoCubit>();
+    final mudou = await widget.aoAbrirGestao(context, imovel);
+    if (mudou && mounted) cubit.recarregar();
   }
 
   void _aoRolar() {
@@ -153,7 +145,8 @@ class _CorpoAcervoState extends State<_CorpoAcervo> {
       listenWhen: (anterior, atual) =>
           anterior.conteudo is! AcervoSessaoExpirada &&
           atual.conteudo is AcervoSessaoExpirada,
-      listener: (context, state) => unawaited(_aoSessaoExpirar()),
+      listener: (context, state) =>
+          unawaited(voltarAoLoginComSessaoTerminada(context)),
       child: Scaffold(
         appBar: AppBar(
           title: const Text(tituloAcervo),
@@ -262,10 +255,7 @@ class _CorpoAcervoState extends State<_CorpoAcervo> {
                             return CartaoImovelAcervo(
                               key: ValueKey('imovel-acervo-${imovel.id}'),
                               imovel: imovel,
-                              aoTocar: () => widget.aoAbrirImovel(
-                                context,
-                                imovel.paraPrevia(),
-                              ),
+                              aoTocar: () => unawaited(_abrirGestao(imovel)),
                             );
                           },
                         ),

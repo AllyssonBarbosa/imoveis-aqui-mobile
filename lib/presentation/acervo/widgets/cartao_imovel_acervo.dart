@@ -9,10 +9,11 @@ import '../apresentacao_acervo.dart';
 /// à direita, código, título (até 2 linhas), preço e as marcas.
 ///
 /// As marcas são só as do card (D-06): a situação (quando o servidor mandou
-/// uma conhecida) e "Seu" quando [ImovelAcervo.meuImovel]. O cartão só reage ao
-/// toque quando o servidor diz [ImovelAcervo.naVitrine] (D-07); senão não tem
-/// `InkWell` nem ripple. Nada aqui compara ids nem olha situação ou
-/// publicação para decidir marca ou toque.
+/// uma conhecida) e "Seu" quando [ImovelAcervo.meuImovel]. Todo cartão com
+/// [aoTocar] reage ao toque, esteja o imóvel na vitrine ou não (D-02 da Fase
+/// 9, que supera o D-07 da Fase 8); sem [aoTocar] não tem `InkWell` nem
+/// ripple. Nada aqui compara ids nem olha situação ou publicação para decidir
+/// marca ou toque.
 class CartaoImovelAcervo extends StatelessWidget {
   const CartaoImovelAcervo({
     super.key,
@@ -23,7 +24,7 @@ class CartaoImovelAcervo extends StatelessWidget {
 
   final ImovelAcervo imovel;
 
-  /// Toque no cartão (abre a página pública); só é usado se `naVitrine`.
+  /// Toque no cartão (abre a gestão do imóvel); vale para todo cartão.
   final VoidCallback? aoTocar;
 
   /// Ponto de extensão só para teste — troca `CachedNetworkImage` por um
@@ -32,7 +33,7 @@ class CartaoImovelAcervo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final aoTocarNaVitrine = aoTocar;
+    final aoTocarNoCartao = aoTocar;
     final conteudo = _LinhaDoCartao(
       imovel: imovel,
       construirImagemDeRede: construirImagemDeRede,
@@ -40,8 +41,8 @@ class CartaoImovelAcervo extends StatelessWidget {
 
     return Card(
       clipBehavior: Clip.antiAlias,
-      child: (imovel.naVitrine && aoTocarNaVitrine != null)
-          ? InkWell(onTap: aoTocarNaVitrine, child: conteudo)
+      child: aoTocarNoCartao != null
+          ? InkWell(onTap: aoTocarNoCartao, child: conteudo)
           : conteudo,
     );
   }

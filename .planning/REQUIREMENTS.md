@@ -5,7 +5,7 @@
 
 ## v1 Requirements
 
-Requisitos da primeira entrega (tarefas APP01, APP02, APP03, APP04, APP07, APP08 + os endpoints da API que as habilitam). Cada um mapeia para uma fase do roadmap.
+Requisitos da primeira entrega (tarefas APP01, APP02, APP03, APP04, APP07, APP08, APP09 + os endpoints da API que as habilitam). Cada um mapeia para uma fase do roadmap.
 
 ### Localização e escolha da cidade (APP01)
 
@@ -63,11 +63,27 @@ Requisitos da primeira entrega (tarefas APP01, APP02, APP03, APP04, APP07, APP08
 - [x] **ACV-01**: O corretor vê o acervo — os imóveis dele e os da imobiliária — numa lista paginada com rolagem infinita, em cartão compacto (código, título, preço, situação e a marca "Seu" calculada no servidor).
 - [x] **ACV-02**: Busca por código ou título e filtro por situação (Todas, Disponível, Reservado, Vendido, Alugado) resolvidos no servidor com a regra do painel do site (`FiltroImovelForm`); busca e situação se combinam.
 - [x] **ACV-03**: Imóvel de outra empresa não aparece no acervo nem forçando a consulta (busca, situação, parâmetros extras ou id), garantido e testado no Django; gestor e administrador não acessam a lista e sem token a resposta é 401.
-- [x] **ACV-04**: O toque num cartão do acervo só abre a página do imóvel quando o servidor diz que ele está na vitrine (`na_vitrine`); senão o cartão não reage.
+- [x] **ACV-04**: O toque num cartão do acervo só abre a página do imóvel quando o servidor diz que ele está na vitrine (`na_vitrine`); senão o cartão não reage. Superado na Phase 9 pelo SIT-07: todo cartão abre a tela de gestão e "Ver na vitrine" só aparece com `na_vitrine`.
 - [x] **API-09**: O §14 de `01-CONTRATO-API.md` congela login, "quem sou eu", Sair e a lista do acervo (parâmetros, envelope, as 10 chaves do item, 400/401/403/404/429 e o efeito do Sair nos outros aparelhos), com fixtures capturadas do Django e testes de contrato nos dois repositórios.
 - [x] **API-10**: A web entrega, com testes, `GET /api/auth/eu/`, `POST /api/auth/sair/`, o limite de tentativas no login e a lista do acervo paginada, filtrada e enxuta em `GET /api/imoveis/`.
 
+### Situação do imóvel (APP09)
+
+Card APP 09 (tarefa A09). SIT-01..SIT-06 cobrem os critérios AC-1..AC-6 do card; SIT-07 é a tela de gestão que os habilita.
+
+- [x] **SIT-01**: O corretor troca a situação do imóvel (Disponível, Reservado, Vendido, Alugado) numa folha com chips de escolha única (a situação atual desabilitada) e observação opcional; a data é a do servidor (`alterado_em`), mostrada como "Data: hoje" na folha e com data e hora no histórico (AC-1).
+- [x] **SIT-02**: A troca é pedida à API (`POST /api/imoveis/{id}/situacao/`) e o app não altera nada localmente: depois do 200 a folha fecha, aparece "Situação alterada para <situação>." e a tela relê o imóvel e o histórico da API (AC-2).
+- [x] **SIT-03**: A tela de gestão do imóvel mostra o histórico das mudanças na ordem do servidor (mais recente primeiro): de → para, data e hora, quem mudou e a observação; sem mudanças mostra "Nenhuma mudança ainda — disponível desde o cadastro." (AC-3).
+- [x] **SIT-04**: Recusa do servidor (400/403) mostra a mensagem do servidor na folha, que continua aberta com a observação, e a situação exibida não muda; rede, tempo esgotado e 5xx mostram "Não foi possível mudar a situação agora. Tente de novo."; 404 mostra um texto fixo; 401 volta ao login com "Sua sessão terminou. Entre de novo." (AC-4).
+- [x] **SIT-05**: A vitrine pública reflete a mudança na consulta seguinte (regra única `na_vitrine` no servidor, provada no UAT) e o Meu acervo recarrega da API ao voltar da tela de gestão quando houve mudança, mantendo a busca e a situação escolhidas (AC-5).
+- [x] **SIT-06**: Só o corretor responsável muda a situação pelo app (o gestor muda pela web; a área dele no app é da APP-12): o botão "Mudar situação" só aparece com `pode_mudar_situacao` calculado pelo Django, e quem forçar recebe a recusa do servidor (403), testada no Django (AC-6).
+- [x] **SIT-07**: Todo cartão do Meu acervo abre a tela de gestão do imóvel (cabeçalho, situação atual com "desde" e histórico); "Ver na vitrine" só aparece quando o servidor diz `na_vitrine` e some depois de uma mudança até a tela ser reaberta. Supera o ACV-04 da Phase 8.
+- [x] **API-11**: O §16 de `01-CONTRATO-API.md` congela `GET /api/imoveis/{id}/` (as 9 chaves que o app lê), `POST /api/imoveis/{id}/situacao/` (corpo, 200, 400, 401, 403, 404) e `GET /api/imoveis/{id}/historico/`, com fixtures capturadas da API real (código da `origin/main` da web) e teste de contrato no app.
+- [x] **API-12**: (D-08 e D-19 da Phase 9) A web ganha, na branch `feat/APP09` criada da `origin/main` num worktree separado (`../imoveis-aqui-APP09`; o clone `../imoveis-aqui` não troca de branch), os testes que faltam para as rotas do corretor — 400 de mesma situação, situação inválida e contrato assinado, 401 sem token, 404 de histórico/detalhe de outra empresa, ordem do histórico e 403 antes de 400 —, sem mudança de código de produção nem push.
+
 ### Caixa de contatos (APP10)
+
+Na Fase 10, API-13 e API-14 foram registrados como API-11 e API-12 (os planos, SUMMARYs e a VERIFICATION da fase usavam esses nomes); viraram API-13/API-14 ao juntar a `main` com a Fase 9, que ficou com API-11/API-12.
 
 - [x] **CXA-01**: O corretor vê "Meus contatos": a lista dos contatos que recebeu, mais recentes primeiro, vinda de `GET /api/contatos/` (paginada, rolagem infinita); cada item traz imóvel ("código — título"), canal, data e retorno atual.
 - [x] **CXA-02**: Filtro por imóvel (opções vindas de `GET /api/contatos/imoveis/`) e por período (`de`/`ate`, `showDateRangePicker` em pt-BR); os dois se combinam e o servidor resolve.
@@ -75,8 +91,8 @@ Requisitos da primeira entrega (tarefas APP01, APP02, APP03, APP04, APP07, APP08
 - [x] **CXA-04**: Contato de outra empresa ou de outro corretor nunca aparece na lista, na contagem nem nas opções do filtro, e o PATCH pelo id dá 404 — garantido e testado no Django.
 - [x] **CXA-05**: A tela mostra quantos contatos estão sem retorno anotado (`GET /api/contatos/resumo/` → `{"sem_retorno": N}`), calculado no Django, sem filtros, atualizado ao abrir e depois de cada anotação.
 - [x] **CXA-06**: A caixa abre por um ícone na `AppBar` do "Meu acervo" (só o corretor); qualquer 401 encerra a sessão e abre o login com o aviso "Sua sessão terminou. Entre de novo."; os textos de estado são fixos do app.
-- [x] **API-11**: O §16 de `01-CONTRATO-API.md` congela a lista paginada, os parâmetros, os 12 campos do item, o PATCH (valores, resposta, 400/401/403/404/405), a contagem, as opções do imóvel, o fuso e o isolamento, com fixtures capturadas do Django e testes de contrato nos dois repositórios.
-- [x] **API-12**: A web entrega, com testes, a paginação de `GET /api/contatos/`, `GET /api/contatos/resumo/`, `GET /api/contatos/imoveis/` e o PATCH sem `retorno` respondendo 400, todas atrás de `PertenceAUmaEmpresa` e do escopo de empresa e perfil.
+- [x] **API-13**: O §17 de `01-CONTRATO-API.md` congela a lista paginada, os parâmetros, os 12 campos do item, o PATCH (valores, resposta, 400/401/403/404/405), a contagem, as opções do imóvel, o fuso e o isolamento, com fixtures capturadas do Django e testes de contrato nos dois repositórios.
+- [x] **API-14**: A web entrega, com testes, a paginação de `GET /api/contatos/`, `GET /api/contatos/resumo/`, `GET /api/contatos/imoveis/` e o PATCH sem `retorno` respondendo 400, todas atrás de `PertenceAUmaEmpresa` e do escopo de empresa e perfil.
 
 ### API pública (endpoints que o app consome)
 
@@ -186,23 +202,34 @@ Excluídos de propósito. Documentados para evitar scope creep.
 | ACV-04 | Phase 8 | Complete |
 | API-09 | Phase 8 | Complete |
 | API-10 | Phase 8 | Complete |
+| SIT-01 | Phase 9 | Complete |
+| SIT-02 | Phase 9 | Complete |
+| SIT-03 | Phase 9 | Complete |
+| SIT-04 | Phase 9 | Complete |
+| SIT-05 | Phase 9 | Complete |
+| SIT-06 | Phase 9 | Complete |
+| SIT-07 | Phase 9 | Complete |
+| API-11 | Phase 9 | Complete |
+| API-12 | Phase 9 | Complete |
 | CXA-01 | Phase 10 | Complete |
 | CXA-02 | Phase 10 | Complete |
 | CXA-03 | Phase 10 | Complete |
 | CXA-04 | Phase 10 | Complete |
 | CXA-05 | Phase 10 | Complete |
 | CXA-06 | Phase 10 | Complete |
-| API-11 | Phase 10 | Complete |
-| API-12 | Phase 10 | Complete |
+| API-13 | Phase 10 | Complete |
+| API-14 | Phase 10 | Complete |
 
 Planos da Phase 6 que cobrem cada ID (frontmatter `requirements` dos `06-NN-PLAN.md`): APP06-C1 → 06-07, 06-09, 06-10; APP06-C2 → 06-02, 06-03, 06-04, 06-05, 06-06, 06-07, 06-10; APP06-C3 → 06-03, 06-04, 06-05, 06-06, 06-08, 06-09, 06-10; APP06-C4 → 06-01, 06-03, 06-05, 06-06, 06-07, 06-08, 06-10; APP06-C5 → 06-01, 06-09, 06-10; APP06-C6 → 06-01, 06-02, 06-05, 06-07, 06-09, 06-10; APP06-API-1 → 06-01, 06-03, 06-04, 06-10; APP06-API-2 → 06-02, 06-10.
 
 **Coverage:**
 
-- v1 requirements: 65 total
-- Mapped to phases: 65 (roadmap complete)
+- v1 requirements: 74 total
+- Mapped to phases: 74 (roadmap complete)
 - Unmapped: 0
+
+Planos da Phase 9 que cobrem cada ID (frontmatter `requirements` dos `09-NN-PLAN.md`): SIT-01 → 09-07, 09-09, 09-10, 09-11, 09-13; SIT-02 → 09-08, 09-09, 09-10, 09-11, 09-13; SIT-03 → 09-03, 09-06, 09-07, 09-13; SIT-04 → 09-08, 09-09, 09-11, 09-12, 09-13; SIT-05 → 09-13; SIT-06 → 09-02, 09-10, 09-12, 09-13; SIT-07 → 09-03, 09-04, 09-05, 09-07, 09-10, 09-13; API-11 → 09-01, 09-13; API-12 → 09-02, 09-13.
 
 ---
 *Requirements defined: 2026-09-21*
-*Last updated: 2026-11-24 after Phase 10 execution (CXA-01..06, API-11, API-12)*
+*Last updated: 2026-11-24 after merging Phase 9 (SIT-01..07, API-11, API-12) with Phase 10 (CXA-01..06, API-13, API-14)*

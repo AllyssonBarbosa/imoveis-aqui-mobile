@@ -106,9 +106,20 @@ class PilhaReal {
     await assentar(tester);
   }
 
+  /// Abre o app (como [abrirApp]) e entra em "Meu acervo" pelo botão do topo,
+  /// como o usuário faz; deixa a primeira página do acervo na tela. A entrada
+  /// pergunta o papel e se substitui pelo acervo (duas transições).
+  Future<void> entrarNoAcervo(WidgetTester tester) async {
+    await abrirApp(tester);
+    expect(find.text('Meu acervo'), findsOneWidget);
+    await tester.tap(find.text('Meu acervo'));
+    await assentar(tester, quadros: 12);
+  }
+
   /// Confere o que o app mandou em cada rota: o login e as rotas públicas
-  /// nunca levam `Authorization`; `eu`, `acervo`, `sair` e as rotas da caixa
-  /// de contatos (`/api/contatos/...`) sempre levam o token (T-08-45).
+  /// nunca levam `Authorization`; `eu`, `sair`, toda rota `/api/imoveis/...`
+  /// (acervo e gestão do imóvel) e as rotas da caixa de contatos
+  /// (`/api/contatos/...`) sempre levam o token (T-08-45, T-09-04).
   void conferirCabecalhosDeAutorizacao() {
     for (final pedido in api.requisicoesGravadas) {
       final caminho = pedido.uri.path;
@@ -116,7 +127,7 @@ class PilhaReal {
       final autenticada =
           caminho == '/api/auth/eu/' ||
           caminho == '/api/auth/sair/' ||
-          caminho == '/api/imoveis/' ||
+          caminho.startsWith('/api/imoveis/') ||
           caminho.startsWith('/api/contatos/');
       if (autenticada) {
         expect(

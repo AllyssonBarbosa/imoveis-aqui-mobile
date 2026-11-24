@@ -222,7 +222,8 @@ sem login. Quem entra vê a área do seu papel, lido do servidor a cada toque em
 
 - **Corretor:** "Meu acervo" — os imóveis dele e os da imobiliária, com a marca "Seu" nos dele, busca por código
   ou título, chips de situação (Todas, Disponível, Reservado, Vendido, Alugado) e rolagem infinita, tudo
-  resolvido no servidor. O cartão só abre a página do imóvel quando o servidor diz que ele está na vitrine.
+  resolvido no servidor. O cartão abre a tela de gestão do imóvel (APP-09, abaixo); a página pública só abre por
+  "Ver na vitrine", quando o servidor diz que ele está na vitrine.
 - **Gestor e administrador:** tela de aviso "A área do gestor ainda não está no app." com Sair.
 - **Sair** pede confirmação, apaga o token do aparelho e o revoga no servidor; se a rede falhar, o aparelho sai
   do mesmo jeito. Sessão que o servidor recusa (401) volta ao login com "Sua sessão terminou. Entre de novo.".
@@ -272,6 +273,70 @@ Avisos:
 - O limite de tentativas de login usa `LOGIN_TAXA_POR_EMAIL` (padrão `10/hour`) e `LOGIN_TAXA_POR_IP` (padrão
   `30/hour`), configuráveis pelo `.env` do Django. Passou do limite, o app mostra "Muitas tentativas. Tente de
   novo em N minutos.".
+
+### Situação do imóvel (APP-09)
+
+O corretor muda a situação do imóvel pelo app. Todo cartão do "Meu acervo" abre a **tela de gestão** do imóvel
+(foto, código, título, preço, situação atual com "desde" e o histórico das mudanças, mais recente primeiro):
+
+- **"Mudar situação"** só aparece para o corretor responsável pelo imóvel; quem decide isso é o servidor
+  (`pode_mudar_situacao`). O colega da imobiliária e o imóvel de responsável desativado veem a situação e o
+  histórico, sem o botão. O gestor continua na tela de aviso (a área dele é de outra tarefa).
+- A **folha** tem chips de escolha única (a situação atual fica desabilitada), observação opcional de até 500
+  caracteres e "Data: hoje" (a data e a hora reais são as do servidor).
+- **A API faz a mudança e o app relê**: depois do 200 a folha fecha, aparece "Situação alterada para <situação>." e a
+  tela relê o imóvel e o histórico; o app não altera nada localmente.
+- **Recusas**: 400 e 403 mostram a mensagem do servidor na própria folha, que continua aberta com a observação
+  (a situação da tela não muda); rede, tempo esgotado e 5xx mostram "Não foi possível mudar a situação agora. Tente
+  de novo."; 404 mostra um texto fixo; 401 volta ao login com "Sua sessão terminou. Entre de novo.".
+- **"Ver na vitrine"** só aparece quando o servidor diz `na_vitrine` e some depois de uma mudança, até a tela ser
+  reaberta.
+- **Ao voltar** (botão da barra, botão voltar do sistema ou gesto do iOS) depois de uma mudança, o Meu acervo
+  recarrega da API mantendo a busca e a situação escolhidas; sem mudança, voltar não recarrega. O chip do cartão é
+  o que o servidor mandou na nova consulta.
+
+**Servidor para testar.** As rotas de situação do corretor estão na `origin/main` da web; a branch `feat/APP09`
+da web (só com testes a mais, sem mudar código de produção) vive num **worktree separado**,
+`../imoveis-aqui-APP09`. Use esse worktree (ou a extração por `git archive` do procedimento do §16.7 de
+`01-CONTRATO-API.md`) — **nunca** o clone `../imoveis-aqui` numa branch que não tenha as rotas. Nada foi
+empurrado (nenhum `git push`) em nenhum dos dois repositórios.
+
+**Dados de teste** (nenhuma senha vai para o repositório; use um banco de desenvolvimento ou um SQLite
+temporário, nunca o banco do `.env` de produção):
+
+```bash
+# a partir de ../imoveis-aqui-APP09/Web, com DEBUG=True
+../../imoveis-aqui/Web/.venv/bin/python manage.py migrate
+../../imoveis-aqui/Web/.venv/bin/python manage.py semear_vitrine_dev   # imóveis DEV-* e o corretor da vitrine demo
+../../imoveis-aqui/Web/.venv/bin/python manage.py seed_demo            # empresa demo, com DEMO-CASA-01
+
+# escolha agora a senha do corretor da vitrine demo e defina-a pelo ambiente (nunca escreva a senha em arquivo)
+export SENHA_DEV_CORRETOR='<senha escolhida na hora>'
+../../imoveis-aqui/Web/.venv/bin/python manage.py shell -c "
+import os
+from contas.models import Usuario
+u = Usuario.objects.get(email='corretor.vitrine.demo@example.com')
+u.set_password(os.environ['SENHA_DEV_CORRETOR'])
+u.save()
+"
+
+# emulador Android: com 10.0.2.2 no ALLOWED_HOSTS
+../../imoveis-aqui/Web/.venv/bin/python manage.py runserver 0.0.0.0:8000
+```
+
+No simulador iOS, rode o app com `--dart-define=API_BASE_URL=http://127.0.0.1:8000`. As credenciais do corretor da
+empresa demo (`seed_demo`) aparecem na saída do próprio comando e estão no código dele
+(`core/management/commands/seed_demo.py`); não as copie para cá.
+
+O que conferir (roteiro completo no UAT da fase):
+
+1. Corretor da vitrine demo: tocar num `DEV-*` com a marca "Seu" → "Mudar situação" → Reservado, com observação →
+   a folha fecha, a tela mostra "Reservado" e o histórico "Disponível → Reservado"; "Ver na vitrine" some. Voltar:
+   o acervo recarrega com o chip "Reservado". O imóvel **some** da vitrine pública da cidade; voltar a "Disponível"
+   pelo app o faz **reaparecer** na consulta seguinte.
+2. `DEV-CAMPINAS-14` (responsável desativado): situação e histórico, **sem** "Mudar situação".
+3. Corretor da empresa demo: `DEMO-CASA-01` (Vendido, contrato assinado) → "Mudar situação" → Disponível → a folha
+   continua aberta com a mensagem do servidor sobre o contrato e a situação segue "Vendido".
 
 ## Testes e análise
 
