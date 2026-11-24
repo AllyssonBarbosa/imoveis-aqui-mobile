@@ -98,6 +98,7 @@ recalculados dentro do aparelho.
 | `ContatoViewSet` paginado (20 por página, `PageNumberPagination`) e `GET /api/contatos/imoveis/` para as opções do filtro, com a mesma regra de visibilidade do site | A caixa rola e filtra sem baixar tudo; o app não monta a lista de imóveis | ✓ Good — Phase 10 (§17 do contrato, 766 testes no web) |
 | Anotação sem otimismo: o item só muda com o 200 do servidor; 404 recarrega lista e número; falha mostra texto fixo | O retorno é estado do servidor; o app não finge sucesso | ✓ Good — Phase 10 (UAT com Django parado e com contato apagado) |
 | pt-BR do Material ligado no app inteiro (`flutter_localizations`, do SDK) | O seletor de período precisava estar em português; nenhum pacote de terceiros | ✓ Good — Phase 10 (UAT 3) |
+| Colisão de numeração entre fases paralelas resolvida pela ordem de entrada na `main`: a APP-09 ficou com o §16 do contrato e com API-11/API-12; a APP-10 virou §17 e API-13/API-14 | Merge da `main` na `feat/APP10` (b9d36e9) sem reescrever o que já estava na `main`; os documentos da Fase 10 foram renumerados (51afe35) | ✓ Good — Phase 10 (re-verificação passed, 1743 testes no app e 776 no web) |
 
 ## Evolution
 
