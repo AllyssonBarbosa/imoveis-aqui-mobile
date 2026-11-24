@@ -73,12 +73,8 @@ void main() {
     anotarRetorno = _AnotarRetornoFalso();
   });
 
-  CaixaContatosCubit construir() => CaixaContatosCubit(
-    buscar,
-    obterSemRetorno,
-    listarImoveis,
-    anotarRetorno,
-  );
+  CaixaContatosCubit construir() =>
+      CaixaContatosCubit(buscar, obterSemRetorno, listarImoveis, anotarRetorno);
 
   void listaResponde(PaginaContatos pagina) {
     when(() => buscar(any())).thenAnswer((_) async => Result.success(pagina));
@@ -874,62 +870,63 @@ void main() {
     CaixaCarregada lista(CaixaContatosCubit cubit) =>
         cubit.state.conteudo as CaixaCarregada;
 
-    test('sucesso: item em voo, troca pelo do servidor e número novo',
-        () async {
-      final cubit = await carregado();
-      patchResponde(Result.success(item1Anotado));
-      resumoResponde(24);
-      final estados = <CaixaContatosState>[];
-      final inscricao = cubit.stream.listen(estados.add);
+    test(
+      'sucesso: item em voo, troca pelo do servidor e número novo',
+      () async {
+        final cubit = await carregado();
+        patchResponde(Result.success(item1Anotado));
+        resumoResponde(24);
+        final estados = <CaixaContatosState>[];
+        final inscricao = cubit.stream.listen(estados.add);
 
-      await cubit.anotarRetorno(1, RetornoContato.falei);
-      await assentar();
-      await inscricao.cancel();
+        await cubit.anotarRetorno(1, RetornoContato.falei);
+        await assentar();
+        await inscricao.cancel();
 
-      expect(lista(cubit).itens, [item1Anotado, _contato(2)]);
-      expect(lista(cubit).anotando, isEmpty);
-      expect(cubit.state.semRetorno, 24);
-      expect(cubit.state.aviso, isNull);
-      expect(
-        (estados.first.conteudo as CaixaCarregada).anotando,
-        {1},
-      );
-      expect(estados.first.aviso, isNull);
-      verify(() => anotarRetorno(1, RetornoContato.falei)).called(1);
-      verify(() => obterSemRetorno()).called(1);
-      await cubit.close();
-    });
+        expect(lista(cubit).itens, [item1Anotado, _contato(2)]);
+        expect(lista(cubit).anotando, isEmpty);
+        expect(cubit.state.semRetorno, 24);
+        expect(cubit.state.aviso, isNull);
+        expect((estados.first.conteudo as CaixaCarregada).anotando, {1});
+        expect(estados.first.aviso, isNull);
+        verify(() => anotarRetorno(1, RetornoContato.falei)).called(1);
+        verify(() => obterSemRetorno()).called(1);
+        await cubit.close();
+      },
+    );
 
-    test('sem otimismo: enquanto o PATCH não volta, o retorno não muda',
-        () async {
-      final resposta = Completer<Result<ContatoRecebido>>();
-      when(() => anotarRetorno(any(), any()))
-          .thenAnswer((_) => resposta.future);
-      final cubit = await carregado();
-      final estados = <CaixaContatosState>[];
-      final inscricao = cubit.stream.listen(estados.add);
+    test(
+      'sem otimismo: enquanto o PATCH não volta, o retorno não muda',
+      () async {
+        final resposta = Completer<Result<ContatoRecebido>>();
+        when(() => anotarRetorno(any(), any()))
+            .thenAnswer((_) => resposta.future);
+        final cubit = await carregado();
+        final estados = <CaixaContatosState>[];
+        final inscricao = cubit.stream.listen(estados.add);
 
-      final pendente = cubit.anotarRetorno(1, RetornoContato.falei);
-      await assentar();
+        final pendente = cubit.anotarRetorno(1, RetornoContato.falei);
+        await assentar();
 
-      expect(lista(cubit).itens.first.retorno, RetornoContato.pendente);
-      expect(lista(cubit).anotando, {1});
-      expect(cubit.state.semRetorno, 25);
+        expect(lista(cubit).itens.first.retorno, RetornoContato.pendente);
+        expect(lista(cubit).anotando, {1});
+        expect(cubit.state.semRetorno, 25);
 
-      resposta.complete(Result.success(item1Anotado));
-      await pendente;
-      await assentar();
-      await inscricao.cancel();
+        resposta.complete(Result.success(item1Anotado));
+        await pendente;
+        await assentar();
+        await inscricao.cancel();
 
-      final retornosEmitidos = estados
-          .map((e) => e.conteudo)
-          .whereType<CaixaCarregada>()
-          .map((c) => c.itens.first.retorno)
-          .toList();
-      expect(retornosEmitidos.first, RetornoContato.pendente);
-      expect(retornosEmitidos.last, RetornoContato.falei);
-      await cubit.close();
-    });
+        final retornosEmitidos = estados
+            .map((e) => e.conteudo)
+            .whereType<CaixaCarregada>()
+            .map((c) => c.itens.first.retorno)
+            .toList();
+        expect(retornosEmitidos.first, RetornoContato.pendente);
+        expect(retornosEmitidos.last, RetornoContato.falei);
+        await cubit.close();
+      },
+    );
 
     test('segundo toque no mesmo item em voo não chama o use case', () async {
       final resposta = Completer<Result<ContatoRecebido>>();
@@ -948,9 +945,7 @@ void main() {
 
     test('a opção igual à atual não chama o use case (A6)', () async {
       listaResponde(
-        PaginaContatos(
-          itens: [_contato(1, retorno: RetornoContato.falei)],
-        ),
+        PaginaContatos(itens: [_contato(1, retorno: RetornoContato.falei)]),
       );
       resumoResponde(25);
       final cubit = construir()..carregar();
@@ -965,9 +960,7 @@ void main() {
 
     test('um contato já anotado aceita outra opção (D-15)', () async {
       listaResponde(
-        PaginaContatos(
-          itens: [_contato(1, retorno: RetornoContato.falei)],
-        ),
+        PaginaContatos(itens: [_contato(1, retorno: RetornoContato.falei)]),
       );
       resumoResponde(25);
       final cubit = construir()..carregar();
@@ -985,34 +978,38 @@ void main() {
       await cubit.close();
     });
 
-    test('id fora da lista, PENDENTE e estado sem lista não chamam a API',
-        () async {
-      final cubit = await carregado();
+    test(
+      'id fora da lista, PENDENTE e estado sem lista não chamam a API',
+      () async {
+        final cubit = await carregado();
 
-      await cubit.anotarRetorno(99, RetornoContato.falei);
-      await cubit.anotarRetorno(1, RetornoContato.pendente);
+        await cubit.anotarRetorno(99, RetornoContato.falei);
+        await cubit.anotarRetorno(1, RetornoContato.pendente);
 
-      final semLista = construir();
-      await semLista.anotarRetorno(1, RetornoContato.falei);
+        final semLista = construir();
+        await semLista.anotarRetorno(1, RetornoContato.falei);
 
-      verifyNever(() => anotarRetorno(any(), any()));
-      await cubit.close();
-      await semLista.close();
-    });
+        verifyNever(() => anotarRetorno(any(), any()));
+        await cubit.close();
+        await semLista.close();
+      },
+    );
 
-    test('falha genérica: o item fica igual e o aviso é falhouAoAnotar',
-        () async {
-      final cubit = await carregado();
-      patchResponde(Result.failure(Exception('rede')));
+    test(
+      'falha genérica: o item fica igual e o aviso é falhouAoAnotar',
+      () async {
+        final cubit = await carregado();
+        patchResponde(Result.failure(Exception('rede')));
 
-      await cubit.anotarRetorno(1, RetornoContato.falei);
+        await cubit.anotarRetorno(1, RetornoContato.falei);
 
-      expect(lista(cubit).itens, itensPagina1);
-      expect(lista(cubit).anotando, isEmpty);
-      expect(cubit.state.aviso, AvisoCaixa.falhouAoAnotar);
-      expect(cubit.state.semRetorno, 25);
-      await cubit.close();
-    });
+        expect(lista(cubit).itens, itensPagina1);
+        expect(lista(cubit).anotando, isEmpty);
+        expect(cubit.state.aviso, AvisoCaixa.falhouAoAnotar);
+        expect(cubit.state.semRetorno, 25);
+        await cubit.close();
+      },
+    );
 
     test('FormatException também vira falhouAoAnotar', () async {
       final cubit = await carregado();
@@ -1024,8 +1021,7 @@ void main() {
       await cubit.close();
     });
 
-    test('duas falhas seguidas emitem o aviso duas vezes (Pitfall 6)',
-        () async {
+    test('duas falhas seguidas emitem o aviso duas vezes (Pitfall 6)', () async {
       final cubit = await carregado();
       patchResponde(Result.failure(Exception('rede')));
       final estados = <CaixaContatosState>[];
@@ -1036,8 +1032,9 @@ void main() {
       await assentar();
       await inscricao.cancel();
 
-      final comAviso =
-          estados.where((e) => e.aviso == AvisoCaixa.falhouAoAnotar).toList();
+      final comAviso = estados
+          .where((e) => e.aviso == AvisoCaixa.falhouAoAnotar)
+          .toList();
       expect(comAviso, hasLength(2));
       // Entre as duas há um estado sem aviso: a segunda não é igual à primeira.
       final indices = [
@@ -1045,28 +1042,32 @@ void main() {
           if (estados[i].aviso != null) i,
       ];
       expect(
-        estados.sublist(indices.first, indices.last).any((e) => e.aviso == null),
+        estados
+            .sublist(indices.first, indices.last)
+            .any((e) => e.aviso == null),
         isTrue,
       );
       await cubit.close();
     });
 
-    test('404: aviso contatoSumiu, lista recarregada e número de novo',
-        () async {
-      final cubit = await carregado();
-      patchResponde(Result.failure(const ContatoNaoEncontradoException()));
-      resumoResponde(24);
+    test(
+      '404: aviso contatoSumiu, lista recarregada e número de novo',
+      () async {
+        final cubit = await carregado();
+        patchResponde(Result.failure(const ContatoNaoEncontradoException()));
+        resumoResponde(24);
 
-      await cubit.anotarRetorno(1, RetornoContato.falei);
-      await assentar();
+        await cubit.anotarRetorno(1, RetornoContato.falei);
+        await assentar();
 
-      expect(cubit.state.aviso, AvisoCaixa.contatoSumiu);
-      verify(() => buscar(const ConsultaContatos())).called(1);
-      verify(() => obterSemRetorno()).called(1);
-      expect(cubit.state.semRetorno, 24);
-      expect(lista(cubit).anotando, isEmpty);
-      await cubit.close();
-    });
+        expect(cubit.state.aviso, AvisoCaixa.contatoSumiu);
+        verify(() => buscar(const ConsultaContatos())).called(1);
+        verify(() => obterSemRetorno()).called(1);
+        expect(cubit.state.semRetorno, 24);
+        expect(lista(cubit).anotando, isEmpty);
+        await cubit.close();
+      },
+    );
 
     test('401 leva a sessaoExpirada, terminal', () async {
       final cubit = await carregado();

@@ -21,7 +21,10 @@ mixin _$CaixaContatosState {
 /// (D-22). O app nunca soma nem subtrai este número.
  int? get semRetorno; ConteudoCaixa get conteudo;/// Opções do filtro por imóvel, como o servidor devolveu (D-19). Pedidas a
 /// cada abertura da folha — não fazem parte da lista nem da consulta.
- OpcoesDeImovel get opcoesDeImovel;
+ OpcoesDeImovel get opcoesDeImovel;/// Aviso de uma anotação que não deu certo — one-shot da `SnackBar` (D-17).
+/// Toda anotação começa limpando-o, então duas falhas seguidas passam por
+/// um estado sem aviso e a tela mostra as duas.
+ AvisoCaixa? get aviso;
 /// Create a copy of CaixaContatosState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -33,20 +36,20 @@ $CaixaContatosStateCopyWith<CaixaContatosState> get copyWith => _$CaixaContatosS
 @override
 bool operator ==(Object other) {
   final _this = this as CaixaContatosState;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CaixaContatosState&&(identical(other.consulta, _this.consulta) || other.consulta == _this.consulta)&&(identical(other.semRetorno, _this.semRetorno) || other.semRetorno == _this.semRetorno)&&(identical(other.conteudo, _this.conteudo) || other.conteudo == _this.conteudo)&&(identical(other.opcoesDeImovel, _this.opcoesDeImovel) || other.opcoesDeImovel == _this.opcoesDeImovel));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CaixaContatosState&&(identical(other.consulta, _this.consulta) || other.consulta == _this.consulta)&&(identical(other.semRetorno, _this.semRetorno) || other.semRetorno == _this.semRetorno)&&(identical(other.conteudo, _this.conteudo) || other.conteudo == _this.conteudo)&&(identical(other.opcoesDeImovel, _this.opcoesDeImovel) || other.opcoesDeImovel == _this.opcoesDeImovel)&&(identical(other.aviso, _this.aviso) || other.aviso == _this.aviso));
 }
 
 
 @override
 int get hashCode {
   final _this = this as CaixaContatosState;
-  return Object.hash(runtimeType,_this.consulta,_this.semRetorno,_this.conteudo,_this.opcoesDeImovel);
+  return Object.hash(runtimeType,_this.consulta,_this.semRetorno,_this.conteudo,_this.opcoesDeImovel,_this.aviso);
 }
 
 @override
 String toString() {
   final _this = this as CaixaContatosState;
-  return 'CaixaContatosState(consulta: ${_this.consulta}, semRetorno: ${_this.semRetorno}, conteudo: ${_this.conteudo}, opcoesDeImovel: ${_this.opcoesDeImovel})';
+  return 'CaixaContatosState(consulta: ${_this.consulta}, semRetorno: ${_this.semRetorno}, conteudo: ${_this.conteudo}, opcoesDeImovel: ${_this.opcoesDeImovel}, aviso: ${_this.aviso})';
 }
 
 
@@ -57,7 +60,7 @@ abstract mixin class $CaixaContatosStateCopyWith<$Res>  {
   factory $CaixaContatosStateCopyWith(CaixaContatosState value, $Res Function(CaixaContatosState) _then) = _$CaixaContatosStateCopyWithImpl;
 @useResult
 $Res call({
- ConsultaContatos consulta, int? semRetorno, ConteudoCaixa conteudo, OpcoesDeImovel opcoesDeImovel
+ ConsultaContatos consulta, int? semRetorno, ConteudoCaixa conteudo, OpcoesDeImovel opcoesDeImovel, AvisoCaixa? aviso
 });
 
 
@@ -74,13 +77,14 @@ class _$CaixaContatosStateCopyWithImpl<$Res>
 
 /// Create a copy of CaixaContatosState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? consulta = null,Object? semRetorno = freezed,Object? conteudo = null,Object? opcoesDeImovel = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? consulta = null,Object? semRetorno = freezed,Object? conteudo = null,Object? opcoesDeImovel = null,Object? aviso = freezed,}) {
   return _then(CaixaContatosState(
 consulta: null == consulta ? _self.consulta : consulta // ignore: cast_nullable_to_non_nullable
 as ConsultaContatos,semRetorno: freezed == semRetorno ? _self.semRetorno : semRetorno // ignore: cast_nullable_to_non_nullable
 as int?,conteudo: null == conteudo ? _self.conteudo : conteudo // ignore: cast_nullable_to_non_nullable
 as ConteudoCaixa,opcoesDeImovel: null == opcoesDeImovel ? _self.opcoesDeImovel : opcoesDeImovel // ignore: cast_nullable_to_non_nullable
-as OpcoesDeImovel,
+as OpcoesDeImovel,aviso: freezed == aviso ? _self.aviso : aviso // ignore: cast_nullable_to_non_nullable
+as AvisoCaixa?,
   ));
 }
 /// Create a copy of CaixaContatosState
@@ -183,10 +187,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( ConsultaContatos consulta,  int? semRetorno,  ConteudoCaixa conteudo,  OpcoesDeImovel opcoesDeImovel)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( ConsultaContatos consulta,  int? semRetorno,  ConteudoCaixa conteudo,  OpcoesDeImovel opcoesDeImovel,  AvisoCaixa? aviso)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CaixaContatosState() when $default != null:
-return $default(_that.consulta,_that.semRetorno,_that.conteudo,_that.opcoesDeImovel);case _:
+return $default(_that.consulta,_that.semRetorno,_that.conteudo,_that.opcoesDeImovel,_that.aviso);case _:
   return orElse();
 
 }
@@ -204,10 +208,10 @@ return $default(_that.consulta,_that.semRetorno,_that.conteudo,_that.opcoesDeImo
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( ConsultaContatos consulta,  int? semRetorno,  ConteudoCaixa conteudo,  OpcoesDeImovel opcoesDeImovel)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( ConsultaContatos consulta,  int? semRetorno,  ConteudoCaixa conteudo,  OpcoesDeImovel opcoesDeImovel,  AvisoCaixa? aviso)  $default,) {final _that = this;
 switch (_that) {
 case _CaixaContatosState():
-return $default(_that.consulta,_that.semRetorno,_that.conteudo,_that.opcoesDeImovel);case _:
+return $default(_that.consulta,_that.semRetorno,_that.conteudo,_that.opcoesDeImovel,_that.aviso);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -224,10 +228,10 @@ return $default(_that.consulta,_that.semRetorno,_that.conteudo,_that.opcoesDeImo
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( ConsultaContatos consulta,  int? semRetorno,  ConteudoCaixa conteudo,  OpcoesDeImovel opcoesDeImovel)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( ConsultaContatos consulta,  int? semRetorno,  ConteudoCaixa conteudo,  OpcoesDeImovel opcoesDeImovel,  AvisoCaixa? aviso)?  $default,) {final _that = this;
 switch (_that) {
 case _CaixaContatosState() when $default != null:
-return $default(_that.consulta,_that.semRetorno,_that.conteudo,_that.opcoesDeImovel);case _:
+return $default(_that.consulta,_that.semRetorno,_that.conteudo,_that.opcoesDeImovel,_that.aviso);case _:
   return null;
 
 }
@@ -239,7 +243,7 @@ return $default(_that.consulta,_that.semRetorno,_that.conteudo,_that.opcoesDeImo
 
 
 class _CaixaContatosState implements CaixaContatosState {
-  const _CaixaContatosState({this.consulta = const ConsultaContatos(), this.semRetorno, this.conteudo = const ConteudoCaixa.carregando(), this.opcoesDeImovel = const OpcoesDeImovel.naoCarregadas()});
+  const _CaixaContatosState({this.consulta = const ConsultaContatos(), this.semRetorno, this.conteudo = const ConteudoCaixa.carregando(), this.opcoesDeImovel = const OpcoesDeImovel.naoCarregadas(), this.aviso});
   
 
 /// Consulta aplicada à lista (imóvel e período); sem filtro por padrão.
@@ -252,6 +256,10 @@ class _CaixaContatosState implements CaixaContatosState {
 /// Opções do filtro por imóvel, como o servidor devolveu (D-19). Pedidas a
 /// cada abertura da folha — não fazem parte da lista nem da consulta.
 @override@JsonKey() final  OpcoesDeImovel opcoesDeImovel;
+/// Aviso de uma anotação que não deu certo — one-shot da `SnackBar` (D-17).
+/// Toda anotação começa limpando-o, então duas falhas seguidas passam por
+/// um estado sem aviso e a tela mostra as duas.
+@override final  AvisoCaixa? aviso;
 
 /// Create a copy of CaixaContatosState
 /// with the given fields replaced by the non-null parameter values.
@@ -263,18 +271,18 @@ _$CaixaContatosStateCopyWith<_CaixaContatosState> get copyWith => __$CaixaContat
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CaixaContatosState&&(identical(other.consulta, consulta) || other.consulta == consulta)&&(identical(other.semRetorno, semRetorno) || other.semRetorno == semRetorno)&&(identical(other.conteudo, conteudo) || other.conteudo == conteudo)&&(identical(other.opcoesDeImovel, opcoesDeImovel) || other.opcoesDeImovel == opcoesDeImovel));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CaixaContatosState&&(identical(other.consulta, consulta) || other.consulta == consulta)&&(identical(other.semRetorno, semRetorno) || other.semRetorno == semRetorno)&&(identical(other.conteudo, conteudo) || other.conteudo == conteudo)&&(identical(other.opcoesDeImovel, opcoesDeImovel) || other.opcoesDeImovel == opcoesDeImovel)&&(identical(other.aviso, aviso) || other.aviso == aviso));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,consulta,semRetorno,conteudo,opcoesDeImovel);
+    return Object.hash(runtimeType,consulta,semRetorno,conteudo,opcoesDeImovel,aviso);
 }
 
 @override
 String toString() {
-    return 'CaixaContatosState(consulta: $consulta, semRetorno: $semRetorno, conteudo: $conteudo, opcoesDeImovel: $opcoesDeImovel)';
+    return 'CaixaContatosState(consulta: $consulta, semRetorno: $semRetorno, conteudo: $conteudo, opcoesDeImovel: $opcoesDeImovel, aviso: $aviso)';
 }
 
 
@@ -285,7 +293,7 @@ abstract mixin class _$CaixaContatosStateCopyWith<$Res> implements $CaixaContato
   factory _$CaixaContatosStateCopyWith(_CaixaContatosState value, $Res Function(_CaixaContatosState) _then) = __$CaixaContatosStateCopyWithImpl;
 @override @useResult
 $Res call({
- ConsultaContatos consulta, int? semRetorno, ConteudoCaixa conteudo, OpcoesDeImovel opcoesDeImovel
+ ConsultaContatos consulta, int? semRetorno, ConteudoCaixa conteudo, OpcoesDeImovel opcoesDeImovel, AvisoCaixa? aviso
 });
 
 
@@ -302,13 +310,14 @@ class __$CaixaContatosStateCopyWithImpl<$Res>
 
 /// Create a copy of CaixaContatosState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? consulta = null,Object? semRetorno = freezed,Object? conteudo = null,Object? opcoesDeImovel = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? consulta = null,Object? semRetorno = freezed,Object? conteudo = null,Object? opcoesDeImovel = null,Object? aviso = freezed,}) {
   return _then(_CaixaContatosState(
 consulta: null == consulta ? _self.consulta : consulta // ignore: cast_nullable_to_non_nullable
 as ConsultaContatos,semRetorno: freezed == semRetorno ? _self.semRetorno : semRetorno // ignore: cast_nullable_to_non_nullable
 as int?,conteudo: null == conteudo ? _self.conteudo : conteudo // ignore: cast_nullable_to_non_nullable
 as ConteudoCaixa,opcoesDeImovel: null == opcoesDeImovel ? _self.opcoesDeImovel : opcoesDeImovel // ignore: cast_nullable_to_non_nullable
-as OpcoesDeImovel,
+as OpcoesDeImovel,aviso: freezed == aviso ? _self.aviso : aviso // ignore: cast_nullable_to_non_nullable
+as AvisoCaixa?,
   ));
 }
 
@@ -453,7 +462,7 @@ return carregada(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  carregando,TResult Function()?  vazio,TResult Function()?  semResultado,TResult Function()?  erro,TResult Function()?  sessaoExpirada,TResult Function( List<ContatoRecebido> itens,  String? proximaPagina,  bool carregandoMais,  bool erroAoCarregarMais)?  carregada,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  carregando,TResult Function()?  vazio,TResult Function()?  semResultado,TResult Function()?  erro,TResult Function()?  sessaoExpirada,TResult Function( List<ContatoRecebido> itens,  String? proximaPagina,  bool carregandoMais,  bool erroAoCarregarMais,  Set<int> anotando)?  carregada,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case CaixaCarregando() when carregando != null:
 return carregando();case CaixaVazia() when vazio != null:
@@ -461,7 +470,7 @@ return vazio();case CaixaSemResultado() when semResultado != null:
 return semResultado();case CaixaErro() when erro != null:
 return erro();case CaixaSessaoExpirada() when sessaoExpirada != null:
 return sessaoExpirada();case CaixaCarregada() when carregada != null:
-return carregada(_that.itens,_that.proximaPagina,_that.carregandoMais,_that.erroAoCarregarMais);case _:
+return carregada(_that.itens,_that.proximaPagina,_that.carregandoMais,_that.erroAoCarregarMais,_that.anotando);case _:
   return orElse();
 
 }
@@ -479,7 +488,7 @@ return carregada(_that.itens,_that.proximaPagina,_that.carregandoMais,_that.erro
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  carregando,required TResult Function()  vazio,required TResult Function()  semResultado,required TResult Function()  erro,required TResult Function()  sessaoExpirada,required TResult Function( List<ContatoRecebido> itens,  String? proximaPagina,  bool carregandoMais,  bool erroAoCarregarMais)  carregada,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  carregando,required TResult Function()  vazio,required TResult Function()  semResultado,required TResult Function()  erro,required TResult Function()  sessaoExpirada,required TResult Function( List<ContatoRecebido> itens,  String? proximaPagina,  bool carregandoMais,  bool erroAoCarregarMais,  Set<int> anotando)  carregada,}) {final _that = this;
 switch (_that) {
 case CaixaCarregando():
 return carregando();case CaixaVazia():
@@ -487,7 +496,7 @@ return vazio();case CaixaSemResultado():
 return semResultado();case CaixaErro():
 return erro();case CaixaSessaoExpirada():
 return sessaoExpirada();case CaixaCarregada():
-return carregada(_that.itens,_that.proximaPagina,_that.carregandoMais,_that.erroAoCarregarMais);}
+return carregada(_that.itens,_that.proximaPagina,_that.carregandoMais,_that.erroAoCarregarMais,_that.anotando);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -501,7 +510,7 @@ return carregada(_that.itens,_that.proximaPagina,_that.carregandoMais,_that.erro
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  carregando,TResult? Function()?  vazio,TResult? Function()?  semResultado,TResult? Function()?  erro,TResult? Function()?  sessaoExpirada,TResult? Function( List<ContatoRecebido> itens,  String? proximaPagina,  bool carregandoMais,  bool erroAoCarregarMais)?  carregada,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  carregando,TResult? Function()?  vazio,TResult? Function()?  semResultado,TResult? Function()?  erro,TResult? Function()?  sessaoExpirada,TResult? Function( List<ContatoRecebido> itens,  String? proximaPagina,  bool carregandoMais,  bool erroAoCarregarMais,  Set<int> anotando)?  carregada,}) {final _that = this;
 switch (_that) {
 case CaixaCarregando() when carregando != null:
 return carregando();case CaixaVazia() when vazio != null:
@@ -509,7 +518,7 @@ return vazio();case CaixaSemResultado() when semResultado != null:
 return semResultado();case CaixaErro() when erro != null:
 return erro();case CaixaSessaoExpirada() when sessaoExpirada != null:
 return sessaoExpirada();case CaixaCarregada() when carregada != null:
-return carregada(_that.itens,_that.proximaPagina,_that.carregandoMais,_that.erroAoCarregarMais);case _:
+return carregada(_that.itens,_that.proximaPagina,_that.carregandoMais,_that.erroAoCarregarMais,_that.anotando);case _:
   return null;
 
 }
@@ -681,7 +690,7 @@ String toString() {
 
 
 class CaixaCarregada implements ConteudoCaixa {
-  const CaixaCarregada({required  List<ContatoRecebido> itens, this.proximaPagina, this.carregandoMais = false, this.erroAoCarregarMais = false}): _itens = itens;
+  const CaixaCarregada({required  List<ContatoRecebido> itens, this.proximaPagina, this.carregandoMais = false, this.erroAoCarregarMais = false,  Set<int> anotando = const <int>{}}): _itens = itens,_anotando = anotando;
   
 
  final  List<ContatoRecebido> _itens;
@@ -694,6 +703,17 @@ class CaixaCarregada implements ConteudoCaixa {
  final  String? proximaPagina;
 @JsonKey() final  bool carregandoMais;
 @JsonKey() final  bool erroAoCarregarMais;
+/// Ids com `PATCH` em voo (D-16): o item mostra carregamento e ignora
+/// toques até o servidor responder.
+ final  Set<int> _anotando;
+/// Ids com `PATCH` em voo (D-16): o item mostra carregamento e ignora
+/// toques até o servidor responder.
+@JsonKey() Set<int> get anotando {
+  if (_anotando is EqualUnmodifiableSetView) return _anotando;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableSetView(_anotando);
+}
+
 
 /// Create a copy of ConteudoCaixa
 /// with the given fields replaced by the non-null parameter values.
@@ -705,18 +725,18 @@ $CaixaCarregadaCopyWith<CaixaCarregada> get copyWith => _$CaixaCarregadaCopyWith
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is CaixaCarregada&&const DeepCollectionEquality().equals(other.itens, _itens)&&(identical(other.proximaPagina, proximaPagina) || other.proximaPagina == proximaPagina)&&(identical(other.carregandoMais, carregandoMais) || other.carregandoMais == carregandoMais)&&(identical(other.erroAoCarregarMais, erroAoCarregarMais) || other.erroAoCarregarMais == erroAoCarregarMais));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is CaixaCarregada&&const DeepCollectionEquality().equals(other.itens, _itens)&&(identical(other.proximaPagina, proximaPagina) || other.proximaPagina == proximaPagina)&&(identical(other.carregandoMais, carregandoMais) || other.carregandoMais == carregandoMais)&&(identical(other.erroAoCarregarMais, erroAoCarregarMais) || other.erroAoCarregarMais == erroAoCarregarMais)&&const DeepCollectionEquality().equals(other.anotando, _anotando));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_itens),proximaPagina,carregandoMais,erroAoCarregarMais);
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_itens),proximaPagina,carregandoMais,erroAoCarregarMais,const DeepCollectionEquality().hash(_anotando));
 }
 
 @override
 String toString() {
-    return 'ConteudoCaixa.carregada(itens: $itens, proximaPagina: $proximaPagina, carregandoMais: $carregandoMais, erroAoCarregarMais: $erroAoCarregarMais)';
+    return 'ConteudoCaixa.carregada(itens: $itens, proximaPagina: $proximaPagina, carregandoMais: $carregandoMais, erroAoCarregarMais: $erroAoCarregarMais, anotando: $anotando)';
 }
 
 
@@ -727,7 +747,7 @@ abstract mixin class $CaixaCarregadaCopyWith<$Res> implements $ConteudoCaixaCopy
   factory $CaixaCarregadaCopyWith(CaixaCarregada value, $Res Function(CaixaCarregada) _then) = _$CaixaCarregadaCopyWithImpl;
 @useResult
 $Res call({
- List<ContatoRecebido> itens, String? proximaPagina, bool carregandoMais, bool erroAoCarregarMais
+ List<ContatoRecebido> itens, String? proximaPagina, bool carregandoMais, bool erroAoCarregarMais, Set<int> anotando
 });
 
 
@@ -744,13 +764,14 @@ class _$CaixaCarregadaCopyWithImpl<$Res>
 
 /// Create a copy of ConteudoCaixa
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? itens = null,Object? proximaPagina = freezed,Object? carregandoMais = null,Object? erroAoCarregarMais = null,}) {
+@pragma('vm:prefer-inline') $Res call({Object? itens = null,Object? proximaPagina = freezed,Object? carregandoMais = null,Object? erroAoCarregarMais = null,Object? anotando = null,}) {
   return _then(CaixaCarregada(
 itens: null == itens ? _self._itens : itens // ignore: cast_nullable_to_non_nullable
 as List<ContatoRecebido>,proximaPagina: freezed == proximaPagina ? _self.proximaPagina : proximaPagina // ignore: cast_nullable_to_non_nullable
 as String?,carregandoMais: null == carregandoMais ? _self.carregandoMais : carregandoMais // ignore: cast_nullable_to_non_nullable
 as bool,erroAoCarregarMais: null == erroAoCarregarMais ? _self.erroAoCarregarMais : erroAoCarregarMais // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,anotando: null == anotando ? _self._anotando : anotando // ignore: cast_nullable_to_non_nullable
+as Set<int>,
   ));
 }
 

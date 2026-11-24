@@ -7,7 +7,10 @@ import '../../core/result.dart';
 import '../../domain/entities/consulta_contatos.dart';
 import '../../domain/entities/imovel_com_contato.dart';
 import '../../domain/entities/periodo_contatos.dart';
+import '../../domain/entities/retorno_contato.dart';
 import '../../domain/repositories/falhas_autenticacao.dart';
+import '../../domain/repositories/falhas_caixa_contatos.dart';
+import '../../domain/usecases/anotar_retorno_usecase.dart';
 import '../../domain/usecases/buscar_contatos_usecase.dart';
 import '../../domain/usecases/listar_imoveis_dos_contatos_usecase.dart';
 import '../../domain/usecases/obter_sem_retorno_usecase.dart';
@@ -31,11 +34,13 @@ class CaixaContatosCubit extends Cubit<CaixaContatosState> {
     this._buscarContatos,
     this._obterSemRetorno,
     this._listarImoveis,
+    this._anotarRetorno,
   ) : super(const CaixaContatosState());
 
   final BuscarContatosUseCase _buscarContatos;
   final ObterSemRetornoUseCase _obterSemRetorno;
   final ListarImoveisDosContatosUseCase _listarImoveis;
+  final AnotarRetornoUseCase _anotarRetorno;
 
   int _versaoConsulta = 0;
   int _versaoResumo = 0;
@@ -110,6 +115,83 @@ class CaixaContatosCubit extends Cubit<CaixaContatosState> {
       case Loading():
         break;
     }
+  }
+
+  /// Anota [retorno] no contato [id] (CXA-03) e ESPERA o servidor (D-16): o
+  /// item fica em `anotando` (carregamento, sem novos toques) e só muda com o
+  /// 200, trocado pelo item que o servidor devolveu — sem atualização
+  /// otimista. Depois de qualquer resposta o número é pedido de novo (D-06);
+  /// o app nunca soma nem subtrai.
+  ///
+  /// Sem efeito fora de [CaixaCarregada], com o id já em voo, para um id que
+  /// não está na lista, para [RetornoContato.pendente] (a API recusa) ou para
+  /// a opção que já é a atual — nesse caso a anotação não é regravada (A6).
+  /// Falha → aviso de texto fixo (D-17); 404 também recarrega a lista; 401
+  /// encerra a sessão (D-23).
+  Future<void> anotarRetorno(int id, RetornoContato retorno) async {
+    if (isClosed) return;
+    final conteudo = state.conteudo;
+    if (conteudo is! CaixaCarregada) return;
+    if (conteudo.anotando.contains(id)) return;
+    if (!RetornoContato.anotaveis.contains(retorno)) return;
+    final indice = conteudo.itens.indexWhere((i) => i.id == id);
+    if (indice < 0) return;
+    if (conteudo.itens[indice].retorno == retorno) return;
+
+    // Pitfall 6: começar sempre limpando o aviso faz toda falha produzir uma
+    // emissão diferente da anterior.
+    emit(
+      state.copyWith(
+        aviso: null,
+        conteudo: conteudo.copyWith(anotando: {...conteudo.anotando, id}),
+      ),
+    );
+
+    final resultado = await _anotarRetorno(id, retorno);
+
+    if (isClosed) return;
+
+    switch (resultado) {
+      case Success(:final data):
+        final atual = state.conteudo;
+        if (atual is CaixaCarregada) {
+          emit(
+            state.copyWith(
+              conteudo: atual.copyWith(
+                itens: [for (final i in atual.itens) i.id == id ? data : i],
+                anotando: {...atual.anotando}..remove(id),
+              ),
+            ),
+          );
+        }
+        unawaited(_recarregarResumo());
+      case Failure(:final erro):
+        if (erro is SessaoExpiradaException) {
+          emit(state.copyWith(conteudo: const ConteudoCaixa.sessaoExpirada()));
+          return;
+        }
+        emit(
+          state.copyWith(
+            aviso: erro is ContatoNaoEncontradoException
+                ? AvisoCaixa.contatoSumiu
+                : AvisoCaixa.falhouAoAnotar,
+            conteudo: _semEmVoo(state.conteudo, id),
+          ),
+        );
+        if (erro is ContatoNaoEncontradoException) {
+          unawaited(_aplicarConsulta(state.consulta));
+          unawaited(_recarregarResumo());
+        }
+      case Loading():
+        break;
+    }
+  }
+
+  /// Tira [id] de `anotando` se a lista ainda é a mesma (uma troca de filtro
+  /// pode ter trocado o conteúdo enquanto o PATCH estava em voo).
+  ConteudoCaixa _semEmVoo(ConteudoCaixa conteudo, int id) {
+    if (conteudo is! CaixaCarregada) return conteudo;
+    return conteudo.copyWith(anotando: {...conteudo.anotando}..remove(id));
   }
 
   /// Recomeça a lista com [consulta] só se ela mudou (D-18). Nunca refaz o

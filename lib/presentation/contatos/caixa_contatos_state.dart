@@ -26,7 +26,23 @@ abstract class CaixaContatosState with _$CaixaContatosState {
     /// Opções do filtro por imóvel, como o servidor devolveu (D-19). Pedidas a
     /// cada abertura da folha — não fazem parte da lista nem da consulta.
     @Default(OpcoesDeImovel.naoCarregadas()) OpcoesDeImovel opcoesDeImovel,
+
+    /// Aviso de uma anotação que não deu certo — one-shot da `SnackBar` (D-17).
+    /// Toda anotação começa limpando-o, então duas falhas seguidas passam por
+    /// um estado sem aviso e a tela mostra as duas.
+    AvisoCaixa? aviso,
   }) = _CaixaContatosState;
+}
+
+/// Por que a anotação de um retorno não valeu (D-17). A tela escolhe o texto
+/// fixo; nada que o servidor escreveu chega ao usuário.
+enum AvisoCaixa {
+  /// Rede, timeout, 5xx ou 400: o item ficou como estava.
+  falhouAoAnotar,
+
+  /// 404: o contato não está mais na caixa; a lista e o número foram pedidos
+  /// de novo.
+  contatoSumiu,
 }
 
 /// União selada dos desfechos da lista da caixa — estado "achatado" único de
@@ -58,6 +74,10 @@ sealed class ConteudoCaixa with _$ConteudoCaixa {
     String? proximaPagina,
     @Default(false) bool carregandoMais,
     @Default(false) bool erroAoCarregarMais,
+
+    /// Ids com `PATCH` em voo (D-16): o item mostra carregamento e ignora
+    /// toques até o servidor responder.
+    @Default(<int>{}) Set<int> anotando,
   }) = CaixaCarregada;
 }
 
