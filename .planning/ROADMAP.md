@@ -595,7 +595,7 @@ Plans:
   5. Todos os números vêm da API, calculados no servidor.
   6. Só o gestor enxerga esta área; o corretor não.
 
-**Plans:** 3/9 plans executed
+**Plans:** 4/9 plans executed
 
 Plans:
 **Wave 1**
@@ -608,7 +608,7 @@ Plans:
 - [x] 12-03-PLAN.md — §18 do contrato, exemplos, `contrato_area_gestor_test.dart` e registro de GES-01..06, API-15, API-16 (+ nota no LOG-01) (API-16, GES-06)
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 12-04-PLAN.md — App: domínio da Área do gestor (entidades das 4 seções, `AreaGestorRepository`, 4 use cases) (GES-01..GES-05)
+- [x] 12-04-PLAN.md — App: domínio da Área do gestor (entidades das 4 seções, `AreaGestorRepository`, 4 use cases) (GES-01..GES-05)
 
 **Wave 5** *(blocked on Wave 4 completion)*
 - [ ] 12-05-PLAN.md — App: os 4 Models freezed lidos contra todas as fixtures, situação desconhecida = falha de formato (GES-01..GES-04, API-16)
