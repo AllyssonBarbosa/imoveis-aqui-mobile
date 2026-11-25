@@ -595,7 +595,32 @@ Plans:
   5. Todos os números vêm da API, calculados no servidor.
   6. Só o gestor enxerga esta área; o corretor não.
 
-**Plans:** 0 plans
+**Plans:** 9 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 12 to break down)
+**Wave 1**
+- [ ] 12-01-PLAN.md — Web (feat/APP12): TRACER do acervo por corretor com token (login do gestor → `GET /api/relatorios/acervo-por-corretor/`) + mudanças de situação dos últimos 7 dias (`GET /api/relatorios/mudancas-situacao/?dias=`), critério 6 nas 4 rotas e README (API-15, GES-01, GES-02, GES-03, GES-04, GES-06)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 12-02-PLAN.md — Wire real: grupo `gestor` na ferramenta de captura e as 10 fixtures (porta 8012), com a outra empresa tendo imóvel e mudança e a janela de dias provada (API-16, GES-05, GES-06)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 12-03-PLAN.md — §18 do contrato, exemplos, `contrato_area_gestor_test.dart` e registro de GES-01..06, API-15, API-16 (+ nota no LOG-01) (API-16, GES-06)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 12-04-PLAN.md — App: domínio da Área do gestor (entidades das 4 seções, `AreaGestorRepository`, 4 use cases) (GES-01..GES-05)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 12-05-PLAN.md — App: os 4 Models freezed lidos contra todas as fixtures, situação desconhecida = falha de formato (GES-01..GES-04, API-16)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [ ] 12-06-PLAN.md — App: DataSource no `Dio` autenticado, repositório com 401/403 tipados e as 4 rotas na `ApiFalsa` (GES-01..GES-06)
+
+**Wave 7** *(blocked on Wave 6 completion)*
+- [ ] 12-07-PLAN.md — App: textos fixos da Área do gestor e `AreaGestorCubit` (seções independentes, período só nos contatos, 401 terminal, 403 próprio) (GES-01..GES-06)
+
+**Wave 8** *(blocked on Wave 7 completion)*
+- [ ] 12-08-PLAN.md — App: `AreaGestorScreen` e os widgets das 4 seções (ordem, Sair, chip Período, retry por seção, 401 → login) (GES-01..GES-06)
+
+**Wave 9** *(blocked on Wave 8 completion)*
+- [ ] 12-09-PLAN.md — App: gestor → Área do gestor no login e no topo, administrador no aviso próprio, fluxo ponta a ponta, REQUIREMENTS completos, gates finais e human-check (GES-01..GES-06, API-15, API-16)
