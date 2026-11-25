@@ -98,14 +98,14 @@ Na Fase 10, API-13 e API-14 foram registrados como API-11 e API-12 (os planos, S
 
 Card APP 12 (tarefa A12). GES-01..GES-06 cobrem os critérios 1–6 do card; API-15/API-16 são as rotas novas da web e o §18 do contrato.
 
-- [ ] **GES-01**: Acervo por corretor (critério 1): a Área do gestor mostra quantos imóveis cada corretor tem — todos os imóveis da empresa, em qualquer situação —, com todo corretor ativo (mesmo com zero) e o desativado que ainda é responsável por imóvel marcado "(desativado)", mais o total, tudo de `GET /api/relatorios/acervo-por-corretor/`.
-- [ ] **GES-02**: Contatos por corretor e por período (critério 2): por corretor, quantos contatos recebeu e quantos aguardam retorno, de `GET /api/relatorios/contatos/?de=&ate=`; o padrão é todo o período e o chip "Período" (seletor pt-BR da APP-10) recarrega só esta seção; a linha da empresa usa texto fixo do app.
-- [ ] **GES-03**: Mudanças de situação recentes (critério 3): lista das mudanças de situação dos últimos dias da empresa (janela de 7 dias decidida no servidor), com imóvel, de → para, data e hora, quem mudou e a observação, de `GET /api/relatorios/mudancas-situacao/`.
-- [ ] **GES-04**: Totais da empresa por situação (critério 4): Disponível, Reservado, Vendido e Alugado, mais o total, lidos de `totais` e `total` de `GET /api/relatorios/acervo/`.
-- [ ] **GES-05**: Números do servidor (critério 5): o app não conta, não soma e não filtra nada; cada seção carrega sozinha, com o próprio carregando e o próprio erro ("Não foi possível carregar." com "Tentar de novo"), e uma falha não derruba as outras.
-- [ ] **GES-06**: Só o gestor (critério 6): o gestor cai na "Área do gestor" depois do login e pelo botão do topo; o administrador continua no aviso ("Área do administrador"); o corretor nunca vê a área; o servidor recusa as 4 rotas a quem não é gestor (403/401), testado no Django; 401 encerra a sessão e 403 mostra texto fixo.
-- [ ] **API-15**: A web entrega, com testes, na branch `feat/APP12`, `GET /api/relatorios/acervo-por-corretor/` e `GET /api/relatorios/mudancas-situacao/?dias=` (padrão 7, de 1 a 365), atrás de `EhGestor` e sempre com a empresa do usuário, sem migração.
-- [ ] **API-16**: O §18 de `01-CONTRATO-API.md` congela as 4 rotas da Área do gestor (campos lidos, parâmetros, 400/401/403, isolamento, fuso e janela), com fixtures capturadas do Django e testes de contrato nos dois repositórios.
+- [x] **GES-01**: Acervo por corretor (critério 1): a Área do gestor mostra quantos imóveis cada corretor tem — todos os imóveis da empresa, em qualquer situação —, com todo corretor ativo (mesmo com zero) e o desativado que ainda é responsável por imóvel marcado "(desativado)", mais o total, tudo de `GET /api/relatorios/acervo-por-corretor/`.
+- [x] **GES-02**: Contatos por corretor e por período (critério 2): por corretor, quantos contatos recebeu e quantos aguardam retorno, de `GET /api/relatorios/contatos/?de=&ate=`; o padrão é todo o período e o chip "Período" (seletor pt-BR da APP-10) recarrega só esta seção; a linha da empresa usa texto fixo do app.
+- [x] **GES-03**: Mudanças de situação recentes (critério 3): lista das mudanças de situação dos últimos dias da empresa (janela de 7 dias decidida no servidor), com imóvel, de → para, data e hora, quem mudou e a observação, de `GET /api/relatorios/mudancas-situacao/`.
+- [x] **GES-04**: Totais da empresa por situação (critério 4): Disponível, Reservado, Vendido e Alugado, mais o total, lidos de `totais` e `total` de `GET /api/relatorios/acervo/`.
+- [x] **GES-05**: Números do servidor (critério 5): o app não conta, não soma e não filtra nada; cada seção carrega sozinha, com o próprio carregando e o próprio erro ("Não foi possível carregar." com "Tentar de novo"), e uma falha não derruba as outras.
+- [x] **GES-06**: Só o gestor (critério 6): o gestor cai na "Área do gestor" depois do login e pelo botão do topo; o administrador continua no aviso ("Área do administrador"); o corretor nunca vê a área; o servidor recusa as 4 rotas a quem não é gestor (403/401), testado no Django; 401 encerra a sessão e 403 mostra texto fixo.
+- [x] **API-15**: A web entrega, com testes, na branch `feat/APP12`, `GET /api/relatorios/acervo-por-corretor/` e `GET /api/relatorios/mudancas-situacao/?dias=` (padrão 7, de 1 a 365), atrás de `EhGestor` e sempre com a empresa do usuário, sem migração.
+- [x] **API-16**: O §18 de `01-CONTRATO-API.md` congela as 4 rotas da Área do gestor (campos lidos, parâmetros, 400/401/403, isolamento, fuso e janela), com fixtures capturadas do Django e testes de contrato nos dois repositórios.
 
 ### API pública (endpoints que o app consome)
 
@@ -232,14 +232,14 @@ Excluídos de propósito. Documentados para evitar scope creep.
 | CXA-06 | Phase 10 | Complete |
 | API-13 | Phase 10 | Complete |
 | API-14 | Phase 10 | Complete |
-| GES-01 | Phase 12 | Pending |
-| GES-02 | Phase 12 | Pending |
-| GES-03 | Phase 12 | Pending |
-| GES-04 | Phase 12 | Pending |
-| GES-05 | Phase 12 | Pending |
-| GES-06 | Phase 12 | Pending |
-| API-15 | Phase 12 | Pending |
-| API-16 | Phase 12 | Pending |
+| GES-01 | Phase 12 | Complete |
+| GES-02 | Phase 12 | Complete |
+| GES-03 | Phase 12 | Complete |
+| GES-04 | Phase 12 | Complete |
+| GES-05 | Phase 12 | Complete |
+| GES-06 | Phase 12 | Complete |
+| API-15 | Phase 12 | Complete |
+| API-16 | Phase 12 | Complete |
 
 Planos da Phase 6 que cobrem cada ID (frontmatter `requirements` dos `06-NN-PLAN.md`): APP06-C1 → 06-07, 06-09, 06-10; APP06-C2 → 06-02, 06-03, 06-04, 06-05, 06-06, 06-07, 06-10; APP06-C3 → 06-03, 06-04, 06-05, 06-06, 06-08, 06-09, 06-10; APP06-C4 → 06-01, 06-03, 06-05, 06-06, 06-07, 06-08, 06-10; APP06-C5 → 06-01, 06-09, 06-10; APP06-C6 → 06-01, 06-02, 06-05, 06-07, 06-09, 06-10; APP06-API-1 → 06-01, 06-03, 06-04, 06-10; APP06-API-2 → 06-02, 06-10.
 
@@ -253,4 +253,4 @@ Planos da Phase 9 que cobrem cada ID (frontmatter `requirements` dos `09-NN-PLAN
 
 ---
 *Requirements defined: 2026-09-21*
-*Last updated: 2026-11-25 after planning Phase 12 (GES-01..06, API-15, API-16)*
+*Last updated: 2026-11-25 after Phase 12 execution (GES-01..06, API-15, API-16)*
