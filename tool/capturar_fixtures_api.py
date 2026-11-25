@@ -995,8 +995,8 @@ def capturar_gestor(base, pasta):
     detalhe_w = obter(f"{publico}/imoveis/{w}/")
     if detalhe_w["corretor_responsavel"] is not None:
         raise ErroCaptura(f"O imóvel {w} deveria ter corretor_responsavel nulo (responsável desativado).")
-    if "WHATSAPP" not in detalhe_w["canais_contato"]:
-        raise ErroCaptura(f"O imóvel {w} deveria aceitar o canal WHATSAPP.")
+    # `canais_contato` só existe no detalhe da feat/APP06; o Django da feat/APP12 (base origin/main) não o traz.
+    # O POST de contato abaixo (201 exigido) é a prova de que o canal WHATSAPP é aceito.
     # o corretor demo (responsável de X) lido enquanto X ainda está na vitrine
     detalhe_x = obter(f"{publico}/imoveis/{x}/")
     id_corretor_demo = detalhe_x["corretor_responsavel"]["id"]
