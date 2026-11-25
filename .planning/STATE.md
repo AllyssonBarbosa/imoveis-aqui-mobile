@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 12
 current_phase_name: Área do Gestor — Acompanhamento dos Corretores (APP 12)
 status: executing
-stopped_at: Completed 12-02-PLAN.md
-last_updated: "2026-11-25T20:54:54.866Z"
+stopped_at: Completed 12-03-PLAN.md
+last_updated: "2026-11-25T21:02:30.972Z"
 last_activity: 2026-11-25
 last_activity_desc: Phase 12 execution started
-state_head: 50e75af901eec4a962e2cbcfb1225124a258fd36
+state_head: 27df3ebce7184c67d79be524d74114c25c480ca1
 progress:
   total_phases: 12
   completed_phases: 3
   total_plans: 116
-  completed_plans: 109
+  completed_plans: 110
   percent: 25
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-11-24)
 ## Current Position
 
 Phase: 12 (Área do Gestor — Acompanhamento dos Corretores (APP 12)) — EXECUTING
-Plan: 3 of 9
+Plan: 4 of 9
 Status: Ready to execute
 Last activity: 2026-11-25 — Phase 12 execution started
 
@@ -153,6 +153,7 @@ Progress: [████████████████████] 107/107
 | Phase 10 P10 | 10 min | 3 tasks | 14 files |
 | Phase 12 P01 | 20 min | 2 tasks | 5 files |
 | Phase 12 P02 | 8 min | 2 tasks | 11 files |
+| Phase 12 P03 | 5 min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -265,6 +266,8 @@ Recent decisions affecting current work:
 - [Phase 12]: 12-01: 7 dias de mudancas (DIAS_MUDANCAS_PADRAO) decididos no Django; resposta {dias,desde,mudancas} sem paginacao, 9 campos (D-19, D-20)
 - [Phase 12]: 12-01: acervo por corretor sobre a mesma base do acervo por natureza (soma das linhas = total); ler_dias ganhou parametro padrao sem mudar parcelas
 - [Phase 12]: 12-02: captura do gestor no SQLite temporário na porta 8012 (nunca 8000); sem exigir canais_contato, que não existe no Django da feat/APP12
+- [Phase 12]: 12-03: o teste de contrato trava só o que o app lê no acervo (totais e total); situacoes e linhas só têm a presença conferida (D-09)
+- [Phase 12]: 12-03: IDs GES-01..06, API-15 e API-16 registrados como pendentes (82 no total); 12-03 cobre API-16 no wire (D-28)
 
 ### Pending Todos
 
@@ -306,6 +309,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-25T20:54:52.561Z
-Stopped at: Completed 12-02-PLAN.md
+Last session: 2026-11-25T21:02:28.731Z
+Stopped at: Completed 12-03-PLAN.md
 Resume file: None
