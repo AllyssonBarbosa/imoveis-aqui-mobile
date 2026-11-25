@@ -595,14 +595,14 @@ Plans:
   5. Todos os números vêm da API, calculados no servidor.
   6. Só o gestor enxerga esta área; o corretor não.
 
-**Plans:** 1/9 plans executed
+**Plans:** 2/9 plans executed
 
 Plans:
 **Wave 1**
 - [x] 12-01-PLAN.md — Web (feat/APP12): TRACER do acervo por corretor com token (login do gestor → `GET /api/relatorios/acervo-por-corretor/`) + mudanças de situação dos últimos 7 dias (`GET /api/relatorios/mudancas-situacao/?dias=`), critério 6 nas 4 rotas e README (API-15, GES-01, GES-02, GES-03, GES-04, GES-06)
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 12-02-PLAN.md — Wire real: grupo `gestor` na ferramenta de captura e as 10 fixtures (porta 8012), com a outra empresa tendo imóvel e mudança e a janela de dias provada (API-16, GES-05, GES-06)
+- [x] 12-02-PLAN.md — Wire real: grupo `gestor` na ferramenta de captura e as 10 fixtures (porta 8012), com a outra empresa tendo imóvel e mudança e a janela de dias provada (API-16, GES-05, GES-06)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 12-03-PLAN.md — §18 do contrato, exemplos, `contrato_area_gestor_test.dart` e registro de GES-01..06, API-15, API-16 (+ nota no LOG-01) (API-16, GES-06)
