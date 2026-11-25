@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 12
 current_phase_name: Área do Gestor — Acompanhamento dos Corretores (APP 12)
 status: executing
-stopped_at: Completed 12-07-PLAN.md
-last_updated: "2026-11-25T21:35:03.534Z"
+stopped_at: Completed 12-08-PLAN.md
+last_updated: "2026-11-25T21:44:14.060Z"
 last_activity: 2026-11-25
 last_activity_desc: Phase 12 execution started
-state_head: b8e02c90e3e28d962f6d09a0e6519e3a05e8f093
+state_head: ac579e47732737e1e2012b70833d74f5ac9dd560
 progress:
   total_phases: 12
   completed_phases: 3
   total_plans: 116
-  completed_plans: 114
+  completed_plans: 115
   percent: 25
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-11-24)
 ## Current Position
 
 Phase: 12 (Área do Gestor — Acompanhamento dos Corretores (APP 12)) — EXECUTING
-Plan: 8 of 9
+Plan: 9 of 9
 Status: Ready to execute
 Last activity: 2026-11-25 — Phase 12 execution started
 
@@ -158,6 +158,7 @@ Progress: [████████████████████] 107/107
 | Phase 12 P05 | 4 min | 2 tasks | 13 files |
 | Phase 12 P06 | 25 min | 2 tasks | 7 files |
 | Phase 12 P07 | 7 min | 2 tasks | 7 files |
+| Phase 12 P08 | 7 min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -278,6 +279,8 @@ Recent decisions affecting current work:
 - [Phase 12]: 12-06: contatos do gestor reutilizam parametrosDaConsultaContatos sem imovel; as outras 3 leituras nao levam query (janela e do servidor)
 - [Phase 12]: 12-06: AreaGestorRepositoryImpl sem ramo de 404 tipado; 401 por status e por erro.error coexistem; 400/404/5xx/rede saem como Failure generica
 - [Phase 12]: 12-07: falha de seção guarda só o tipo (FalhaDaSecao); 401 em qualquer seção é terminal (sessaoExpirada) e trava pedidos e respostas atrasadas; versão por seção descarta resposta superada
+- [Phase 12]: 12-08: a linha da empresa usa textoLinhaDaEmpresa; o nome que o servidor mandou nela nunca chega ao widget (D-17, T-12-20)
+- [Phase 12]: 12-08: AreaGestorScreen sem helper de abertura; ligar ao login e ao botão do topo fica no 12-09
 
 ### Pending Todos
 
@@ -319,6 +322,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-25T21:35:01.152Z
-Stopped at: Completed 12-07-PLAN.md
+Last session: 2026-11-25T21:44:11.104Z
+Stopped at: Completed 12-08-PLAN.md
 Resume file: None
