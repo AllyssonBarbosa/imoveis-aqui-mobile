@@ -93,6 +93,8 @@ import 'package:imoveis_aqui/domain/gateways/link_launcher_gateway.dart'
     as _i325;
 import 'package:imoveis_aqui/domain/repositories/acervo_repository.dart'
     as _i268;
+import 'package:imoveis_aqui/domain/repositories/area_gestor_repository.dart'
+    as _i322;
 import 'package:imoveis_aqui/domain/repositories/autenticacao_repository.dart'
     as _i550;
 import 'package:imoveis_aqui/domain/repositories/caixa_contatos_repository.dart'
@@ -135,6 +137,8 @@ import 'package:imoveis_aqui/domain/usecases/listar_imoveis_dos_contatos_usecase
     as _i864;
 import 'package:imoveis_aqui/domain/usecases/mudar_situacao_usecase.dart'
     as _i186;
+import 'package:imoveis_aqui/domain/usecases/obter_acervo_por_corretor_usecase.dart'
+    as _i507;
 import 'package:imoveis_aqui/domain/usecases/obter_bairros_usecase.dart'
     as _i20;
 import 'package:imoveis_aqui/domain/usecases/obter_caracteristicas_usecase.dart'
@@ -143,12 +147,16 @@ import 'package:imoveis_aqui/domain/usecases/obter_cidade_salva_usecase.dart'
     as _i1060;
 import 'package:imoveis_aqui/domain/usecases/obter_cidades_atendidas_usecase.dart'
     as _i54;
+import 'package:imoveis_aqui/domain/usecases/obter_contatos_por_corretor_usecase.dart'
+    as _i734;
 import 'package:imoveis_aqui/domain/usecases/obter_detalhe_imovel_usecase.dart'
     as _i990;
 import 'package:imoveis_aqui/domain/usecases/obter_historico_situacao_usecase.dart'
     as _i989;
 import 'package:imoveis_aqui/domain/usecases/obter_imovel_gestao_usecase.dart'
     as _i121;
+import 'package:imoveis_aqui/domain/usecases/obter_mudancas_recentes_usecase.dart'
+    as _i249;
 import 'package:imoveis_aqui/domain/usecases/obter_papel_usecase.dart' as _i396;
 import 'package:imoveis_aqui/domain/usecases/obter_perfil_corretor_usecase.dart'
     as _i741;
@@ -156,6 +164,8 @@ import 'package:imoveis_aqui/domain/usecases/obter_perfil_empresa_usecase.dart'
     as _i370;
 import 'package:imoveis_aqui/domain/usecases/obter_sem_retorno_usecase.dart'
     as _i943;
+import 'package:imoveis_aqui/domain/usecases/obter_totais_por_situacao_usecase.dart'
+    as _i527;
 import 'package:imoveis_aqui/domain/usecases/sair_usecase.dart' as _i986;
 import 'package:imoveis_aqui/domain/usecases/salvar_cidade_usecase.dart'
     as _i589;
@@ -260,6 +270,23 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i288.ArmazenamentoToken>(
       () => _i179.ArmazenamentoTokenSeguro(gh<_i558.FlutterSecureStorage>()),
+    );
+    gh.factory<_i507.ObterAcervoPorCorretorUseCase>(
+      () =>
+          _i507.ObterAcervoPorCorretorUseCase(gh<_i322.AreaGestorRepository>()),
+    );
+    gh.factory<_i734.ObterContatosPorCorretorUseCase>(
+      () => _i734.ObterContatosPorCorretorUseCase(
+        gh<_i322.AreaGestorRepository>(),
+      ),
+    );
+    gh.factory<_i249.ObterMudancasRecentesUseCase>(
+      () =>
+          _i249.ObterMudancasRecentesUseCase(gh<_i322.AreaGestorRepository>()),
+    );
+    gh.factory<_i527.ObterTotaisPorSituacaoUseCase>(
+      () =>
+          _i527.ObterTotaisPorSituacaoUseCase(gh<_i322.AreaGestorRepository>()),
     );
     gh.lazySingleton<_i987.OpcoesFiltroRepository>(
       () =>
