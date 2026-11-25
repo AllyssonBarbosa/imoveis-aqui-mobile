@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:imoveis_aqui/di/injection.dart';
 import 'package:imoveis_aqui/presentation/acervo/widgets/cartao_imovel_acervo.dart';
+import 'package:imoveis_aqui/presentation/area_gestor/apresentacao_area_gestor.dart';
 
 import '../support/api_falsa.dart';
 import '../support/pilha_real.dart';
@@ -130,8 +131,8 @@ void main() {
   });
 
   testWidgets(
-    'gestor: depois do login cai em "A área do gestor ainda não está no app." '
-    '(D-B)',
+    'gestor: depois do login cai na Área do gestor, com as 4 seções, e nenhum '
+    'pedido vai a /api/imoveis/ (D-01)',
     (tester) async {
       final pilha = await PilhaReal.preparar();
       pilha.api.responder(
@@ -143,10 +144,17 @@ void main() {
 
       await entrar(tester);
 
-      expect(
-        find.text('A área do gestor ainda não está no app.'),
-        findsOneWidget,
-      );
+      expect(find.text(tituloAreaGestor), findsOneWidget);
+      expect(find.text(tituloSecaoTotais), findsOneWidget);
+      expect(find.text(tituloSecaoAcervo), findsOneWidget);
+      expect(find.text(tituloSecaoContatos), findsOneWidget);
+      expect(find.text(tituloSecaoMudancas(7)), findsOneWidget);
+      expect(pilha.api.requisicoesDosRelatorios.map((u) => u.path).toSet(), {
+        '/api/relatorios/acervo/',
+        '/api/relatorios/acervo-por-corretor/',
+        '/api/relatorios/contatos/',
+        '/api/relatorios/mudancas-situacao/',
+      });
       expect(
         pilha.api.requisicoes.where((u) => u.path == '/api/imoveis/'),
         isEmpty,

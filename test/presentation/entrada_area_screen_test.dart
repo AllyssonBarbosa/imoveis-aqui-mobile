@@ -7,6 +7,9 @@ import 'package:imoveis_aqui/domain/entities/papel.dart';
 import 'package:imoveis_aqui/presentation/acervo/acervo_cubit.dart';
 import 'package:imoveis_aqui/presentation/acervo/acervo_screen.dart';
 import 'package:imoveis_aqui/presentation/acervo/acervo_state.dart';
+import 'package:imoveis_aqui/presentation/area_gestor/area_gestor_cubit.dart';
+import 'package:imoveis_aqui/presentation/area_gestor/area_gestor_screen.dart';
+import 'package:imoveis_aqui/presentation/area_gestor/area_gestor_state.dart';
 import 'package:imoveis_aqui/presentation/login/login_cubit.dart';
 import 'package:imoveis_aqui/presentation/login/login_screen.dart';
 import 'package:imoveis_aqui/presentation/login/login_state.dart';
@@ -26,6 +29,9 @@ class _SessaoCubitFalso extends MockCubit<SessaoState> implements SessaoCubit {}
 class _AcervoCubitFalso extends MockCubit<AcervoState> implements AcervoCubit {}
 
 class _LoginCubitFalso extends MockCubit<LoginState> implements LoginCubit {}
+
+class _AreaGestorCubitFalso extends MockCubit<AreaGestorState>
+    implements AreaGestorCubit {}
 
 void main() {
   late _EntradaCubitFalso entrada;
@@ -51,6 +57,14 @@ void main() {
       initialState: const AcervoState(conteudo: ConteudoAcervo.vazio()),
     );
     getIt.registerFactory<AcervoCubit>(() => acervo);
+
+    final areaGestor = _AreaGestorCubitFalso();
+    whenListen(
+      areaGestor,
+      const Stream<AreaGestorState>.empty(),
+      initialState: const AreaGestorState(),
+    );
+    getIt.registerFactory<AreaGestorCubit>(() => areaGestor);
 
     final login = _LoginCubitFalso();
     whenListen(
@@ -151,19 +165,57 @@ void main() {
     },
   );
 
-  for (final papel in [Papel.gestor, Papel.administrador]) {
-    testWidgets('$papel troca a entrada pelo aviso', (tester) async {
+  testWidgets(
+    'gestor troca a entrada pela Área do gestor e o voltar leva à vitrine '
+    '(D-01)',
+    (tester) async {
       await montar(
         tester,
         const EntradaAreaState.carregando(),
-        depois: Stream.value(EntradaAreaState.papel(papel)),
+        depois: Stream.value(const EntradaAreaState.papel(Papel.gestor)),
+      );
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(find.byType(AreaGestorScreen), findsOneWidget);
+      expect(find.byType(AvisoAreaScreen), findsNothing);
+      expect(find.byType(EntradaAreaScreen), findsNothing);
+
+      final navegador = tester.state<NavigatorState>(find.byType(Navigator));
+      navegador.pop();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(find.text('Abrir entrada'), findsOneWidget);
+      expect(find.byType(AreaGestorScreen), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'administrador troca a entrada pelo aviso e o voltar leva à vitrine '
+    '(D-02)',
+    (tester) async {
+      await montar(
+        tester,
+        const EntradaAreaState.carregando(),
+        depois: Stream.value(
+          const EntradaAreaState.papel(Papel.administrador),
+        ),
       );
       await tester.pump(const Duration(milliseconds: 500));
 
       expect(find.byType(AvisoAreaScreen), findsOneWidget);
+      expect(find.byType(AreaGestorScreen), findsNothing);
       expect(find.byType(EntradaAreaScreen), findsNothing);
-    });
-  }
+
+      final navegador = tester.state<NavigatorState>(find.byType(Navigator));
+      navegador.pop();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(find.text('Abrir entrada'), findsOneWidget);
+      expect(find.byType(AvisoAreaScreen), findsNothing);
+    },
+  );
 
   testWidgets(
     'sessaoExpirada deixa a sessão anônima e troca a entrada pelo login com '

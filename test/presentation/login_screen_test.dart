@@ -7,6 +7,9 @@ import 'package:imoveis_aqui/domain/entities/papel.dart';
 import 'package:imoveis_aqui/presentation/acervo/acervo_cubit.dart';
 import 'package:imoveis_aqui/presentation/acervo/acervo_screen.dart';
 import 'package:imoveis_aqui/presentation/acervo/acervo_state.dart';
+import 'package:imoveis_aqui/presentation/area_gestor/area_gestor_cubit.dart';
+import 'package:imoveis_aqui/presentation/area_gestor/area_gestor_screen.dart';
+import 'package:imoveis_aqui/presentation/area_gestor/area_gestor_state.dart';
 import 'package:imoveis_aqui/presentation/login/login_cubit.dart';
 import 'package:imoveis_aqui/presentation/login/login_screen.dart';
 import 'package:imoveis_aqui/presentation/login/login_state.dart';
@@ -20,6 +23,9 @@ class _LoginCubitFalso extends MockCubit<LoginState> implements LoginCubit {}
 class _SessaoCubitFalso extends MockCubit<SessaoState> implements SessaoCubit {}
 
 class _AcervoCubitFalso extends MockCubit<AcervoState> implements AcervoCubit {}
+
+class _AreaGestorCubitFalso extends MockCubit<AreaGestorState>
+    implements AreaGestorCubit {}
 
 void main() {
   late _LoginCubitFalso login;
@@ -48,6 +54,13 @@ void main() {
       initialState: const SessaoState.anonima(),
     );
     getIt.registerFactory<AcervoCubit>(() => acervo);
+    final areaGestor = _AreaGestorCubitFalso();
+    whenListen(
+      areaGestor,
+      const Stream<AreaGestorState>.empty(),
+      initialState: const AreaGestorState(),
+    );
+    getIt.registerFactory<AreaGestorCubit>(() => areaGestor);
   });
 
   tearDown(() async {
@@ -233,19 +246,39 @@ void main() {
     },
   );
 
-  for (final papel in [Papel.gestor, Papel.administrador]) {
-    testWidgets('entrou(${papel.name}) abre a tela de aviso', (tester) async {
+  testWidgets(
+    'entrou(gestor) marca autenticada e abre a Área do gestor (D-01)',
+    (tester) async {
       await montar(
         tester,
         const LoginState.editando(),
-        depois: Stream.value(LoginState.entrou(papel)),
+        depois: Stream.value(const LoginState.entrou(Papel.gestor)),
+      );
+      await tester.pumpAndSettle();
+
+      verify(() => sessao.marcarAutenticada()).called(1);
+      expect(find.byType(AreaGestorScreen), findsOneWidget);
+      expect(find.byType(AvisoAreaScreen), findsNothing);
+      expect(find.byType(AcervoScreen), findsNothing);
+      expect(find.byType(LoginScreen), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'entrou(administrador) marca autenticada e abre o aviso (D-02)',
+    (tester) async {
+      await montar(
+        tester,
+        const LoginState.editando(),
+        depois: Stream.value(const LoginState.entrou(Papel.administrador)),
       );
       await tester.pumpAndSettle();
 
       verify(() => sessao.marcarAutenticada()).called(1);
       expect(find.byType(AvisoAreaScreen), findsOneWidget);
+      expect(find.byType(AreaGestorScreen), findsNothing);
       expect(find.byType(AcervoScreen), findsNothing);
       expect(find.byType(LoginScreen), findsNothing);
-    });
-  }
+    },
+  );
 }
