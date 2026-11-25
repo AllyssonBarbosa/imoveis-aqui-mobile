@@ -1,0 +1,23 @@
+{
+  "linhas": [
+    {
+      "corretor_id": 1,
+      "corretor": "Corretor Vitrine Demo",
+      "ativo": true,
+      "total": 35
+    },
+    {
+      "corretor_id": 2,
+      "corretor": "Corretor Desativado Demo",
+      "ativo": false,
+      "total": 1
+    },
+    {
+      "corretor_id": 7,
+      "corretor": "Corretor Sem Acervo",
+      "ativo": true,
+      "total": 0
+    }
+  ],
+  "total": 36
+}
