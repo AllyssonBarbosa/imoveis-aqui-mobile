@@ -61,6 +61,7 @@ AreaGestorState _carregado({PeriodoContatos? periodo}) => AreaGestorState(
 
 void main() {
   late _AreaGestorCubitFalso cubit;
+  late _SessaoCubitFalso sessaoDaTela;
 
   setUpAll(() {
     registerFallbackValue(
@@ -71,6 +72,12 @@ void main() {
 
   setUp(() {
     cubit = _AreaGestorCubitFalso();
+    sessaoDaTela = _SessaoCubitFalso();
+    whenListen(
+      sessaoDaTela,
+      const Stream<SessaoState>.empty(),
+      initialState: const SessaoState.autenticada(),
+    );
     when(() => cubit.tentarNovamente(any())).thenAnswer((_) async {});
     when(() => cubit.aplicarPeriodo(any())).thenAnswer((_) async {});
     when(() => cubit.limparPeriodo()).thenAnswer((_) async {});
@@ -92,10 +99,13 @@ void main() {
       initialState: estado,
     );
     await tester.pumpWidget(
-      MaterialApp(
-        home: AreaGestorScreen(
-          criarCubit: () => cubit,
-          escolherPeriodo: escolherPeriodo ?? (_, _) async => null,
+      BlocProvider<SessaoCubit>.value(
+        value: sessaoDaTela,
+        child: MaterialApp(
+          home: AreaGestorScreen(
+            criarCubit: () => cubit,
+            escolherPeriodo: escolherPeriodo ?? (_, _) async => null,
+          ),
         ),
       ),
     );
