@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 12
 current_phase_name: Área do Gestor — Acompanhamento dos Corretores (APP 12)
 status: executing
-stopped_at: Completed 12-04-PLAN.md
-last_updated: "2026-11-25T21:10:33.299Z"
+stopped_at: Completed 12-05-PLAN.md
+last_updated: "2026-11-25T21:17:29.689Z"
 last_activity: 2026-11-25
 last_activity_desc: Phase 12 execution started
-state_head: 6a4fad1a21e49f99d83d37c469382157e124099e
+state_head: ee6ffdfbdbbfc9865b41abd038159ee177c0d795
 progress:
   total_phases: 12
   completed_phases: 3
   total_plans: 116
-  completed_plans: 111
+  completed_plans: 112
   percent: 25
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-11-24)
 ## Current Position
 
 Phase: 12 (Área do Gestor — Acompanhamento dos Corretores (APP 12)) — EXECUTING
-Plan: 5 of 9
+Plan: 6 of 9
 Status: Ready to execute
 Last activity: 2026-11-25 — Phase 12 execution started
 
@@ -155,6 +155,7 @@ Progress: [████████████████████] 107/107
 | Phase 12 P02 | 8 min | 2 tasks | 11 files |
 | Phase 12 P03 | 5 min | 2 tasks | 8 files |
 | Phase 12 P04 | 6 min | 2 tasks | 12 files |
+| Phase 12 P05 | 4 min | 2 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -270,6 +271,8 @@ Recent decisions affecting current work:
 - [Phase 12]: 12-03: o teste de contrato trava só o que o app lê no acervo (totais e total); situacoes e linhas só têm a presença conferida (D-09)
 - [Phase 12]: 12-03: IDs GES-01..06, API-15 e API-16 registrados como pendentes (82 no total); 12-03 cobre API-16 no wire (D-28)
 - [Phase 12]: 12-04: entidades da Área do gestor com coleção usam construtor não const que copia por List/Map.unmodifiable; total e pendentes ficam como o servidor mandou, sem recalcular
+- [Phase 12]: 12-05: situação desconhecida ou faltando nos Models da Área do gestor é FormatException na camada de dados, nunca valor padrão (D-24)
+- [Phase 12]: 12-05: linha de contatos com corretor_id nulo descarta corretor e ativo do servidor no próprio Model (D-17)
 
 ### Pending Todos
 
@@ -311,6 +314,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-25T21:10:30.873Z
-Stopped at: Completed 12-04-PLAN.md
+Last session: 2026-11-25T21:17:27.407Z
+Stopped at: Completed 12-05-PLAN.md
 Resume file: None
