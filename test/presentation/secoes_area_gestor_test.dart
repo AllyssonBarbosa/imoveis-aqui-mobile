@@ -379,7 +379,8 @@ void main() {
       expect(find.text(tituloSecaoMudancas(7)), findsOneWidget);
       for (final mudanca in mudancas.mudancas) {
         expect(find.text(rotuloImovelDaMudanca(mudanca)), findsOneWidget);
-        expect(find.text(textoQuandoEQuemMudanca(mudanca)), findsOneWidget);
+        // As duas mudanças da fixture têm o mesmo minuto e o mesmo autor.
+        expect(find.text(textoQuandoEQuemMudanca(mudanca)), findsWidgets);
       }
       expect(find.text('Disponível → Vendido'), findsOneWidget);
       expect(find.text('Disponível → Reservado'), findsOneWidget);
