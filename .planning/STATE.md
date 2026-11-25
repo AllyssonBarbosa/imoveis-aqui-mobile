@@ -23,7 +23,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-11-25)
 
 **Core value:** A vitrine do app abre na cidade do usuário e mostra imóveis reais vindos da API, com a busca e o filtro resolvidos no servidor — o mesmo dado e a mesma regra do site, nunca recalculados dentro do aparelho.
-**Current focus:** Phase 12 (APP 12) concluída em 2026-11-25 (UAT 8/8, SECURITY verificado). A posição abaixo aponta a Phase 1 só porque as fases 1–4 nunca passaram pela transição no ROADMAP (todas com planos feitos) — não há trabalho pendente nelas por isso. Próximo passo real: push/PR das duas `feat/APP12` (app e web), só com autorização do Allysson; opcionais da Phase 12: `/gsd-code-review 12`, `/gsd-validate-phase 12`, `/gsd-ui-review 12`.
+**Current focus:** Phase 12 (APP 12) concluída em 2026-11-25 (UAT 8/8, SECURITY verificado). A posição abaixo aponta a Phase 1 só porque as fases 1–4 nunca passaram pela transição no ROADMAP (todas com planos feitos) — não há trabalho pendente nelas por isso. Próximo passo real: push/PR das duas `feat/APP12` (app e web), só com autorização do Allysson; VALIDATION feito (nyquist_compliant, 0 lacunas); opcionais da Phase 12: `/gsd-code-review 12`, `/gsd-ui-review 12`.
 
 ## Current Position
 
