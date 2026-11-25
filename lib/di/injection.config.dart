@@ -16,6 +16,10 @@ import 'package:get_it/get_it.dart' as _i174;
 import 'package:imoveis_aqui/data/datasources/acervo_datasource.dart' as _i744;
 import 'package:imoveis_aqui/data/datasources/acervo_remote_datasource.dart'
     as _i659;
+import 'package:imoveis_aqui/data/datasources/area_gestor_datasource.dart'
+    as _i701;
+import 'package:imoveis_aqui/data/datasources/area_gestor_remote_datasource.dart'
+    as _i705;
 import 'package:imoveis_aqui/data/datasources/armazenamento_token.dart'
     as _i288;
 import 'package:imoveis_aqui/data/datasources/armazenamento_token_seguro.dart'
@@ -381,6 +385,11 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i959.ContatoCubit>(
       () => _i959.ContatoCubit(gh<_i762.ContatarCorretorUseCase>()),
+    );
+    gh.lazySingleton<_i701.AreaGestorDataSource>(
+      () => _i705.AreaGestorRemoteDataSource(
+        gh<_i361.Dio>(instanceName: 'autenticado'),
+      ),
     );
     gh.factory<_i331.DetalheImovelCubit>(
       () => _i331.DetalheImovelCubit(gh<_i990.ObterDetalheImovelUseCase>()),
