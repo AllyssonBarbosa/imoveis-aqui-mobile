@@ -1,0 +1,28 @@
+{
+  "dias": 7,
+  "desde": "2026-11-19",
+  "mudancas": [
+    {
+      "id": 4,
+      "imovel_id": 35,
+      "imovel_codigo": "DEV-INDAIATUBA-03",
+      "imovel_titulo": "Terreno no bairro Centro",
+      "situacao_anterior": "DISPONIVEL",
+      "situacao_nova": "VENDIDO",
+      "alterado_por": "Corretor Vitrine Demo",
+      "alterado_em": "2026-11-25T17:53:12.715486-03:00",
+      "observacao": ""
+    },
+    {
+      "id": 3,
+      "imovel_id": 36,
+      "imovel_codigo": "DEV-INDAIATUBA-04",
+      "imovel_titulo": "Lote no bairro Jardim Esplanada",
+      "situacao_anterior": "DISPONIVEL",
+      "situacao_nova": "RESERVADO",
+      "alterado_por": "Corretor Vitrine Demo",
+      "alterado_em": "2026-11-25T17:53:12.699886-03:00",
+      "observacao": "Captura APP-12: reserva para o relatório do gestor."
+    }
+  ]
+}

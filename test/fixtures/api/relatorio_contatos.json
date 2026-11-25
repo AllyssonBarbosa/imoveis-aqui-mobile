@@ -1,0 +1,29 @@
+{
+  "de": null,
+  "ate": null,
+  "linhas": [
+    {
+      "corretor_id": 1,
+      "corretor": "Corretor Vitrine Demo",
+      "ativo": true,
+      "total": 3,
+      "pendentes": 2
+    },
+    {
+      "corretor_id": null,
+      "corretor": "Empresa (corretor desativado no clique)",
+      "ativo": null,
+      "total": 1,
+      "pendentes": 1
+    },
+    {
+      "corretor_id": 7,
+      "corretor": "Corretor Sem Acervo",
+      "ativo": true,
+      "total": 0,
+      "pendentes": 0
+    }
+  ],
+  "total": 4,
+  "pendentes": 3
+}

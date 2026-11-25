@@ -1,0 +1,11 @@
+{
+  "linhas": [
+    {
+      "corretor_id": 5,
+      "corretor": "Corretor Demo",
+      "ativo": true,
+      "total": 1
+    }
+  ],
+  "total": 1
+}

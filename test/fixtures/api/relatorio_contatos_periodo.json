@@ -1,0 +1,22 @@
+{
+  "de": "2024-01-01",
+  "ate": "2024-01-31",
+  "linhas": [
+    {
+      "corretor_id": 7,
+      "corretor": "Corretor Sem Acervo",
+      "ativo": true,
+      "total": 0,
+      "pendentes": 0
+    },
+    {
+      "corretor_id": 1,
+      "corretor": "Corretor Vitrine Demo",
+      "ativo": true,
+      "total": 0,
+      "pendentes": 0
+    }
+  ],
+  "total": 0,
+  "pendentes": 0
+}
