@@ -2,17 +2,17 @@
 gsd_state_version: "1.0"
 current_phase: 12
 current_phase_name: Área do Gestor — Acompanhamento dos Corretores (APP 12)
-status: executing
-stopped_at: Completed 12-08-PLAN.md
-last_updated: "2026-11-25T21:44:14.060Z"
+status: verifying
+stopped_at: Completed 12-09-PLAN.md
+last_updated: "2026-11-25T22:15:52.473Z"
 last_activity: 2026-11-25
 last_activity_desc: Phase 12 execution started
-state_head: ac579e47732737e1e2012b70833d74f5ac9dd560
+state_head: 32409206a33cb9c8768db09c590684fa695f1768
 progress:
   total_phases: 12
   completed_phases: 3
   total_plans: 116
-  completed_plans: 115
+  completed_plans: 116
   percent: 25
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-11-24)
 
 Phase: 12 (Área do Gestor — Acompanhamento dos Corretores (APP 12)) — EXECUTING
 Plan: 9 of 9
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-11-25 — Phase 12 execution started
 
 Progress: [████████████████████] 107/107 plans ([███░░░░░░░] 25%)
@@ -159,6 +159,7 @@ Progress: [████████████████████] 107/107
 | Phase 12 P06 | 25 min | 2 tasks | 7 files |
 | Phase 12 P07 | 7 min | 2 tasks | 7 files |
 | Phase 12 P08 | 7 min | 2 tasks | 8 files |
+| Phase 12 P09 | 25 min | 4 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -281,6 +282,8 @@ Recent decisions affecting current work:
 - [Phase 12]: 12-07: falha de seção guarda só o tipo (FalhaDaSecao); 401 em qualquer seção é terminal (sessaoExpirada) e trava pedidos e respostas atrasadas; versão por seção descarta resposta superada
 - [Phase 12]: 12-08: a linha da empresa usa textoLinhaDaEmpresa; o nome que o servidor mandou nela nunca chega ao widget (D-17, T-12-20)
 - [Phase 12]: 12-08: AreaGestorScreen sem helper de abertura; ligar ao login e ao botão do topo fica no 12-09
+- [Phase 12]: 12-09: a área é escolhida só pelo papel de GET /api/auth/eu/ a cada entrada (gestor na Área do gestor, administrador no aviso, corretor no acervo); o botão do topo segue 'Meu acervo' (D-01, D-02, D-04)
+- [Phase 12]: 12-09: preparo do Postgres do UAT (gestor da vitrine e seed_demo) feito só pelo Allysson no checkpoint blocking-human; script fora dos repositórios; gates finais: analyze 0 erros/warnings (59 infos de material.dart), flutter test 1924, Django 803 OK, sem push
 
 ### Pending Todos
 
@@ -322,6 +325,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-25T21:44:11.104Z
-Stopped at: Completed 12-08-PLAN.md
+Last session: 2026-11-25T22:15:48.221Z
+Stopped at: Completed 12-09-PLAN.md
 Resume file: None

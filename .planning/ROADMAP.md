@@ -595,7 +595,7 @@ Plans:
   5. Todos os números vêm da API, calculados no servidor.
   6. Só o gestor enxerga esta área; o corretor não.
 
-**Plans:** 8/9 plans executed
+**Plans:** 9/9 plans executed
 
 Plans:
 **Wave 1**
@@ -623,4 +623,4 @@ Plans:
 - [x] 12-08-PLAN.md — App: `AreaGestorScreen` e os widgets das 4 seções (ordem, Sair, chip Período, retry por seção, 401 → login) (GES-01..GES-06)
 
 **Wave 9** *(blocked on Wave 8 completion)*
-- [ ] 12-09-PLAN.md — App: gestor → Área do gestor no login e no topo, administrador no aviso próprio, fluxo ponta a ponta, REQUIREMENTS completos, gates finais e human-check (GES-01..GES-06, API-15, API-16)
+- [x] 12-09-PLAN.md — App: gestor → Área do gestor no login e no topo, administrador no aviso próprio, fluxo ponta a ponta, REQUIREMENTS completos, gates finais e human-check (GES-01..GES-06, API-15, API-16)

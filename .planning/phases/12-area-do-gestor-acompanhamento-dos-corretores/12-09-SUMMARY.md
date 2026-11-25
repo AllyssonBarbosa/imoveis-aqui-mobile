@@ -189,7 +189,7 @@ Nenhum agente rodou o script, escreveu no Postgres ou fez requisição ao servid
 - `lib/presentation/sessao/aviso_area_screen.dart` - aviso só do administrador, com o texto novo
 - `test/presentation/area_gestor_fluxo_test.dart` - 6 fluxos ponta a ponta sobre a pilha real
 - `test/presentation/entrada_area_screen_test.dart`, `login_screen_test.dart`, `aviso_area_screen_test.dart`, `login_fluxo_test.dart` - roteamento por papel, texto do aviso e login do gestor
-- `test/support/pilha_real.dart` - suporte ao gestor na pilha real (sobrescrita da fixture do gestor e conferência de cabeçalhos nas rotas de relatórios)
+- `test/support/pilha_real.dart` - `conferirCabecalhosDeAutorizacao` passa a exigir o token em toda rota `/api/relatorios/`
 - `.planning/REQUIREMENTS.md` - 8 IDs completos, linha `Last updated`
 
 ## Decisions Made
@@ -204,15 +204,15 @@ Nenhum agente rodou o script, escreveu no Postgres ou fez requisição ao servid
 
 **1. [Rule 1 - Bug de teste] Asserção negativa do aviso reescrita sem o literal proibido**
 - **Found during:** Task 1 (GREEN)
-- **Issue:** a asserção negativa em `aviso_area_screen_test.dart` continha o literal que o gate de grep do plano proíbe encontrar nos arquivos de `lib/` e `test/` do aviso.
-- **Fix:** a asserção foi reescrita sem o literal proibido, mantendo a mesma garantia.
+- **Issue:** a asserção negativa em `aviso_area_screen_test.dart` (o texto antigo do gestor não existe mais) estava escrita com o literal proibido do texto antigo.
+- **Fix:** a asserção foi reescrita sem o literal proibido (`find.text('Área do gestor')` e `find.textContaining('área do gestor')` com `findsNothing`), mantendo a mesma garantia.
 - **Files modified:** `test/presentation/aviso_area_screen_test.dart`
 - **Committed in:** `9f75bc1`
 
 **2. [Rule 1 - Bug de teste] Caso do gestor em `login_screen_test.dart` usa `pump` em vez de `pumpAndSettle`**
 - **Found during:** Task 1 (GREEN)
-- **Issue:** a `AreaGestorScreen` mantém indicadores de carregamento animados enquanto as seções carregam, e `pumpAndSettle` nunca assentaria.
-- **Fix:** o caso do gestor usa `pump` com a duração necessária.
+- **Issue:** as seções carregando da `AreaGestorScreen` mantêm o indicador animado, então `pumpAndSettle` não assenta.
+- **Fix:** o caso do gestor usa `pump()` seguido de `pump(500 ms)`, com comentário no teste.
 - **Files modified:** `test/presentation/login_screen_test.dart`
 - **Committed in:** `9f75bc1`
 
