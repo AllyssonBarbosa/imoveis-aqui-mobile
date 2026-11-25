@@ -24,6 +24,7 @@ recalculados dentro do aparelho.
 
 ### Validated
 
+- ✓ **APP12** — Área do gestor no app (gestor entra pelo mesmo "Entrar" e cai nela; papel lido de `GET /api/auth/eu/` a cada entrada): uma tela com 4 seções, cada uma com carregamento e "Tentar de novo" próprios — totais da empresa por situação, acervo por corretor (inclui corretor desativado ainda responsável, rodapé "Total: N imóveis" do servidor), contatos por corretor com chip de período (só essa seção recarrega) e mudanças de situação dos últimos 7 dias; todos os números calculados no Django (rotas novas `GET /api/relatorios/acervo-por-corretor/` e `GET /api/relatorios/mudancas-situacao/?dias=`, §18 do contrato), batendo com os relatórios do site; isolamento por empresa; administrador fica no aviso — Phase 12 (UAT 8/8 contra o Django real; GES-01..06, API-15, API-16)
 - ✓ **APP10** — Caixa de contatos do corretor ("Meus contatos", pelo ícone no "Meu acervo"): lista paginada dos contatos recebidos (mais recentes primeiro, com imóvel, canal e data), número de sem retorno calculado no Django, filtros por imóvel e por período (seletor em pt-BR) resolvidos no servidor e retorno anotado com um toque (falei, visita agendada, sem resposta, descartado), gravado pela API; isolamento por empresa e corretor — Phase 10 (UAT 6/6 contra o Django real; CXA-01..06, API-13, API-14)
 - ✓ **APP08** — Login do corretor no mesmo app (token da API em `flutter_secure_storage`), "Meu acervo" com os imóveis dele e da imobiliária, busca e filtro por situação resolvidos no servidor, isolamento por empresa, Sair que revoga o token; gestor e administrador veem um aviso — Phase 8
 - ✓ **PERF-03** — Vitrine do anunciante (corretor e empresa) paginada e recortada no servidor, via `GET /api/publico/corretores/<id>/imoveis/` e `/api/publico/empresas/<id>/imoveis/` — Phase 07.1
@@ -51,8 +52,8 @@ recalculados dentro do aparelho.
 
 - Site público / painel web — outra frente, feita por outros colegas da equipe.
 - Página de detalhe do imóvel (card 8), contato por WhatsApp (card 9), favoritos — entregas seguintes do app, não nas 3 tarefas atribuídas agora.
-- Área logada do gestor/administrador, contratos e parcelas — milestones futuros (a área do corretor entrou na Phase 8).
-- Caixa de contatos do gestor no app — fica para a APP-12 (área do gestor); na Phase 10 o app só oferece a caixa ao corretor, embora a API já atenda o gestor com o escopo da empresa.
+- Área do administrador, contratos e parcelas no app — milestones futuros (a área do corretor entrou na Phase 8 e a do gestor, só de acompanhamento, na Phase 12).
+- Gestão pelo app (editar imóvel ou corretor, anotar retorno pelo gestor, abrir a caixa de contatos do gestor) — a APP-12 é só leitura: as linhas da Área do gestor não abrem tela, e os contatos por corretor vêm de `GET /api/relatorios/contatos/`, não da caixa da Phase 10.
 - Model de Imóvel / endereço / fotos / quatro naturezas / loteamento / publicação — **dependência** minha, mas construídos na frente web pelos colegas (E2); eu apenas exponho o que for publicado via API pública.
 - Infra de backend: PostgreSQL, Dockerização da API e volume de imagens — pertencem ao repositório e às decisões da API (colega), não ao app Flutter. O app persiste só a cidade escolhida localmente no aparelho.
 
@@ -99,6 +100,9 @@ recalculados dentro do aparelho.
 | Anotação sem otimismo: o item só muda com o 200 do servidor; 404 recarrega lista e número; falha mostra texto fixo | O retorno é estado do servidor; o app não finge sucesso | ✓ Good — Phase 10 (UAT com Django parado e com contato apagado) |
 | pt-BR do Material ligado no app inteiro (`flutter_localizations`, do SDK) | O seletor de período precisava estar em português; nenhum pacote de terceiros | ✓ Good — Phase 10 (UAT 3) |
 | Colisão de numeração entre fases paralelas resolvida pela ordem de entrada na `main`: a APP-09 ficou com o §16 do contrato e com API-11/API-12; a APP-10 virou §17 e API-13/API-14 | Merge da `main` na `feat/APP10` (b9d36e9) sem reescrever o que já estava na `main`; os documentos da Fase 10 foram renumerados (51afe35) | ✓ Good — Phase 10 (re-verificação passed, 1743 testes no app e 776 no web) |
+| Área do gestor escolhida só pelo papel que `GET /api/auth/eu/` devolve a cada entrada; o papel nunca é guardado no aparelho e o botão do topo continua "Meu acervo" | Quem garante o acesso é o Django (`EhGestor`, 403 para corretor e administrador); o app só escolhe a tela | ✓ Good — Phase 12 (UAT 1, 5 e 6) |
+| 2 rotas novas em `relatorios/` da web (acervo por corretor; mudanças de situação com `?dias=`, padrão 7 numa constante do Django, sem paginação porque a janela limita o tamanho), ao lado das 2 que já existiam no site | Os números do app saem da mesma conta do painel do site; o app não soma, não conta nem ordena | ✓ Good — Phase 12 (UAT 2: números iguais aos do site; 803 testes no web) |
+| Cada seção da Área do gestor tem estado e versão próprios; falha guarda só o tipo (texto fixo do app) e 401 em qualquer seção encerra a sessão | Uma seção que falha não derruba as outras, resposta de período antigo é descartada e texto do servidor nunca chega à tela | ✓ Good — Phase 12 (UAT 3 e 7; 1924 testes no app) |
 
 ## Evolution
 
@@ -118,4 +122,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-11-24 after Phase 10*
+*Last updated: 2026-11-25 after Phase 12*

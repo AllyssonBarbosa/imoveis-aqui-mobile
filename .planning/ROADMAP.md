@@ -31,7 +31,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 8: Login e Área do Corretor — o Acervo** (completed 2026-11-21)
 - [ ] **Phase 9: Mudança de Situação do Imóvel pelo App (APP 09)** - Corretor responsável troca a situação do imóvel (disponível/reservado/vendido/alugado) com observação pela API (a data é a do servidor; o gestor segue pela web até a APP-12), vê o histórico na tela do imóvel; recusa do servidor mantém a situação anterior.
 - [x] **Phase 10: Contatos Recebidos e Retorno Anotado (APP 10)** - Card APP 10: caixa de contatos do corretor (lista da API, filtro por imóvel e por período, contagem dos sem retorno) e retorno anotado gravado pela API. (Fase 9 reservada ao card APP 09, de outro colega — fase N = card APP 0N.) (completed 2026-11-24)
-- [ ] **Phase 12: Área do Gestor — Acompanhamento dos Corretores (APP 12)** - Card APP 12: área do gestor no app com acervo por corretor, contatos por corretor e por período, mudanças de situação recentes e totais da empresa por situação, todos calculados no Django (Fase 11 reservada ao card APP 11, de outro colega — fase N = card APP N.)
+- [x] **Phase 12: Área do Gestor — Acompanhamento dos Corretores (APP 12)** - Card APP 12: área do gestor no app com acervo por corretor, contatos por corretor e por período, mudanças de situação recentes e totais da empresa por situação, todos calculados no Django (Fase 11 reservada ao card APP 11, de outro colega — fase N = card APP N.) (completed 2026-11-25)
 
 ## Phase Details
 
@@ -595,7 +595,7 @@ Plans:
   5. Todos os números vêm da API, calculados no servidor.
   6. Só o gestor enxerga esta área; o corretor não.
 
-**Plans:** 9/9 plans executed
+**Plans:** 9/9 plans complete
 
 Plans:
 **Wave 1**

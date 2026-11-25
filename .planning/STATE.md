@@ -1,13 +1,13 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 12
-current_phase_name: Área do Gestor — Acompanhamento dos Corretores (APP 12)
+current_phase: 1
+current_phase_name: Localização, Escolha de Cidade e Contrato da API
 status: verifying
-stopped_at: Completed 12-09-PLAN.md
-last_updated: "2026-11-25T22:15:52.473Z"
+stopped_at: Phase 12 complete, ready to verify Phase 1
+last_updated: "2026-11-25T23:07:12.022Z"
 last_activity: 2026-11-25
-last_activity_desc: Phase 12 execution started
-state_head: 32409206a33cb9c8768db09c590684fa695f1768
+last_activity_desc: Phase 12 complete, transitioned to Phase 1
+state_head: 60127309b807791c0297ba9786fb6dc053254fa3
 progress:
   total_phases: 12
   completed_phases: 3
@@ -20,25 +20,25 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-11-24)
+See: .planning/PROJECT.md (updated 2026-11-25)
 
 **Core value:** A vitrine do app abre na cidade do usuário e mostra imóveis reais vindos da API, com a busca e o filtro resolvidos no servidor — o mesmo dado e a mesma regra do site, nunca recalculados dentro do aparelho.
-**Current focus:** Phase 12 — Área do Gestor — Acompanhamento dos Corretores (APP 12)
+**Current focus:** Phase 12 (APP 12) concluída em 2026-11-25 (UAT 8/8, SECURITY verificado). A posição abaixo aponta a Phase 1 só porque as fases 1–4 nunca passaram pela transição no ROADMAP (todas com planos feitos) — não há trabalho pendente nelas por isso. Próximo passo real: push/PR das duas `feat/APP12` (app e web), só com autorização do Allysson; opcionais da Phase 12: `/gsd-code-review 12`, `/gsd-validate-phase 12`, `/gsd-ui-review 12`.
 
 ## Current Position
 
-Phase: 12 (Área do Gestor — Acompanhamento dos Corretores (APP 12)) — EXECUTING
-Plan: 9 of 9
+Phase: 1 — Localização, Escolha de Cidade e Contrato da API
+Plan: 4
 Status: Phase complete — ready for verification
-Last activity: 2026-11-25 — Phase 12 execution started
+Last activity: 2026-11-25 — Phase 12 complete, transitioned to Phase 1
 
-Progress: [████████████████████] 107/107 plans ([███░░░░░░░] 25%)
+Progress: [████████████████████] 116/116 plans (100%)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 72
+- Total plans completed: 81
 - Average duration: - min
 - Total execution time: 0 hours
 
@@ -52,6 +52,7 @@ Progress: [████████████████████] 107/107
 | 07 | 12 | - | - |
 | 08 | 12 | - | - |
 | 10 | 10 | - | - |
+| 12 | 9 | - | - |
 
 **Recent Trend:**
 
@@ -294,7 +295,8 @@ None yet.
 - [Phase 5]: Externally blocked on the `Imóvel` model (owned by teammate E2 in `../imoveis-aqui/Web`) — Phases 1-3 do not require it (mock-first build), but Phase 5 cannot complete until that model lands.
 - [Phase 07.1]: PENDENTE WEB no §13.7 do contrato (D-20): limite de taxa nas views de perfil e extensão do seed — aceito fora do escopo do app, depende da frente web.
 - [Phase 10]: PENDENTE WEB — o POST público de contato não tem limite de taxa na `feat/APP10` (`CONTATO_TAXA_ANONIMA` não existe no `settings.py`); fora do escopo do app, avisar a frente web.
-- [Phase 10]: `GET /api/contatos/imoveis/` sem paginação (risco aceito AR-10-01) — revisar quando a APP-12 levar a caixa ao gestor.
+- [Phase 10]: `GET /api/contatos/imoveis/` sem paginação (risco aceito AR-10-01) — a APP-12 não levou a caixa ao gestor (os contatos por corretor vêm de `GET /api/relatorios/contatos/`), então o risco segue aceito como estava.
+- [Phase 12]: PENDENTE WEB — `canais_contato` (APP-06) só existe na `origin/feat/APP06` da web, não na `main`: contra um servidor da `main`, a barra de contato do imóvel aparece sem canais; avisar o grupo.
 - [Phase 1]: API-AUDIT needs live coordination with the teammate on exact `Imóvel` field names/enum values (natureza, finalidade, características shape, quartos/suítes/vagas exact-vs-range semantics) — not resolvable from docs alone.
 
 ### Quick Tasks Completed
@@ -325,6 +327,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-25T22:15:48.221Z
-Stopped at: Completed 12-09-PLAN.md
+Last session: 2026-11-25
+Stopped at: Phase 12 complete (UAT 8/8, SECURITY verified, transition done); next: push/PR of both feat/APP12 only with authorization
 Resume file: None
