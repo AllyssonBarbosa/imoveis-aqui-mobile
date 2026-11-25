@@ -1,0 +1,17 @@
+{
+  "dias": 7,
+  "desde": "2026-11-19",
+  "mudancas": [
+    {
+      "id": 1,
+      "imovel_id": 37,
+      "imovel_codigo": "DEMO-CASA-01",
+      "imovel_titulo": "Casa de demonstração com 3 quartos",
+      "situacao_anterior": "DISPONIVEL",
+      "situacao_nova": "VENDIDO",
+      "alterado_por": "Gestor Demo",
+      "alterado_em": "2026-11-25T17:53:02.514574-03:00",
+      "observacao": "Contrato #1 de venda assinado em 01/07/2026."
+    }
+  ]
+}

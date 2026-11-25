@@ -31,6 +31,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 8: Login e Área do Corretor — o Acervo** (completed 2026-11-21)
 - [ ] **Phase 9: Mudança de Situação do Imóvel pelo App (APP 09)** - Corretor responsável troca a situação do imóvel (disponível/reservado/vendido/alugado) com observação pela API (a data é a do servidor; o gestor segue pela web até a APP-12), vê o histórico na tela do imóvel; recusa do servidor mantém a situação anterior.
 - [x] **Phase 10: Contatos Recebidos e Retorno Anotado (APP 10)** - Card APP 10: caixa de contatos do corretor (lista da API, filtro por imóvel e por período, contagem dos sem retorno) e retorno anotado gravado pela API. (Fase 9 reservada ao card APP 09, de outro colega — fase N = card APP 0N.) (completed 2026-11-24)
+- [x] **Phase 12: Área do Gestor — Acompanhamento dos Corretores (APP 12)** - Card APP 12: área do gestor no app com acervo por corretor, contatos por corretor e por período, mudanças de situação recentes e totais da empresa por situação, todos calculados no Django (Fase 11 reservada ao card APP 11, de outro colega — fase N = card APP N.) (completed 2026-11-25)
 
 ## Phase Details
 
@@ -579,3 +580,47 @@ Plans:
 
 **Wave 10** *(blocked on Wave 9 completion)*
 - [x] 10-10-PLAN.md — App: anotar o retorno (folha, item em voo, SnackBar fixa, número de novo do servidor) + casos ponta a ponta de anotação e 404, REQUIREMENTS completos, gates finais e human-check (CXA-01..06, API-13, API-14)
+
+### Phase 12: Área do Gestor — Acompanhamento dos Corretores (APP 12)
+
+**Goal:** Como gestor da imobiliária, eu quero acompanhar pelo celular o que a minha equipe está fazendo para saber quem está com acervo parado e quem está recebendo contato. A tela responde quatro perguntas: quantos imóveis cada corretor tem, quantos contatos cada um recebeu, o que mudou de situação nos últimos dias e quanto a empresa tem em cada situação — disponível, reservado, vendido e alugado. Card APP 12 (tarefa A12).
+**Requirements**: GES-01, GES-02, GES-03, GES-04, GES-05, GES-06, API-15, API-16
+**Depends on:** Phase 8 (login, sessão, `GET /api/auth/eu/` e `Dio` autenticado do app; hoje o gestor cai na `AvisoAreaScreen`) e Phase 10 (seletor de período em pt-BR). Externamente: WEB 08 (feito — `HistoricoSituacao`) e W12 (feito, na `main` da web — `GET /api/relatorios/acervo/` e `GET /api/relatorios/contatos/`, só para o gestor). Lacunas na web: acervo por corretor e mudanças de situação recentes da empresa (ver `12-CARD-APP12.md`).
+**Success Criteria** (what must be TRUE):
+
+  1. Acervo por corretor, com o total de cada um.
+  2. Contatos recebidos por corretor e por período.
+  3. Lista dos imóveis que mudaram de situação nos últimos dias, com quem mudou.
+  4. Totais da empresa por situação.
+  5. Todos os números vêm da API, calculados no servidor.
+  6. Só o gestor enxerga esta área; o corretor não.
+
+**Plans:** 9/9 plans complete
+
+Plans:
+**Wave 1**
+- [x] 12-01-PLAN.md — Web (feat/APP12): TRACER do acervo por corretor com token (login do gestor → `GET /api/relatorios/acervo-por-corretor/`) + mudanças de situação dos últimos 7 dias (`GET /api/relatorios/mudancas-situacao/?dias=`), critério 6 nas 4 rotas e README (API-15, GES-01, GES-02, GES-03, GES-04, GES-06)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [x] 12-02-PLAN.md — Wire real: grupo `gestor` na ferramenta de captura e as 10 fixtures (porta 8012), com a outra empresa tendo imóvel e mudança e a janela de dias provada (API-16, GES-05, GES-06)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [x] 12-03-PLAN.md — §18 do contrato, exemplos, `contrato_area_gestor_test.dart` e registro de GES-01..06, API-15, API-16 (+ nota no LOG-01) (API-16, GES-06)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [x] 12-04-PLAN.md — App: domínio da Área do gestor (entidades das 4 seções, `AreaGestorRepository`, 4 use cases) (GES-01..GES-05)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [x] 12-05-PLAN.md — App: os 4 Models freezed lidos contra todas as fixtures, situação desconhecida = falha de formato (GES-01..GES-04, API-16)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [x] 12-06-PLAN.md — App: DataSource no `Dio` autenticado, repositório com 401/403 tipados e as 4 rotas na `ApiFalsa` (GES-01..GES-06)
+
+**Wave 7** *(blocked on Wave 6 completion)*
+- [x] 12-07-PLAN.md — App: textos fixos da Área do gestor e `AreaGestorCubit` (seções independentes, período só nos contatos, 401 terminal, 403 próprio) (GES-01..GES-06)
+
+**Wave 8** *(blocked on Wave 7 completion)*
+- [x] 12-08-PLAN.md — App: `AreaGestorScreen` e os widgets das 4 seções (ordem, Sair, chip Período, retry por seção, 401 → login) (GES-01..GES-06)
+
+**Wave 9** *(blocked on Wave 8 completion)*
+- [x] 12-09-PLAN.md — App: gestor → Área do gestor no login e no topo, administrador no aviso próprio, fluxo ponta a ponta, REQUIREMENTS completos, gates finais e human-check (GES-01..GES-06, API-15, API-16)

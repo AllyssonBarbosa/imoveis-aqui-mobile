@@ -138,6 +138,15 @@ class _Falha {
 /// responde 201 com `contato_201_<canal>.json` quando o `canal` do corpo está em
 /// `canais_contato` do detalhe do id, 400 com `erro_400_canal_contato.json`
 /// quando não está, 404 para id fora das fixtures e 405 para outro método.
+/// Os relatórios do gestor (`GET /api/relatorios/acervo/`,
+/// `.../acervo-por-corretor/`, `.../contatos/` e `.../mudancas-situacao/`)
+/// também exigem o token (senão 401 com `erro_401.json`) e servem
+/// `relatorio_acervo.json`, `relatorio_acervo_por_corretor.json`,
+/// `relatorio_contatos.json` (`relatorio_contatos_periodo.json` com `de` ou
+/// `ate` não vazios) e `relatorio_mudancas.json`. A `ApiFalsa` não decide o
+/// papel: o 403 de quem não é gestor se simula com `responder(..., status:
+/// 403, fixture: 'erro_403_relatorio.json')`; [requisicoesDosRelatorios] lista
+/// só esses pedidos.
 /// Rota ainda não servida responde 404 com um objeto JSON vazio.
 /// Cada requisição é gravada com método e cabeçalhos ([requisicoesGravadas]) e,
 /// com o corpo já decodificado, em [chamadas];
@@ -186,6 +195,12 @@ class ApiFalsa {
     }
     return null;
   }
+
+  /// Requisições às rotas dos relatórios do gestor (caminho que começa com
+  /// `/api/relatorios/`), na ordem.
+  List<Uri> get requisicoesDosRelatorios => List.unmodifiable(
+    _requisicoes.where((uri) => uri.path.startsWith('/api/relatorios/')),
+  );
 
   /// Registra uma resposta que vale para as URIs em que [quando] é verdadeiro.
   /// Vale a última registrada. [fixture] é o nome do arquivo em
@@ -294,6 +309,8 @@ class ApiFalsa {
     }
     final rotaDaCaixa = _atenderCaixa(uri, opcoes);
     if (rotaDaCaixa != null) return rotaDaCaixa;
+    final rotaDosRelatorios = _atenderRelatorios(uri, opcoes);
+    if (rotaDosRelatorios != null) return rotaDosRelatorios;
     if (uri.path == '/api/imoveis/' && opcoes.method == 'GET') {
       if (!_temToken(opcoes)) {
         return _corpoJson(lerFixtureApi('erro_401.json'), 401);
@@ -421,6 +438,39 @@ class ApiFalsa {
       fixture = 'contatos_periodo_vazio.json';
     } else {
       fixture = 'contatos_p1.json';
+    }
+    return _corpoJson(lerFixtureApi(fixture), 200);
+  }
+
+  /// Atende as rotas dos relatórios do gestor (`/api/relatorios/...`), todas
+  /// `GET` e com token (senão 401); nulo se [uri] não é uma delas. Não decide
+  /// papel: o 403 de quem não é gestor é simulado pelos testes com `responder`.
+  ResponseBody? _atenderRelatorios(Uri uri, RequestOptions opcoes) {
+    if (opcoes.method.toUpperCase() != 'GET') return null;
+    const rotas = {
+      '/api/relatorios/acervo/',
+      '/api/relatorios/acervo-por-corretor/',
+      '/api/relatorios/contatos/',
+      '/api/relatorios/mudancas-situacao/',
+    };
+    if (!rotas.contains(uri.path)) return null;
+    if (!_temToken(opcoes)) {
+      return _corpoJson(lerFixtureApi('erro_401.json'), 401);
+    }
+    final String fixture;
+    switch (uri.path) {
+      case '/api/relatorios/acervo/':
+        fixture = 'relatorio_acervo.json';
+      case '/api/relatorios/acervo-por-corretor/':
+        fixture = 'relatorio_acervo_por_corretor.json';
+      case '/api/relatorios/mudancas-situacao/':
+        fixture = 'relatorio_mudancas.json';
+      default:
+        fixture =
+            (uri.queryParameters['de'] ?? '').isNotEmpty ||
+                (uri.queryParameters['ate'] ?? '').isNotEmpty
+            ? 'relatorio_contatos_periodo.json'
+            : 'relatorio_contatos.json';
     }
     return _corpoJson(lerFixtureApi(fixture), 200);
   }

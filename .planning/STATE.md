@@ -1,44 +1,44 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 09
-current_phase_name: Mudança de Situação do Imóvel pelo App (APP 09)
+current_phase: 1
+current_phase_name: Localização, Escolha de Cidade e Contrato da API
 status: verifying
-stopped_at: Phase 10 complete, ready to verify Phase 1
-last_updated: "2026-11-24T22:24:05.500Z"
-last_activity: 2026-11-24
-last_activity_desc: Phase 10 complete, transitioned to Phase 1
-state_head: 8f0be90653357cab17d9b72814cfa8d517318e00
+stopped_at: Phase 12 complete, ready to verify Phase 1
+last_updated: "2026-11-25T23:07:12.022Z"
+last_activity: 2026-11-25
+last_activity_desc: Phase 12 complete, transitioned to Phase 1
+state_head: 60127309b807791c0297ba9786fb6dc053254fa3
 progress:
-  total_phases: 10
+  total_phases: 12
   completed_phases: 3
-  total_plans: 107
-  completed_plans: 107
-  percent: 30
+  total_plans: 116
+  completed_plans: 116
+  percent: 25
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-11-24)
+See: .planning/PROJECT.md (updated 2026-11-25)
 
 **Core value:** A vitrine do app abre na cidade do usuário e mostra imóveis reais vindos da API, com a busca e o filtro resolvidos no servidor — o mesmo dado e a mesma regra do site, nunca recalculados dentro do aparelho.
-**Current focus:** Phase 10 (APP 10) concluída em 2026-11-24 (UAT 6/6, SECURITY verificado). A posição abaixo aponta a Phase 1 só porque as fases 1–4 nunca passaram pela transição no ROADMAP (todas com planos feitos) — não há trabalho pendente nelas por isso. Próximo passo real: push/PR das duas `feat/APP10` (app e web), só com autorização do Allysson; opcionais da Phase 10: `/gsd-code-review 10`, `/gsd-validate-phase 10`, `/gsd-ui-review 10`. A Phase 9 (APP-09, do colega) entrou pela `main` em 2026-11-24 (merge na `feat/APP10`): 13/13 planos e UAT completos na `main`, ainda sem a transição no ROADMAP.
+**Current focus:** Phase 12 (APP 12) concluída em 2026-11-25 (UAT 8/8, SECURITY verificado). A posição abaixo aponta a Phase 1 só porque as fases 1–4 nunca passaram pela transição no ROADMAP (todas com planos feitos) — não há trabalho pendente nelas por isso. Próximo passo real: push/PR das duas `feat/APP12` (app e web), só com autorização do Allysson; VALIDATION feito (nyquist_compliant, 0 lacunas); opcionais da Phase 12: `/gsd-code-review 12`, `/gsd-ui-review 12`.
 
 ## Current Position
 
-Phase: 09 (Mudança de Situação do Imóvel pelo App (APP 09)) — EXECUTING
-Plan: 13 of 13
+Phase: 1 — Localização, Escolha de Cidade e Contrato da API
+Plan: 4
 Status: Phase complete — ready for verification
-Last activity: 2026-11-24 — Phase 10 complete; main (APP-09) merged into feat/APP10
+Last activity: 2026-11-25 — Phase 12 complete, transitioned to Phase 1
 
-Progress: [████████████████████] 107/107 plans (100%)
+Progress: [████████████████████] 116/116 plans (100%)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 72
+- Total plans completed: 81
 - Average duration: - min
 - Total execution time: 0 hours
 
@@ -52,6 +52,7 @@ Progress: [████████████████████] 107/107
 | 07 | 12 | - | - |
 | 08 | 12 | - | - |
 | 10 | 10 | - | - |
+| 12 | 9 | - | - |
 
 **Recent Trend:**
 
@@ -151,6 +152,15 @@ Progress: [████████████████████] 107/107
 | Phase 10 P08 | 55 min | 3 tasks | 11 files |
 | Phase 10 P09 | 40 min | 2 tasks | 12 files |
 | Phase 10 P10 | 10 min | 3 tasks | 14 files |
+| Phase 12 P01 | 20 min | 2 tasks | 5 files |
+| Phase 12 P02 | 8 min | 2 tasks | 11 files |
+| Phase 12 P03 | 5 min | 2 tasks | 8 files |
+| Phase 12 P04 | 6 min | 2 tasks | 12 files |
+| Phase 12 P05 | 4 min | 2 tasks | 13 files |
+| Phase 12 P06 | 25 min | 2 tasks | 7 files |
+| Phase 12 P07 | 7 min | 2 tasks | 7 files |
+| Phase 12 P08 | 7 min | 2 tasks | 8 files |
+| Phase 12 P09 | 25 min | 4 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -260,6 +270,21 @@ Recent decisions affecting current work:
 - [Phase 10]: 10-10: anotacao sem otimismo — o retorno do item so muda no 200 do servidor (item em voo em CaixaCarregada.anotando) e o numero de sem retorno e pedido de novo apos sucesso e 404, nunca calculado no app
 - [Phase 10]: 10-10: aviso de falha e one-shot no estado (AvisoCaixa); toda anotacao limpa o aviso antes, entao duas falhas seguidas geram duas SnackBars de texto fixo (D-17), nunca texto do servidor
 - [Phase 10]: 10-10: tocar a opcao que ja e a atual so fecha a folha, sem chamar a API (A6); a guarda fica no Cubit
+- [Phase 12]: 12-01: 7 dias de mudancas (DIAS_MUDANCAS_PADRAO) decididos no Django; resposta {dias,desde,mudancas} sem paginacao, 9 campos (D-19, D-20)
+- [Phase 12]: 12-01: acervo por corretor sobre a mesma base do acervo por natureza (soma das linhas = total); ler_dias ganhou parametro padrao sem mudar parcelas
+- [Phase 12]: 12-02: captura do gestor no SQLite temporário na porta 8012 (nunca 8000); sem exigir canais_contato, que não existe no Django da feat/APP12
+- [Phase 12]: 12-03: o teste de contrato trava só o que o app lê no acervo (totais e total); situacoes e linhas só têm a presença conferida (D-09)
+- [Phase 12]: 12-03: IDs GES-01..06, API-15 e API-16 registrados como pendentes (82 no total); 12-03 cobre API-16 no wire (D-28)
+- [Phase 12]: 12-04: entidades da Área do gestor com coleção usam construtor não const que copia por List/Map.unmodifiable; total e pendentes ficam como o servidor mandou, sem recalcular
+- [Phase 12]: 12-05: situação desconhecida ou faltando nos Models da Área do gestor é FormatException na camada de dados, nunca valor padrão (D-24)
+- [Phase 12]: 12-05: linha de contatos com corretor_id nulo descarta corretor e ativo do servidor no próprio Model (D-17)
+- [Phase 12]: 12-06: contatos do gestor reutilizam parametrosDaConsultaContatos sem imovel; as outras 3 leituras nao levam query (janela e do servidor)
+- [Phase 12]: 12-06: AreaGestorRepositoryImpl sem ramo de 404 tipado; 401 por status e por erro.error coexistem; 400/404/5xx/rede saem como Failure generica
+- [Phase 12]: 12-07: falha de seção guarda só o tipo (FalhaDaSecao); 401 em qualquer seção é terminal (sessaoExpirada) e trava pedidos e respostas atrasadas; versão por seção descarta resposta superada
+- [Phase 12]: 12-08: a linha da empresa usa textoLinhaDaEmpresa; o nome que o servidor mandou nela nunca chega ao widget (D-17, T-12-20)
+- [Phase 12]: 12-08: AreaGestorScreen sem helper de abertura; ligar ao login e ao botão do topo fica no 12-09
+- [Phase 12]: 12-09: a área é escolhida só pelo papel de GET /api/auth/eu/ a cada entrada (gestor na Área do gestor, administrador no aviso, corretor no acervo); o botão do topo segue 'Meu acervo' (D-01, D-02, D-04)
+- [Phase 12]: 12-09: preparo do Postgres do UAT (gestor da vitrine e seed_demo) feito só pelo Allysson no checkpoint blocking-human; script fora dos repositórios; gates finais: analyze 0 erros/warnings (59 infos de material.dart), flutter test 1924, Django 803 OK, sem push
 
 ### Pending Todos
 
@@ -270,7 +295,8 @@ None yet.
 - [Phase 5]: Externally blocked on the `Imóvel` model (owned by teammate E2 in `../imoveis-aqui/Web`) — Phases 1-3 do not require it (mock-first build), but Phase 5 cannot complete until that model lands.
 - [Phase 07.1]: PENDENTE WEB no §13.7 do contrato (D-20): limite de taxa nas views de perfil e extensão do seed — aceito fora do escopo do app, depende da frente web.
 - [Phase 10]: PENDENTE WEB — o POST público de contato não tem limite de taxa na `feat/APP10` (`CONTATO_TAXA_ANONIMA` não existe no `settings.py`); fora do escopo do app, avisar a frente web.
-- [Phase 10]: `GET /api/contatos/imoveis/` sem paginação (risco aceito AR-10-01) — revisar quando a APP-12 levar a caixa ao gestor.
+- [Phase 10]: `GET /api/contatos/imoveis/` sem paginação (risco aceito AR-10-01) — a APP-12 não levou a caixa ao gestor (os contatos por corretor vêm de `GET /api/relatorios/contatos/`), então o risco segue aceito como estava.
+- [Phase 12]: PENDENTE WEB — `canais_contato` (APP-06) só existe na `origin/feat/APP06` da web, não na `main`: contra um servidor da `main`, a barra de contato do imóvel aparece sem canais; avisar o grupo.
 - [Phase 1]: API-AUDIT needs live coordination with the teammate on exact `Imóvel` field names/enum values (natureza, finalidade, características shape, quartos/suítes/vagas exact-vs-range semantics) — not resolvable from docs alone.
 
 ### Quick Tasks Completed
@@ -289,6 +315,7 @@ None yet.
 - Phase 8 added: Login e Área do Corretor — o Acervo (card APP 08, tarefa A08)
 - Phase 9 added: Mudança de Situação do Imóvel pelo App (card APP 09, tarefa A09) — card do Kanban copiado para `../APP 09 · Mudança de situação do imóvel pelo app.md` (2026-11-22); depende da WEB 08
 - Phase 10 added: Contatos Recebidos e Retorno Anotado (card APP 10, tarefa A10); número 10 escolhido para casar com o card — fase 9 reservada ao APP 09 de outro colega
+- Phase 12 added: Área do Gestor — Acompanhamento dos Corretores (card APP 12, tarefa A12); número 12 escolhido para casar com o card — fase 11 reservada ao APP 11 de outro colega
 
 ## Deferred Items
 
@@ -300,6 +327,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-24
-Stopped at: Phase 10 complete (UAT 6/6 no emulador contra o Django real, SECURITY threats_open 0) — próximo: push/PR das feat/APP10 com autorização
+Last session: 2026-11-25
+Stopped at: Phase 12 complete (UAT 8/8, SECURITY verified, transition done); next: push/PR of both feat/APP12 only with authorization
 Resume file: None

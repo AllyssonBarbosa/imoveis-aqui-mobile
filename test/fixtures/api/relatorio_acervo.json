@@ -1,0 +1,73 @@
+{
+  "situacoes": [
+    {
+      "situacao": "DISPONIVEL",
+      "rotulo": "Disponível"
+    },
+    {
+      "situacao": "RESERVADO",
+      "rotulo": "Reservado"
+    },
+    {
+      "situacao": "VENDIDO",
+      "rotulo": "Vendido"
+    },
+    {
+      "situacao": "ALUGADO",
+      "rotulo": "Alugado"
+    }
+  ],
+  "linhas": [
+    {
+      "natureza": "CASA",
+      "rotulo": "Casa",
+      "por_situacao": {
+        "DISPONIVEL": 9,
+        "RESERVADO": 0,
+        "VENDIDO": 0,
+        "ALUGADO": 0
+      },
+      "total": 9
+    },
+    {
+      "natureza": "TERRENO",
+      "rotulo": "Terreno",
+      "por_situacao": {
+        "DISPONIVEL": 8,
+        "RESERVADO": 0,
+        "VENDIDO": 1,
+        "ALUGADO": 0
+      },
+      "total": 9
+    },
+    {
+      "natureza": "APARTAMENTO",
+      "rotulo": "Apartamento",
+      "por_situacao": {
+        "DISPONIVEL": 9,
+        "RESERVADO": 0,
+        "VENDIDO": 0,
+        "ALUGADO": 0
+      },
+      "total": 9
+    },
+    {
+      "natureza": "LOTE",
+      "rotulo": "Lote",
+      "por_situacao": {
+        "DISPONIVEL": 7,
+        "RESERVADO": 2,
+        "VENDIDO": 0,
+        "ALUGADO": 0
+      },
+      "total": 9
+    }
+  ],
+  "totais": {
+    "DISPONIVEL": 33,
+    "RESERVADO": 2,
+    "VENDIDO": 1,
+    "ALUGADO": 0
+  },
+  "total": 36
+}

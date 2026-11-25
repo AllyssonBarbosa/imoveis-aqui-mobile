@@ -21,6 +21,8 @@ exemplos `acervo`, `eu` e `login` são travados por `test/data/contrato_acervo_t
 
 **Caixa de contatos do corretor (Fase 10):** a lista paginada, a contagem dos sem retorno, as opções do filtro de imóvel e o PATCH do retorno vêm da branch `feat/APP10` da web, até ela entrar na `main` dela. Ver §17; os exemplos `contatos`, `contatos_resumo`, `contatos_imoveis` e `contato_patch` são travados por `test/data/contrato_contatos_test.dart`.
 
+**Área do gestor (Fase 12):** os totais por situação e os contatos por corretor vêm da `main` da web (W12); o acervo por corretor e as mudanças de situação recentes vêm da branch `feat/APP12` da web, até ela entrar na `main` dela. Ver §18; os exemplos `relatorio_acervo`, `relatorio_acervo_por_corretor`, `relatorio_contatos` e `relatorio_mudancas` são travados por `test/data/contrato_area_gestor_test.dart`.
+
 **Histórico:** as propostas congeladas nas Fases 1 a 4 (paginação por cursor, `GET /api/publico/imoveis/?cidade=`,
 `ordenacao`, sufixo `_min`, `bairro`/`caracteristicas` por nome, `corretor{slug}`, `lote.preco`,
 `posicao_solar` livre etc.) foram **substituídas** na Fase 5 pelo formato real da API, que é dona
@@ -1035,3 +1037,216 @@ mudaria as fixtures já travadas).
 Travas: no app, `test/data/contrato_contatos_test.dart` (chaves exatas do envelope, do item, do resumo e das opções,
 exemplo = fixture e isolamento entre empresas no wire); no Django, `PaginacaoDaCaixaTests`, `ResumoSemRetornoTests`,
 `OpcoesDeImovelDaCaixaTests`, `IsolamentoTests` e `AnotarRetornoTests`.
+
+---
+
+## 18. Área do gestor (Fase 12)
+
+A Fase 12 acrescenta a **Área do gestor**: quatro relatórios da empresa do gestor logado — totais por situação, acervo por
+corretor, contatos por corretor e período, e mudanças de situação recentes. Duas das rotas (totais e contatos) já existem
+na `main` da web (W12); as outras duas (acervo por corretor e mudanças de situação) vivem na branch `feat/APP12` da web
+até ela entrar na `main` dela. Este § foi escrito a partir do que o Django **entrega** (D-27) e não muda os §1 a §17. As
+respostas de exemplo são capturadas (§18.10), nunca escritas à mão.
+
+> Se o card APP 11 (do colega) chegar antes com um §18 próprio, este § vira o seguinte no merge, como aconteceu com o §16
+> e o §17 (D-27). Nos documentos da Fase 12 ele aparece como §18.
+
+### 18.1 Rotas e autenticação
+
+Todas as rotas são `GET`, exigem `Authorization: Token <chave>` e a permissão `EhGestor` (só o perfil gestor, com empresa).
+
+| Rota | O que devolve | Seção |
+|------|---------------|-------|
+| `/api/relatorios/acervo/` | totais por situação e por natureza (W12) | §18.2 |
+| `/api/relatorios/acervo-por-corretor/` | quantos imóveis cada corretor tem (`feat/APP12`) | §18.3 |
+| `/api/relatorios/contatos/` | contatos por corretor e por período (W12) | §18.4 |
+| `/api/relatorios/mudancas-situacao/` | mudanças de situação dos últimos dias (`feat/APP12`) | §18.5 |
+
+- `GET /api/relatorios/parcelas/` também existe (W12), mas o app **não** o usa.
+- **Corretor** e **administrador**: **403** `{"detail": "Este recurso é restrito ao gestor."}`
+  (`erro_403_relatorio.json`).
+- Sem token, ou com chave inválida ou revogada: **401** `{"detail": ...}` com o cabeçalho `WWW-Authenticate: Token`.
+- A **empresa é sempre a do usuário logado**, nunca um parâmetro: o app não manda `empresa`.
+- Sem migração: as duas rotas novas só consultam.
+
+### 18.2 Totais por situação
+
+`GET /api/relatorios/acervo/` (exemplo: `contrato/relatorio_acervo.example.json`, cópia byte a byte de
+`test/fixtures/api/relatorio_acervo.json`). **O app lê só duas chaves** (D-09):
+
+| Chave | Tipo | Observação |
+|-------|------|------------|
+| `totais` | objeto | exatamente as 4 situações — `DISPONIVEL`, `RESERVADO`, `VENDIDO`, `ALUGADO` — com **inteiros** ≥ 0 |
+| `total` | inteiro | igual à soma dos quatro; o app mostra o número do servidor |
+
+`situacoes` (lista de `{situacao, rotulo}`) e `linhas` (quebra por natureza, com `por_situacao`) **existem na resposta e o
+app não os lê**. O app **não soma** os quatro valores: cada card mostra o `totais.<situação>` e o rodapé mostra o `total`.
+
+### 18.3 Acervo por corretor
+
+`GET /api/relatorios/acervo-por-corretor/` (exemplo: `contrato/relatorio_acervo_por_corretor.example.json`, cópia byte a
+byte de `relatorio_acervo_por_corretor.json`). Resposta `{linhas, total}`; **sem paginação** e sem parâmetros.
+
+**Linha: exatamente 4 chaves:**
+
+| Chave | Tipo | Observação |
+|-------|------|------------|
+| `corretor_id` | inteiro | |
+| `corretor` | string | nome do corretor |
+| `ativo` | booleano | `false` = usuário desativado que ainda é responsável por imóvel (o app escreve "(desativado)", D-14) |
+| `total` | inteiro | quantos imóveis o corretor tem |
+
+- **O que conta (D-12):** todos os imóveis da empresa, em **qualquer situação**, publicados ou não, agrupados por
+  `corretor_responsavel`. A base é a mesma do §18.2, então a **soma das linhas é igual ao `total`** e esse `total` é igual
+  ao `total` do §18.2 (na captura, 36).
+- **Quem aparece (D-13):** todo corretor **ativo** da empresa, **mesmo com zero** (quem está sem acervo é justamente o que o
+  gestor quer ver), e também o desativado que ainda é responsável por algum imóvel, com `ativo: false`. Na captura:
+  `35` (ativo), `1` (desativado) e `0` (ativo sem acervo).
+- **Ordem:** quem tem mais imóveis primeiro e, no empate, por nome.
+
+### 18.4 Contatos por corretor
+
+`GET /api/relatorios/contatos/` (exemplo: `contrato/relatorio_contatos.example.json`, cópia byte a byte de
+`relatorio_contatos.json`).
+
+| Parâmetro | Regra |
+|-----------|-------|
+| `de` | `AAAA-MM-DD`, **inclusiva**, dia de São Paulo (§18.7) |
+| `ate` | `AAAA-MM-DD`, **inclusiva**, dia de São Paulo; `de` depois de `ate` → 400 |
+| `imovel` | id do imóvel; **o app não manda** (D-15): o card não pede filtro por imóvel |
+
+Sem `de` e `ate` a resposta cobre **todo o período** (o padrão do app, D-16). A resposta é
+`{de, ate, linhas, total, pendentes}`: `de` e `ate` voltam **ecoados** (`null` quando não foram enviados),
+`total` e `pendentes` são inteiros e a soma de `total` das linhas é igual ao `total` da resposta.
+
+**Linha: exatamente 5 chaves:**
+
+| Chave | Tipo | Observação |
+|-------|------|------------|
+| `corretor_id` | inteiro ou `null` | `null` na linha da empresa (contatos de corretor desativado no clique) |
+| `corretor` | string | nome; na linha da empresa o servidor manda um texto próprio que o app **NÃO mostra**: usa o texto fixo "Empresa (corretor desativado no clique)" (D-17) |
+| `ativo` | booleano ou `null` | `null` na linha da empresa; `false` = corretor desativado |
+| `total` | inteiro | contatos recebidos no período |
+| `pendentes` | inteiro | os que ainda aguardam retorno (`retorno = PENDENTE`) |
+
+Todo corretor **ativo** aparece, mesmo com `total` 0 (`relatorio_contatos_periodo.json`: janeiro de 2024, `total` 0 e duas
+linhas zeradas). Ordem: quem recebeu mais primeiro e, no empate, por nome.
+
+**Erro:** data inválida ou período invertido → **400** `{"<campo>": "<mensagem>"}` (o valor é uma **string**), por exemplo
+`{"de": "A data inicial não pode ser depois da final."}` (`erro_400_relatorio_contatos.json`). O app ignora o texto (§18.8).
+
+### 18.5 Mudanças de situação
+
+`GET /api/relatorios/mudancas-situacao/` (exemplo: `contrato/relatorio_mudancas.example.json`, cópia byte a byte de
+`relatorio_mudancas.json`).
+
+| Parâmetro | Regra |
+|-----------|-------|
+| `dias` | opcional, inteiro de **1 a 365**; **o padrão (7) é decidido no servidor** e o app **não manda** (D-19) |
+
+Resposta `{dias, desde, mudancas}`: `dias` (inteiro) é a janela usada, **que o app mostra** no título "últimos N dias" (o
+"7" não fica escrito no app), e `desde` (`AAAA-MM-DD`) é o primeiro dia da janela (hoje e os 6 dias anteriores, pelo dia de
+São Paulo).
+
+**Item de `mudancas`: exatamente 9 chaves** (D-20):
+
+| Chave | Tipo | Observação |
+|-------|------|------------|
+| `id` | inteiro | id do registro de histórico |
+| `imovel_id` | inteiro | |
+| `imovel_codigo` | string | código interno do imóvel na empresa |
+| `imovel_titulo` | string | |
+| `situacao_anterior` | string | uma das 4 situações do §18.2 |
+| `situacao_nova` | string | uma das 4 situações |
+| `alterado_por` | string | só o nome de quem mudou |
+| `alterado_em` | ISO-8601 com offset `-03:00` | |
+| `observacao` | string | pode ser `""` |
+
+- **Ordem fixa:** `-alterado_em, -id`.
+- **Entram todas as mudanças do período**, inclusive as feitas pela **assinatura de contrato** (na captura da empresa B,
+  `observacao` "Contrato #1 de venda assinado em 01/07/2026.").
+- **Sem paginação:** a janela de dias já limita o tamanho. Risco `costly` aceito (§18.9).
+- **Erro:** `dias` fora de 1 a 365 ou não numérico → **400** `{"dias": "Informe um número de dias entre 1 e 365."}`
+  (`erro_400_dias.json`).
+- Na captura, a mudança de 10 dias atrás (criada só no SQLite temporário) **fica fora** da janela de 7 dias e entra com
+  `?dias=30`: a janela falha nos dois sentidos.
+
+### 18.6 Isolamento e papel
+
+**Só o gestor, só a empresa dele, nas 4 rotas.** O filtro por empresa é sempre o `request.user.empresa_id`, e o papel é a
+permissão `EhGestor`: corretor e administrador recebem 403 e o anônimo 401, em todas as rotas.
+
+**Evidência no wire:** a captura dá **imóvel e mudança de situação à empresa B** (`relatorio_acervo_por_corretor_outra_empresa.json`,
+`total` 1, e `relatorio_mudancas_outra_empresa.json`, 1 mudança) e exige que nada dela apareça nos relatórios da A; o
+corretor da captura recebe 403 nas 4 rotas. O teste do app exige que os relatórios da B **não sejam vazios** (senão a
+prova seria vazia), que nenhum `corretor_id` dela esteja no acervo por corretor da A e que nenhum `imovel_id` das mudanças
+dela esteja nas da A. A cobertura completa por perfil fica nas classes do Django (§18.10): `AcervoPorCorretorTests`,
+`MudancasDeSituacaoTests`, `AreaDoGestorApiTests` e `ApiRelatoriosTests`.
+
+### 18.7 Fuso e janela
+
+O servidor usa `TIME_ZONE = 'America/Sao_Paulo'` com `USE_TZ = True`.
+
+- `de` e `ate` do §18.4 e a janela de `dias` do §18.5 são **dias de São Paulo** (o recorte usa o dia local do servidor).
+  Dia de São Paulo, não UTC: um contato das 22h de Brasília continua no dia dele.
+- `alterado_em` sai em ISO-8601 **com offset de São Paulo** (`-03:00`), por exemplo `2026-11-25T17:53:12.715486-03:00`.
+- O app manda `de`/`ate` formatados do `DateTime` local escolhido no seletor, sem `toUtc()`, e mostra a hora **do aparelho**
+  (`toLocal()`). Num aparelho fora do fuso de Brasília a hora mostrada difere da do site; o dia do filtro continua sendo o
+  de São Paulo (mesmo risco aceito do §17.7).
+
+### 18.8 No app
+
+- **`Dio` `@Named('autenticado')` nas 4 rotas:** o `InterceptadorSessao` coloca `Authorization: Token <chave>` só quando a
+  origem do pedido é a da API configurada.
+- **401 → sessão terminada** (`SessaoExpiradaException`, §14.7): o app abre o login com o aviso "Sua sessão terminou. Entre
+  de novo." (D-22).
+- **403 → texto fixo** "Só o gestor da imobiliária pode ver estes números." (D-23).
+- **Rede, timeout, 5xx e 400 → "Não foi possível carregar."**, sempre com texto fixo do app e "Tentar de novo".
+- **Situação desconhecida no wire** (valor fora das 4 do §18.2) vira **falha de formato da seção**: o app não adivinha o que
+  o servidor mandou (D-24).
+- **Nenhuma string do servidor na UI**, só dados como nomes de corretor, códigos e títulos de imóvel e observações; rótulos,
+  mensagens de erro e o texto da linha da empresa são do app.
+- **Nenhum número calculado no aparelho:** o app não conta, não soma e não filtra; cada seção carrega e falha sozinha.
+
+### 18.9 PENDENTE WEB e riscos aceitos
+
+| Risco | Tratamento |
+|-------|-----------|
+| **As mudanças vêm sem paginação.** Paginar depois troca a lista por um envelope: risco `costly` (D-20). | Aceito: a janela de dias limita o tamanho; se o volume crescer, revisitar com versão nova do app. |
+| **As duas rotas novas só existem na `feat/APP12` da web** até o PR dela entrar na `main`. | **PENDENTE WEB:** o app só funciona contra um servidor que tenha a branch (ou a `main` com ela). |
+| **Não há páginas "acervo por corretor" nem "mudanças recentes" no painel do site.** | Aceito: o app é o primeiro consumidor dessas duas rotas. |
+| **O administrador não tem área no app** (não pertence a uma empresa). | Aceito: ele continua no aviso "Área do administrador". |
+| **Situação nova no servidor quebra a seção no app antigo** (falha de formato, D-24). | Aceito: o app não inventa rótulo; atualizar o app junto com o servidor. |
+
+### 18.10 Sincronização
+
+Capturar só o grupo novo e copiar byte a byte para `contrato/`:
+
+```bash
+python3 tool/capturar_fixtures_api.py http://127.0.0.1:8012 test/fixtures/api --grupo gestor
+```
+
+| Fixture capturada | Exemplo do contrato |
+|-------------------|---------------------|
+| `relatorio_acervo.json` | `relatorio_acervo.example.json` |
+| `relatorio_acervo_por_corretor.json` | `relatorio_acervo_por_corretor.example.json` |
+| `relatorio_contatos.json` | `relatorio_contatos.example.json` |
+| `relatorio_mudancas.json` | `relatorio_mudancas.example.json` |
+
+As demais fixtures do grupo (`relatorio_contatos_periodo`, `erro_400_relatorio_contatos`, `erro_400_dias`,
+`erro_403_relatorio`, `relatorio_acervo_por_corretor_outra_empresa` e `relatorio_mudancas_outra_empresa`) não têm exemplo
+no contrato, mas o teste do app confere as chaves e os valores delas.
+
+O grupo faz login pela API, então as credenciais vêm **só por variável de ambiente** (nunca em arquivo): as 6 variáveis
+`CAPTURA_*` descritas no docstring de `tool/capturar_fixtures_api.py`. Procedimento: **SQLite temporário** fora dos dois
+repositórios (nunca o banco do `Web/.env`), com `migrate`, `semear_vitrine_dev` **e** `seed_demo`; a senha do corretor demo é
+uma **senha descartável**; no mesmo SQLite se cria o gestor da empresa A, um corretor ativo **sem acervo** e a **mudança
+antiga de 10 dias** que prova a janela. O servidor sobe numa **porta diferente da 8000** (a captura usou a 8012), e as
+respostas dos relatórios não têm URL absoluta.
+
+**Nunca `--grupo todos`:** ele reescreveria as fixtures das fases anteriores (o sufixo aleatório das fotos do seed mudaria
+as fixtures já travadas).
+
+Travas: no app, `test/data/contrato_area_gestor_test.dart` (chaves lidas, exemplo = fixture, soma = total e isolamento
+entre empresas no wire); no Django, `AcervoPorCorretorTests`, `MudancasDeSituacaoTests`, `AreaDoGestorApiTests` e
+`ApiRelatoriosTests`.

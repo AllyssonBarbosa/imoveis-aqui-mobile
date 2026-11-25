@@ -47,21 +47,26 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('mostra o título, o aviso e o Sair', (tester) async {
+  testWidgets('mostra o título do administrador, o aviso e o Sair (D-02)', (
+    tester,
+  ) async {
     await montar(tester);
 
     expect(
       find.descendant(
         of: find.byType(AppBar),
-        matching: find.text('Área do gestor'),
+        matching: find.text('Área do administrador'),
       ),
       findsOneWidget,
     );
     expect(
-      find.text('A área do gestor ainda não está no app.'),
+      find.text('A área do administrador não está no app.'),
       findsOneWidget,
     );
     expect(find.widgetWithText(FilledButton, 'Sair'), findsOneWidget);
+    // O texto antigo, do gestor, não existe mais.
+    expect(find.text('Área do gestor'), findsNothing);
+    expect(find.textContaining('área do gestor'), findsNothing);
   });
 
   testWidgets('Sair abre o diálogo e Cancelar fecha sem sair', (tester) async {

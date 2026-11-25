@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../di/injection.dart';
 import '../../domain/entities/papel.dart';
 import '../acervo/acervo_screen.dart';
+import '../area_gestor/area_gestor_screen.dart';
 import '../sessao/aviso_area_screen.dart';
 import '../sessao/sessao_cubit.dart';
 import 'login_cubit.dart';
@@ -15,7 +16,8 @@ import 'login_state.dart';
 /// falha vem pronta do [LoginCubit] — nunca o texto do servidor (D-03).
 ///
 /// Depois de entrar, a rota do login é substituída pela área do papel (D-02,
-/// D-B): o "voltar" nunca devolve o usuário ao login.
+/// D-B): o corretor vai ao acervo, o gestor à Área do gestor (APP-12, D-01) e o
+/// administrador ao aviso (D-02). O "voltar" nunca devolve o usuário ao login.
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key, this.aviso, this.criarCubit});
 
@@ -76,7 +78,8 @@ class _CorpoLoginState extends State<_CorpoLogin> {
       MaterialPageRoute<void>(
         builder: (_) => switch (papel) {
           Papel.corretor => const AcervoScreen(),
-          Papel.gestor || Papel.administrador => const AvisoAreaScreen(),
+          Papel.gestor => const AreaGestorScreen(),
+          Papel.administrador => const AvisoAreaScreen(),
         },
       ),
     );

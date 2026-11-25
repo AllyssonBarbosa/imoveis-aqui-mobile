@@ -94,6 +94,19 @@ Na Fase 10, API-13 e API-14 foram registrados como API-11 e API-12 (os planos, S
 - [x] **API-13**: O §17 de `01-CONTRATO-API.md` congela a lista paginada, os parâmetros, os 12 campos do item, o PATCH (valores, resposta, 400/401/403/404/405), a contagem, as opções do imóvel, o fuso e o isolamento, com fixtures capturadas do Django e testes de contrato nos dois repositórios.
 - [x] **API-14**: A web entrega, com testes, a paginação de `GET /api/contatos/`, `GET /api/contatos/resumo/`, `GET /api/contatos/imoveis/` e o PATCH sem `retorno` respondendo 400, todas atrás de `PertenceAUmaEmpresa` e do escopo de empresa e perfil.
 
+### Área do gestor (APP12)
+
+Card APP 12 (tarefa A12). GES-01..GES-06 cobrem os critérios 1–6 do card; API-15/API-16 são as rotas novas da web e o §18 do contrato.
+
+- [x] **GES-01**: Acervo por corretor (critério 1): a Área do gestor mostra quantos imóveis cada corretor tem — todos os imóveis da empresa, em qualquer situação —, com todo corretor ativo (mesmo com zero) e o desativado que ainda é responsável por imóvel marcado "(desativado)", mais o total, tudo de `GET /api/relatorios/acervo-por-corretor/`.
+- [x] **GES-02**: Contatos por corretor e por período (critério 2): por corretor, quantos contatos recebeu e quantos aguardam retorno, de `GET /api/relatorios/contatos/?de=&ate=`; o padrão é todo o período e o chip "Período" (seletor pt-BR da APP-10) recarrega só esta seção; a linha da empresa usa texto fixo do app.
+- [x] **GES-03**: Mudanças de situação recentes (critério 3): lista das mudanças de situação dos últimos dias da empresa (janela de 7 dias decidida no servidor), com imóvel, de → para, data e hora, quem mudou e a observação, de `GET /api/relatorios/mudancas-situacao/`.
+- [x] **GES-04**: Totais da empresa por situação (critério 4): Disponível, Reservado, Vendido e Alugado, mais o total, lidos de `totais` e `total` de `GET /api/relatorios/acervo/`.
+- [x] **GES-05**: Números do servidor (critério 5): o app não conta, não soma e não filtra nada; cada seção carrega sozinha, com o próprio carregando e o próprio erro ("Não foi possível carregar." com "Tentar de novo"), e uma falha não derruba as outras.
+- [x] **GES-06**: Só o gestor (critério 6): o gestor cai na "Área do gestor" depois do login e pelo botão do topo; o administrador continua no aviso ("Área do administrador"); o corretor nunca vê a área; o servidor recusa as 4 rotas a quem não é gestor (403/401), testado no Django; 401 encerra a sessão e 403 mostra texto fixo.
+- [x] **API-15**: A web entrega, com testes, na branch `feat/APP12`, `GET /api/relatorios/acervo-por-corretor/` e `GET /api/relatorios/mudancas-situacao/?dias=` (padrão 7, de 1 a 365), atrás de `EhGestor` e sempre com a empresa do usuário, sem migração.
+- [x] **API-16**: O §18 de `01-CONTRATO-API.md` congela as 4 rotas da Área do gestor (campos lidos, parâmetros, 400/401/403, isolamento, fuso e janela), com fixtures capturadas do Django e testes de contrato nos dois repositórios.
+
 ### API pública (endpoints que o app consome)
 
 - [x] **API-01**: Auditar a API atual e congelar por escrito o contrato de `/cidades` e `/imoveis` (nomes de campos, enums, nomes dos params de filtro, envelope de paginação) antes de codar APP02/APP03 ou o endpoint real.
@@ -125,7 +138,7 @@ Reconhecidos, mas fora desta entrega (outras tarefas do app, feitas depois / por
 
 - **CON-01**: Contato com o corretor por WhatsApp com mensagem montada pelo servidor e gravação do contato (card 9). → Promovido para a Phase 6 como APP06-C1..C6 e APP06-API-1/2 (seção "Contato com o corretor (APP06)").
 - **FAV-01**: Favoritos guardados no aparelho.
-- **LOG-01**: Áreas logadas do app — área do corretor e área do gestor (cards 10–11).
+- **LOG-01**: Áreas logadas do app — área do corretor e área do gestor (cards 10–11). → Área do corretor entregue nas Phases 8–10; área do gestor promovida para a Phase 12 como GES-01..GES-06, API-15 e API-16 (seção "Área do gestor (APP12)").
 - **API-05**: Endpoint de result-count para prévia "Ver N imóveis" no botão aplicar (diferencial, depende de custo de contagem barato).
 
 ## Out of Scope
@@ -219,17 +232,25 @@ Excluídos de propósito. Documentados para evitar scope creep.
 | CXA-06 | Phase 10 | Complete |
 | API-13 | Phase 10 | Complete |
 | API-14 | Phase 10 | Complete |
+| GES-01 | Phase 12 | Complete |
+| GES-02 | Phase 12 | Complete |
+| GES-03 | Phase 12 | Complete |
+| GES-04 | Phase 12 | Complete |
+| GES-05 | Phase 12 | Complete |
+| GES-06 | Phase 12 | Complete |
+| API-15 | Phase 12 | Complete |
+| API-16 | Phase 12 | Complete |
 
 Planos da Phase 6 que cobrem cada ID (frontmatter `requirements` dos `06-NN-PLAN.md`): APP06-C1 → 06-07, 06-09, 06-10; APP06-C2 → 06-02, 06-03, 06-04, 06-05, 06-06, 06-07, 06-10; APP06-C3 → 06-03, 06-04, 06-05, 06-06, 06-08, 06-09, 06-10; APP06-C4 → 06-01, 06-03, 06-05, 06-06, 06-07, 06-08, 06-10; APP06-C5 → 06-01, 06-09, 06-10; APP06-C6 → 06-01, 06-02, 06-05, 06-07, 06-09, 06-10; APP06-API-1 → 06-01, 06-03, 06-04, 06-10; APP06-API-2 → 06-02, 06-10.
 
 **Coverage:**
 
-- v1 requirements: 74 total
-- Mapped to phases: 74 (roadmap complete)
+- v1 requirements: 82 total
+- Mapped to phases: 82 (roadmap complete)
 - Unmapped: 0
 
 Planos da Phase 9 que cobrem cada ID (frontmatter `requirements` dos `09-NN-PLAN.md`): SIT-01 → 09-07, 09-09, 09-10, 09-11, 09-13; SIT-02 → 09-08, 09-09, 09-10, 09-11, 09-13; SIT-03 → 09-03, 09-06, 09-07, 09-13; SIT-04 → 09-08, 09-09, 09-11, 09-12, 09-13; SIT-05 → 09-13; SIT-06 → 09-02, 09-10, 09-12, 09-13; SIT-07 → 09-03, 09-04, 09-05, 09-07, 09-10, 09-13; API-11 → 09-01, 09-13; API-12 → 09-02, 09-13.
 
 ---
 *Requirements defined: 2026-09-21*
-*Last updated: 2026-11-24 after merging Phase 9 (SIT-01..07, API-11, API-12) with Phase 10 (CXA-01..06, API-13, API-14)*
+*Last updated: 2026-11-25 after Phase 12 execution (GES-01..06, API-15, API-16)*

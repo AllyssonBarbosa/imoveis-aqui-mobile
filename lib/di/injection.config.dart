@@ -16,6 +16,10 @@ import 'package:get_it/get_it.dart' as _i174;
 import 'package:imoveis_aqui/data/datasources/acervo_datasource.dart' as _i744;
 import 'package:imoveis_aqui/data/datasources/acervo_remote_datasource.dart'
     as _i659;
+import 'package:imoveis_aqui/data/datasources/area_gestor_datasource.dart'
+    as _i701;
+import 'package:imoveis_aqui/data/datasources/area_gestor_remote_datasource.dart'
+    as _i705;
 import 'package:imoveis_aqui/data/datasources/armazenamento_token.dart'
     as _i288;
 import 'package:imoveis_aqui/data/datasources/armazenamento_token_seguro.dart'
@@ -66,6 +70,8 @@ import 'package:imoveis_aqui/data/gateways/url_launcher_gateway_impl.dart'
 import 'package:imoveis_aqui/data/network/interceptador_sessao.dart' as _i668;
 import 'package:imoveis_aqui/data/repositories/acervo_repository_impl.dart'
     as _i443;
+import 'package:imoveis_aqui/data/repositories/area_gestor_repository_impl.dart'
+    as _i1040;
 import 'package:imoveis_aqui/data/repositories/autenticacao_repository_impl.dart'
     as _i214;
 import 'package:imoveis_aqui/data/repositories/caixa_contatos_repository_impl.dart'
@@ -93,6 +99,8 @@ import 'package:imoveis_aqui/domain/gateways/link_launcher_gateway.dart'
     as _i325;
 import 'package:imoveis_aqui/domain/repositories/acervo_repository.dart'
     as _i268;
+import 'package:imoveis_aqui/domain/repositories/area_gestor_repository.dart'
+    as _i322;
 import 'package:imoveis_aqui/domain/repositories/autenticacao_repository.dart'
     as _i550;
 import 'package:imoveis_aqui/domain/repositories/caixa_contatos_repository.dart'
@@ -135,6 +143,8 @@ import 'package:imoveis_aqui/domain/usecases/listar_imoveis_dos_contatos_usecase
     as _i864;
 import 'package:imoveis_aqui/domain/usecases/mudar_situacao_usecase.dart'
     as _i186;
+import 'package:imoveis_aqui/domain/usecases/obter_acervo_por_corretor_usecase.dart'
+    as _i507;
 import 'package:imoveis_aqui/domain/usecases/obter_bairros_usecase.dart'
     as _i20;
 import 'package:imoveis_aqui/domain/usecases/obter_caracteristicas_usecase.dart'
@@ -143,12 +153,16 @@ import 'package:imoveis_aqui/domain/usecases/obter_cidade_salva_usecase.dart'
     as _i1060;
 import 'package:imoveis_aqui/domain/usecases/obter_cidades_atendidas_usecase.dart'
     as _i54;
+import 'package:imoveis_aqui/domain/usecases/obter_contatos_por_corretor_usecase.dart'
+    as _i734;
 import 'package:imoveis_aqui/domain/usecases/obter_detalhe_imovel_usecase.dart'
     as _i990;
 import 'package:imoveis_aqui/domain/usecases/obter_historico_situacao_usecase.dart'
     as _i989;
 import 'package:imoveis_aqui/domain/usecases/obter_imovel_gestao_usecase.dart'
     as _i121;
+import 'package:imoveis_aqui/domain/usecases/obter_mudancas_recentes_usecase.dart'
+    as _i249;
 import 'package:imoveis_aqui/domain/usecases/obter_papel_usecase.dart' as _i396;
 import 'package:imoveis_aqui/domain/usecases/obter_perfil_corretor_usecase.dart'
     as _i741;
@@ -156,12 +170,16 @@ import 'package:imoveis_aqui/domain/usecases/obter_perfil_empresa_usecase.dart'
     as _i370;
 import 'package:imoveis_aqui/domain/usecases/obter_sem_retorno_usecase.dart'
     as _i943;
+import 'package:imoveis_aqui/domain/usecases/obter_totais_por_situacao_usecase.dart'
+    as _i527;
 import 'package:imoveis_aqui/domain/usecases/sair_usecase.dart' as _i986;
 import 'package:imoveis_aqui/domain/usecases/salvar_cidade_usecase.dart'
     as _i589;
 import 'package:imoveis_aqui/domain/usecases/validar_cidade_atendida_usecase.dart'
     as _i14;
 import 'package:imoveis_aqui/presentation/acervo/acervo_cubit.dart' as _i587;
+import 'package:imoveis_aqui/presentation/area_gestor/area_gestor_cubit.dart'
+    as _i829;
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_cubit.dart'
     as _i765;
 import 'package:imoveis_aqui/presentation/contato/contato_cubit.dart' as _i959;
@@ -355,8 +373,16 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i959.ContatoCubit>(
       () => _i959.ContatoCubit(gh<_i762.ContatarCorretorUseCase>()),
     );
+    gh.lazySingleton<_i701.AreaGestorDataSource>(
+      () => _i705.AreaGestorRemoteDataSource(
+        gh<_i361.Dio>(instanceName: 'autenticado'),
+      ),
+    );
     gh.factory<_i331.DetalheImovelCubit>(
       () => _i331.DetalheImovelCubit(gh<_i990.ObterDetalheImovelUseCase>()),
+    );
+    gh.lazySingleton<_i322.AreaGestorRepository>(
+      () => _i1040.AreaGestorRepositoryImpl(gh<_i701.AreaGestorDataSource>()),
     );
     gh.lazySingleton<_i887.AutenticacaoDataSource>(
       () => _i652.AutenticacaoRemoteDataSource(
@@ -416,6 +442,23 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i594.CaixaContatosDataSource>(),
       ),
     );
+    gh.factory<_i507.ObterAcervoPorCorretorUseCase>(
+      () =>
+          _i507.ObterAcervoPorCorretorUseCase(gh<_i322.AreaGestorRepository>()),
+    );
+    gh.factory<_i734.ObterContatosPorCorretorUseCase>(
+      () => _i734.ObterContatosPorCorretorUseCase(
+        gh<_i322.AreaGestorRepository>(),
+      ),
+    );
+    gh.factory<_i249.ObterMudancasRecentesUseCase>(
+      () =>
+          _i249.ObterMudancasRecentesUseCase(gh<_i322.AreaGestorRepository>()),
+    );
+    gh.factory<_i527.ObterTotaisPorSituacaoUseCase>(
+      () =>
+          _i527.ObterTotaisPorSituacaoUseCase(gh<_i322.AreaGestorRepository>()),
+    );
     gh.factory<_i89.BuscarAcervoUseCase>(
       () => _i89.BuscarAcervoUseCase(gh<_i268.AcervoRepository>()),
     );
@@ -439,6 +482,14 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i943.ObterSemRetornoUseCase>(),
         gh<_i864.ListarImoveisDosContatosUseCase>(),
         gh<_i301.AnotarRetornoUseCase>(),
+      ),
+    );
+    gh.factory<_i829.AreaGestorCubit>(
+      () => _i829.AreaGestorCubit(
+        gh<_i527.ObterTotaisPorSituacaoUseCase>(),
+        gh<_i507.ObterAcervoPorCorretorUseCase>(),
+        gh<_i734.ObterContatosPorCorretorUseCase>(),
+        gh<_i249.ObterMudancasRecentesUseCase>(),
       ),
     );
     gh.factory<_i587.AcervoCubit>(
