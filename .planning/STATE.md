@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 12
 current_phase_name: Área do Gestor — Acompanhamento dos Corretores (APP 12)
 status: executing
-stopped_at: Phase 12 context gathered
-last_updated: "2026-11-25T20:29:24.855Z"
-last_activity: 2026-11-24
-last_activity_desc: Phase 10 complete, transitioned to Phase 1
-state_head: 3fd3c79a5747d657f2a24d37e844971a4e7f73f2
+stopped_at: Completed 12-01-PLAN.md
+last_updated: "2026-11-25T20:44:13.406Z"
+last_activity: 2026-11-25
+last_activity_desc: Phase 12 execution started
+state_head: c240adf00757fa382e7247dcbc549068af3540ba
 progress:
   total_phases: 12
   completed_phases: 3
   total_plans: 116
-  completed_plans: 107
+  completed_plans: 108
   percent: 25
 ---
 
@@ -23,14 +23,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-11-24)
 
 **Core value:** A vitrine do app abre na cidade do usuário e mostra imóveis reais vindos da API, com a busca e o filtro resolvidos no servidor — o mesmo dado e a mesma regra do site, nunca recalculados dentro do aparelho.
-**Current focus:** Phase 12 — Área do Gestor: Acompanhamento dos Corretores (APP 12), criada em 2026-11-25 (card em `12-CARD-APP12.md`); próximo: `/gsd-discuss-phase 12`. As fases 1–4 seguem sem transição no ROADMAP (planos feitos); APP-10 encerrada e na `main`.
+**Current focus:** Phase 12 — Área do Gestor — Acompanhamento dos Corretores (APP 12)
 
 ## Current Position
 
-Phase: 12 (Área do Gestor — Acompanhamento dos Corretores (APP 12)) — READY TO EXECUTE
-Plan: 4
+Phase: 12 (Área do Gestor — Acompanhamento dos Corretores (APP 12)) — EXECUTING
+Plan: 2 of 9
 Status: Ready to execute
-Last activity: 2026-11-24 — Phase 10 complete, transitioned to Phase 1
+Last activity: 2026-11-25 — Phase 12 execution started
 
 Progress: [████████████████████] 107/107 plans ([███░░░░░░░] 25%)
 
@@ -151,6 +151,7 @@ Progress: [████████████████████] 107/107
 | Phase 10 P08 | 55 min | 3 tasks | 11 files |
 | Phase 10 P09 | 40 min | 2 tasks | 12 files |
 | Phase 10 P10 | 10 min | 3 tasks | 14 files |
+| Phase 12 P01 | 20 min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -260,6 +261,8 @@ Recent decisions affecting current work:
 - [Phase 10]: 10-10: anotacao sem otimismo — o retorno do item so muda no 200 do servidor (item em voo em CaixaCarregada.anotando) e o numero de sem retorno e pedido de novo apos sucesso e 404, nunca calculado no app
 - [Phase 10]: 10-10: aviso de falha e one-shot no estado (AvisoCaixa); toda anotacao limpa o aviso antes, entao duas falhas seguidas geram duas SnackBars de texto fixo (D-17), nunca texto do servidor
 - [Phase 10]: 10-10: tocar a opcao que ja e a atual so fecha a folha, sem chamar a API (A6); a guarda fica no Cubit
+- [Phase 12]: 12-01: 7 dias de mudancas (DIAS_MUDANCAS_PADRAO) decididos no Django; resposta {dias,desde,mudancas} sem paginacao, 9 campos (D-19, D-20)
+- [Phase 12]: 12-01: acervo por corretor sobre a mesma base do acervo por natureza (soma das linhas = total); ler_dias ganhou parametro padrao sem mudar parcelas
 
 ### Pending Todos
 
@@ -301,6 +304,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-11-25T16:17:53.589Z
-Stopped at: Phase 12 context gathered
-Resume file: .planning/phases/12-area-do-gestor-acompanhamento-dos-corretores/12-CONTEXT.md
+Last session: 2026-11-25T20:44:10.895Z
+Stopped at: Completed 12-01-PLAN.md
+Resume file: None
