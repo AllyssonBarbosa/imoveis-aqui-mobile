@@ -60,7 +60,9 @@ void main() {
       expect(a.hashCode, b.hashCode);
       expect(
         a,
-        isNot(TotaisPorSituacao(porSituacao: _situacoes(disponivel: 1), total: 41)),
+        isNot(
+          TotaisPorSituacao(porSituacao: _situacoes(disponivel: 1), total: 41),
+        ),
       );
       expect(a, isNot(TotaisPorSituacao(porSituacao: _situacoes(), total: 42)));
       expect(a.toString(), startsWith('TotaisPorSituacao('));
@@ -110,8 +112,14 @@ void main() {
 
       expect(a, b);
       expect(a.hashCode, b.hashCode);
-      expect(a, isNot(AcervoPorCorretor(linhas: const [joao, maria], total: 36)));
-      expect(a, isNot(AcervoPorCorretor(linhas: const [maria, joao], total: 37)));
+      expect(
+        a,
+        isNot(AcervoPorCorretor(linhas: const [joao, maria], total: 36)),
+      );
+      expect(
+        a,
+        isNot(AcervoPorCorretor(linhas: const [maria, joao], total: 37)),
+      );
       expect(maria, isNot(joao));
       expect(a.toString(), startsWith('AcervoPorCorretor('));
       expect(maria.toString(), startsWith('AcervoDoCorretor('));
