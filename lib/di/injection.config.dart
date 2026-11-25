@@ -70,6 +70,8 @@ import 'package:imoveis_aqui/data/gateways/url_launcher_gateway_impl.dart'
 import 'package:imoveis_aqui/data/network/interceptador_sessao.dart' as _i668;
 import 'package:imoveis_aqui/data/repositories/acervo_repository_impl.dart'
     as _i443;
+import 'package:imoveis_aqui/data/repositories/area_gestor_repository_impl.dart'
+    as _i1040;
 import 'package:imoveis_aqui/data/repositories/autenticacao_repository_impl.dart'
     as _i214;
 import 'package:imoveis_aqui/data/repositories/caixa_contatos_repository_impl.dart'
@@ -275,23 +277,6 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i288.ArmazenamentoToken>(
       () => _i179.ArmazenamentoTokenSeguro(gh<_i558.FlutterSecureStorage>()),
     );
-    gh.factory<_i507.ObterAcervoPorCorretorUseCase>(
-      () =>
-          _i507.ObterAcervoPorCorretorUseCase(gh<_i322.AreaGestorRepository>()),
-    );
-    gh.factory<_i734.ObterContatosPorCorretorUseCase>(
-      () => _i734.ObterContatosPorCorretorUseCase(
-        gh<_i322.AreaGestorRepository>(),
-      ),
-    );
-    gh.factory<_i249.ObterMudancasRecentesUseCase>(
-      () =>
-          _i249.ObterMudancasRecentesUseCase(gh<_i322.AreaGestorRepository>()),
-    );
-    gh.factory<_i527.ObterTotaisPorSituacaoUseCase>(
-      () =>
-          _i527.ObterTotaisPorSituacaoUseCase(gh<_i322.AreaGestorRepository>()),
-    );
     gh.lazySingleton<_i987.OpcoesFiltroRepository>(
       () =>
           _i375.OpcoesFiltroRepositoryImpl(gh<_i585.OpcoesFiltroDataSource>()),
@@ -394,6 +379,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i331.DetalheImovelCubit>(
       () => _i331.DetalheImovelCubit(gh<_i990.ObterDetalheImovelUseCase>()),
     );
+    gh.lazySingleton<_i322.AreaGestorRepository>(
+      () => _i1040.AreaGestorRepositoryImpl(gh<_i701.AreaGestorDataSource>()),
+    );
     gh.lazySingleton<_i887.AutenticacaoDataSource>(
       () => _i652.AutenticacaoRemoteDataSource(
         gh<_i361.Dio>(),
@@ -451,6 +439,23 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i969.CaixaContatosRepositoryImpl(
         gh<_i594.CaixaContatosDataSource>(),
       ),
+    );
+    gh.factory<_i507.ObterAcervoPorCorretorUseCase>(
+      () =>
+          _i507.ObterAcervoPorCorretorUseCase(gh<_i322.AreaGestorRepository>()),
+    );
+    gh.factory<_i734.ObterContatosPorCorretorUseCase>(
+      () => _i734.ObterContatosPorCorretorUseCase(
+        gh<_i322.AreaGestorRepository>(),
+      ),
+    );
+    gh.factory<_i249.ObterMudancasRecentesUseCase>(
+      () =>
+          _i249.ObterMudancasRecentesUseCase(gh<_i322.AreaGestorRepository>()),
+    );
+    gh.factory<_i527.ObterTotaisPorSituacaoUseCase>(
+      () =>
+          _i527.ObterTotaisPorSituacaoUseCase(gh<_i322.AreaGestorRepository>()),
     );
     gh.factory<_i89.BuscarAcervoUseCase>(
       () => _i89.BuscarAcervoUseCase(gh<_i268.AcervoRepository>()),
