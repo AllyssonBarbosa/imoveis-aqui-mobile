@@ -23,7 +23,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-11-24)
 
 **Core value:** A vitrine do app abre na cidade do usuário e mostra imóveis reais vindos da API, com a busca e o filtro resolvidos no servidor — o mesmo dado e a mesma regra do site, nunca recalculados dentro do aparelho.
-**Current focus:** Phase 10 (APP 10) concluída e na `main` (app PR #2, web PR #9) em 2026-11-24 — UAT 6/6, SECURITY verificado e re-verificação passed depois do merge com a APP-09 (caixa = §17 do contrato, requisitos API-13/API-14). A posição abaixo aponta a Phase 1 só porque as fases 1–4 nunca passaram pela transição no ROADMAP (todas com planos feitos). A Phase 9 (APP-09, do colega) está na `main` com 13/13 planos e UAT completo, ainda sem a transição no ROADMAP. Opcionais da Phase 10: `/gsd-code-review 10`, `/gsd-validate-phase 10`, `/gsd-ui-review 10`.
+**Current focus:** Phase 12 — Área do Gestor: Acompanhamento dos Corretores (APP 12), criada em 2026-11-25 (card em `12-CARD-APP12.md`); próximo: `/gsd-discuss-phase 12`. As fases 1–4 seguem sem transição no ROADMAP (planos feitos); APP-10 encerrada e na `main`.
 
 ## Current Position
 
@@ -289,6 +289,7 @@ None yet.
 - Phase 8 added: Login e Área do Corretor — o Acervo (card APP 08, tarefa A08)
 - Phase 9 added: Mudança de Situação do Imóvel pelo App (card APP 09, tarefa A09) — card do Kanban copiado para `../APP 09 · Mudança de situação do imóvel pelo app.md` (2026-11-22); depende da WEB 08
 - Phase 10 added: Contatos Recebidos e Retorno Anotado (card APP 10, tarefa A10); número 10 escolhido para casar com o card — fase 9 reservada ao APP 09 de outro colega
+- Phase 12 added: Área do Gestor — Acompanhamento dos Corretores (card APP 12, tarefa A12); número 12 escolhido para casar com o card — fase 11 reservada ao APP 11 de outro colega
 
 ## Deferred Items
 

@@ -31,6 +31,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 8: Login e Área do Corretor — o Acervo** (completed 2026-11-21)
 - [ ] **Phase 9: Mudança de Situação do Imóvel pelo App (APP 09)** - Corretor responsável troca a situação do imóvel (disponível/reservado/vendido/alugado) com observação pela API (a data é a do servidor; o gestor segue pela web até a APP-12), vê o histórico na tela do imóvel; recusa do servidor mantém a situação anterior.
 - [x] **Phase 10: Contatos Recebidos e Retorno Anotado (APP 10)** - Card APP 10: caixa de contatos do corretor (lista da API, filtro por imóvel e por período, contagem dos sem retorno) e retorno anotado gravado pela API. (Fase 9 reservada ao card APP 09, de outro colega — fase N = card APP 0N.) (completed 2026-11-24)
+- [ ] **Phase 12: Área do Gestor — Acompanhamento dos Corretores (APP 12)** - Card APP 12: área do gestor no app com acervo por corretor, contatos por corretor e por período, mudanças de situação recentes e totais da empresa por situação, todos calculados no Django (Fase 11 reservada ao card APP 11, de outro colega — fase N = card APP N.)
 
 ## Phase Details
 
@@ -579,3 +580,22 @@ Plans:
 
 **Wave 10** *(blocked on Wave 9 completion)*
 - [x] 10-10-PLAN.md — App: anotar o retorno (folha, item em voo, SnackBar fixa, número de novo do servidor) + casos ponta a ponta de anotação e 404, REQUIREMENTS completos, gates finais e human-check (CXA-01..06, API-13, API-14)
+
+### Phase 12: Área do Gestor — Acompanhamento dos Corretores (APP 12)
+
+**Goal:** Como gestor da imobiliária, eu quero acompanhar pelo celular o que a minha equipe está fazendo para saber quem está com acervo parado e quem está recebendo contato. A tela responde quatro perguntas: quantos imóveis cada corretor tem, quantos contatos cada um recebeu, o que mudou de situação nos últimos dias e quanto a empresa tem em cada situação — disponível, reservado, vendido e alugado. Card APP 12 (tarefa A12).
+**Requirements**: TBD
+**Depends on:** Phase 8 (login, sessão, `GET /api/auth/eu/` e `Dio` autenticado do app; hoje o gestor cai na `AvisoAreaScreen`) e Phase 10 (seletor de período em pt-BR). Externamente: WEB 08 (feito — `HistoricoSituacao`) e W12 (feito, na `main` da web — `GET /api/relatorios/acervo/` e `GET /api/relatorios/contatos/`, só para o gestor). Lacunas na web: acervo por corretor e mudanças de situação recentes da empresa (ver `12-CARD-APP12.md`).
+**Success Criteria** (what must be TRUE):
+
+  1. Acervo por corretor, com o total de cada um.
+  2. Contatos recebidos por corretor e por período.
+  3. Lista dos imóveis que mudaram de situação nos últimos dias, com quem mudou.
+  4. Totais da empresa por situação.
+  5. Todos os números vêm da API, calculados no servidor.
+  6. Só o gestor enxerga esta área; o corretor não.
+
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 12 to break down)
