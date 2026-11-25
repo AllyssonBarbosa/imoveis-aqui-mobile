@@ -584,7 +584,7 @@ Plans:
 ### Phase 12: Área do Gestor — Acompanhamento dos Corretores (APP 12)
 
 **Goal:** Como gestor da imobiliária, eu quero acompanhar pelo celular o que a minha equipe está fazendo para saber quem está com acervo parado e quem está recebendo contato. A tela responde quatro perguntas: quantos imóveis cada corretor tem, quantos contatos cada um recebeu, o que mudou de situação nos últimos dias e quanto a empresa tem em cada situação — disponível, reservado, vendido e alugado. Card APP 12 (tarefa A12).
-**Requirements**: TBD
+**Requirements**: GES-01, GES-02, GES-03, GES-04, GES-05, GES-06, API-15, API-16
 **Depends on:** Phase 8 (login, sessão, `GET /api/auth/eu/` e `Dio` autenticado do app; hoje o gestor cai na `AvisoAreaScreen`) e Phase 10 (seletor de período em pt-BR). Externamente: WEB 08 (feito — `HistoricoSituacao`) e W12 (feito, na `main` da web — `GET /api/relatorios/acervo/` e `GET /api/relatorios/contatos/`, só para o gestor). Lacunas na web: acervo por corretor e mudanças de situação recentes da empresa (ver `12-CARD-APP12.md`).
 **Success Criteria** (what must be TRUE):
 
