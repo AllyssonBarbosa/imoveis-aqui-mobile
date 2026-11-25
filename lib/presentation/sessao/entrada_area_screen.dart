@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../di/injection.dart';
 import '../../domain/entities/papel.dart';
 import '../acervo/acervo_screen.dart';
+import '../area_gestor/area_gestor_screen.dart';
 import '../login/apresentacao_login.dart';
 import '../login/login_screen.dart';
 import 'aviso_area_screen.dart';
@@ -16,8 +17,10 @@ import 'sessao_cubit.dart';
 /// Rota de "Meu acervo" (D-02, D-B): o papel sempre vem do servidor ao tocar
 /// no botão do topo, nunca do aparelho. Enquanto pergunta, mostra um
 /// indicador; ao responder, a própria rota é substituída (`pushReplacement`)
-/// pela área do papel, então o "voltar" leva à vitrine. Se o servidor recusar
-/// o token (401), a sessão fica anônima e o login abre com o aviso.
+/// pela área do papel, então o "voltar" leva à vitrine: o corretor vai ao
+/// acervo, o gestor à Área do gestor (APP-12, D-01) e o administrador ao
+/// aviso (D-02). Se o servidor recusar o token (401), a sessão fica anônima e
+/// o login abre com o aviso.
 class EntradaAreaScreen extends StatelessWidget {
   const EntradaAreaScreen({super.key, this.criarCubit});
 
@@ -47,7 +50,8 @@ class _CorpoEntradaArea extends StatelessWidget {
           MaterialPageRoute<void>(
             builder: (_) => switch (papel) {
               Papel.corretor => const AcervoScreen(),
-              Papel.gestor || Papel.administrador => const AvisoAreaScreen(),
+              Papel.gestor => const AreaGestorScreen(),
+              Papel.administrador => const AvisoAreaScreen(),
             },
           ),
         );

@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 
 import 'dialogo_sair.dart';
 
-/// Destino do gestor e do administrador depois do login (D-B): a área deles
-/// ainda não existe no app, então a tela só avisa e oferece Sair. A área
-/// própria (APP-12) troca esta tela sem mexer no login.
+/// Destino só do administrador depois do login (D-02): as rotas da Área do
+/// gestor usam `EhGestor` e o administrador não tem empresa, então a área dele
+/// não existe no app — a tela só avisa e oferece Sair. O gestor vai à
+/// `AreaGestorScreen` (APP-12).
 class AvisoAreaScreen extends StatelessWidget {
   const AvisoAreaScreen({super.key});
 
@@ -12,7 +13,7 @@ class AvisoAreaScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final tema = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Área do gestor')),
+      appBar: AppBar(title: const Text('Área do administrador')),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -26,7 +27,7 @@ class AvisoAreaScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                'A área do gestor ainda não está no app.',
+                'A área do administrador não está no app.',
                 style: tema.textTheme.titleMedium,
                 textAlign: TextAlign.center,
               ),

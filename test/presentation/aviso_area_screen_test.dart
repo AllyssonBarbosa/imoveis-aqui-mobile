@@ -66,7 +66,7 @@ void main() {
     expect(find.widgetWithText(FilledButton, 'Sair'), findsOneWidget);
     // O texto antigo, do gestor, não existe mais.
     expect(find.text('Área do gestor'), findsNothing);
-    expect(find.text('A área do gestor ainda não está no app.'), findsNothing);
+    expect(find.textContaining('área do gestor'), findsNothing);
   });
 
   testWidgets('Sair abre o diálogo e Cancelar fecha sem sair', (tester) async {

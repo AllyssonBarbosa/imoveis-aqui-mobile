@@ -254,7 +254,9 @@ void main() {
         const LoginState.editando(),
         depois: Stream.value(const LoginState.entrou(Papel.gestor)),
       );
-      await tester.pumpAndSettle();
+      // Sem `pumpAndSettle`: as seções carregando mantêm o indicador animado.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
 
       verify(() => sessao.marcarAutenticada()).called(1);
       expect(find.byType(AreaGestorScreen), findsOneWidget);
