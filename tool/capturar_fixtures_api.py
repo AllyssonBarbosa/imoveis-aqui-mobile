@@ -6,7 +6,7 @@ devolve (ensure_ascii=False, indent=2, quebra de linha final). Só biblioteca pa
 
 Uso:
     python3 tool/capturar_fixtures_api.py [URL_BASE] [PASTA_SAIDA]
-        [--grupo lista|detalhe|contato|perfis|anunciante|acervo|situacao|contatos|todos]
+        [--grupo lista|detalhe|contato|perfis|anunciante|acervo|situacao|contatos|gestor|todos]
 
 Padrões: URL_BASE=http://127.0.0.1:8000, PASTA_SAIDA=test/fixtures/api, --grupo=todos.
 Grupos: `lista` (cidades, listas de Campinas, bairros, características e o 400 de natureza);
@@ -20,10 +20,13 @@ eu, acervo do corretor em `GET /api/imoveis/` e o Sair; ver "Grupo acervo" abaix
 gestão, POST de mudança de situação, histórico, as recusas 400/403 e o 404 de outra empresa no detalhe e no
 histórico; ver "Grupo situacao" abaixo); `contatos` (caixa de contatos do corretor da Fase 10: 25 POSTs públicos,
 lista p1/p2 e filtros, contagem antes e depois de anotar, opções do filtro de imóvel, PATCH 200/400, a caixa da
-outra empresa e o 404 cruzado; ver "Grupo contatos" abaixo); `todos` = `lista`, `detalhe`, `contato`, `perfis`,
-`anunciante`, `acervo`, `situacao` e `contatos`, nessa ordem. ATENÇÃO: `todos` reescreve as fixtures da lista e do
+outra empresa e o 404 cruzado; ver "Grupo contatos" abaixo); `gestor` (relatórios da Área do gestor da Fase 12: contatos
+públicos, PATCH, 2 mudanças de situação, as 4 rotas do gestor, os 400/403/401 e a outra empresa; ver "Grupo gestor"
+abaixo); `todos` = `lista`, `detalhe`, `contato`, `perfis`, `anunciante`, `acervo`, `situacao`, `contatos` e `gestor`,
+nessa ordem. ATENÇÃO: `todos` reescreve as fixtures da lista e do
 detalhe (as URLs de foto mudam a cada banco novo); para acrescentar só um grupo rode `--grupo contato`,
-`--grupo perfis`, `--grupo anunciante`, `--grupo acervo`, `--grupo situacao` ou `--grupo contatos` (nunca `todos`).
+`--grupo perfis`, `--grupo anunciante`, `--grupo acervo`, `--grupo situacao`, `--grupo contatos` ou `--grupo gestor`
+(nunca `todos`).
 ATENÇÃO: cada POST de contato grava um Contato no banco do servidor; por isso o grupo `contato` só roda
 contra o SQLite temporário abaixo, NUNCA contra o banco do Web/.env.
 Sai com código 1 (e mensagem em português) quando alguma resposta esperada não é produzida.
@@ -119,6 +122,34 @@ Grupo contatos (Fase 10; só contra o SQLite temporário: cada POST público gra
   (20) -> p2 (5, seguindo o `next` real) -> filtro por imóvel -> período sem contato -> opções do filtro -> PATCH
   FALEI (200) -> resumo (24) -> PATCH PENDENTE (400) -> caixa da empresa B (1 contato) -> PATCH cruzado (404);
   por fim confere, sem salvar, o PATCH da A no contato da B (404), a lista sem token (401) e `?page=99` (404).
+
+Grupo gestor (Fase 12; só contra o SQLite temporário: o grupo GRAVA no banco — 4 contatos públicos, 1 PATCH e 2
+mudanças de situação):
+
+  Variáveis usadas (6; nada de e-mail, senha ou token em arquivo, e o token nunca é salvo nem impresso):
+  CAPTURA_EMAIL_CORRETOR e CAPTURA_SENHA_CORRETOR (corretor demo da empresa A, a da vitrine),
+  CAPTURA_EMAIL_GESTOR_VITRINE e CAPTURA_SENHA_GESTOR_VITRINE (gestor da empresa A, criado só no SQLite
+  temporário) e CAPTURA_EMAIL_GESTOR e CAPTURA_SENHA_GESTOR (gestor da empresa B, do `seed_demo`).
+
+  Passos extras no SQLite temporário (além de `migrate`, `semear_vitrine_dev` e `seed_demo`, nessa ordem), num
+  único `manage.py shell -c` que lê tudo de `os.environ` (nenhum seed nem arquivo do repo web muda):
+    - senha descartável do corretor demo (como no grupo acervo);
+    - o gestor da empresa A (perfil gestor, mesma empresa do corretor demo) com a senha descartável de
+      CAPTURA_SENHA_GESTOR_VITRINE;
+    - um corretor ativo SEM nenhum imóvel na empresa A (a linha "Nenhum imóvel" do relatório);
+    - a mudança antiga: o imóvel do corretor demo de maior `codigo` (Z) vira RESERVADO por `update`, com um
+      `HistoricoSituacao` DISPONIVEL -> RESERVADO cujo `alterado_em` é 10 dias atrás (fora dos 7 dias padrão,
+      dentro de `?dias=30`: a janela é provada nos dois sentidos).
+  O acervo do corretor precisa ter 36 imóveis e exatamente 1 RESERVADO (o Z); a ferramenta para com a dica se não.
+
+  Ordem do grupo: login dos 3 usuários -> acervo inteiro do corretor -> escolhe X e Y (DISPONIVEL, do corretor,
+  na vitrine) e W (de outro corretor, na vitrine, responsável desativado) -> 4 contatos públicos (X WHATSAPP,
+  X TELEFONE, Y EMAIL, W WHATSAPP) -> PATCH FALEI -> X RESERVADO e Y VENDIDO -> os 4 relatórios do gestor A
+  (acervo, acervo por corretor, contatos, contatos de janeiro de 2024, 400 de período, mudanças, `?dias=30`,
+  400 de dias) -> 403 do corretor e 401 do anônimo nas 4 rotas -> relatórios do gestor da empresa B.
+  Porta: suba o servidor temporário em 127.0.0.1:8012, NUNCA na 8000 (o servidor do desenvolvedor costuma estar
+  nela, contra o Postgres dele); as respostas dos relatórios não têm URL absoluta, então a porta não entra nas
+  fixtures. Suba com `LOGIN_TAXA_POR_EMAIL=100/hour LOGIN_TAXA_POR_IP=100/hour` (a captura faz vários logins).
 """
 
 import argparse
@@ -128,6 +159,7 @@ import sys
 import urllib.error
 import urllib.parse
 import urllib.request
+from collections import Counter
 from pathlib import Path
 
 
@@ -870,6 +902,281 @@ def capturar_contatos(base, pasta):
     print("  isolamento conferido nos dois sentidos, anônimo 401 e page=99 404")
 
 
+ROTAS_DO_GESTOR = (
+    "/api/relatorios/acervo/",
+    "/api/relatorios/acervo-por-corretor/",
+    "/api/relatorios/contatos/",
+    "/api/relatorios/mudancas-situacao/",
+)
+CHAVES_LINHA_ACERVO_CORRETOR = {"corretor_id", "corretor", "ativo", "total"}
+CHAVES_LINHA_CONTATOS_CORRETOR = CHAVES_LINHA_ACERVO_CORRETOR | {"pendentes"}
+CHAVES_MUDANCA_RECENTE = {
+    "id",
+    "imovel_id",
+    "imovel_codigo",
+    "imovel_titulo",
+    "situacao_anterior",
+    "situacao_nova",
+    "alterado_por",
+    "alterado_em",
+    "observacao",
+}
+SITUACOES_DO_ACERVO = {"DISPONIVEL", "RESERVADO", "VENDIDO", "ALUGADO"}
+OBSERVACAO_GESTOR = "Captura APP-12: reserva para o relatório do gestor."
+_TOTAL_ACERVO_EMPRESA_A = 36
+
+
+def _ler_acervo_inteiro(base, token):
+    """Todos os itens de `GET /api/imoveis/` do corretor, seguindo o `next` real."""
+    itens = []
+    url = f"{base}/api/imoveis/"
+    while url:
+        pagina = obter(url, token=token)
+        itens.extend(pagina["results"])
+        url = pagina.get("next")
+    return itens
+
+
+def _exigir_linhas(dados, chaves, descricao):
+    """Exige `dados["linhas"]` como lista de objetos com exatamente as `chaves`."""
+    linhas = dados.get("linhas")
+    if not isinstance(linhas, list):
+        raise ErroCaptura(f"{descricao} deveria ter `linhas` como lista.")
+    for linha in linhas:
+        if not isinstance(linha, dict) or set(linha) != set(chaves):
+            raise ErroCaptura(
+                f"cada linha de {descricao} deveria ter as chaves {sorted(chaves)}: {linha!r}."
+            )
+    return linhas
+
+
+def capturar_gestor(base, pasta):
+    """Relatórios da Área do gestor: as 4 rotas, 400/403/401 e a outra empresa.
+
+    O grupo GRAVA no banco do servidor (contatos públicos, PATCH e 2 mudanças de situação): só rode contra o
+    SQLite temporário, preparado como na docstring do arquivo. Os números do servidor são conferidos contra o
+    acervo real lido pelo corretor (soma, janela, papel e isolamento entre empresas podem falhar de verdade).
+    O token nunca vai para arquivo nem para o print; só ids e contagens são impressos.
+    """
+    relatorios = f"{base}/api/relatorios"
+    publico = f"{base}/api/publico"
+    imoveis = f"{base}/api/imoveis"
+
+    # (1) login dos três usuários (as chaves ficam só em memória)
+    token_corretor = _entrar(base, "CAPTURA_EMAIL_CORRETOR", "CAPTURA_SENHA_CORRETOR")
+    token_gestor = _entrar(base, "CAPTURA_EMAIL_GESTOR_VITRINE", "CAPTURA_SENHA_GESTOR_VITRINE")
+    token_gestor_b = _entrar(base, "CAPTURA_EMAIL_GESTOR", "CAPTURA_SENHA_GESTOR")
+
+    # (2) acervo inteiro do corretor e escolha dos imóveis
+    acervo = _ler_acervo_inteiro(base, token_corretor)
+    if len(acervo) != _TOTAL_ACERVO_EMPRESA_A:
+        raise ErroCaptura(
+            f"O acervo do corretor deveria ter {_TOTAL_ACERVO_EMPRESA_A} imóveis; veio {len(acervo)}."
+        )
+    reservados = [i["id"] for i in acervo if i.get("situacao") == "RESERVADO"]
+    if len(reservados) != 1:
+        raise ErroCaptura(
+            f"O acervo deveria ter exatamente 1 RESERVADO (a mudança antiga); veio {len(reservados)}: "
+            "crie a mudança antiga no SQLite temporário antes da captura (ver docstring)."
+        )
+    z = reservados[0]
+    candidatos = [
+        i["id"]
+        for i in acervo
+        if i.get("meu_imovel") and i.get("na_vitrine") and i.get("situacao") == "DISPONIVEL"
+    ]
+    if len(candidatos) < 2:
+        raise ErroCaptura("O corretor deveria ter ao menos 2 imóveis DISPONIVEL na vitrine.")
+    x, y = candidatos[0], candidatos[1]
+    de_outro = [i["id"] for i in acervo if not i.get("meu_imovel") and i.get("na_vitrine")]
+    if not de_outro:
+        raise ErroCaptura("O acervo deveria ter um imóvel de outro corretor (o desativado) na vitrine.")
+    w = de_outro[0]
+    detalhe_w = obter(f"{publico}/imoveis/{w}/")
+    if detalhe_w["corretor_responsavel"] is not None:
+        raise ErroCaptura(f"O imóvel {w} deveria ter corretor_responsavel nulo (responsável desativado).")
+    if "WHATSAPP" not in detalhe_w["canais_contato"]:
+        raise ErroCaptura(f"O imóvel {w} deveria aceitar o canal WHATSAPP.")
+    # o corretor demo (responsável de X) lido enquanto X ainda está na vitrine
+    detalhe_x = obter(f"{publico}/imoveis/{x}/")
+    id_corretor_demo = detalhe_x["corretor_responsavel"]["id"]
+    print(f"  X = {x}, Y = {y}, Z (mudança antiga) = {z}, W (corretor desativado) = {w}")
+    print(f"  corretor demo = id {id_corretor_demo}")
+
+    # (3) 4 contatos públicos, sem token
+    for imovel, canal in ((x, "WHATSAPP"), (x, "TELEFONE"), (y, "EMAIL"), (w, "WHATSAPP")):
+        postar(f"{publico}/imoveis/{imovel}/contato/", {"canal": canal}, status_esperado=201)
+    print("  4 contatos públicos criados")
+
+    # (4) a caixa do corretor só tem os 3 dele; um deles é anotado como FALEI
+    caixa = obter(f"{base}/api/contatos/", token=token_corretor)
+    if caixa.get("count") != 3:
+        raise ErroCaptura(
+            f"A caixa do corretor deveria ter 3 contatos; veio {caixa.get('count')!r} "
+            "(o contato do imóvel do desativado vai para a empresa)."
+        )
+    anotado = enviar_patch(
+        f"{base}/api/contatos/{caixa['results'][0]['id']}/", {"retorno": "FALEI"}, token=token_corretor
+    )
+    if anotado.get("retorno") != "FALEI":
+        raise ErroCaptura("O PATCH FALEI deveria devolver retorno FALEI.")
+
+    # (5) duas mudanças de situação, pelo corretor, na ordem X depois Y
+    postar(
+        f"{imoveis}/{x}/situacao/",
+        {"situacao": "RESERVADO", "observacao": OBSERVACAO_GESTOR},
+        token=token_corretor,
+    )
+    postar(f"{imoveis}/{y}/situacao/", {"situacao": "VENDIDO"}, token=token_corretor)
+
+    # (6) o acervo depois das mudanças: as contas que o servidor tem que repetir
+    acervo = _ler_acervo_inteiro(base, token_corretor)
+    contagem = Counter(i["situacao"] for i in acervo)
+    meus = sum(1 for i in acervo if i.get("meu_imovel"))
+    print(f"  acervo depois: {dict(contagem)}; do corretor: {meus}")
+
+    # (7) totais por situação do acervo (gestor da empresa A)
+    acervo_relatorio = obter(f"{relatorios}/acervo/", token=token_gestor)
+    totais = acervo_relatorio.get("totais")
+    if not isinstance(totais, dict) or set(totais) != SITUACOES_DO_ACERVO:
+        raise ErroCaptura(f"`totais` deveria ter exatamente as 4 situações: {totais!r}.")
+    esperados = {s: contagem.get(s, 0) for s in SITUACOES_DO_ACERVO}
+    if totais != esperados:
+        raise ErroCaptura(f"`totais` {totais!r} não bate com as situações do acervo {esperados!r}.")
+    if acervo_relatorio.get("total") != _TOTAL_ACERVO_EMPRESA_A:
+        raise ErroCaptura(
+            f"`total` do acervo deveria ser {_TOTAL_ACERVO_EMPRESA_A} (37 indica imóvel da empresa B): "
+            f"{acervo_relatorio.get('total')!r}."
+        )
+    salvar(pasta, "relatorio_acervo", acervo_relatorio)
+
+    # (8) acervo por corretor: soma, zero, desativado e linha do corretor demo achada pelo id
+    por_corretor = obter(f"{relatorios}/acervo-por-corretor/", token=token_gestor)
+    if set(por_corretor) != {"linhas", "total"}:
+        raise ErroCaptura(f"O acervo por corretor deveria ter só `linhas` e `total`: {sorted(por_corretor)}.")
+    linhas_a = _exigir_linhas(por_corretor, CHAVES_LINHA_ACERVO_CORRETOR, "acervo por corretor")
+    if por_corretor["total"] != acervo_relatorio["total"] or por_corretor["total"] != sum(
+        linha["total"] for linha in linhas_a
+    ):
+        raise ErroCaptura("O `total` do acervo por corretor deveria ser o do acervo e a soma das linhas.")
+    if not any(linha["ativo"] is True and linha["total"] == 0 for linha in linhas_a):
+        raise ErroCaptura("Faltou o corretor ativo sem imóvel (crie o corretor sem acervo; ver docstring).")
+    if not any(linha["ativo"] is False and linha["total"] >= 1 for linha in linhas_a):
+        raise ErroCaptura("Faltou o corretor desativado com imóvel (o seed rodou?).")
+    linha_demo = next((l for l in linhas_a if l["corretor_id"] == id_corretor_demo), None)
+    if linha_demo is None or linha_demo["ativo"] is not True or linha_demo["total"] != meus:
+        raise ErroCaptura(
+            f"A linha do corretor demo ({id_corretor_demo}) deveria ser ativa com total {meus}: {linha_demo!r}."
+        )
+    totais_linhas = [linha["total"] for linha in linhas_a]
+    if totais_linhas != sorted(totais_linhas, reverse=True):
+        raise ErroCaptura("As linhas do acervo por corretor deveriam vir com totais não crescentes.")
+    salvar(pasta, "relatorio_acervo_por_corretor", por_corretor)
+
+    # (9) contatos de todo o período: a linha da empresa (corretor nulo) e os pendentes
+    contatos = obter(f"{relatorios}/contatos/", token=token_gestor)
+    linhas_contatos = _exigir_linhas(contatos, CHAVES_LINHA_CONTATOS_CORRETOR, "contatos por corretor")
+    if contatos.get("total") != 4 or contatos.get("pendentes") != 3:
+        raise ErroCaptura(
+            f"Contatos deveria ter total 4 e pendentes 3: {contatos.get('total')!r}/{contatos.get('pendentes')!r}."
+        )
+    da_empresa = [l for l in linhas_contatos if l["corretor_id"] is None]
+    if len(da_empresa) != 1 or da_empresa[0]["total"] != 1:
+        raise ErroCaptura(f"Deveria haver 1 linha da empresa com total 1: {da_empresa!r}.")
+    if sum(l["total"] for l in linhas_contatos) != contatos["total"] or sum(
+        l["pendentes"] for l in linhas_contatos
+    ) != contatos["pendentes"]:
+        raise ErroCaptura("A soma das linhas de contatos deveria fechar com `total` e `pendentes`.")
+    salvar(pasta, "relatorio_contatos", contatos)
+
+    # (10) um período sem contato: os corretores ativos com zero e nenhuma linha da empresa
+    periodo = obter(
+        f"{relatorios}/contatos/?{urllib.parse.urlencode({'de': '2024-01-01', 'ate': '2024-01-31'})}",
+        token=token_gestor,
+    )
+    linhas_periodo = _exigir_linhas(periodo, CHAVES_LINHA_CONTATOS_CORRETOR, "contatos do período")
+    if periodo.get("total") != 0 or periodo.get("pendentes") != 0:
+        raise ErroCaptura("Janeiro de 2024 deveria vir com total 0 e pendentes 0.")
+    if not linhas_periodo or any(l["corretor_id"] is None or l["total"] != 0 for l in linhas_periodo):
+        raise ErroCaptura("Janeiro de 2024 deveria ter só corretores com zero, sem linha da empresa.")
+    salvar(pasta, "relatorio_contatos_periodo", periodo)
+
+    # (11) período invertido
+    erro_periodo = obter(
+        f"{relatorios}/contatos/?{urllib.parse.urlencode({'de': '2024-02-01', 'ate': '2024-01-01'})}",
+        status_esperado=400,
+        token=token_gestor,
+    )
+    if "de" not in erro_periodo:
+        raise ErroCaptura("O 400 de período invertido deveria trazer a chave `de`.")
+    salvar(pasta, "erro_400_relatorio_contatos", erro_periodo)
+
+    # (12) mudanças dos últimos 7 dias: só as 2 desta captura, a mais recente primeiro
+    mudancas = obter(f"{relatorios}/mudancas-situacao/", token=token_gestor)
+    if set(mudancas) != {"dias", "desde", "mudancas"} or mudancas["dias"] != 7:
+        raise ErroCaptura(f"As mudanças deveriam ter {{dias: 7, desde, mudancas}}: {sorted(mudancas)}.")
+    itens = mudancas["mudancas"]
+    if any(set(item) != CHAVES_MUDANCA_RECENTE for item in itens):
+        raise ErroCaptura(f"Cada mudança deveria ter as chaves {sorted(CHAVES_MUDANCA_RECENTE)}.")
+    ids_mudancas = [item["imovel_id"] for item in itens]
+    if ids_mudancas != [y, x]:
+        raise ErroCaptura(
+            f"As mudanças de 7 dias deveriam ser {[y, x]} (Y depois X; Z de 10 dias atrás fora): {ids_mudancas}."
+        )
+    if itens[1]["observacao"] != OBSERVACAO_GESTOR or itens[1]["situacao_nova"] != "RESERVADO":
+        raise ErroCaptura("A mudança de X deveria ser RESERVADO com a observação da captura.")
+    if itens[0]["situacao_nova"] != "VENDIDO":
+        raise ErroCaptura("A mudança de Y deveria ser VENDIDO.")
+    if any(not item["alterado_em"].endswith("-03:00") for item in itens):
+        raise ErroCaptura("`alterado_em` deveria vir no fuso de São Paulo (-03:00).")
+    salvar(pasta, "relatorio_mudancas", mudancas)
+
+    # (13) só confere: 30 dias traz também a mudança antiga (a janela falha nos dois sentidos)
+    trinta = obter(f"{relatorios}/mudancas-situacao/?dias=30", token=token_gestor)
+    if {item["imovel_id"] for item in trinta["mudancas"]} != {x, y, z}:
+        raise ErroCaptura("Com ?dias=30 as mudanças deveriam ser as de X, Y e Z.")
+
+    # (14) dias fora do intervalo
+    erro_dias = obter(f"{relatorios}/mudancas-situacao/?dias=0", status_esperado=400, token=token_gestor)
+    if "dias" not in erro_dias:
+        raise ErroCaptura("O 400 de dias=0 deveria trazer a chave `dias`.")
+    salvar(pasta, "erro_400_dias", erro_dias)
+
+    # (15) o corretor recebe 403 nas 4 rotas e o anônimo 401
+    for rota in ROTAS_DO_GESTOR:
+        recusa = obter(f"{base}{rota}", status_esperado=403, token=token_corretor)
+        _exigir_detail(recusa, f"o 403 de {rota}")
+        if rota == "/api/relatorios/acervo-por-corretor/":
+            salvar(pasta, "erro_403_relatorio", recusa)
+        sem_token = obter(f"{base}{rota}", status_esperado=401)
+        if "detail" not in sem_token:
+            raise ErroCaptura(f"O 401 de {rota} deveria trazer `detail`.")
+    print("  403 do corretor e 401 do anônimo conferidos nas 4 rotas")
+
+    # (16) a empresa B: tem imóvel e mudança de verdade e nada em comum com a A
+    por_corretor_b = obter(f"{relatorios}/acervo-por-corretor/", token=token_gestor_b)
+    linhas_b = _exigir_linhas(por_corretor_b, CHAVES_LINHA_ACERVO_CORRETOR, "acervo por corretor da empresa B")
+    if not linhas_b or por_corretor_b.get("total", 0) < 1:
+        raise ErroCaptura("O acervo por corretor da empresa B veio vazio (o seed_demo rodou?).")
+    if {l["corretor_id"] for l in linhas_b} & {l["corretor_id"] for l in linhas_a}:
+        raise ErroCaptura("Há corretor em comum entre as empresas A e B (isolamento vazou).")
+    salvar(pasta, "relatorio_acervo_por_corretor_outra_empresa", por_corretor_b)
+
+    mudancas_b = obter(f"{relatorios}/mudancas-situacao/", token=token_gestor_b)
+    if not mudancas_b.get("mudancas"):
+        raise ErroCaptura("As mudanças da empresa B vieram vazias (o seed_demo grava 1 na hora do seed).")
+    ids_b = {item["imovel_id"] for item in mudancas_b["mudancas"]}
+    if ids_b & ({x, y, z, w} | set(ids_mudancas)):
+        raise ErroCaptura("Há imóvel em comum entre as mudanças das empresas A e B (isolamento vazou).")
+    salvar(pasta, "relatorio_mudancas_outra_empresa", mudancas_b)
+
+    # só confere (não salva): a empresa B não tem contato nenhum
+    contatos_b = obter(f"{relatorios}/contatos/", token=token_gestor_b)
+    if contatos_b.get("total") != 0:
+        raise ErroCaptura("O relatório de contatos da empresa B deveria ter total 0.")
+    print("  empresa B conferida: imóvel e mudança próprios, nada em comum com a A")
+
+
 GRUPOS = {
     "lista": capturar_lista,
     "detalhe": capturar_detalhe,
@@ -879,6 +1186,7 @@ GRUPOS = {
     "acervo": capturar_acervo,
     "situacao": capturar_situacao,
     "contatos": capturar_contatos,
+    "gestor": capturar_gestor,
 }
 
 
@@ -890,11 +1198,12 @@ def main():
     analisador.add_argument("pasta_saida", nargs="?", default="test/fixtures/api")
     analisador.add_argument(
         "--grupo",
-        choices=["lista", "detalhe", "contato", "perfis", "anunciante", "acervo", "situacao", "contatos", "todos"],
+        choices=["lista", "detalhe", "contato", "perfis", "anunciante", "acervo", "situacao", "contatos", "gestor", "todos"],
         default="todos",
         help="`lista` (lista e opções), `detalhe`, `contato` (POST de contato), `perfis`, `anunciante`, `acervo`, "
         "`situacao` (mudança de situação, Fase 9; grava no banco), `contatos` (caixa de contatos, Fase 10; grava no "
-        "banco) ou `todos` (os oito, nessa ordem; nunca use `todos` só para acrescentar um grupo).",
+        "banco), `gestor` (relatórios da Área do gestor, Fase 12; grava no banco) ou `todos` (os nove, nessa ordem; "
+        "nunca use `todos` só para acrescentar um grupo).",
     )
     argumentos = analisador.parse_args()
 
