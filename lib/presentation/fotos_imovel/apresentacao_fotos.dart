@@ -69,3 +69,6 @@ const String rotuloContinuarEnviando = 'Continuar enviando';
 
 /// Rótulo de posição de cada foto na lista ("Foto 1", "Foto 2"…).
 String rotuloPosicaoDaFoto(int posicao) => 'Foto $posicao';
+
+/// Dica (tooltip) do menu de ações de cada foto.
+String rotuloAcoesDaFoto(int posicao) => 'Ações da foto $posicao';

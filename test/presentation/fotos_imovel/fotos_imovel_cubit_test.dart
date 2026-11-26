@@ -569,7 +569,7 @@ void main() {
     test('soltar no mesmo lugar não chama o servidor', () async {
       final cubit = await carregado();
 
-      await cubit.reordenar(1, 2);
+      await cubit.reordenar(1, 1);
 
       verifyNever(() => reordenar(any(), any()));
       await cubit.close();
@@ -654,7 +654,7 @@ void main() {
         );
         final cubit = await carregado();
 
-        await cubit.reordenar(0, 3);
+        await cubit.reordenar(0, 2);
 
         expect(cubit.state.falhasDeOperacao, 1);
         expect(

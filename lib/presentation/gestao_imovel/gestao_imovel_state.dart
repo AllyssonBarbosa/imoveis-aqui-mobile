@@ -25,6 +25,17 @@ abstract class GestaoImovelState with _$GestaoImovelState {
     @Default(ConteudoHistorico.carregando()) ConteudoHistorico historico,
     @Default(0) int falhasAoAtualizar,
     @Default(false) bool mudou,
+
+    /// Alguma foto mudou na tela de fotos (APP 11): o acervo relê na volta.
+    /// Separado de [mudou] para não esconder "Ver na vitrine" (D-18 da Fase 9
+    /// vale só para mudança de situação).
+    @Default(false) bool fotosMudaram,
+
+    /// Capa marcada pelo servidor na última lista da tela de fotos; só vale com
+    /// [temCapaAtualizada] (`null` com ela = imóvel ficou sem fotos). O
+    /// cabeçalho a usa no lugar da capa do cartão do acervo (D-23).
+    String? capaAtualizada,
+    @Default(false) bool temCapaAtualizada,
   }) = _GestaoImovelState;
 }
 

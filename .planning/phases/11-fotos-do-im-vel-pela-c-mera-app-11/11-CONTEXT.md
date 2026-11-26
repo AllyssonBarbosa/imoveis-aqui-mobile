@@ -143,8 +143,11 @@ sobrevive a fechar o app, publicar o imóvel pelo app e qualquer regra decidida 
   ("Este imóvel ainda não tem fotos."). **401 em qualquer chamada** (leitura, envio, ordem, capa,
   apagar) → `voltarAoLoginComSessaoTerminada` (o mesmo helper da APP 09/10/12), e a fila para.
   404 → "Este imóvel não está mais no seu acervo." (texto da gestão). Ao voltar para a gestão, se
-  alguma foto mudou, a gestão relê o imóvel (o cabeçalho mostra a capa nova), no mesmo padrão
-  `mudou` da APP 09.
+  alguma foto mudou: **(ajustado no 11-08)** o `GET /api/imoveis/<id>/` que a gestão lê não traz fotos
+  no Model do app, então reler o imóvel não trocaria a capa. A tela de fotos devolve
+  `FotosAlteradas` com a capa que o **servidor** marcou na última lista recebida, e o cabeçalho a usa.
+  A gestão marca `fotosMudaram` (separado de `mudou`, para não esconder "Ver na vitrine") e o acervo
+  relê na volta.
 
 ### Critério 6 — vitrine e site
 - **D-24 · Capa primeiro no site:** a página pública do imóvel no site (`site_publico/views.py`,

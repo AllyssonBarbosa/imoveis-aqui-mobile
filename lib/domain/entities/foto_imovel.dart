@@ -35,17 +35,16 @@ abstract class FotoEscolhida with _$FotoEscolhida {
 }
 
 /// Ids de [atual] na ordem que o corretor pediu ao arrastar a foto da posição
-/// [de] para a posição [para] num `ReorderableListView` — ou `null` quando a
-/// ordem não muda (nada a pedir ao servidor).
+/// [de] para a posição final [destino] — ou `null` quando a ordem não muda
+/// (nada a pedir ao servidor) ou um índice está fora da lista.
 ///
-/// O `ReorderableListView` entrega [para] contando o item que ainda está na
-/// lista: quando a foto desce, a posição final é `para - 1`. A lista [atual] é
-/// a do servidor e não é alterada; o resultado é só o pedido (D-20).
-List<int>? idsNaOrdemPedida(List<FotoImovel> atual, int de, int para) {
-  if (de < 0 || de >= atual.length || para < 0 || para > atual.length) {
+/// [destino] já é a posição final, como o `onReorderItem` do
+/// `ReorderableListView` entrega (ele desconta o item que saiu). A lista
+/// [atual] é a do servidor e não é alterada; o resultado é só o pedido (D-20).
+List<int>? idsNaOrdemPedida(List<FotoImovel> atual, int de, int destino) {
+  if (de < 0 || de >= atual.length || destino < 0 || destino >= atual.length) {
     return null;
   }
-  final destino = para > de ? para - 1 : para;
   if (destino == de) return null;
   final ids = [for (final foto in atual) foto.id];
   final movido = ids.removeAt(de);

@@ -308,13 +308,14 @@ class FotosImovelCubit extends Cubit<FotosImovelState> {
 
   // --- Ordem, capa e exclusão (o servidor decide) -------------------------
 
-  /// O corretor arrastou a foto de [de] para [para] no `ReorderableListView`.
+  /// O corretor arrastou a foto de [de] para a posição final [destino]
+  /// (`onReorderItem` do `ReorderableListView`).
   /// Pede a lista completa na ordem nova e mostra a lista devolvida; até lá a
   /// lista exibida não muda (D-20). Ignorado com envio ou operação em andamento.
-  Future<void> reordenar(int de, int para) async {
+  Future<void> reordenar(int de, int destino) async {
     final lista = state.lista;
     if (!state.podeAlterarFotos || lista is! ListaFotosCarregada) return;
-    final ids = idsNaOrdemPedida(lista.fotos, de, para);
+    final ids = idsNaOrdemPedida(lista.fotos, de, destino);
     if (ids == null) return;
     await _operar(
       const OperacaoFotos.reordenando(),

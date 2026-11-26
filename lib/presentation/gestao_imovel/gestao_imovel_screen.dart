@@ -6,6 +6,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../di/injection.dart';
 import '../../domain/entities/imovel_acervo.dart';
 import '../detalhe_imovel/detalhe_imovel_screen.dart';
+import '../fotos_imovel/apresentacao_fotos.dart';
+import '../fotos_imovel/fotos_imovel_screen.dart';
 import '../login/apresentacao_login.dart';
 import '../sessao/sessao_expirada.dart';
 import 'apresentacao_gestao.dart';
@@ -62,7 +64,8 @@ Future<bool> abrirGestaoImovel(
       ),
     ),
   );
-  final mudou = cubit.state.mudou;
+  // Situação ou fotos mudaram: o acervo relê (o cartão mostra a capa nova).
+  final mudou = cubit.state.mudou || cubit.state.fotosMudaram;
   await cubit.close();
   return mudou;
 }
@@ -79,6 +82,7 @@ class GestaoImovelScreen extends StatefulWidget {
     super.key,
     required this.previa,
     this.aoVerNaVitrine = abrirDetalheImovel,
+    this.aoAbrirFotos = abrirFotosImovel,
     @visibleForTesting this.construirImagemDeRede,
   });
 
@@ -89,6 +93,9 @@ class GestaoImovelScreen extends StatefulWidget {
   /// Abre a página pública do imóvel (padrão [abrirDetalheImovel]); só é
   /// chamada a partir de "Ver na vitrine".
   final AoAbrirImovel aoVerNaVitrine;
+
+  /// Abre a tela de fotos do imóvel (padrão [abrirFotosImovel], APP 11).
+  final AoAbrirFotos aoAbrirFotos;
 
   /// Ponto de extensão só para teste (ver `ImagemRede`); em produção `null`.
   final Widget Function(String url)? construirImagemDeRede;
@@ -113,6 +120,22 @@ class _GestaoImovelScreenState extends State<GestaoImovelScreen> {
       if (!mounted) return;
       unawaited(voltarAoLoginComSessaoTerminada(context));
     });
+  }
+
+  /// Abre a tela de fotos e, se alguma foto mudou no servidor, avisa o Cubit
+  /// (o cabeçalho passa a mostrar a capa que o servidor marcou).
+  Future<void> _abrirFotos(
+    BuildContext context,
+    int imovelId,
+    String codigo,
+  ) async {
+    final cubit = context.read<GestaoImovelCubit>();
+    final alteradas = await widget.aoAbrirFotos(
+      context,
+      imovelId: imovelId,
+      codigo: codigo,
+    );
+    if (alteradas != null) cubit.registrarMudancaDeFotos(alteradas);
   }
 
   @override
@@ -177,6 +200,8 @@ class _GestaoImovelScreenState extends State<GestaoImovelScreen> {
                             ImovelGestaoNaoEncontrado() ||
                             ImovelGestaoSessaoExpirada() => null,
                           },
+                          urlDaCapa: state.capaAtualizada,
+                          temCapaAtualizada: state.temCapaAtualizada,
                           construirImagemDeRede: widget.construirImagemDeRede,
                         ),
                         const SizedBox(height: 16),
@@ -228,6 +253,24 @@ class _GestaoImovelScreenState extends State<GestaoImovelScreen> {
                                 ),
                               ),
                             ],
+                            // APP 11: fotos do imóvel. Qualquer corretor da
+                            // empresa que abriu a gestão pode mexer nas fotos;
+                            // o servidor confere (404 de outra empresa).
+                            const SizedBox(height: 16),
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: OutlinedButton.icon(
+                                onPressed: () => unawaited(
+                                  _abrirFotos(
+                                    context,
+                                    imovel.id,
+                                    previa.codigo,
+                                  ),
+                                ),
+                                icon: const Icon(Icons.photo_library_outlined),
+                                label: const Text(rotuloBotaoFotos),
+                              ),
+                            ),
                             // D-02: só o que o servidor disse no cartão (na_vitrine);
                             // o app nunca olha publicado nem situação para isso.
                             // D-18: depois de uma mudança o botão some até reabrir.

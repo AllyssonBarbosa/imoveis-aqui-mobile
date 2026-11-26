@@ -32,28 +32,27 @@ const _preparada = FotoEscolhida(caminho: '/cache/fotos/preparada.jpg');
 void main() {
   setUpAll(() => registerFallbackValue(_preparada));
 
-  group('idsNaOrdemPedida (correção do ReorderableListView, D-20)', () {
+  group('idsNaOrdemPedida (posição final do onReorderItem, D-20)', () {
     test('subir: a terceira vai para o topo', () {
       expect(idsNaOrdemPedida(_tres, 2, 0), [30, 10, 20]);
     });
 
-    test('descer: a primeira vai para o fim (para = length, conta o item)', () {
-      expect(idsNaOrdemPedida(_tres, 0, 3), [20, 30, 10]);
+    test('descer: a primeira vai para o fim (destino = último índice)', () {
+      expect(idsNaOrdemPedida(_tres, 0, 2), [20, 30, 10]);
     });
 
-    test('descer uma posição: para - 1', () {
-      expect(idsNaOrdemPedida(_tres, 0, 2), [20, 10, 30]);
+    test('descer uma posição', () {
+      expect(idsNaOrdemPedida(_tres, 0, 1), [20, 10, 30]);
     });
 
     test('soltar no mesmo lugar não pede nada', () {
       expect(idsNaOrdemPedida(_tres, 1, 1), isNull);
-      expect(idsNaOrdemPedida(_tres, 1, 2), isNull); // logo abaixo de si mesma
     });
 
     test('índice fora da lista não pede nada', () {
       expect(idsNaOrdemPedida(_tres, 3, 0), isNull);
       expect(idsNaOrdemPedida(_tres, -1, 0), isNull);
-      expect(idsNaOrdemPedida(_tres, 0, 4), isNull);
+      expect(idsNaOrdemPedida(_tres, 0, 3), isNull);
       expect(idsNaOrdemPedida(const [], 0, 0), isNull);
     });
 
