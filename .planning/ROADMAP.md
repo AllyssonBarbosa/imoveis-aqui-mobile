@@ -31,7 +31,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 8: Login e Área do Corretor — o Acervo** (completed 2026-11-21)
 - [ ] **Phase 9: Mudança de Situação do Imóvel pelo App (APP 09)** - Corretor responsável troca a situação do imóvel (disponível/reservado/vendido/alugado) com observação pela API (a data é a do servidor; o gestor segue pela web até a APP-12), vê o histórico na tela do imóvel; recusa do servidor mantém a situação anterior.
 - [x] **Phase 10: Contatos Recebidos e Retorno Anotado (APP 10)** - Card APP 10: caixa de contatos do corretor (lista da API, filtro por imóvel e por período, contagem dos sem retorno) e retorno anotado gravado pela API. (Fase 9 reservada ao card APP 09, de outro colega — fase N = card APP 0N.) (completed 2026-11-24)
-- [ ] **Phase 11: Fotos do Imóvel pela Câmera (APP 11)** - Card APP 11: o corretor fotografa o imóvel na visita (câmera ou galeria), envia várias fotos de uma vez com progresso e "Tentar de novo" por foto, reordena, escolhe a capa e apaga, sempre pedindo à API e relendo; rotas autenticadas aninhadas em `/api/imoveis/{id}/fotos/` com isolamento por empresa; as fotos aparecem na vitrine e no site com a capa primeiro.
+- [x] **Phase 11: Fotos do Imóvel pela Câmera (APP 11)** - Card APP 11: o corretor fotografa o imóvel na visita (câmera ou galeria), envia várias fotos de uma vez com progresso e "Tentar de novo" por foto, reordena, escolhe a capa e apaga, sempre pedindo à API e relendo; rotas autenticadas aninhadas em `/api/imoveis/{id}/fotos/` com isolamento por empresa; as fotos aparecem na vitrine e no site com a capa primeiro. (completed 2026-11-26)
 - [x] **Phase 12: Área do Gestor — Acompanhamento dos Corretores (APP 12)** - Card APP 12: área do gestor no app com acervo por corretor, contatos por corretor e por período, mudanças de situação recentes e totais da empresa por situação, todos calculados no Django (Fase 11 reservada ao card APP 11, de outro colega — fase N = card APP N.) (completed 2026-11-25)
 
 ## Phase Details
@@ -596,7 +596,7 @@ Plans:
   5. Só funciona nos imóveis a que o corretor tem acesso (os dele e os da imobiliária).
   6. As fotos enviadas aparecem na vitrine e no site.
 
-**Plans:** 8/9 plans complete
+**Plans:** 9/9 plans complete
 
 Plans:
 **Wave 1**
@@ -624,7 +624,7 @@ Plans:
 - [x] 11-08-PLAN.md — App: `FotosImovelScreen` (botões câmera/galeria, fila, `ReorderableListView`, menu Capa/Apagar com confirmação, 401 → login) e botão "Fotos" na gestão com releitura na volta (FOT-01..FOT-05)
 
 **Wave 9** *(blocked on Wave 8 completion)*
-- [ ] 11-09-PLAN.md — App: fluxos ponta a ponta na pilha real, roteiro de UAT no emulador, REQUIREMENTS completos, gates dos dois repos e human-check (FOT-01..FOT-06, API-17, API-18)
+- [x] 11-09-PLAN.md — App: fluxos ponta a ponta na pilha real, roteiro de UAT no emulador, REQUIREMENTS completos, gates dos dois repos e human-check (FOT-01..FOT-06, API-17, API-18)
 
 ### Phase 12: Área do Gestor — Acompanhamento dos Corretores (APP 12)
 

@@ -5,12 +5,12 @@ current_phase_name: Localização, Escolha de Cidade e Contrato da API
 status: verifying
 stopped_at: Phase 12 complete, ready to verify Phase 1
 last_updated: "2026-11-25T23:07:12.022Z"
-last_activity: 2026-11-25
-last_activity_desc: Phase 12 complete, transitioned to Phase 1
+last_activity: 2026-11-26
+last_activity_desc: Phase 11 UAT passed, phase complete (local, sem push)
 state_head: 60127309b807791c0297ba9786fb6dc053254fa3
 progress:
   total_phases: 12
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 116
   completed_plans: 116
   percent: 25
@@ -23,7 +23,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-11-25)
 
 **Core value:** A vitrine do app abre na cidade do usuário e mostra imóveis reais vindos da API, com a busca e o filtro resolvidos no servidor — o mesmo dado e a mesma regra do site, nunca recalculados dentro do aparelho.
-**Current focus:** Phase 11 (APP 11 — Fotos do imóvel pela câmera), 9 planos executados; **parada até o UAT no emulador** (Palloma, depois de instalar o Android Studio), 2026-11-26. Branches `feat/APP11` criadas de `origin/main` (app c5c3d92, web 5bdd5f1), sem upstream e sem push. Commits locais — web: 11-01 `ac5e95f`, 11-02 `6e56bda`; app: documentos `5e51669`, 11-03/11-04 `975cc60`, 11-05 `e73751d`, 11-06 `62ff652`, 11-07 `838ece5`, 11-08 `f6d3871`, 11-09 `ef1db5f` (histórico das duas branches reescrito em 2026-11-26 para nenhuma senha aparecer em commit; a árvore final do app não mudou e a da web só perdeu a senha de teste do `tests_fotos.py`). Gates: app 2058 testes OK, analyze 106 infos (todas `material.dart`, ver `11-NOTAS-PR.md`); web 835 OK. Decisões: `site_publico` é a W10 da Palloma (D-24), sem `CAMERA` no Android (D-26), rota antiga `/api/fotos-imovel/` intocada exceto `definir_como_capa` atômico, Flutter 3.50.1. Falta: rodar `11-UAT.md` (14 itens) → REQUIREMENTS FOT-01..06/API-17/API-18 Complete, ROADMAP 9/9, VERIFICATION passed. Nenhum commit/push sem aprovação dela. A Phase 12 já está na main (PR #3 app, PR #10 web).
+**Current focus:** Phase 11 (APP 11 — Fotos do imóvel pela câmera) **concluída em 2026-11-26**: UAT no emulador (Medium_Phone_API_37.0, API 37) com 12 pass e 0 falha; 11 (401) e 12 (acesso) ficaram com os testes automáticos por decisão da Palloma. FOT-01..06, API-17 e API-18 Complete; ROADMAP 9/9; VERIFICATION passed. Branches `feat/APP11` só locais, sem upstream e sem push. Commits locais — web: 11-01 `ac5e95f`, 11-02 `6e56bda`; app: documentos `5e51669`, 11-03/11-04 `975cc60`, 11-05 `e73751d`, 11-06 `62ff652`, 11-07 `838ece5`, 11-08 `f6d3871`, 11-09 `ef1db5f`, SHAs `b683304` e o fechamento da fase (histórico reescrito em 2026-11-26 para nenhuma senha aparecer em commit). Gates: app 2058 testes OK, analyze 106 infos (todas `material.dart`, ver `11-NOTAS-PR.md`); web 835 OK. Próximo: push e PRs das duas `feat/APP11`, só com aprovação dela. A Phase 12 já está na main (PR #3 app, PR #10 web).
 
 ## Current Position
 

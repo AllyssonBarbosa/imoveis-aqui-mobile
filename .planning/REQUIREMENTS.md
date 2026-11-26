@@ -111,14 +111,14 @@ Card APP 12 (tarefa A12). GES-01..GES-06 cobrem os critérios 1–6 do card; API
 
 Card APP 11 (tarefa A11), Phase 11. Critérios do card: `11-CARD-APP11.md`; decisões: `11-CONTEXT.md`.
 
-- [ ] **FOT-01**: Tirar foto pela câmera ou escolher várias da galeria (critério 1): na tela "Fotos" do imóvel (botão na gestão da APP 09), "Tirar foto" abre a câmera e "Escolher da galeria" abre o seletor com várias fotos; cada foto é reduzida no aparelho para no máximo 1920 px no lado maior, em JPEG qualidade 85, sem a localização do EXIF, antes de sair do aparelho; Info.plist com `NSCameraUsageDescription` e `NSPhotoLibraryUsageDescription`.
-- [ ] **FOT-02**: Enviar várias de uma vez, com progresso e aviso de erro (critério 2): uma requisição multipart por foto (`POST /api/imoveis/{id}/fotos/`), uma de cada vez na ordem da escolha, com a barra de progresso de cada uma (`onSendProgress`); a foto que falha mostra o erro (a mensagem do servidor no 400, senão texto fixo) com "Tentar de novo" e "Remover", sem travar as outras; depois de cada envio aceito o app relê a lista.
-- [ ] **FOT-03**: Reordenar e escolher a capa (critério 3): arrastar manda a lista completa de ids (`PUT …/fotos/ordem/`) e "Definir como capa" manda `POST …/fotos/{foto}/capa/`; o app não muda a ordem nem a capa localmente e mostra a lista devolvida pelo servidor; o servidor grava uma só capa por imóvel e a primeira foto vira capa sozinha.
-- [ ] **FOT-04**: Apagar foto enviada por engano (critério 4): "Apagar" com confirmação → `DELETE …/fotos/{foto}/`; o servidor fecha o buraco na ordem, apaga o arquivo do disco e, se era a capa, promove a próxima.
-- [ ] **FOT-05**: Só nos imóveis a que o corretor tem acesso (critério 5): as rotas aceitam qualquer corretor da empresa do imóvel; imóvel de outra empresa (ou foto de outro imóvel) → 404, gestor e administrador → 403, sem token → 401, testado no Django; no app, 401 em qualquer chamada volta ao login com "Sua sessão terminou. Entre de novo." e 404 mostra texto fixo.
-- [ ] **FOT-06**: As fotos aparecem na vitrine e no site (critério 6): a vitrine do app (cartão e galeria do detalhe) e a página do imóvel no site mostram as fotos gravadas, na ordem do servidor e com a capa primeiro, para imóvel que está na vitrine.
-- [ ] **API-17**: A web entrega, com testes, na branch `feat/APP11`, as rotas `GET`/`POST /api/imoveis/{id}/fotos/`, `PUT …/fotos/ordem/`, `POST …/fotos/{foto}/capa/` e `DELETE …/fotos/{foto}/` (Token, `EhCorretor`, escopo de empresa), com as regras num serviço (`imoveis/fotos.py`): uma foto por requisição sem gravação parcial, validação de tipo e tamanho (`validar_imagem`), teto de 30, ordem = maior + 1, capa atômica e única, reordenação com lista completa (400 para faltando, repetido ou de outro imóvel), exclusão que renumera, promove a capa e apaga o arquivo; a rota antiga `/api/fotos-imovel/` fica como está.
-- [ ] **API-18**: O §19 de `01-CONTRATO-API.md` congela as 5 rotas de fotos (campos, multipart, 400/401/403/404, capa e ordem), com fixtures capturadas do Django (grupo `fotos` de `tool/capturar_fixtures_api.py`) e testes de contrato no app.
+- [x] **FOT-01**: Tirar foto pela câmera ou escolher várias da galeria (critério 1): na tela "Fotos" do imóvel (botão na gestão da APP 09), "Tirar foto" abre a câmera e "Escolher da galeria" abre o seletor com várias fotos; cada foto é reduzida no aparelho para no máximo 1920 px no lado maior, em JPEG qualidade 85, sem a localização do EXIF, antes de sair do aparelho; Info.plist com `NSCameraUsageDescription` e `NSPhotoLibraryUsageDescription`.
+- [x] **FOT-02**: Enviar várias de uma vez, com progresso e aviso de erro (critério 2): uma requisição multipart por foto (`POST /api/imoveis/{id}/fotos/`), uma de cada vez na ordem da escolha, com a barra de progresso de cada uma (`onSendProgress`); a foto que falha mostra o erro (a mensagem do servidor no 400, senão texto fixo) com "Tentar de novo" e "Remover", sem travar as outras; depois de cada envio aceito o app relê a lista.
+- [x] **FOT-03**: Reordenar e escolher a capa (critério 3): arrastar manda a lista completa de ids (`PUT …/fotos/ordem/`) e "Definir como capa" manda `POST …/fotos/{foto}/capa/`; o app não muda a ordem nem a capa localmente e mostra a lista devolvida pelo servidor; o servidor grava uma só capa por imóvel e a primeira foto vira capa sozinha.
+- [x] **FOT-04**: Apagar foto enviada por engano (critério 4): "Apagar" com confirmação → `DELETE …/fotos/{foto}/`; o servidor fecha o buraco na ordem, apaga o arquivo do disco e, se era a capa, promove a próxima.
+- [x] **FOT-05**: Só nos imóveis a que o corretor tem acesso (critério 5): as rotas aceitam qualquer corretor da empresa do imóvel; imóvel de outra empresa (ou foto de outro imóvel) → 404, gestor e administrador → 403, sem token → 401, testado no Django; no app, 401 em qualquer chamada volta ao login com "Sua sessão terminou. Entre de novo." e 404 mostra texto fixo.
+- [x] **FOT-06**: As fotos aparecem na vitrine e no site (critério 6): a vitrine do app (cartão e galeria do detalhe) e a página do imóvel no site mostram as fotos gravadas, na ordem do servidor e com a capa primeiro, para imóvel que está na vitrine.
+- [x] **API-17**: A web entrega, com testes, na branch `feat/APP11`, as rotas `GET`/`POST /api/imoveis/{id}/fotos/`, `PUT …/fotos/ordem/`, `POST …/fotos/{foto}/capa/` e `DELETE …/fotos/{foto}/` (Token, `EhCorretor`, escopo de empresa), com as regras num serviço (`imoveis/fotos.py`): uma foto por requisição sem gravação parcial, validação de tipo e tamanho (`validar_imagem`), teto de 30, ordem = maior + 1, capa atômica e única, reordenação com lista completa (400 para faltando, repetido ou de outro imóvel), exclusão que renumera, promove a capa e apaga o arquivo; a rota antiga `/api/fotos-imovel/` fica como está.
+- [x] **API-18**: O §19 de `01-CONTRATO-API.md` congela as 5 rotas de fotos (campos, multipart, 400/401/403/404, capa e ordem), com fixtures capturadas do Django (grupo `fotos` de `tool/capturar_fixtures_api.py`) e testes de contrato no app.
 
 ### API pública (endpoints que o app consome)
 
@@ -253,14 +253,14 @@ Excluídos de propósito. Documentados para evitar scope creep.
 | GES-06 | Phase 12 | Complete |
 | API-15 | Phase 12 | Complete |
 | API-16 | Phase 12 | Complete |
-| FOT-01 | Phase 11 | Pending |
-| FOT-02 | Phase 11 | Pending |
-| FOT-03 | Phase 11 | Pending |
-| FOT-04 | Phase 11 | Pending |
-| FOT-05 | Phase 11 | Pending |
-| FOT-06 | Phase 11 | Pending |
-| API-17 | Phase 11 | Pending |
-| API-18 | Phase 11 | Pending |
+| FOT-01 | Phase 11 | Complete |
+| FOT-02 | Phase 11 | Complete |
+| FOT-03 | Phase 11 | Complete |
+| FOT-04 | Phase 11 | Complete |
+| FOT-05 | Phase 11 | Complete |
+| FOT-06 | Phase 11 | Complete |
+| API-17 | Phase 11 | Complete |
+| API-18 | Phase 11 | Complete |
 
 Planos da Phase 6 que cobrem cada ID (frontmatter `requirements` dos `06-NN-PLAN.md`): APP06-C1 → 06-07, 06-09, 06-10; APP06-C2 → 06-02, 06-03, 06-04, 06-05, 06-06, 06-07, 06-10; APP06-C3 → 06-03, 06-04, 06-05, 06-06, 06-08, 06-09, 06-10; APP06-C4 → 06-01, 06-03, 06-05, 06-06, 06-07, 06-08, 06-10; APP06-C5 → 06-01, 06-09, 06-10; APP06-C6 → 06-01, 06-02, 06-05, 06-07, 06-09, 06-10; APP06-API-1 → 06-01, 06-03, 06-04, 06-10; APP06-API-2 → 06-02, 06-10.
 
@@ -276,4 +276,4 @@ Planos da Phase 11 que cobrem cada ID (frontmatter `requirements` dos `11-NN-PLA
 
 ---
 *Requirements defined: 2026-09-21*
-*Last updated: 2026-11-25 after Phase 11 discussion (FOT-01..06, API-17, API-18 adicionados, Pending)*
+*Last updated: 2026-11-26 after Phase 11 UAT (FOT-01..06, API-17, API-18 Complete)*
