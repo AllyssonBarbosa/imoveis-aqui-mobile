@@ -18,6 +18,8 @@ Pontos que a Palloma pediu para citar nos PRs da `feat/APP11` (app e web). Atual
   sistema. Se `CAMERA` fosse declarada, o plugin pediria a permissão ao corretor sem necessidade. Também não precisa
   de `<queries>`.
 - **Privacidade:** a foto sai do aparelho reduzida (1920 px, JPEG 85) e **sem EXIF**, logo sem a localização GPS.
+- **ApiFalsa dos testes:** o adaptador falso passou a drenar o corpo de todo pedido (como a rede faz), para o
+  `onSendProgress` do upload disparar nos testes; a suíte antiga continuou toda verde.
 - **Fixtures:** 13 fixtures capturadas do Django real (grupo `fotos` em `tool/capturar_fixtures_api.py`) e §19 no
   contrato.
 

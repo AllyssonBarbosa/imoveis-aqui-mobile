@@ -25,3 +25,13 @@ abstract class PreparadorDeFotoGateway {
   /// limpa o cache do app.
   Future<void> descartar(FotoEscolhida preparada);
 }
+
+/// A foto escolhida não pôde ser lida ou reduzida no aparelho (arquivo
+/// corrompido, formato que o sistema não decodifica, sem espaço). A foto entra
+/// na fila já com erro e "Tentar de novo" (D-17).
+class FalhaAoPrepararFotoException implements Exception {
+  const FalhaAoPrepararFotoException();
+
+  @override
+  String toString() => 'Não foi possível preparar a foto.';
+}

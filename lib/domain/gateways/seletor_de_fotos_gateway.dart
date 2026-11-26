@@ -14,3 +14,12 @@ abstract class SeletorDeFotosGateway {
   /// cancela. O app não limita a quantidade (o teto é do servidor, D-06).
   Future<Result<List<FotoEscolhida>>> escolherDaGaleria();
 }
+
+/// A plataforma recusou abrir a câmera ou a galeria (ex.: acesso negado no iOS,
+/// aparelho sem câmera). Sem detalhe técnico: a tela mostra texto fixo.
+class FalhaAoEscolherFotoException implements Exception {
+  const FalhaAoEscolherFotoException();
+
+  @override
+  String toString() => 'Não foi possível abrir a câmera ou a galeria.';
+}

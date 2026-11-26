@@ -596,7 +596,7 @@ Plans:
   5. Só funciona nos imóveis a que o corretor tem acesso (os dele e os da imobiliária).
   6. As fotos enviadas aparecem na vitrine e no site.
 
-**Plans:** 5/9 plans complete
+**Plans:** 6/9 plans complete
 
 Plans:
 **Wave 1**
@@ -615,7 +615,7 @@ Plans:
 - [x] 11-05-PLAN.md — App: `image_picker` + `flutter_image_compress`, Info.plist e manifesto, domínio das fotos (entidade, repositório, falhas, 5 use cases) e as interfaces `SeletorDeFotos`/`PreparadorDeFoto` (FOT-01..FOT-05)
 
 **Wave 6** *(blocked on Wave 5 completion)*
-- [ ] 11-06-PLAN.md — App: Model lido contra as fixtures, DataSource multipart com `onSendProgress` e `sendTimeout` próprio, repositório com 400/401/403/404 tipados, implementações do seletor e do preparador (1920 px, JPEG 85) e rotas na `ApiFalsa` (FOT-01, FOT-02, FOT-05)
+- [x] 11-06-PLAN.md — App: Model lido contra as fixtures, DataSource multipart com `onSendProgress` e `sendTimeout` próprio, repositório com 400/401/403/404 tipados, implementações do seletor e do preparador (1920 px, JPEG 85) e rotas na `ApiFalsa` (FOT-01, FOT-02, FOT-05)
 
 **Wave 7** *(blocked on Wave 6 completion)*
 - [ ] 11-07-PLAN.md — App: textos fixos e `FotosImovelCubit` (lista do servidor, fila sequencial com progresso, falha por foto e "Tentar de novo", ordem/capa/apagar sem mudança local, 401 terminal) (FOT-02..FOT-05)
