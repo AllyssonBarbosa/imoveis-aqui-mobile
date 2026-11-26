@@ -97,6 +97,8 @@ import 'package:imoveis_aqui/domain/gateways/geocoding_gateway.dart' as _i881;
 import 'package:imoveis_aqui/domain/gateways/geolocator_gateway.dart' as _i246;
 import 'package:imoveis_aqui/domain/gateways/link_launcher_gateway.dart'
     as _i325;
+import 'package:imoveis_aqui/domain/gateways/preparador_de_foto_gateway.dart'
+    as _i1012;
 import 'package:imoveis_aqui/domain/repositories/acervo_repository.dart'
     as _i268;
 import 'package:imoveis_aqui/domain/repositories/area_gestor_repository.dart'
@@ -109,6 +111,8 @@ import 'package:imoveis_aqui/domain/repositories/cidade_repository.dart'
     as _i146;
 import 'package:imoveis_aqui/domain/repositories/contato_repository.dart'
     as _i499;
+import 'package:imoveis_aqui/domain/repositories/fotos_imovel_repository.dart'
+    as _i282;
 import 'package:imoveis_aqui/domain/repositories/gestao_imovel_repository.dart'
     as _i796;
 import 'package:imoveis_aqui/domain/repositories/imovel_detalhe_repository.dart'
@@ -123,6 +127,7 @@ import 'package:imoveis_aqui/domain/repositories/vitrine_anunciante_repository.d
     as _i868;
 import 'package:imoveis_aqui/domain/usecases/anotar_retorno_usecase.dart'
     as _i301;
+import 'package:imoveis_aqui/domain/usecases/apagar_foto_usecase.dart' as _i469;
 import 'package:imoveis_aqui/domain/usecases/buscar_acervo_usecase.dart'
     as _i89;
 import 'package:imoveis_aqui/domain/usecases/buscar_contatos_usecase.dart'
@@ -133,12 +138,19 @@ import 'package:imoveis_aqui/domain/usecases/buscar_imoveis_usecase.dart'
     as _i213;
 import 'package:imoveis_aqui/domain/usecases/contatar_corretor_usecase.dart'
     as _i762;
+import 'package:imoveis_aqui/domain/usecases/definir_capa_usecase.dart'
+    as _i688;
+import 'package:imoveis_aqui/domain/usecases/descartar_foto_preparada_usecase.dart'
+    as _i743;
 import 'package:imoveis_aqui/domain/usecases/descartar_sessao_usecase.dart'
     as _i551;
 import 'package:imoveis_aqui/domain/usecases/detectar_cidade_usecase.dart'
     as _i502;
 import 'package:imoveis_aqui/domain/usecases/entrar_usecase.dart' as _i411;
+import 'package:imoveis_aqui/domain/usecases/enviar_foto_usecase.dart' as _i712;
 import 'package:imoveis_aqui/domain/usecases/ler_sessao_usecase.dart' as _i560;
+import 'package:imoveis_aqui/domain/usecases/listar_fotos_usecase.dart'
+    as _i681;
 import 'package:imoveis_aqui/domain/usecases/listar_imoveis_dos_contatos_usecase.dart'
     as _i864;
 import 'package:imoveis_aqui/domain/usecases/mudar_situacao_usecase.dart'
@@ -172,6 +184,10 @@ import 'package:imoveis_aqui/domain/usecases/obter_sem_retorno_usecase.dart'
     as _i943;
 import 'package:imoveis_aqui/domain/usecases/obter_totais_por_situacao_usecase.dart'
     as _i527;
+import 'package:imoveis_aqui/domain/usecases/preparar_foto_usecase.dart'
+    as _i339;
+import 'package:imoveis_aqui/domain/usecases/reordenar_fotos_usecase.dart'
+    as _i392;
 import 'package:imoveis_aqui/domain/usecases/sair_usecase.dart' as _i986;
 import 'package:imoveis_aqui/domain/usecases/salvar_cidade_usecase.dart'
     as _i589;
@@ -229,6 +245,18 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i326.ImovelDataSource>(
       () => _i877.ImovelRemoteDataSource(gh<_i361.Dio>()),
     );
+    gh.factory<_i469.ApagarFotoUseCase>(
+      () => _i469.ApagarFotoUseCase(gh<_i282.FotosImovelRepository>()),
+    );
+    gh.factory<_i688.DefinirCapaUseCase>(
+      () => _i688.DefinirCapaUseCase(gh<_i282.FotosImovelRepository>()),
+    );
+    gh.factory<_i681.ListarFotosUseCase>(
+      () => _i681.ListarFotosUseCase(gh<_i282.FotosImovelRepository>()),
+    );
+    gh.factory<_i392.ReordenarFotosUseCase>(
+      () => _i392.ReordenarFotosUseCase(gh<_i282.FotosImovelRepository>()),
+    );
     gh.lazySingleton<_i568.ContatoDataSource>(
       () => _i883.ContatoRemoteDataSource(gh<_i361.Dio>()),
     );
@@ -259,6 +287,12 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i320.CidadeRemoteDataSource>(
       () => _i320.CidadeRemoteDataSource(gh<_i361.Dio>()),
     );
+    gh.factory<_i712.EnviarFotoUseCase>(
+      () => _i712.EnviarFotoUseCase(
+        gh<_i282.FotosImovelRepository>(),
+        gh<_i1012.PreparadorDeFotoGateway>(),
+      ),
+    );
     gh.lazySingleton<_i868.VitrineAnuncianteRepository>(
       () => _i477.VitrineAnuncianteRepositoryImpl(
         gh<_i736.VitrineAnuncianteDataSource>(),
@@ -266,6 +300,14 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i195.PerfilRepository>(
       () => _i890.PerfilRepositoryImpl(gh<_i185.PerfilDataSource>()),
+    );
+    gh.factory<_i743.DescartarFotoPreparadaUseCase>(
+      () => _i743.DescartarFotoPreparadaUseCase(
+        gh<_i1012.PreparadorDeFotoGateway>(),
+      ),
+    );
+    gh.factory<_i339.PrepararFotoUseCase>(
+      () => _i339.PrepararFotoUseCase(gh<_i1012.PreparadorDeFotoGateway>()),
     );
     gh.factory<_i741.ObterPerfilCorretorUseCase>(
       () => _i741.ObterPerfilCorretorUseCase(gh<_i195.PerfilRepository>()),

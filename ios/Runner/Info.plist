@@ -28,6 +28,13 @@
 	<true/>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Usamos sua localização só para abrir o app já na cidade certa.</string>
+	<!-- Fotos do imóvel (APP 11, image_picker): câmera e galeria, só quando o
+	     corretor toca em "Tirar foto" ou "Escolher da galeria". Sem microfone
+	     (não há vídeo). -->
+	<key>NSCameraUsageDescription</key>
+	<string>Usamos a câmera para você fotografar o imóvel e enviar para o anúncio.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Usamos a galeria para você escolher fotos do imóvel e enviar para o anúncio.</string>
 	<!-- Libera apenas rede local (simulador/dispositivo -> servidor Django de
 	     dev em 127.0.0.1 ou no IP da rede local, D-17) sem desligar o ATS
 	     globalmente — NSAllowsArbitraryLoads nunca é usado aqui. -->
