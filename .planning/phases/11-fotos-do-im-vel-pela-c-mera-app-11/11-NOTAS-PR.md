@@ -11,7 +11,7 @@ Pontos que a Palloma pediu para citar nos PRs da `feat/APP11` (app e web). Atual
   própria da equipe, para não misturar com o card. Não há `warning` nem `error` no analyze. Depois do 11-08: **105
   infos** (+5, todas o import de `material.dart` nos arquivos novos: `fotos_imovel_screen.dart`, `fila_envio.dart`,
   `item_foto.dart` e dois testes). O `onReorder` do `ReorderableListView`, também obsoleto no 3.50.1, **não** foi
-  usado: a tela usa o substituto `onReorderItem`.
+  usado: a tela usa o substituto `onReorderItem`. No fim (11-09): **106 infos** (+1 do import no teste ponta a ponta novo).
 - **Flutter 3.50.1.** O `pubspec.lock` da `main` foi resolvido com o 3.50.1 (commit `fbf0de8`). Com o 3.47.5 o
   `flutter pub get` descia `test`, `analyzer` e `freezed`. Quem for revisar ou rodar precisa do 3.50.1.
 - **Pacotes novos:** `image_picker ^1.2.4` e `flutter_image_compress ^2.5.1`. O lock só ganhou esses pacotes e as
