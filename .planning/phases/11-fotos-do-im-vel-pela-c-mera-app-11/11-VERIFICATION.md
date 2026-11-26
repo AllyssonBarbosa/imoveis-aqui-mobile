@@ -22,11 +22,12 @@ score: 8/8 requisitos com evidência automática; UAT no emulador pendente (14 i
 
 ## Gates (2026-11-25)
 
-- App (`feat/APP11` em `741ac17` + o 11-09 não commitado): `flutter test` **2058 OK**; `flutter analyze` **106 infos**,
+- App (`feat/APP11` em `ef1db5f`, com o 11-09): `flutter test` **2058 OK**; `flutter analyze` **106 infos**,
   todas `deprecated_member_use` (import de `material.dart`, ver `11-NOTAS-PR.md`), nenhum `warning`/`error`.
-- Web (`feat/APP11` em `662db10`): `python manage.py test` **835 OK**; `check` limpo; `makemigrations --check` sem
+- Web (`feat/APP11` em `6e56bda`): `python manage.py test` **835 OK**; `check` limpo; `makemigrations --check` sem
   mudanças.
-- As duas branches **sem upstream**; nenhum push.
+- As duas branches **sem upstream**; nenhum push. Histórico reescrito em 2026-11-26 (nenhuma senha em
+  commit); depois disso: app 2058 OK, web 835 OK.
 
 ## Pendente (humano)
 

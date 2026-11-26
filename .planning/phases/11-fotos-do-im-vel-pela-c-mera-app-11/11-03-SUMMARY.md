@@ -37,7 +37,7 @@ completed: 2026-11-25
   empresa B nas 5 rotas e a mensagem exata do teto. No fim apaga todas as fotos que criou e confere a lista vazia.
   Grupo registrado em `GRUPOS`, em `--grupo` e na docstring ("Grupo fotos").
 - **Captura ao vivo:**
-  - Servidor temporário montado com `git archive feat/APP11 Web` (commits `9856681` + `662db10`) numa pasta
+  - Servidor temporário montado com `git archive feat/APP11 Web` (commits hoje `ac5e95f` + `6e56bda`, depois da reescrita de 2026-11-26 que tirou uma senha de teste do `tests_fotos.py`; o código das rotas é o mesmo) numa pasta
     temporária, SQLite temporário, `migrate` → `semear_vitrine_dev` → `seed_demo` e senha descartável do corretor demo.
   - `runserver 127.0.0.1:8011` com taxa de login alta.
   - Contas: corretor demo da vitrine (empresa A), `corretor@demo.com` (empresa B) e `gestor@demo.com` (403).
