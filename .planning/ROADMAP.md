@@ -596,7 +596,7 @@ Plans:
   5. Só funciona nos imóveis a que o corretor tem acesso (os dele e os da imobiliária).
   6. As fotos enviadas aparecem na vitrine e no site.
 
-**Plans:** 6/9 plans complete
+**Plans:** 7/9 plans complete
 
 Plans:
 **Wave 1**
@@ -618,7 +618,7 @@ Plans:
 - [x] 11-06-PLAN.md — App: Model lido contra as fixtures, DataSource multipart com `onSendProgress` e `sendTimeout` próprio, repositório com 400/401/403/404 tipados, implementações do seletor e do preparador (1920 px, JPEG 85) e rotas na `ApiFalsa` (FOT-01, FOT-02, FOT-05)
 
 **Wave 7** *(blocked on Wave 6 completion)*
-- [ ] 11-07-PLAN.md — App: textos fixos e `FotosImovelCubit` (lista do servidor, fila sequencial com progresso, falha por foto e "Tentar de novo", ordem/capa/apagar sem mudança local, 401 terminal) (FOT-02..FOT-05)
+- [x] 11-07-PLAN.md — App: textos fixos e `FotosImovelCubit` (lista do servidor, fila sequencial com progresso, falha por foto e "Tentar de novo", ordem/capa/apagar sem mudança local, 401 terminal) (FOT-02..FOT-05)
 
 **Wave 8** *(blocked on Wave 7 completion)*
 - [ ] 11-08-PLAN.md — App: `FotosImovelScreen` (botões câmera/galeria, fila, `ReorderableListView`, menu Capa/Apagar com confirmação, 401 → login) e botão "Fotos" na gestão com releitura na volta (FOT-01..FOT-05)

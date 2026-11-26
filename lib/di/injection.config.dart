@@ -160,6 +160,8 @@ import 'package:imoveis_aqui/domain/usecases/detectar_cidade_usecase.dart'
     as _i502;
 import 'package:imoveis_aqui/domain/usecases/entrar_usecase.dart' as _i411;
 import 'package:imoveis_aqui/domain/usecases/enviar_foto_usecase.dart' as _i712;
+import 'package:imoveis_aqui/domain/usecases/escolher_fotos_da_galeria_usecase.dart'
+    as _i285;
 import 'package:imoveis_aqui/domain/usecases/ler_sessao_usecase.dart' as _i560;
 import 'package:imoveis_aqui/domain/usecases/listar_fotos_usecase.dart'
     as _i681;
@@ -203,6 +205,7 @@ import 'package:imoveis_aqui/domain/usecases/reordenar_fotos_usecase.dart'
 import 'package:imoveis_aqui/domain/usecases/sair_usecase.dart' as _i986;
 import 'package:imoveis_aqui/domain/usecases/salvar_cidade_usecase.dart'
     as _i589;
+import 'package:imoveis_aqui/domain/usecases/tirar_foto_usecase.dart' as _i719;
 import 'package:imoveis_aqui/domain/usecases/validar_cidade_atendida_usecase.dart'
     as _i14;
 import 'package:imoveis_aqui/presentation/acervo/acervo_cubit.dart' as _i587;
@@ -215,6 +218,8 @@ import 'package:imoveis_aqui/presentation/contatos/caixa_contatos_cubit.dart'
     as _i157;
 import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_cubit.dart'
     as _i331;
+import 'package:imoveis_aqui/presentation/fotos_imovel/fotos_imovel_cubit.dart'
+    as _i303;
 import 'package:imoveis_aqui/presentation/gestao_imovel/gestao_imovel_cubit.dart'
     as _i755;
 import 'package:imoveis_aqui/presentation/gestao_imovel/mudar_situacao_cubit.dart'
@@ -292,6 +297,14 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i320.CidadeRemoteDataSource>(
       () => _i320.CidadeRemoteDataSource(gh<_i361.Dio>()),
+    );
+    gh.factory<_i285.EscolherFotosDaGaleriaUseCase>(
+      () => _i285.EscolherFotosDaGaleriaUseCase(
+        gh<_i627.SeletorDeFotosGateway>(),
+      ),
+    );
+    gh.factory<_i719.TirarFotoUseCase>(
+      () => _i719.TirarFotoUseCase(gh<_i627.SeletorDeFotosGateway>()),
     );
     gh.lazySingleton<_i868.VitrineAnuncianteRepository>(
       () => _i477.VitrineAnuncianteRepositoryImpl(
@@ -595,6 +608,19 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i560.LerSessaoUseCase>(),
         gh<_i986.SairUseCase>(),
         gh<_i551.DescartarSessaoUseCase>(),
+      ),
+    );
+    gh.factory<_i303.FotosImovelCubit>(
+      () => _i303.FotosImovelCubit(
+        gh<_i681.ListarFotosUseCase>(),
+        gh<_i719.TirarFotoUseCase>(),
+        gh<_i285.EscolherFotosDaGaleriaUseCase>(),
+        gh<_i339.PrepararFotoUseCase>(),
+        gh<_i712.EnviarFotoUseCase>(),
+        gh<_i743.DescartarFotoPreparadaUseCase>(),
+        gh<_i392.ReordenarFotosUseCase>(),
+        gh<_i688.DefinirCapaUseCase>(),
+        gh<_i469.ApagarFotoUseCase>(),
       ),
     );
     gh.factory<_i81.LoginCubit>(
