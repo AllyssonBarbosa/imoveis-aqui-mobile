@@ -6,7 +6,7 @@ devolve (ensure_ascii=False, indent=2, quebra de linha final). Só biblioteca pa
 
 Uso:
     python3 tool/capturar_fixtures_api.py [URL_BASE] [PASTA_SAIDA]
-        [--grupo lista|detalhe|contato|perfis|anunciante|acervo|situacao|contatos|gestor|todos]
+        [--grupo lista|detalhe|contato|perfis|anunciante|acervo|situacao|contatos|gestor|fotos|todos]
 
 Padrões: URL_BASE=http://127.0.0.1:8000, PASTA_SAIDA=test/fixtures/api, --grupo=todos.
 Grupos: `lista` (cidades, listas de Campinas, bairros, características e o 400 de natureza);
@@ -22,8 +22,9 @@ histórico; ver "Grupo situacao" abaixo); `contatos` (caixa de contatos do corre
 lista p1/p2 e filtros, contagem antes e depois de anotar, opções do filtro de imóvel, PATCH 200/400, a caixa da
 outra empresa e o 404 cruzado; ver "Grupo contatos" abaixo); `gestor` (relatórios da Área do gestor da Fase 12: contatos
 públicos, PATCH, 2 mudanças de situação, as 4 rotas do gestor, os 400/403/401 e a outra empresa; ver "Grupo gestor"
-abaixo); `todos` = `lista`, `detalhe`, `contato`, `perfis`, `anunciante`, `acervo`, `situacao`, `contatos` e `gestor`,
-nessa ordem. ATENÇÃO: `todos` reescreve as fixtures da lista e do
+abaixo); `fotos` (fotos do imóvel da Fase 11: lista, envio multipart, ordem, capa, apagar, recusas 400, 404 de outra
+empresa, 403 do gestor e o teto de 30; ver "Grupo fotos" abaixo); `todos` = `lista`, `detalhe`, `contato`, `perfis`,
+`anunciante`, `acervo`, `situacao`, `contatos`, `gestor` e `fotos`, nessa ordem. ATENÇÃO: `todos` reescreve as fixtures da lista e do
 detalhe (as URLs de foto mudam a cada banco novo); para acrescentar só um grupo rode `--grupo contato`,
 `--grupo perfis`, `--grupo anunciante`, `--grupo acervo`, `--grupo situacao`, `--grupo contatos` ou `--grupo gestor`
 (nunca `todos`).
@@ -150,6 +151,27 @@ mudanças de situação):
   Porta: suba o servidor temporário em 127.0.0.1:8012, NUNCA na 8000 (o servidor do desenvolvedor costuma estar
   nela, contra o Postgres dele); as respostas dos relatórios não têm URL absoluta, então a porta não entra nas
   fixtures. Suba com `LOGIN_TAXA_POR_EMAIL=100/hour LOGIN_TAXA_POR_IP=100/hour` (a captura faz vários logins).
+
+Grupo fotos (Fase 11; o grupo GRAVA fotos no servidor — 3 + 28 envios — e apaga todas no fim):
+
+  Variáveis usadas (6; nada de e-mail, senha ou token em arquivo): CAPTURA_EMAIL_CORRETOR e CAPTURA_SENHA_CORRETOR
+  (corretor demo da empresa A, a da vitrine), CAPTURA_EMAIL_OUTRA_EMPRESA e CAPTURA_SENHA_OUTRA_EMPRESA (corretor da
+  empresa B, do `seed_demo`) e CAPTURA_EMAIL_GESTOR e CAPTURA_SENHA_GESTOR (gestor do `seed_demo`: o perfil gestor
+  recebe 403 nas rotas de fotos, de qualquer empresa).
+
+  Rode o servidor a partir de uma EXTRAÇÃO da branch (`git archive feat/APP11 Web | tar -x -C "$EXTRACAO"`), não do
+  clone: as fotos enviadas vão para o `media/` da extração, que é apagada no fim. Em "$EXTRACAO/Web", com
+  DEBUG=True DJANGO_SECRET_KEY=captura-local DATABASE_URL="sqlite:///$EXTRACAO/captura.sqlite3" (caminho com letra de
+  drive no Windows, `cygpath -m`): `migrate --noinput`, `semear_vitrine_dev`, `seed_demo` e a senha descartável do
+  corretor demo com `manage.py shell -c` lendo `os.environ`. Suba `runserver 127.0.0.1:8011 --noreload` (NUNCA a
+  8000) com `LOGIN_TAXA_POR_EMAIL=100/hour LOGIN_TAXA_POR_IP=100/hour`. As URLs de `imagem` nas fixtures levam esse
+  host (`http://127.0.0.1:8011/media/...`); o app não depende do host.
+
+  Ordem do grupo: login dos 3 -> acha DEV-CAMPINAS-11 (sem foto no seed) pelo acervo -> lista vazia -> 3 envios (o
+  primeiro vira capa) -> lista -> PUT ordem invertida -> PUT com id repetido (400, nada muda) -> capa na do meio ->
+  DELETE dessa capa (promove a primeira restante, ordens 0..1) -> 400 de tipo, de tamanho (5 MB + 1) e de dois
+  arquivos -> 404 da empresa B nas 5 rotas (só a lista vira fixture) -> 403 do gestor -> 401 sem token -> completa 30
+  e a 31ª dá o 400 do teto -> apaga todas e confere a lista vazia.
 """
 
 import argparse
@@ -1177,6 +1199,232 @@ def capturar_gestor(base, pasta):
     print("  empresa B conferida: imóvel e mudança próprios, nada em comum com a A")
 
 
+def _requisicao_com_token(url, metodo, token, dados=None, tipo=None):
+    cabecalhos = {"Accept": "application/json"}
+    if token:
+        cabecalhos["Authorization"] = f"Token {token}"
+    if tipo:
+        cabecalhos["Content-Type"] = tipo
+    return urllib.request.Request(url, data=dados, headers=cabecalhos, method=metodo)
+
+
+def enviar_put(url, corpo, token=None, status_esperado=200):
+    """PUT de `corpo` como JSON em `url`; devolve o JSON decodificado. Exige `status_esperado`."""
+    requisicao = _requisicao_com_token(
+        url, "PUT", token, json.dumps(corpo).encode("utf-8"), "application/json"
+    )
+    return _executar(requisicao, url, status_esperado)
+
+
+def enviar_delete(url, token=None, status_esperado=200):
+    """DELETE em `url`; devolve o JSON decodificado. Exige `status_esperado`."""
+    return _executar(_requisicao_com_token(url, "DELETE", token), url, status_esperado)
+
+
+def enviar_multipart(url, arquivos, token=None, status_esperado=201):
+    """POST multipart/form-data montado à mão (só biblioteca padrão).
+
+    `arquivos` é uma lista de `(campo, nome_do_arquivo, bytes, content_type)`: a rota de fotos aceita
+    exatamente um arquivo no campo `imagem`, e a captura manda dois para provar o 400.
+    """
+    fronteira = "----capturaimoveisaqui7d1f3a"
+    partes = []
+    for campo, nome, conteudo, tipo in arquivos:
+        partes.append(
+            (
+                f"--{fronteira}\r\n"
+                f'Content-Disposition: form-data; name="{campo}"; filename="{nome}"\r\n'
+                f"Content-Type: {tipo}\r\n\r\n"
+            ).encode("utf-8")
+            + conteudo
+            + b"\r\n"
+        )
+    corpo = b"".join(partes) + f"--{fronteira}--\r\n".encode("utf-8")
+    requisicao = _requisicao_com_token(
+        url, "POST", token, corpo, f"multipart/form-data; boundary={fronteira}"
+    )
+    return _executar(requisicao, url, status_esperado)
+
+
+def _png_minimo(largura, altura, cor):
+    """PNG RGB válido de uma cor só, montado com `zlib` e `struct` (o Pillow do servidor o aceita)."""
+    import struct
+    import zlib
+
+    def bloco(tipo, dados):
+        return (
+            struct.pack(">I", len(dados))
+            + tipo
+            + dados
+            + struct.pack(">I", zlib.crc32(tipo + dados) & 0xFFFFFFFF)
+        )
+
+    linha = b"\x00" + bytes(cor) * largura  # filtro 0 + pixels
+    return (
+        b"\x89PNG\r\n\x1a\n"
+        + bloco(b"IHDR", struct.pack(">IIBBBBB", largura, altura, 8, 2, 0, 0, 0))
+        + bloco(b"IDAT", zlib.compress(linha * altura))
+        + bloco(b"IEND", b"")
+    )
+
+
+CHAVES_DA_FOTO = {"id", "imagem", "ordem", "capa"}
+CORES_DAS_FOTOS_DA_CAPTURA = [(46, 139, 87), (143, 188, 143), (34, 139, 34), (60, 179, 113)]
+CODIGO_IMOVEL_SEM_FOTO = "DEV-CAMPINAS-11"  # o seed deixa este imóvel sem nenhuma foto
+LIMITE_FOTOS = 30
+MENSAGEM_LIMITE_FOTOS = "Este imóvel já tem 30 fotos, o máximo permitido."
+
+
+def _exigir_lista_de_fotos(lista, descricao, quantidade):
+    """Lista de fotos com as chaves exatas, ordens 0..n-1 em sequência e no máximo uma capa
+    (exatamente uma quando há foto)."""
+    if not isinstance(lista, list) or len(lista) != quantidade:
+        raise ErroCaptura(f"{descricao} deveria ser uma lista com {quantidade} fotos: {lista!r}.")
+    for item in lista:
+        if not isinstance(item, dict) or set(item) != CHAVES_DA_FOTO:
+            raise ErroCaptura(f"{descricao}: item com chaves erradas: {item!r}.")
+        if not isinstance(item["imagem"], str) or "/media/imoveis/fotos/" not in item["imagem"]:
+            raise ErroCaptura(f"{descricao}: `imagem` deveria ser a URL absoluta da mídia: {item!r}.")
+    if [item["ordem"] for item in lista] != list(range(quantidade)):
+        raise ErroCaptura(f"{descricao}: as ordens deveriam ser 0..{quantidade - 1} em sequência.")
+    capas = [item["id"] for item in lista if item["capa"]]
+    if len(capas) != (1 if quantidade else 0):
+        raise ErroCaptura(f"{descricao}: deveria haver exatamente uma capa, há {len(capas)}.")
+    return capas[0] if capas else None
+
+
+def _exigir_erro_de_campo(corpo, campo, descricao):
+    """400 do DRF com exatamente a chave `campo` e uma lista de textos."""
+    if (
+        not isinstance(corpo, dict)
+        or set(corpo) != {campo}
+        or not isinstance(corpo[campo], list)
+        or not corpo[campo]
+        or not all(isinstance(texto, str) and texto for texto in corpo[campo])
+    ):
+        raise ErroCaptura(f"{descricao} deveria ter só a chave `{campo}` com textos: {corpo!r}.")
+
+
+def capturar_fotos(base, pasta):
+    """Fotos do imóvel (Fase 11): lista, envio, ordem, capa, apagar, recusas e isolamento.
+
+    O grupo GRAVA fotos no servidor e apaga todas as que criou no fim: só rode contra o servidor
+    temporário (ver "Grupo fotos" no topo).
+    """
+    token_a = _entrar(base, "CAPTURA_EMAIL_CORRETOR", "CAPTURA_SENHA_CORRETOR")
+    token_b = _entrar(base, "CAPTURA_EMAIL_OUTRA_EMPRESA", "CAPTURA_SENHA_OUTRA_EMPRESA")
+    token_gestor = _entrar(base, "CAPTURA_EMAIL_GESTOR", "CAPTURA_SENHA_GESTOR")
+
+    busca = obter(
+        f"{base}/api/imoveis/?{urllib.parse.urlencode({'busca': CODIGO_IMOVEL_SEM_FOTO})}",
+        token=token_a,
+    )
+    if busca.get("count") != 1:
+        raise ErroCaptura(f"A busca por {CODIGO_IMOVEL_SEM_FOTO} deveria achar 1 imóvel no acervo.")
+    imovel_id = busca["results"][0]["id"]
+    fotos = f"{base}/api/imoveis/{imovel_id}/fotos/"
+
+    def png(indice):
+        cor = CORES_DAS_FOTOS_DA_CAPTURA[indice % len(CORES_DAS_FOTOS_DA_CAPTURA)]
+        return ("imagem", f"foto-{indice}.png", _png_minimo(16, 12, cor), "image/png")
+
+    vazia = obter(fotos, token=token_a)
+    _exigir_lista_de_fotos(vazia, "A lista inicial", 0)
+    salvar(pasta, "fotos_lista_vazia", vazia)
+
+    # 3 envios, um por requisição: o primeiro vira capa sozinho
+    enviadas = [enviar_multipart(fotos, [png(indice)], token=token_a) for indice in range(3)]
+    primeira = enviadas[0]
+    if not isinstance(primeira, dict) or set(primeira) != CHAVES_DA_FOTO:
+        raise ErroCaptura(f"O 201 do envio deveria ter as chaves {sorted(CHAVES_DA_FOTO)}.")
+    if (primeira["ordem"], primeira["capa"]) != (0, True):
+        raise ErroCaptura("A primeira foto enviada deveria ter ordem 0 e ser a capa.")
+    if [(foto["ordem"], foto["capa"]) for foto in enviadas[1:]] != [(1, False), (2, False)]:
+        raise ErroCaptura("As fotos seguintes deveriam entrar no fim (ordem 1 e 2), sem capa.")
+    salvar(pasta, "foto_enviada", primeira)
+    a, b, c = (foto["id"] for foto in enviadas)
+
+    lista = obter(fotos, token=token_a)
+    if _exigir_lista_de_fotos(lista, "A lista com 3 fotos", 3) != a:
+        raise ErroCaptura("A capa da lista deveria ser a primeira foto enviada.")
+    if [foto["id"] for foto in lista] != [a, b, c]:
+        raise ErroCaptura("A lista deveria vir na ordem de envio.")
+    salvar(pasta, "fotos_lista", lista)
+
+    reordenadas = enviar_put(f"{fotos}ordem/", {"ids": [c, b, a]}, token=token_a)
+    _exigir_lista_de_fotos(reordenadas, "A lista reordenada", 3)
+    if [foto["id"] for foto in reordenadas] != [c, b, a]:
+        raise ErroCaptura("A lista devolvida pelo PUT deveria estar na ordem pedida.")
+    salvar(pasta, "fotos_reordenadas", reordenadas)
+
+    erro_ordem = enviar_put(f"{fotos}ordem/", {"ids": [c, c, a]}, token=token_a, status_esperado=400)
+    _exigir_erro_de_campo(erro_ordem, "ids", "O 400 da ordem com id repetido")
+    salvar(pasta, "erro_400_fotos_ordem", erro_ordem)
+    if [foto["id"] for foto in obter(fotos, token=token_a)] != [c, b, a]:
+        raise ErroCaptura("O PUT recusado não deveria mudar a ordem.")
+
+    capa_definida = postar(f"{fotos}{b}/capa/", {}, token=token_a)
+    if _exigir_lista_de_fotos(capa_definida, "A lista depois de definir a capa", 3) != b:
+        raise ErroCaptura("Depois de definir a capa, a única capa deveria ser a foto pedida.")
+    salvar(pasta, "fotos_capa_definida", capa_definida)
+
+    apos_apagar = enviar_delete(f"{fotos}{b}/", token=token_a)
+    if _exigir_lista_de_fotos(apos_apagar, "A lista depois de apagar a capa", 2) != c:
+        raise ErroCaptura("Apagar a capa deveria promover a primeira restante pela ordem.")
+    if [foto["id"] for foto in apos_apagar] != [c, a]:
+        raise ErroCaptura("Apagar deveria fechar o buraco na ordem ([c, a]).")
+    salvar(pasta, "fotos_apos_apagar_capa", apos_apagar)
+
+    erro_tipo = enviar_multipart(
+        fotos, [("imagem", "foto.jpg", b"isto nao e uma imagem", "image/jpeg")],
+        token=token_a, status_esperado=400,
+    )
+    _exigir_erro_de_campo(erro_tipo, "imagem", "O 400 de tipo")
+    salvar(pasta, "erro_400_foto_tipo", erro_tipo)
+
+    erro_tamanho = enviar_multipart(
+        fotos, [("imagem", "foto.jpg", b"\0" * (5 * 1024 * 1024 + 1), "image/jpeg")],
+        token=token_a, status_esperado=400,
+    )
+    _exigir_erro_de_campo(erro_tamanho, "imagem", "O 400 de tamanho")
+    salvar(pasta, "erro_400_foto_tamanho", erro_tamanho)
+
+    erro_quantidade = enviar_multipart(fotos, [png(5), png(6)], token=token_a, status_esperado=400)
+    _exigir_erro_de_campo(erro_quantidade, "imagem", "O 400 de dois arquivos")
+    salvar(pasta, "erro_400_foto_quantidade", erro_quantidade)
+    _exigir_lista_de_fotos(obter(fotos, token=token_a), "A lista depois das recusas", 2)
+
+    erro_404 = obter(fotos, status_esperado=404, token=token_b)
+    _exigir_detail(erro_404, "O 404 do imóvel de outra empresa")
+    salvar(pasta, "erro_404_fotos_outra_empresa", erro_404)
+    # só confere (não salva): a outra empresa também não envia, não reordena, não muda capa nem apaga
+    enviar_multipart(fotos, [png(7)], token=token_b, status_esperado=404)
+    enviar_put(f"{fotos}ordem/", {"ids": [c, a]}, token=token_b, status_esperado=404)
+    postar(f"{fotos}{a}/capa/", {}, token=token_b, status_esperado=404)
+    enviar_delete(f"{fotos}{a}/", token=token_b, status_esperado=404)
+
+    erro_403 = obter(fotos, status_esperado=403, token=token_gestor)
+    _exigir_detail(erro_403, "O 403 do gestor")
+    salvar(pasta, "erro_403_fotos_gestor", erro_403)
+
+    obter(fotos, status_esperado=401)
+    print("  401 sem token conferido (a fixture erro_401 já existe)")
+
+    # teto: completa 30 fotos e a 31ª é recusada
+    for indice in range(LIMITE_FOTOS - 2):
+        enviar_multipart(fotos, [png(indice)], token=token_a)
+    erro_limite = enviar_multipart(fotos, [png(99)], token=token_a, status_esperado=400)
+    if erro_limite != {"imagem": [MENSAGEM_LIMITE_FOTOS]}:
+        raise ErroCaptura(f"O 400 do teto deveria ser a mensagem do limite: {erro_limite!r}.")
+    salvar(pasta, "erro_400_foto_limite", erro_limite)
+
+    # limpeza: apaga tudo o que o grupo criou e confere a lista vazia
+    for foto in obter(fotos, token=token_a):
+        enviar_delete(f"{fotos}{foto['id']}/", token=token_a)
+    _exigir_lista_de_fotos(obter(fotos, token=token_a), "A lista depois da limpeza", 0)
+    print(f"  limpeza conferida: o imóvel {CODIGO_IMOVEL_SEM_FOTO} voltou a ficar sem fotos")
+
+
 GRUPOS = {
     "lista": capturar_lista,
     "detalhe": capturar_detalhe,
@@ -1187,6 +1435,7 @@ GRUPOS = {
     "situacao": capturar_situacao,
     "contatos": capturar_contatos,
     "gestor": capturar_gestor,
+    "fotos": capturar_fotos,
 }
 
 
@@ -1198,11 +1447,12 @@ def main():
     analisador.add_argument("pasta_saida", nargs="?", default="test/fixtures/api")
     analisador.add_argument(
         "--grupo",
-        choices=["lista", "detalhe", "contato", "perfis", "anunciante", "acervo", "situacao", "contatos", "gestor", "todos"],
+        choices=["lista", "detalhe", "contato", "perfis", "anunciante", "acervo", "situacao", "contatos", "gestor", "fotos", "todos"],
         default="todos",
         help="`lista` (lista e opções), `detalhe`, `contato` (POST de contato), `perfis`, `anunciante`, `acervo`, "
         "`situacao` (mudança de situação, Fase 9; grava no banco), `contatos` (caixa de contatos, Fase 10; grava no "
-        "banco), `gestor` (relatórios da Área do gestor, Fase 12; grava no banco) ou `todos` (os nove, nessa ordem; "
+        "banco), `gestor` (relatórios da Área do gestor, Fase 12; grava no banco), `fotos` (fotos do imóvel, Fase 11; "
+        "grava e apaga fotos) ou `todos` (os dez, nessa ordem; "
         "nunca use `todos` só para acrescentar um grupo).",
     )
     argumentos = analisador.parse_args()

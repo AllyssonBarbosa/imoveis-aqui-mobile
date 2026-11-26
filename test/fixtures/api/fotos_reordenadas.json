@@ -1,0 +1,20 @@
+[
+  {
+    "id": 90,
+    "imagem": "http://127.0.0.1:8011/media/imoveis/fotos/foto-2.png",
+    "ordem": 0,
+    "capa": false
+  },
+  {
+    "id": 89,
+    "imagem": "http://127.0.0.1:8011/media/imoveis/fotos/foto-1.png",
+    "ordem": 1,
+    "capa": false
+  },
+  {
+    "id": 88,
+    "imagem": "http://127.0.0.1:8011/media/imoveis/fotos/foto-0.png",
+    "ordem": 2,
+    "capa": true
+  }
+]

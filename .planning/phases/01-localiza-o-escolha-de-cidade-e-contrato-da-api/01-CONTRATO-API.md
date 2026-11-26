@@ -1250,3 +1250,123 @@ as fixtures já travadas).
 Travas: no app, `test/data/contrato_area_gestor_test.dart` (chaves lidas, exemplo = fixture, soma = total e isolamento
 entre empresas no wire); no Django, `AcervoPorCorretorTests`, `MudancasDeSituacaoTests`, `AreaDoGestorApiTests` e
 `ApiRelatoriosTests`.
+
+## 19. Fotos do imóvel (Fase 11)
+
+A Fase 11 (card APP 11) acrescenta as **fotos do imóvel pelo app**: o corretor lista, envia (uma foto por requisição),
+reordena, escolhe a capa e apaga as fotos de um imóvel do acervo da empresa. As rotas são aninhadas no imóvel, vivem na
+branch `feat/APP11` da web até ela entrar na `main` dela, e as regras ficam num serviço só (`Web/imoveis/fotos.py`). Este §
+foi escrito a partir do que o Django **entrega** e não muda os §1 a §18. As respostas de exemplo são capturadas (§19.8),
+nunca escritas à mão.
+
+### 19.1 Rotas e autenticação
+
+Todas exigem `Authorization: Token <chave>` e a permissão `EhCorretor`. O imóvel é lido pelo mesmo recorte de empresa do
+acervo (§14): **qualquer corretor da empresa do imóvel** pode usar as rotas, não só o responsável (critério 5: "os dele e
+os da imobiliária"). Todas as rotas terminam em barra.
+
+| Método e rota | Corpo | Resposta | Seção |
+|---|---|---|---|
+| `GET /api/imoveis/<id>/fotos/` | — | 200, lista de fotos | §19.2 |
+| `POST /api/imoveis/<id>/fotos/` | multipart, **um** arquivo no campo `imagem` | 201, a foto criada | §19.3 |
+| `PUT /api/imoveis/<id>/fotos/ordem/` | `{"ids": [<int>, ...]}` | 200, lista relida | §19.4 |
+| `POST /api/imoveis/<id>/fotos/<foto_id>/capa/` | — | 200, lista relida | §19.5 |
+| `DELETE /api/imoveis/<id>/fotos/<foto_id>/` | — | 200, lista relida | §19.6 |
+
+- A rota antiga `/api/fotos-imovel/` (outra tarefa da equipe) continua existindo e o app **não** a usa.
+- **Gestor** e **administrador**: **403** `{"detail": "Este recurso é restrito ao corretor."}` (`erro_403_fotos_gestor.json`).
+- Sem token, ou com chave inválida ou revogada: **401** (§14; o interceptador do app transforma em sessão terminada).
+- Imóvel inexistente ou de **outra empresa**: **404** `{"detail": ...}` igual nos dois casos, nas 5 rotas
+  (`erro_404_fotos_outra_empresa.json`). `foto_id` de **outro imóvel** (mesmo da mesma empresa): **404**. O `detail`
+  do 404 vem em inglês do Django e o app nunca o exibe.
+- Sem migração: o model `FotoImovel` (`ordem`, `capa`, regra `uma_capa_por_imovel` no banco) já existia.
+
+### 19.2 Item e lista
+
+Cada foto tem **exatamente** quatro chaves (exemplo: `contrato/fotos_lista.example.json`, cópia byte a byte de
+`test/fixtures/api/fotos_lista.json`):
+
+| Chave | Tipo | Regra |
+|---|---|---|
+| `id` | int | id da foto |
+| `imagem` | string | **URL absoluta** da mídia (`http://<host>/media/imoveis/fotos/...`), montada com o host da requisição |
+| `ordem` | int | posição definida pelo corretor; nas listas devolvidas pelas escritas é sempre `0..n-1` |
+| `capa` | bool | **exatamente uma** `true` quando o imóvel tem foto; nenhuma quando não tem |
+
+A lista vem ordenada por **`ordem, id`** (a ordem que o corretor arrumou). A capa é indicada pelo campo, **não** pela
+posição: o app mostra a lista na ordem recebida e marca a capa pelo `capa`. Sem paginação (no máximo 30 itens).
+Imóvel sem foto: `[]` (`fotos_lista_vazia.json`).
+
+### 19.3 Envio (uma foto por requisição)
+
+`POST` `multipart/form-data` com **exatamente um** arquivo no campo `imagem` (exemplo de 201:
+`contrato/foto_enviada.example.json`).
+
+- A foto entra **no fim**: `ordem` = maior ordem do imóvel + 1 (0 quando não há fotos).
+- Vira **capa** quando o imóvel ainda não tem capa (a primeira foto vira capa sozinha).
+- Validação no servidor, abrindo o arquivo com o Pillow (o content-type enviado não vale): **JPEG, PNG ou WEBP**, até
+  **5 MB**. O app manda JPEG de até 1920 px no lado maior (D-07), bem abaixo do limite.
+- **No máximo 30 fotos por imóvel.**
+- Recusa = **400** com **só a chave `imagem`** (lista de textos em português) e **nada é gravado**:
+
+| Caso | Mensagem (fixture) |
+|---|---|
+| arquivo que não é imagem | "O arquivo enviado não é uma imagem válida." (`erro_400_foto_tipo.json`) |
+| acima de 5 MB | "A imagem não pode passar de 5MB." (`erro_400_foto_tamanho.json`) |
+| 0 ou 2+ arquivos | "Envie exatamente uma imagem por requisição." (`erro_400_foto_quantidade.json`) |
+| 31ª foto | "Este imóvel já tem 30 fotos, o máximo permitido." (`erro_400_foto_limite.json`) |
+
+O app mostra essa mensagem achatada (`mensagemDeRecusa`) na foto recusada, só como texto: nenhuma decisão sai dela.
+Um POST que esgotou o tempo pode ter gravado: o app não reenvia sozinho, e a lista relida mostra a verdade.
+
+### 19.4 Reordenar
+
+`PUT .../fotos/ordem/` com `{"ids": [...]}` contendo **todas** as fotos do imóvel, cada uma uma vez, na ordem nova. O
+servidor grava `ordem = 0..n-1` numa transação e devolve a **lista relida** (`fotos_reordenadas.json`). Id faltando,
+repetido, de outro imóvel, lista vazia com fotos, `ids` ausente ou que não seja lista de inteiros: **400** com **só a
+chave `ids`** ("Envie a lista completa das fotos deste imóvel, sem repetir." ou "Envie a lista de ids das fotos (números
+inteiros)."; `erro_400_fotos_ordem.json`) e **nada muda**. O app nunca move a foto localmente: mostra a lista devolvida.
+
+### 19.5 Capa
+
+`POST .../fotos/<foto_id>/capa/` (sem corpo): a foto vira a **única** capa, numa transação; devolve a lista relida
+(`fotos_capa_definida.json`).
+
+### 19.6 Apagar
+
+`DELETE .../fotos/<foto_id>/`: apaga a foto e o **arquivo do disco** (depois do commit), **renumera** as restantes
+`0..n-1` e, se o imóvel ficou sem capa, **promove a primeira restante pela ordem**; devolve a lista relida (exemplo:
+`contrato/fotos_apos_apagar_capa.example.json`). Apagar a última deixa `[]`.
+
+### 19.7 Onde as fotos aparecem (critério 6)
+
+As leituras públicas leem as mesmas fotos, com a **capa primeiro** e depois a ordem do corretor:
+`GET /api/publico/imoveis/<id>/` (`fotos`, §11), o `foto_capa` do cartão (§2/§13) e a página do imóvel no site
+(`site_publico`, corrigida na `feat/APP11` para usar a mesma sequência). Só aparecem para imóvel que está na vitrine
+(publicado e disponível, regra inalterada). Concorrência: cada escrita trava o imóvel (`select_for_update`), então envios
+simultâneos não repetem ordem, não criam duas capas e não furam o teto.
+
+### 19.8 Sincronização
+
+```bash
+python3 tool/capturar_fixtures_api.py http://127.0.0.1:8011 test/fixtures/api --grupo fotos
+```
+
+| Fixture capturada | Exemplo do contrato |
+|-------------------|---------------------|
+| `fotos_lista.json` | `fotos_lista.example.json` |
+| `foto_enviada.json` | `foto_enviada.example.json` |
+| `fotos_apos_apagar_capa.json` | `fotos_apos_apagar_capa.example.json` |
+
+As demais (`fotos_lista_vazia`, `fotos_reordenadas`, `fotos_capa_definida`, os quatro `erro_400_foto_*`,
+`erro_400_fotos_ordem`, `erro_404_fotos_outra_empresa` e `erro_403_fotos_gestor`) não têm exemplo no contrato, mas o teste
+do app confere as chaves e as regras delas. As URLs de `imagem` levam o host da captura (`127.0.0.1:8011`); nada no app
+depende do host.
+
+Procedimento ("Grupo fotos" no docstring da ferramenta): servidor a partir de uma **extração** da branch
+(`git archive`), SQLite temporário com `migrate`, `semear_vitrine_dev` e `seed_demo`, senha descartável do corretor demo,
+credenciais só por variável de ambiente, porta diferente da 8000. O grupo apaga todas as fotos que criou no fim.
+**Nunca `--grupo todos`.**
+
+Travas: no app, `test/data/contrato_fotos_imovel_test.dart`; no Django, `imoveis/tests_fotos.py` (`ServicoFotosTests`,
+`RotasFotosTests`, `FotosNaVitrineTests`) e `site_publico.tests.PaginaImovelTests`.
