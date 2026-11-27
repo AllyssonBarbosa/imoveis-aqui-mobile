@@ -8,6 +8,16 @@
          debug declarava INTERNET. Cleartext HTTP continua desligado aqui;
          só o manifest de debug habilita (ver android/app/src/debug). -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Fotos do imóvel (APP 11): de propósito, SEM android.permission.CAMERA.
+         O image_picker usa o app de câmera do sistema (intenção IMAGE_CAPTURE)
+         e o seletor de fotos do Android, que não exigem permissão do nosso app.
+         Se CAMERA fosse declarada aqui, o Android passaria a exigi-la para a
+         intenção da câmera, e o image_picker (ImagePickerUtils.
+         needRequestCameraPermission) pediria a permissão ao corretor antes de
+         abrir a câmera: uma pergunta a mais sem ganho nenhum (D-26). O plugin
+         trata câmera ausente por ActivityNotFoundException, sem resolveActivity,
+         então também não precisa de <queries> para IMAGE_CAPTURE. -->
+
     <!-- Backup do Android desligado: ele restauraria dados cifrados com uma chave
          do Keystore que não abre mais (flutter_secure_storage, "Disabling Auto
          Backup"); o token da API não deve voltar de um backup. -->

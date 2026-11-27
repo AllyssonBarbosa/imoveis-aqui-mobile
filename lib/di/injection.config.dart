@@ -39,6 +39,10 @@ import 'package:imoveis_aqui/data/datasources/cidade_remote_datasource.dart'
 import 'package:imoveis_aqui/data/datasources/contato_datasource.dart' as _i568;
 import 'package:imoveis_aqui/data/datasources/contato_remote_datasource.dart'
     as _i883;
+import 'package:imoveis_aqui/data/datasources/fotos_imovel_datasource.dart'
+    as _i119;
+import 'package:imoveis_aqui/data/datasources/fotos_imovel_remote_datasource.dart'
+    as _i780;
 import 'package:imoveis_aqui/data/datasources/gestao_imovel_datasource.dart'
     as _i913;
 import 'package:imoveis_aqui/data/datasources/gestao_imovel_remote_datasource.dart'
@@ -65,6 +69,10 @@ import 'package:imoveis_aqui/data/gateways/geocoding_gateway_impl.dart'
     as _i506;
 import 'package:imoveis_aqui/data/gateways/geolocator_gateway_impl.dart'
     as _i777;
+import 'package:imoveis_aqui/data/gateways/preparador_de_foto_compressao.dart'
+    as _i878;
+import 'package:imoveis_aqui/data/gateways/seletor_de_fotos_image_picker.dart'
+    as _i664;
 import 'package:imoveis_aqui/data/gateways/url_launcher_gateway_impl.dart'
     as _i828;
 import 'package:imoveis_aqui/data/network/interceptador_sessao.dart' as _i668;
@@ -80,6 +88,8 @@ import 'package:imoveis_aqui/data/repositories/cidade_repository_impl.dart'
     as _i912;
 import 'package:imoveis_aqui/data/repositories/contato_repository_impl.dart'
     as _i667;
+import 'package:imoveis_aqui/data/repositories/fotos_imovel_repository_impl.dart'
+    as _i873;
 import 'package:imoveis_aqui/data/repositories/gestao_imovel_repository_impl.dart'
     as _i872;
 import 'package:imoveis_aqui/data/repositories/imovel_detalhe_repository_impl.dart'
@@ -97,6 +107,10 @@ import 'package:imoveis_aqui/domain/gateways/geocoding_gateway.dart' as _i881;
 import 'package:imoveis_aqui/domain/gateways/geolocator_gateway.dart' as _i246;
 import 'package:imoveis_aqui/domain/gateways/link_launcher_gateway.dart'
     as _i325;
+import 'package:imoveis_aqui/domain/gateways/preparador_de_foto_gateway.dart'
+    as _i1012;
+import 'package:imoveis_aqui/domain/gateways/seletor_de_fotos_gateway.dart'
+    as _i627;
 import 'package:imoveis_aqui/domain/repositories/acervo_repository.dart'
     as _i268;
 import 'package:imoveis_aqui/domain/repositories/area_gestor_repository.dart'
@@ -109,6 +123,8 @@ import 'package:imoveis_aqui/domain/repositories/cidade_repository.dart'
     as _i146;
 import 'package:imoveis_aqui/domain/repositories/contato_repository.dart'
     as _i499;
+import 'package:imoveis_aqui/domain/repositories/fotos_imovel_repository.dart'
+    as _i282;
 import 'package:imoveis_aqui/domain/repositories/gestao_imovel_repository.dart'
     as _i796;
 import 'package:imoveis_aqui/domain/repositories/imovel_detalhe_repository.dart'
@@ -123,6 +139,7 @@ import 'package:imoveis_aqui/domain/repositories/vitrine_anunciante_repository.d
     as _i868;
 import 'package:imoveis_aqui/domain/usecases/anotar_retorno_usecase.dart'
     as _i301;
+import 'package:imoveis_aqui/domain/usecases/apagar_foto_usecase.dart' as _i469;
 import 'package:imoveis_aqui/domain/usecases/buscar_acervo_usecase.dart'
     as _i89;
 import 'package:imoveis_aqui/domain/usecases/buscar_contatos_usecase.dart'
@@ -133,12 +150,21 @@ import 'package:imoveis_aqui/domain/usecases/buscar_imoveis_usecase.dart'
     as _i213;
 import 'package:imoveis_aqui/domain/usecases/contatar_corretor_usecase.dart'
     as _i762;
+import 'package:imoveis_aqui/domain/usecases/definir_capa_usecase.dart'
+    as _i688;
+import 'package:imoveis_aqui/domain/usecases/descartar_foto_preparada_usecase.dart'
+    as _i743;
 import 'package:imoveis_aqui/domain/usecases/descartar_sessao_usecase.dart'
     as _i551;
 import 'package:imoveis_aqui/domain/usecases/detectar_cidade_usecase.dart'
     as _i502;
 import 'package:imoveis_aqui/domain/usecases/entrar_usecase.dart' as _i411;
+import 'package:imoveis_aqui/domain/usecases/enviar_foto_usecase.dart' as _i712;
+import 'package:imoveis_aqui/domain/usecases/escolher_fotos_da_galeria_usecase.dart'
+    as _i285;
 import 'package:imoveis_aqui/domain/usecases/ler_sessao_usecase.dart' as _i560;
+import 'package:imoveis_aqui/domain/usecases/listar_fotos_usecase.dart'
+    as _i681;
 import 'package:imoveis_aqui/domain/usecases/listar_imoveis_dos_contatos_usecase.dart'
     as _i864;
 import 'package:imoveis_aqui/domain/usecases/mudar_situacao_usecase.dart'
@@ -172,9 +198,14 @@ import 'package:imoveis_aqui/domain/usecases/obter_sem_retorno_usecase.dart'
     as _i943;
 import 'package:imoveis_aqui/domain/usecases/obter_totais_por_situacao_usecase.dart'
     as _i527;
+import 'package:imoveis_aqui/domain/usecases/preparar_foto_usecase.dart'
+    as _i339;
+import 'package:imoveis_aqui/domain/usecases/reordenar_fotos_usecase.dart'
+    as _i392;
 import 'package:imoveis_aqui/domain/usecases/sair_usecase.dart' as _i986;
 import 'package:imoveis_aqui/domain/usecases/salvar_cidade_usecase.dart'
     as _i589;
+import 'package:imoveis_aqui/domain/usecases/tirar_foto_usecase.dart' as _i719;
 import 'package:imoveis_aqui/domain/usecases/validar_cidade_atendida_usecase.dart'
     as _i14;
 import 'package:imoveis_aqui/presentation/acervo/acervo_cubit.dart' as _i587;
@@ -187,6 +218,8 @@ import 'package:imoveis_aqui/presentation/contatos/caixa_contatos_cubit.dart'
     as _i157;
 import 'package:imoveis_aqui/presentation/detalhe_imovel/detalhe_imovel_cubit.dart'
     as _i331;
+import 'package:imoveis_aqui/presentation/fotos_imovel/fotos_imovel_cubit.dart'
+    as _i303;
 import 'package:imoveis_aqui/presentation/gestao_imovel/gestao_imovel_cubit.dart'
     as _i755;
 import 'package:imoveis_aqui/presentation/gestao_imovel/mudar_situacao_cubit.dart'
@@ -235,11 +268,17 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i736.VitrineAnuncianteDataSource>(
       () => _i461.VitrineAnuncianteRemoteDataSource(gh<_i361.Dio>()),
     );
+    gh.lazySingleton<_i627.SeletorDeFotosGateway>(
+      () => _i664.SeletorDeFotosImagePicker(),
+    );
     gh.lazySingleton<_i881.GeocodingGateway>(
       () => _i506.GeocodingGatewayImpl(),
     );
     gh.lazySingleton<_i325.LinkLauncherGateway>(
       () => _i828.UrlLauncherGatewayImpl(),
+    );
+    gh.lazySingleton<_i1012.PreparadorDeFotoGateway>(
+      () => _i878.PreparadorDeFotoCompressao(),
     );
     gh.lazySingleton<_i246.GeolocatorGateway>(
       () => _i777.GeolocatorGatewayImpl(),
@@ -259,6 +298,14 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i320.CidadeRemoteDataSource>(
       () => _i320.CidadeRemoteDataSource(gh<_i361.Dio>()),
     );
+    gh.factory<_i285.EscolherFotosDaGaleriaUseCase>(
+      () => _i285.EscolherFotosDaGaleriaUseCase(
+        gh<_i627.SeletorDeFotosGateway>(),
+      ),
+    );
+    gh.factory<_i719.TirarFotoUseCase>(
+      () => _i719.TirarFotoUseCase(gh<_i627.SeletorDeFotosGateway>()),
+    );
     gh.lazySingleton<_i868.VitrineAnuncianteRepository>(
       () => _i477.VitrineAnuncianteRepositoryImpl(
         gh<_i736.VitrineAnuncianteDataSource>(),
@@ -266,6 +313,14 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i195.PerfilRepository>(
       () => _i890.PerfilRepositoryImpl(gh<_i185.PerfilDataSource>()),
+    );
+    gh.factory<_i743.DescartarFotoPreparadaUseCase>(
+      () => _i743.DescartarFotoPreparadaUseCase(
+        gh<_i1012.PreparadorDeFotoGateway>(),
+      ),
+    );
+    gh.factory<_i339.PrepararFotoUseCase>(
+      () => _i339.PrepararFotoUseCase(gh<_i1012.PreparadorDeFotoGateway>()),
     );
     gh.factory<_i741.ObterPerfilCorretorUseCase>(
       () => _i741.ObterPerfilCorretorUseCase(gh<_i195.PerfilRepository>()),
@@ -384,6 +439,11 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i322.AreaGestorRepository>(
       () => _i1040.AreaGestorRepositoryImpl(gh<_i701.AreaGestorDataSource>()),
     );
+    gh.lazySingleton<_i119.FotosImovelDataSource>(
+      () => _i780.FotosImovelRemoteDataSource(
+        gh<_i361.Dio>(instanceName: 'autenticado'),
+      ),
+    );
     gh.lazySingleton<_i887.AutenticacaoDataSource>(
       () => _i652.AutenticacaoRemoteDataSource(
         gh<_i361.Dio>(),
@@ -408,6 +468,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i796.GestaoImovelRepository>(
       () =>
           _i872.GestaoImovelRepositoryImpl(gh<_i913.GestaoImovelDataSource>()),
+    );
+    gh.lazySingleton<_i282.FotosImovelRepository>(
+      () => _i873.FotosImovelRepositoryImpl(gh<_i119.FotosImovelDataSource>()),
     );
     gh.lazySingleton<_i268.AcervoRepository>(
       () => _i443.AcervoRepositoryImpl(gh<_i744.AcervoDataSource>()),
@@ -459,6 +522,18 @@ extension GetItInjectableX on _i174.GetIt {
       () =>
           _i527.ObterTotaisPorSituacaoUseCase(gh<_i322.AreaGestorRepository>()),
     );
+    gh.factory<_i469.ApagarFotoUseCase>(
+      () => _i469.ApagarFotoUseCase(gh<_i282.FotosImovelRepository>()),
+    );
+    gh.factory<_i688.DefinirCapaUseCase>(
+      () => _i688.DefinirCapaUseCase(gh<_i282.FotosImovelRepository>()),
+    );
+    gh.factory<_i681.ListarFotosUseCase>(
+      () => _i681.ListarFotosUseCase(gh<_i282.FotosImovelRepository>()),
+    );
+    gh.factory<_i392.ReordenarFotosUseCase>(
+      () => _i392.ReordenarFotosUseCase(gh<_i282.FotosImovelRepository>()),
+    );
     gh.factory<_i89.BuscarAcervoUseCase>(
       () => _i89.BuscarAcervoUseCase(gh<_i268.AcervoRepository>()),
     );
@@ -490,6 +565,12 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i507.ObterAcervoPorCorretorUseCase>(),
         gh<_i734.ObterContatosPorCorretorUseCase>(),
         gh<_i249.ObterMudancasRecentesUseCase>(),
+      ),
+    );
+    gh.factory<_i712.EnviarFotoUseCase>(
+      () => _i712.EnviarFotoUseCase(
+        gh<_i282.FotosImovelRepository>(),
+        gh<_i1012.PreparadorDeFotoGateway>(),
       ),
     );
     gh.factory<_i587.AcervoCubit>(
@@ -527,6 +608,19 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i560.LerSessaoUseCase>(),
         gh<_i986.SairUseCase>(),
         gh<_i551.DescartarSessaoUseCase>(),
+      ),
+    );
+    gh.factory<_i303.FotosImovelCubit>(
+      () => _i303.FotosImovelCubit(
+        gh<_i681.ListarFotosUseCase>(),
+        gh<_i719.TirarFotoUseCase>(),
+        gh<_i285.EscolherFotosDaGaleriaUseCase>(),
+        gh<_i339.PrepararFotoUseCase>(),
+        gh<_i712.EnviarFotoUseCase>(),
+        gh<_i743.DescartarFotoPreparadaUseCase>(),
+        gh<_i392.ReordenarFotosUseCase>(),
+        gh<_i688.DefinirCapaUseCase>(),
+        gh<_i469.ApagarFotoUseCase>(),
       ),
     );
     gh.factory<_i81.LoginCubit>(

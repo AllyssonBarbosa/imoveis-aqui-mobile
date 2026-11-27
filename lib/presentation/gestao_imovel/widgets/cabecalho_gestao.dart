@@ -15,11 +15,19 @@ class CabecalhoGestao extends StatelessWidget {
     super.key,
     required this.previa,
     this.imovel,
+    this.urlDaCapa,
+    this.temCapaAtualizada = false,
     this.construirImagemDeRede,
   });
 
   final ImovelAcervo previa;
   final ImovelGestao? imovel;
+
+  /// Capa marcada pelo servidor depois de mexer nas fotos (APP 11); com
+  /// [temCapaAtualizada] substitui a capa do cartão do acervo (`null` = sem
+  /// fotos, imagem padrão).
+  final String? urlDaCapa;
+  final bool temCapaAtualizada;
 
   /// Ponto de extensão só para teste (ver `ImagemRede`); em produção `null`.
   final Widget Function(String url)? construirImagemDeRede;
@@ -45,7 +53,7 @@ class CabecalhoGestao extends StatelessWidget {
           child: AspectRatio(
             aspectRatio: 16 / 9,
             child: ImagemRede(
-              url: previa.fotoCapa,
+              url: temCapaAtualizada ? urlDaCapa : previa.fotoCapa,
               construirImagemDeRede: construirImagemDeRede,
             ),
           ),

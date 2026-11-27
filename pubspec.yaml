@@ -51,6 +51,10 @@ dependencies:
   cached_network_image: ^4.0.2
   url_launcher: ^6.3.3
   flutter_secure_storage: ^11.2.0
+  # Fotos do imóvel (APP 11): câmera e galeria (várias) pelo seletor do sistema,
+  # e redução para 1920 px / JPEG 85 sem EXIF (tira o GPS) antes do envio.
+  image_picker: ^1.2.4
+  flutter_image_compress: ^2.5.1
 
 dev_dependencies:
   flutter_test:

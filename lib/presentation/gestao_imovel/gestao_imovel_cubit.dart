@@ -8,6 +8,7 @@ import '../../domain/repositories/falhas_autenticacao.dart';
 import '../../domain/repositories/imovel_detalhe_repository.dart';
 import '../../domain/usecases/obter_historico_situacao_usecase.dart';
 import '../../domain/usecases/obter_imovel_gestao_usecase.dart';
+import '../fotos_imovel/fotos_alteradas.dart';
 import 'gestao_imovel_state.dart';
 
 /// Orquestra a tela de gestão do imóvel (SIT-07, SIT-03): pede o imóvel e o
@@ -39,7 +40,14 @@ class GestaoImovelCubit extends Cubit<GestaoImovelState> {
     if (isClosed) return;
     // `mudou` sobrevive a uma nova carga: a mudança já aconteceu no servidor
     // (D-18).
-    emit(GestaoImovelState(mudou: state.mudou));
+    emit(
+      GestaoImovelState(
+        mudou: state.mudou,
+        fotosMudaram: state.fotosMudaram,
+        capaAtualizada: state.capaAtualizada,
+        temCapaAtualizada: state.temCapaAtualizada,
+      ),
+    );
 
     final leituraDoImovel = _obterImovel(id);
     final leituraDoHistorico = _obterHistorico(id);
@@ -118,6 +126,24 @@ class GestaoImovelCubit extends Cubit<GestaoImovelState> {
     if (isClosed) return;
     emit(state.copyWith(mudou: true));
     await recarregar();
+  }
+
+  /// Chamado na volta da tela de fotos quando alguma foto mudou no servidor
+  /// (APP 11, D-23): marca [GestaoImovelState.fotosMudaram] (o acervo relê) e,
+  /// se a tela de fotos conhecia a lista final, guarda a capa que o SERVIDOR
+  /// marcou para o cabeçalho. Não relê o imóvel: os dados dele não mudam com
+  /// as fotos.
+  void registrarMudancaDeFotos(FotosAlteradas alteradas) {
+    if (isClosed) return;
+    emit(
+      alteradas.capaConhecida
+          ? state.copyWith(
+              fotosMudaram: true,
+              capaAtualizada: alteradas.urlDaCapa,
+              temCapaAtualizada: true,
+            )
+          : state.copyWith(fotosMudaram: true),
+    );
   }
 
   /// Repete a leitura do imóvel (e do histórico) com o id guardado; sem

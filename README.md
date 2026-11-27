@@ -338,6 +338,42 @@ O que conferir (roteiro completo no UAT da fase):
 3. Corretor da empresa demo: `DEMO-CASA-01` (Vendido, contrato assinado) → "Mudar situação" → Disponível → a folha
    continua aberta com a mensagem do servidor sobre o contrato e a situação segue "Vendido".
 
+### Fotos do imóvel (APP-11)
+
+Na tela de gestão do imóvel, o botão **"Fotos"** abre a tela de fotos. Ela funciona para qualquer corretor da
+imobiliária dona do imóvel; quem confere o acesso é o servidor (imóvel de outra empresa → 404).
+
+- **"Tirar foto"** abre a câmera do sistema e **"Escolher da galeria"** abre o seletor com várias fotos. Antes de
+  sair do aparelho, cada foto é reduzida para no máximo **1920 px** no lado maior, em **JPEG qualidade 85**, sem EXIF
+  (a localização GPS da foto não é enviada).
+- **Envio:** uma requisição por foto (`POST /api/imoveis/<id>/fotos/`, multipart, campo `imagem`), **uma de cada vez**,
+  na ordem da escolha, com a barra de progresso de cada uma.
+  - Foto aceita sai da fila e a lista é relida.
+  - Foto recusada mostra a mensagem do servidor (tipo, tamanho até 5 MB, teto de 30 fotos) com **"Tentar de novo"**
+    e **"Remover"**, sem travar as outras.
+  - Sair da tela com envio pendente pede confirmação.
+- **Reordenar** arrastando pela alça, **"Definir como capa"** e **"Apagar"** (com confirmação), no menu de cada
+  foto. **O app não muda a ordem nem a capa localmente**: ele pede à API (`PUT .../fotos/ordem/`,
+  `POST .../fotos/<foto>/capa/`, `DELETE .../fotos/<foto>/`) e mostra a lista que o servidor devolve. A primeira foto
+  vira capa sozinha; apagar a capa promove a próxima (regra do servidor).
+- **Falhas:** 401 em qualquer chamada volta ao login com "Sua sessão terminou. Entre de novo."; 404 mostra "Este
+  imóvel não está mais no seu acervo.".
+- **Ao voltar**, a gestão mostra a capa que o servidor marcou e o "Meu acervo" relê a API.
+- As fotos aparecem na vitrine do app e no site (capa primeiro) quando o imóvel está na vitrine (publicado e
+  disponível).
+
+**Servidor para testar:** a branch `feat/APP11` da web (rotas aninhadas, serviço `imoveis/fotos.py` e a galeria do
+site com a capa primeiro). Contrato: §19 de `01-CONTRATO-API.md`. Roteiro de verificação no emulador:
+`.planning/phases/11-fotos-do-im-vel-pela-c-mera-app-11/11-UAT.md`.
+
+**Câmera e galeria no emulador Android:** a câmera do emulador mostra uma cena virtual (AVD Manager → Advanced →
+Camera Back: *VirtualScene*). Para ter fotos na galeria, copie imagens para o emulador:
+
+```bash
+adb push minha-foto.jpg /sdcard/Pictures/
+adb shell am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d file:///sdcard/Pictures/minha-foto.jpg
+```
+
 ## Testes e análise
 
 ```bash
@@ -356,6 +392,13 @@ flutter analyze
 O app só pede a permissão a partir do toque no CTA da tela de priming (nunca na
 inicialização) e, se a localização for recusada ou estiver indisponível, cai no fallback de
 escolha manual da cidade — nunca numa tela de erro.
+
+## Câmera e galeria (APP-11)
+
+- iOS declara `NSCameraUsageDescription` e `NSPhotoLibraryUsageDescription`.
+- Android **não** declara `android.permission.CAMERA`, de propósito: o `image_picker` usa o app de câmera e o
+  seletor de fotos do sistema, que não exigem permissão do app. Se `CAMERA` fosse declarada, o plugin teria de
+  perguntar ao corretor antes de abrir a câmera, sem ganho nenhum (comentário no `AndroidManifest.xml`).
 
 ## Arquitetura (nota curta)
 

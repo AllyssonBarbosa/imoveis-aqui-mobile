@@ -31,6 +31,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 8: Login e Área do Corretor — o Acervo** (completed 2026-11-21)
 - [ ] **Phase 9: Mudança de Situação do Imóvel pelo App (APP 09)** - Corretor responsável troca a situação do imóvel (disponível/reservado/vendido/alugado) com observação pela API (a data é a do servidor; o gestor segue pela web até a APP-12), vê o histórico na tela do imóvel; recusa do servidor mantém a situação anterior.
 - [x] **Phase 10: Contatos Recebidos e Retorno Anotado (APP 10)** - Card APP 10: caixa de contatos do corretor (lista da API, filtro por imóvel e por período, contagem dos sem retorno) e retorno anotado gravado pela API. (Fase 9 reservada ao card APP 09, de outro colega — fase N = card APP 0N.) (completed 2026-11-24)
+- [x] **Phase 11: Fotos do Imóvel pela Câmera (APP 11)** - Card APP 11: o corretor fotografa o imóvel na visita (câmera ou galeria), envia várias fotos de uma vez com progresso e "Tentar de novo" por foto, reordena, escolhe a capa e apaga, sempre pedindo à API e relendo; rotas autenticadas aninhadas em `/api/imoveis/{id}/fotos/` com isolamento por empresa; as fotos aparecem na vitrine e no site com a capa primeiro. (completed 2026-11-26)
 - [x] **Phase 12: Área do Gestor — Acompanhamento dos Corretores (APP 12)** - Card APP 12: área do gestor no app com acervo por corretor, contatos por corretor e por período, mudanças de situação recentes e totais da empresa por situação, todos calculados no Django (Fase 11 reservada ao card APP 11, de outro colega — fase N = card APP N.) (completed 2026-11-25)
 
 ## Phase Details
@@ -580,6 +581,50 @@ Plans:
 
 **Wave 10** *(blocked on Wave 9 completion)*
 - [x] 10-10-PLAN.md — App: anotar o retorno (folha, item em voo, SnackBar fixa, número de novo do servidor) + casos ponta a ponta de anotação e 404, REQUIREMENTS completos, gates finais e human-check (CXA-01..06, API-13, API-14)
+
+### Phase 11: Fotos do Imóvel pela Câmera (APP 11)
+
+**Goal:** Como corretor, eu quero fotografar o imóvel na visita e enviar dali mesmo para publicar o anúncio no mesmo dia. Card APP 11 (tarefa A11).
+**Requirements**: FOT-01, FOT-02, FOT-03, FOT-04, FOT-05, FOT-06, API-17, API-18
+**Depends on:** Phase 8 (login, sessão, `Dio` autenticado) e Phase 9 (tela de gestão do imóvel, onde entra o botão "Fotos"). Na web: model `FotoImovel` (ordem, capa, `uma_capa_por_imovel`) e `validar_imagem` já na `main`; faltam as rotas aninhadas, a reordenação, a capa automática e a exclusão que apaga o arquivo (ver `11-CARD-APP11.md`).
+**Success Criteria** (what must be TRUE):
+
+  1. Tirar foto pela câmera ou escolher da galeria do aparelho.
+  2. Enviar várias fotos de uma vez, com progresso e aviso de erro.
+  3. Reordenar as fotos e escolher a foto de capa.
+  4. Apagar foto enviada por engano.
+  5. Só funciona nos imóveis a que o corretor tem acesso (os dele e os da imobiliária).
+  6. As fotos enviadas aparecem na vitrine e no site.
+
+**Plans:** 9/9 plans complete
+
+Plans:
+**Wave 1**
+- [x] 11-01-PLAN.md — Web (feat/APP11): serviço `imoveis/fotos.py` (trava no imóvel, ordem = maior + 1, primeira foto vira capa, teto 30, reordenar, capa atômica, apagar com promoção, renumeração e arquivo apagado) + as 5 rotas aninhadas com `EhCorretor` e escopo de empresa + testes de isolamento, capa única e reordenação + README (API-17, FOT-02..FOT-05)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [x] 11-02-PLAN.md — Web: capa primeiro na página do imóvel do site (Prefetch `-capa`) e teste de que a vitrine pública e o site leem a ordem e a capa gravadas pelas rotas novas (FOT-06)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [x] 11-03-PLAN.md — Wire real: grupo `fotos` na ferramenta de captura e as fixtures (porta 8011), com outra empresa, gestor e anônimo, limpando o que criou (API-18, FOT-05)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [x] 11-04-PLAN.md — §19 do contrato, `contrato_fotos_imovel_test.dart` e registro de FOT-01..06, API-17, API-18 (API-18)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [x] 11-05-PLAN.md — App: `image_picker` + `flutter_image_compress`, Info.plist e manifesto, domínio das fotos (entidade, repositório, falhas, 5 use cases) e as interfaces `SeletorDeFotos`/`PreparadorDeFoto` (FOT-01..FOT-05)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [x] 11-06-PLAN.md — App: Model lido contra as fixtures, DataSource multipart com `onSendProgress` e `sendTimeout` próprio, repositório com 400/401/403/404 tipados, implementações do seletor e do preparador (1920 px, JPEG 85) e rotas na `ApiFalsa` (FOT-01, FOT-02, FOT-05)
+
+**Wave 7** *(blocked on Wave 6 completion)*
+- [x] 11-07-PLAN.md — App: textos fixos e `FotosImovelCubit` (lista do servidor, fila sequencial com progresso, falha por foto e "Tentar de novo", ordem/capa/apagar sem mudança local, 401 terminal) (FOT-02..FOT-05)
+
+**Wave 8** *(blocked on Wave 7 completion)*
+- [x] 11-08-PLAN.md — App: `FotosImovelScreen` (botões câmera/galeria, fila, `ReorderableListView`, menu Capa/Apagar com confirmação, 401 → login) e botão "Fotos" na gestão com releitura na volta (FOT-01..FOT-05)
+
+**Wave 9** *(blocked on Wave 8 completion)*
+- [x] 11-09-PLAN.md — App: fluxos ponta a ponta na pilha real, roteiro de UAT no emulador, REQUIREMENTS completos, gates dos dois repos e human-check (FOT-01..FOT-06, API-17, API-18)
 
 ### Phase 12: Área do Gestor — Acompanhamento dos Corretores (APP 12)
 

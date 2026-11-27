@@ -7,6 +7,8 @@ import 'package:imoveis_aqui/data/datasources/armazenamento_token.dart';
 import 'package:imoveis_aqui/data/network/interceptador_sessao.dart';
 import 'package:imoveis_aqui/di/injection.dart';
 import 'package:imoveis_aqui/domain/entities/cidade.dart';
+import 'package:imoveis_aqui/domain/gateways/preparador_de_foto_gateway.dart';
+import 'package:imoveis_aqui/domain/gateways/seletor_de_fotos_gateway.dart';
 import 'package:imoveis_aqui/domain/usecases/salvar_cidade_usecase.dart';
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_cubit.dart';
 import 'package:imoveis_aqui/presentation/cidade_selecao/cidade_selecao_screen.dart';
@@ -55,6 +57,19 @@ class PilhaReal {
       instanceName: 'autenticado',
     );
     return PilhaReal._(api, armazenamento);
+  }
+
+  /// Troca só os plugins das fotos (APP 11) — câmera/galeria e compressão, que
+  /// não rodam em `flutter test` — por falsos; DataSource, repositório, use
+  /// cases e Cubit continuam os de produção. Chamar antes de abrir a tela.
+  void trocarPluginsDeFotos({
+    required SeletorDeFotosGateway seletor,
+    required PreparadorDeFotoGateway preparador,
+  }) {
+    getIt.unregister<SeletorDeFotosGateway>();
+    getIt.registerSingleton<SeletorDeFotosGateway>(seletor);
+    getIt.unregister<PreparadorDeFotoGateway>();
+    getIt.registerSingleton<PreparadorDeFotoGateway>(preparador);
   }
 
   /// Campinas como a API devolve (com id), lida da fixture capturada.

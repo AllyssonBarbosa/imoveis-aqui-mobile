@@ -25,6 +25,8 @@ class RequisicaoGravada {
     required this.metodo,
     required Map<String, Object?> cabecalhos,
     this.corpo,
+    this.bytesEnviados,
+    this.tempoDeEnvio,
   }) : cabecalhos = Map.unmodifiable(cabecalhos);
 
   final Uri uri;
@@ -33,6 +35,18 @@ class RequisicaoGravada {
 
   /// Corpo enviado (`RequestOptions.data`), ou nulo se o pedido não tem corpo.
   final Object? corpo;
+
+  /// Bytes do corpo como saíram pela rede (o adaptador drena o stream do
+  /// pedido), ou nulo sem corpo. É por aqui que os testes leem o multipart das
+  /// fotos (campo `imagem`, nome do arquivo, content-type).
+  final List<int>? bytesEnviados;
+
+  /// `sendTimeout` efetivo do pedido (o do `Options` ou o do `BaseOptions`).
+  final Duration? tempoDeEnvio;
+
+  /// [bytesEnviados] como texto Latin-1 (preserva byte a byte), para procurar
+  /// cabeçalhos de parte do multipart.
+  String get corpoEmTexto => latin1.decode(bytesEnviados ?? const []);
 
   /// Valor do cabeçalho [nome] (sem diferenciar maiúsculas), ou nulo.
   String? cabecalho(String nome) {
@@ -147,6 +161,8 @@ class _Falha {
 /// papel: o 403 de quem não é gestor se simula com `responder(..., status:
 /// 403, fixture: 'erro_403_relatorio.json')`; [requisicoesDosRelatorios] lista
 /// só esses pedidos.
+/// As fotos do imóvel (`/api/imoveis/<id>/fotos/...`, APP 11) ver
+/// `_atenderFotos`; [requisicoesDasFotos] lista só esses pedidos.
 /// Rota ainda não servida responde 404 com um objeto JSON vazio.
 /// Cada requisição é gravada com método e cabeçalhos ([requisicoesGravadas]) e,
 /// com o corpo já decodificado, em [chamadas];
@@ -202,6 +218,12 @@ class ApiFalsa {
     _requisicoes.where((uri) => uri.path.startsWith('/api/relatorios/')),
   );
 
+  /// Requisições às rotas de fotos do imóvel (`/api/imoveis/<id>/fotos/...`,
+  /// APP 11), na ordem, com método, cabeçalhos e bytes.
+  List<RequisicaoGravada> get requisicoesDasFotos => List.unmodifiable(
+    _gravadas.where((pedido) => _rotaDeFotos.hasMatch(pedido.uri.path)),
+  );
+
   /// Registra uma resposta que vale para as URIs em que [quando] é verdadeiro.
   /// Vale a última registrada. [fixture] é o nome do arquivo em
   /// `test/fixtures/api/`; [corpo] serve um valor JSON derivado de uma
@@ -243,7 +265,10 @@ class ApiFalsa {
     return dio;
   }
 
-  Future<ResponseBody> _atender(RequestOptions opcoes) async {
+  Future<ResponseBody> _atender(
+    RequestOptions opcoes,
+    List<int>? bytesEnviados,
+  ) async {
     final uri = opcoes.uri;
     _requisicoes.add(uri);
     final corpoEnviado = opcoes.data;
@@ -261,6 +286,8 @@ class ApiFalsa {
         metodo: opcoes.method,
         cabecalhos: Map<String, Object?>.of(opcoes.headers),
         corpo: opcoes.data,
+        bytesEnviados: bytesEnviados,
+        tempoDeEnvio: opcoes.sendTimeout,
       ),
     );
     if (latencia > Duration.zero) await Future<void>.delayed(latencia);
@@ -311,6 +338,8 @@ class ApiFalsa {
     if (rotaDaCaixa != null) return rotaDaCaixa;
     final rotaDosRelatorios = _atenderRelatorios(uri, opcoes);
     if (rotaDosRelatorios != null) return rotaDosRelatorios;
+    final rotaDasFotos = _atenderFotos(uri, opcoes);
+    if (rotaDasFotos != null) return rotaDasFotos;
     if (uri.path == '/api/imoveis/' && opcoes.method == 'GET') {
       if (!_temToken(opcoes)) {
         return _corpoJson(lerFixtureApi('erro_401.json'), 401);
@@ -678,6 +707,42 @@ class ApiFalsa {
     return campinas['id']! as int;
   }
 
+  /// Rotas de fotos do imóvel (APP 11, §19), todas com token (senão 401 com
+  /// `erro_401.json`): `GET .../fotos/` serve `fotos_lista.json`, `POST
+  /// .../fotos/` responde 201 com `foto_enviada.json`, `PUT .../fotos/ordem/`
+  /// serve `fotos_reordenadas.json`, `POST .../fotos/<foto>/capa/` serve
+  /// `fotos_capa_definida.json` e `DELETE .../fotos/<foto>/` serve
+  /// `fotos_apos_apagar_capa.json`; outro método responde 405. A `ApiFalsa`
+  /// não guarda estado de fotos: cada teste monta a sequência que precisa com
+  /// [responder]. Nulo se [uri] não é rota de fotos.
+  ResponseBody? _atenderFotos(Uri uri, RequestOptions opcoes) {
+    final casamento = _rotaDeFotos.firstMatch(uri.path);
+    if (casamento == null) return null;
+    if (!_temToken(opcoes)) {
+      return _corpoJson(lerFixtureApi('erro_401.json'), 401);
+    }
+    final metodo = opcoes.method.toUpperCase();
+    final ehOrdem = casamento.group(2) != null;
+    final fotoId = casamento.group(3);
+    final ehCapa = casamento.group(4) != null;
+    ResponseBody responder(String esperado, int status, String fixture) =>
+        metodo == esperado
+        ? _corpoJson(lerFixtureApi(fixture), status)
+        : _corpoJson(const <String, Object?>{}, 405);
+    if (ehOrdem) return responder('PUT', 200, 'fotos_reordenadas.json');
+    if (fotoId != null && ehCapa) {
+      return responder('POST', 200, 'fotos_capa_definida.json');
+    }
+    if (fotoId != null) {
+      return responder('DELETE', 200, 'fotos_apos_apagar_capa.json');
+    }
+    return switch (metodo) {
+      'GET' => _corpoJson(lerFixtureApi('fotos_lista.json'), 200),
+      'POST' => _corpoJson(lerFixtureApi('foto_enviada.json'), 201),
+      _ => _corpoJson(const <String, Object?>{}, 405),
+    };
+  }
+
   /// Verdadeiro se o pedido leva `Authorization: Token ...`.
   bool _temToken(RequestOptions opcoes) {
     for (final entrada in opcoes.headers.entries) {
@@ -711,15 +776,32 @@ class _AdaptadorApiFalsa implements HttpClientAdapter {
 
   final ApiFalsa _api;
 
+  /// Drena o corpo do pedido antes de responder, como a rede faria: é isso
+  /// que faz o `onSendProgress` do Dio disparar (o upload das fotos, APP 11) e
+  /// deixa os bytes enviados gravados para os testes.
   @override
   Future<ResponseBody> fetch(
     RequestOptions options,
     Stream<Uint8List>? requestStream,
     Future<void>? cancelFuture,
-  ) {
-    return _api._atender(options);
+  ) async {
+    List<int>? bytes;
+    if (requestStream != null) {
+      final acumulado = BytesBuilder(copy: false);
+      await for (final pedaco in requestStream) {
+        acumulado.add(pedaco);
+      }
+      bytes = acumulado.takeBytes();
+    }
+    return _api._atender(options, bytes);
   }
 
   @override
   void close({bool force = false}) {}
 }
+
+/// `/api/imoveis/<id>/fotos/`, `.../fotos/ordem/`, `.../fotos/<foto>/` e
+/// `.../fotos/<foto>/capa/` (APP 11).
+final RegExp _rotaDeFotos = RegExp(
+  r'^/api/imoveis/(\d+)/fotos/(?:(ordem)/|(\d+)/(capa/)?)?$',
+);
