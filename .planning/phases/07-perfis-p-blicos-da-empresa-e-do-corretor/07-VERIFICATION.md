@@ -2,47 +2,10 @@
 phase: 07-perfis-p-blicos-da-empresa-e-do-corretor
 verified: 2026-11-20T18:00:00Z
 status: passed
+re_verified: 2026-11-23T22:00:00Z
 score: 7/7 must-haves verified
-covered_files:
-  - ".planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/01-CONTRATO-API.md"
-  - ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-01-PLAN.md"
-  - ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-01-SUMMARY.md"
-  - ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-02-PLAN.md"
-  - ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-02-SUMMARY.md"
-  - ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-03-PLAN.md"
-  - ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-03-SUMMARY.md"
-  - ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-04-PLAN.md"
-  - ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-04-SUMMARY.md"
-  - ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-05-PLAN.md"
-  - ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-05-SUMMARY.md"
-  - ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-06-PLAN.md"
-  - ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-06-SUMMARY.md"
-  - ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-07-PLAN.md"
-  - ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-07-SUMMARY.md"
-  - ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-08-PLAN.md"
-  - ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-08-SUMMARY.md"
-  - ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-09-PLAN.md"
-  - ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-09-SUMMARY.md"
-  - ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-10-PLAN.md"
-  - ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-10-SUMMARY.md"
-  - ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-11-PLAN.md"
-  - ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-11-SUMMARY.md"
-  - ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-12-PLAN.md"
-  - ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-12-SUMMARY.md"
-  - "lib/data/datasources/perfil_datasource.dart"
-  - "lib/data/datasources/perfil_remote_datasource.dart"
-  - "lib/data/datasources/vitrine_anunciante_datasource.dart"
-  - "lib/data/datasources/vitrine_anunciante_remote_datasource.dart"
-  - "lib/data/repositories/perfil_repository_impl.dart"
-  - "lib/data/repositories/vitrine_anunciante_repository_impl.dart"
-  - "lib/di/injection.config.dart"
-  - "lib/presentation/detalhe_imovel/detalhe_imovel_screen.dart"
-  - "lib/presentation/perfis/perfil_corretor_cubit.dart"
-  - "lib/presentation/perfis/perfil_corretor_screen.dart"
-  - "lib/presentation/perfis/perfil_empresa_cubit.dart"
-  - "lib/presentation/perfis/perfil_empresa_screen.dart"
-  - "lib/presentation/perfis/vitrine_anunciante_cubit.dart"
-covered_digest: "v4:sha256:49f052dac6e0f0bb53e09a49026fed30f240a18c3a8b907cc0aa9e29e2872a60"
+covered_files: [".planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/01-CONTRATO-API.md", ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-01-PLAN.md", ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-01-SUMMARY.md", ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-02-PLAN.md", ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-02-SUMMARY.md", ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-03-PLAN.md", ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-03-SUMMARY.md", ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-04-PLAN.md", ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-04-SUMMARY.md", ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-05-PLAN.md", ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-05-SUMMARY.md", ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-06-PLAN.md", ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-06-SUMMARY.md", ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-07-PLAN.md", ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-07-SUMMARY.md", ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-08-PLAN.md", ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-08-SUMMARY.md", ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-09-PLAN.md", ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-09-SUMMARY.md", ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-10-PLAN.md", ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-10-SUMMARY.md", ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-11-PLAN.md", ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-11-SUMMARY.md", ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-12-PLAN.md", ".planning/phases/07-perfis-p-blicos-da-empresa-e-do-corretor/07-12-SUMMARY.md", "lib/data/datasources/perfil_datasource.dart", "lib/data/datasources/perfil_remote_datasource.dart", "lib/data/datasources/vitrine_anunciante_datasource.dart", "lib/data/datasources/vitrine_anunciante_remote_datasource.dart", "lib/data/repositories/perfil_repository_impl.dart", "lib/data/repositories/vitrine_anunciante_repository_impl.dart", "lib/di/injection.config.dart", "lib/presentation/detalhe_imovel/detalhe_imovel_screen.dart", "lib/presentation/perfis/perfil_corretor_cubit.dart", "lib/presentation/perfis/perfil_corretor_screen.dart", "lib/presentation/perfis/perfil_empresa_cubit.dart", "lib/presentation/perfis/perfil_empresa_screen.dart", "lib/presentation/perfis/vitrine_anunciante_cubit.dart"]
+covered_digest: "v1:sha256:724c8908509fb163af3ccb02f5c8c680bbdab4355c1f7140b545f7e4f094e584"
 behavior_unverified: 0
 overrides_applied: 0
 ---

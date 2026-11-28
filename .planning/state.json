@@ -6,22 +6,22 @@
     {
       "number": "1",
       "name": "Localização, Escolha de Cidade e Contrato da API",
-      "status": "in_progress"
+      "status": "complete"
     },
     {
       "number": "2",
       "name": "Vitrine — Lista, Busca e Ordenação",
-      "status": "in_progress"
+      "status": "complete"
     },
     {
       "number": "3",
       "name": "Vitrine — Filtros Server-Side",
-      "status": "in_progress"
+      "status": "complete"
     },
     {
       "number": "4",
       "name": "Página do Imóvel — Galeria e Dados da Natureza",
-      "status": "in_progress"
+      "status": "complete"
     },
     {
       "number": "5",
@@ -41,8 +41,8 @@
   ],
   "next": {
     "command": "/gsd:progress --next",
-    "label": "Advance to the next step",
-    "reason": "Phase 09 of 10 · 0% · executing"
+    "label": "Advance to the next step (plan phase 05)",
+    "reason": "Phase 05 of 10 — needs a plan"
   },
-  "updated_at": "2026-11-22T15:32:52.315Z"
+  "updated_at": "2026-11-23T22:00:35.463Z"
 }

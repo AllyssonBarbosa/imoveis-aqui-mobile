@@ -20,10 +20,10 @@ troca a DataSource mock pela real com uma mudança de DI, sem tocar em UI/Cubit/
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Localização, Escolha de Cidade e Contrato da API** - Abertura do app, permissão de localização e entrada na cidade (com fallback de escolha), mais o contrato escrito de `/cidades` e `/imoveis`.
-- [ ] **Phase 2: Vitrine — Lista, Busca e Ordenação** - Vitrine da cidade escolhida com lista paginada, busca e ordenação, cidades já vindas da API, imóveis ainda sobre mock.
-- [ ] **Phase 3: Vitrine — Filtros Server-Side** - Filtros completos da vitrine (finalidade, natureza, faixas, características), chips ativos e paginação sempre consistente.
-- [ ] **Phase 4: Página do Imóvel — Galeria e Dados da Natureza** - Tela de detalhe (card APP 04): galeria a partir da capa, preços, corretor e bloco por natureza (casa, terreno, apartamento, lote), sobre mock seguindo o contrato de `GET /api/publico/imoveis/{id}/`.
+- [x] **Phase 1: Localização, Escolha de Cidade e Contrato da API** - Abertura do app, permissão de localização e entrada na cidade (com fallback de escolha), mais o contrato escrito de `/cidades` e `/imoveis`. (completed 2026-11-23)
+- [x] **Phase 2: Vitrine — Lista, Busca e Ordenação** - Vitrine da cidade escolhida com lista paginada, busca e ordenação, cidades já vindas da API, imóveis ainda sobre mock. (completed 2026-11-23)
+- [x] **Phase 3: Vitrine — Filtros Server-Side** - Filtros completos da vitrine (finalidade, natureza, faixas, características), chips ativos e paginação sempre consistente. (completed 2026-11-23)
+- [x] **Phase 4: Página do Imóvel — Galeria e Dados da Natureza** - Tela de detalhe (card APP 04): galeria a partir da capa, preços, corretor e bloco por natureza (casa, terreno, apartamento, lote), sobre mock seguindo o contrato de `GET /api/publico/imoveis/{id}/`. (completed 2026-11-23)
 - [x] **Phase 5: Imóveis Real — Endpoint Público e Integração Final** - Endpoints públicos reais de lista e detalhe de imóveis e troca das DataSources mock pelas reais via DI. (completed 2026-11-16)
 - [x] **Phase 6: Contato com o Corretor — WhatsApp, Telefone e E-mail (APP 06)** - Botão de contato (WhatsApp, telefone e e-mail) na página do imóvel e no perfil do corretor, com o contato registrado pela API pública sem login. (completed 2026-11-22)
 - [x] **Phase 7: Perfis Públicos da Empresa e do Corretor** - Card APP 07: página da empresa e página do corretor com a vitrine do anunciante, dados da API de perfis públicos (WEB 02) e aviso para corretor desativado. (Fase 6 reservada ao card APP 06, de outro colega — fase N = card APP 0N.) (completed 2026-11-20)
@@ -339,10 +339,10 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 07.1 
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Localização, Escolha de Cidade e Contrato da API | 4/4 | In Progress|  |
-| 2. Vitrine — Lista, Busca e Ordenação | 5/5 | In Progress|  |
-| 3. Vitrine — Filtros Server-Side | 5/5 | In Progress|  |
-| 4. Página do Imóvel — Galeria e Dados da Natureza | 8/8 | In Progress|  |
+| 1. Localização, Escolha de Cidade e Contrato da API | 4/4 | Complete    | 2026-11-23 |
+| 2. Vitrine — Lista, Busca e Ordenação | 5/5 | Complete    | 2026-11-23 |
+| 3. Vitrine — Filtros Server-Side | 5/5 | Complete    | 2026-11-23 |
+| 4. Página do Imóvel — Galeria e Dados da Natureza | 8/8 | Complete    | 2026-11-23 |
 | 5. Imóveis Real — Endpoint Público e Integração Final | 22/22 | Complete    | 2026-11-16 |
 | 6. Contato com o Corretor — WhatsApp, Telefone e E-mail (APP 06) | 10/10 | Complete    | 2026-11-22 |
 | 7. Perfis Públicos da Empresa e do Corretor | 12/12 | Complete    | 2026-11-20 |

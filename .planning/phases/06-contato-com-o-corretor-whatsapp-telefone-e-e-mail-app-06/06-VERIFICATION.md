@@ -2,39 +2,10 @@
 phase: 06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06
 verified: 2026-11-22T14:00:00Z
 status: passed
+re_verified: 2026-11-23T22:00:00Z
 score: 6/6 must-haves verified
-covered_files:
-  - ".planning/REQUIREMENTS.md"
-  - ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-01-PLAN.md"
-  - ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-01-SUMMARY.md"
-  - ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-02-PLAN.md"
-  - ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-02-SUMMARY.md"
-  - ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-03-PLAN.md"
-  - ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-03-SUMMARY.md"
-  - ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-04-PLAN.md"
-  - ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-04-SUMMARY.md"
-  - ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-05-PLAN.md"
-  - ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-05-SUMMARY.md"
-  - ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-06-PLAN.md"
-  - ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-06-SUMMARY.md"
-  - ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-07-PLAN.md"
-  - ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-07-SUMMARY.md"
-  - ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-08-PLAN.md"
-  - ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-08-SUMMARY.md"
-  - ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-09-PLAN.md"
-  - ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-09-SUMMARY.md"
-  - ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-10-PLAN.md"
-  - ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-10-SUMMARY.md"
-  - "lib/data/datasources/contato_remote_datasource.dart"
-  - "lib/data/gateways/url_launcher_gateway_impl.dart"
-  - "lib/data/repositories/contato_repository_impl.dart"
-  - "lib/domain/usecases/contatar_corretor_usecase.dart"
-  - "lib/presentation/contato/contato_cubit.dart"
-  - "lib/presentation/contato/widgets/barra_contato.dart"
-  - "lib/presentation/contato/widgets/contato_bottom_sheet.dart"
-  - "lib/presentation/detalhe_imovel/detalhe_imovel_screen.dart"
-  - "lib/presentation/detalhe_imovel/perfil_corretor_screen.dart"
-covered_digest: "v1:sha256:abf3fb336777a8abd7f2954564ad49251f0506c81579640a12b0f07b5f9e34d4"
+covered_files: [".planning/REQUIREMENTS.md", ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-01-PLAN.md", ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-01-SUMMARY.md", ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-02-PLAN.md", ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-02-SUMMARY.md", ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-03-PLAN.md", ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-03-SUMMARY.md", ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-04-PLAN.md", ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-04-SUMMARY.md", ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-05-PLAN.md", ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-05-SUMMARY.md", ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-06-PLAN.md", ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-06-SUMMARY.md", ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-07-PLAN.md", ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-07-SUMMARY.md", ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-08-PLAN.md", ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-08-SUMMARY.md", ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-09-PLAN.md", ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-09-SUMMARY.md", ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-10-PLAN.md", ".planning/phases/06-contato-com-o-corretor-whatsapp-telefone-e-e-mail-app-06/06-10-SUMMARY.md", "lib/data/datasources/contato_remote_datasource.dart", "lib/data/gateways/url_launcher_gateway_impl.dart", "lib/data/repositories/contato_repository_impl.dart", "lib/domain/usecases/contatar_corretor_usecase.dart", "lib/presentation/contato/contato_cubit.dart", "lib/presentation/contato/widgets/barra_contato.dart", "lib/presentation/contato/widgets/contato_bottom_sheet.dart", "lib/presentation/detalhe_imovel/detalhe_imovel_screen.dart", "lib/presentation/detalhe_imovel/perfil_corretor_screen.dart"]
+covered_digest: "v1:sha256:e7882c69d7fc29fdfc8a281d64c3352b0164ea69def20d97bcbf02d0ed4dbac9"
 behavior_unverified: 0
 overrides_applied: 0
 ---

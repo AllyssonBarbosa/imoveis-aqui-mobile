@@ -2,50 +2,10 @@
 phase: 08-login-e-rea-do-corretor-o-acervo
 verified: 2026-11-21T18:00:00Z
 status: passed
+re_verified: 2026-11-23T22:00:00Z
 score: 6/6 must-haves verified
-covered_files:
-  - .planning/phases/08-login-e-rea-do-corretor-o-acervo/08-01-PLAN.md
-  - .planning/phases/08-login-e-rea-do-corretor-o-acervo/08-01-SUMMARY.md
-  - .planning/phases/08-login-e-rea-do-corretor-o-acervo/08-02-PLAN.md
-  - .planning/phases/08-login-e-rea-do-corretor-o-acervo/08-02-SUMMARY.md
-  - .planning/phases/08-login-e-rea-do-corretor-o-acervo/08-03-PLAN.md
-  - .planning/phases/08-login-e-rea-do-corretor-o-acervo/08-03-SUMMARY.md
-  - .planning/phases/08-login-e-rea-do-corretor-o-acervo/08-04-PLAN.md
-  - .planning/phases/08-login-e-rea-do-corretor-o-acervo/08-04-SUMMARY.md
-  - .planning/phases/08-login-e-rea-do-corretor-o-acervo/08-05-PLAN.md
-  - .planning/phases/08-login-e-rea-do-corretor-o-acervo/08-05-SUMMARY.md
-  - .planning/phases/08-login-e-rea-do-corretor-o-acervo/08-06-PLAN.md
-  - .planning/phases/08-login-e-rea-do-corretor-o-acervo/08-06-SUMMARY.md
-  - .planning/phases/08-login-e-rea-do-corretor-o-acervo/08-07-PLAN.md
-  - .planning/phases/08-login-e-rea-do-corretor-o-acervo/08-07-SUMMARY.md
-  - .planning/phases/08-login-e-rea-do-corretor-o-acervo/08-08-PLAN.md
-  - .planning/phases/08-login-e-rea-do-corretor-o-acervo/08-08-SUMMARY.md
-  - .planning/phases/08-login-e-rea-do-corretor-o-acervo/08-09-PLAN.md
-  - .planning/phases/08-login-e-rea-do-corretor-o-acervo/08-09-SUMMARY.md
-  - .planning/phases/08-login-e-rea-do-corretor-o-acervo/08-10-PLAN.md
-  - .planning/phases/08-login-e-rea-do-corretor-o-acervo/08-10-SUMMARY.md
-  - .planning/phases/08-login-e-rea-do-corretor-o-acervo/08-11-PLAN.md
-  - .planning/phases/08-login-e-rea-do-corretor-o-acervo/08-11-SUMMARY.md
-  - .planning/phases/08-login-e-rea-do-corretor-o-acervo/08-12-PLAN.md
-  - .planning/phases/08-login-e-rea-do-corretor-o-acervo/08-12-SUMMARY.md
-  - lib/data/datasources/acervo_remote_datasource.dart
-  - lib/data/datasources/autenticacao_remote_datasource.dart
-  - lib/data/network/interceptador_sessao.dart
-  - lib/data/repositories/acervo_repository_impl.dart
-  - lib/data/repositories/autenticacao_repository_impl.dart
-  - lib/di/injection.config.dart
-  - lib/di/modulo_rede.dart
-  - lib/domain/usecases/descartar_sessao_usecase.dart
-  - lib/main.dart
-  - lib/presentation/acervo/acervo_cubit.dart
-  - lib/presentation/acervo/acervo_screen.dart
-  - lib/presentation/login/login_cubit.dart
-  - lib/presentation/priming/priming_screen.dart
-  - lib/presentation/sessao/dialogo_sair.dart
-  - lib/presentation/sessao/entrada_area_screen.dart
-  - lib/presentation/sessao/rota_vitrine.dart
-  - lib/presentation/sessao/sessao_cubit.dart
-covered_digest: "v4:sha256:12349d8db257ce9a13febcc261df2b54f0fabe7f8175f816e9c121d7d1825565"
+covered_files: [".planning/phases/08-login-e-rea-do-corretor-o-acervo/08-01-PLAN.md", ".planning/phases/08-login-e-rea-do-corretor-o-acervo/08-01-SUMMARY.md", ".planning/phases/08-login-e-rea-do-corretor-o-acervo/08-02-PLAN.md", ".planning/phases/08-login-e-rea-do-corretor-o-acervo/08-02-SUMMARY.md", ".planning/phases/08-login-e-rea-do-corretor-o-acervo/08-03-PLAN.md", ".planning/phases/08-login-e-rea-do-corretor-o-acervo/08-03-SUMMARY.md", ".planning/phases/08-login-e-rea-do-corretor-o-acervo/08-04-PLAN.md", ".planning/phases/08-login-e-rea-do-corretor-o-acervo/08-04-SUMMARY.md", ".planning/phases/08-login-e-rea-do-corretor-o-acervo/08-05-PLAN.md", ".planning/phases/08-login-e-rea-do-corretor-o-acervo/08-05-SUMMARY.md", ".planning/phases/08-login-e-rea-do-corretor-o-acervo/08-06-PLAN.md", ".planning/phases/08-login-e-rea-do-corretor-o-acervo/08-06-SUMMARY.md", ".planning/phases/08-login-e-rea-do-corretor-o-acervo/08-07-PLAN.md", ".planning/phases/08-login-e-rea-do-corretor-o-acervo/08-07-SUMMARY.md", ".planning/phases/08-login-e-rea-do-corretor-o-acervo/08-08-PLAN.md", ".planning/phases/08-login-e-rea-do-corretor-o-acervo/08-08-SUMMARY.md", ".planning/phases/08-login-e-rea-do-corretor-o-acervo/08-09-PLAN.md", ".planning/phases/08-login-e-rea-do-corretor-o-acervo/08-09-SUMMARY.md", ".planning/phases/08-login-e-rea-do-corretor-o-acervo/08-10-PLAN.md", ".planning/phases/08-login-e-rea-do-corretor-o-acervo/08-10-SUMMARY.md", ".planning/phases/08-login-e-rea-do-corretor-o-acervo/08-11-PLAN.md", ".planning/phases/08-login-e-rea-do-corretor-o-acervo/08-11-SUMMARY.md", ".planning/phases/08-login-e-rea-do-corretor-o-acervo/08-12-PLAN.md", ".planning/phases/08-login-e-rea-do-corretor-o-acervo/08-12-SUMMARY.md", "lib/data/datasources/acervo_remote_datasource.dart", "lib/data/datasources/autenticacao_remote_datasource.dart", "lib/data/network/interceptador_sessao.dart", "lib/data/repositories/acervo_repository_impl.dart", "lib/data/repositories/autenticacao_repository_impl.dart", "lib/di/injection.config.dart", "lib/di/modulo_rede.dart", "lib/domain/usecases/descartar_sessao_usecase.dart", "lib/main.dart", "lib/presentation/acervo/acervo_cubit.dart", "lib/presentation/acervo/acervo_screen.dart", "lib/presentation/login/login_cubit.dart", "lib/presentation/priming/priming_screen.dart", "lib/presentation/sessao/dialogo_sair.dart", "lib/presentation/sessao/entrada_area_screen.dart", "lib/presentation/sessao/rota_vitrine.dart", "lib/presentation/sessao/sessao_cubit.dart"]
+covered_digest: "v1:sha256:955e04c8706245af7c6230e53fd6d28bbb36045b78f3714aa20be7597e12e973"
 behavior_unverified: 0
 overrides_applied: 0
 re_verification:

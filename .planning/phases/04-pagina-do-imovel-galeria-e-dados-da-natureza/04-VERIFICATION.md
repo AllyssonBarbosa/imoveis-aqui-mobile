@@ -1,27 +1,12 @@
 ---
 phase: 04-pagina-do-imovel-galeria-e-dados-da-natureza
 verified: 2026-10-12T00:00:00Z
-status: human_needed
+status: passed
+re_verified: 2026-11-23T22:00:00Z
+re_verified_note: "itens human_needed aprovados pelo usuário via UAT"
 score: 6/6 must-haves verified
-covered_files:
-  - ".planning/REQUIREMENTS.md"
-  - "lib/data/datasources/imovel_detalhe_mock_datasource.dart"
-  - "lib/data/mocks/imoveis_detalhe_fixture.dart"
-  - "lib/data/models/dados_natureza_model.dart"
-  - "lib/data/models/detalhe_imovel_model.dart"
-  - "lib/data/repositories/imovel_detalhe_repository_impl.dart"
-  - "lib/domain/entities/dados_natureza.dart"
-  - "lib/domain/entities/detalhe_imovel.dart"
-  - "lib/presentation/detalhe_imovel/apresentacao_natureza.dart"
-  - "lib/presentation/detalhe_imovel/detalhe_imovel_cubit.dart"
-  - "lib/presentation/detalhe_imovel/detalhe_imovel_screen.dart"
-  - "lib/presentation/detalhe_imovel/perfil_corretor_screen.dart"
-  - "lib/presentation/detalhe_imovel/widgets/cards_natureza.dart"
-  - "lib/presentation/detalhe_imovel/widgets/cartao_corretor.dart"
-  - "lib/presentation/detalhe_imovel/widgets/galeria_imovel.dart"
-  - "lib/presentation/detalhe_imovel/widgets/secao_natureza.dart"
-  - "lib/presentation/detalhe_imovel/widgets/visualizador_fotos.dart"
-covered_digest: "v1:sha256:30bd396609bf9b462787f38abf6ebff541031663111fb943124a7d98dee72bf8"
+covered_files: [".planning/REQUIREMENTS.md", ".planning/phases/04-pagina-do-imovel-galeria-e-dados-da-natureza/04-01-PLAN.md", ".planning/phases/04-pagina-do-imovel-galeria-e-dados-da-natureza/04-01-SUMMARY.md", ".planning/phases/04-pagina-do-imovel-galeria-e-dados-da-natureza/04-02-PLAN.md", ".planning/phases/04-pagina-do-imovel-galeria-e-dados-da-natureza/04-02-SUMMARY.md", ".planning/phases/04-pagina-do-imovel-galeria-e-dados-da-natureza/04-03-PLAN.md", ".planning/phases/04-pagina-do-imovel-galeria-e-dados-da-natureza/04-03-SUMMARY.md", ".planning/phases/04-pagina-do-imovel-galeria-e-dados-da-natureza/04-04-PLAN.md", ".planning/phases/04-pagina-do-imovel-galeria-e-dados-da-natureza/04-04-SUMMARY.md", ".planning/phases/04-pagina-do-imovel-galeria-e-dados-da-natureza/04-05-PLAN.md", ".planning/phases/04-pagina-do-imovel-galeria-e-dados-da-natureza/04-05-SUMMARY.md", ".planning/phases/04-pagina-do-imovel-galeria-e-dados-da-natureza/04-06-PLAN.md", ".planning/phases/04-pagina-do-imovel-galeria-e-dados-da-natureza/04-06-SUMMARY.md", ".planning/phases/04-pagina-do-imovel-galeria-e-dados-da-natureza/04-07-PLAN.md", ".planning/phases/04-pagina-do-imovel-galeria-e-dados-da-natureza/04-07-SUMMARY.md", ".planning/phases/04-pagina-do-imovel-galeria-e-dados-da-natureza/04-08-PLAN.md", ".planning/phases/04-pagina-do-imovel-galeria-e-dados-da-natureza/04-08-SUMMARY.md", "lib/data/models/dados_natureza_model.dart", "lib/data/models/detalhe_imovel_model.dart", "lib/data/repositories/imovel_detalhe_repository_impl.dart", "lib/domain/entities/dados_natureza.dart", "lib/domain/entities/detalhe_imovel.dart", "lib/presentation/detalhe_imovel/apresentacao_natureza.dart", "lib/presentation/detalhe_imovel/detalhe_imovel_cubit.dart", "lib/presentation/detalhe_imovel/detalhe_imovel_screen.dart", "lib/presentation/detalhe_imovel/perfil_corretor_screen.dart", "lib/presentation/detalhe_imovel/widgets/cards_natureza.dart", "lib/presentation/detalhe_imovel/widgets/cartao_corretor.dart", "lib/presentation/detalhe_imovel/widgets/galeria_imovel.dart", "lib/presentation/detalhe_imovel/widgets/secao_natureza.dart", "lib/presentation/detalhe_imovel/widgets/visualizador_fotos.dart"]
+covered_digest: "v1:sha256:e0c29f8f2dec6a33e426421d1f4f847413081e45d81c70f5ea227141d148d7a6"
 behavior_unverified: 0
 overrides_applied: 0
 re_verification: false

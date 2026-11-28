@@ -2,68 +2,10 @@
 phase: 05-im-veis-real-endpoint-p-blico-e-integra-o-final
 verified: 2026-11-16T00:00:00Z
 status: passed
+re_verified: 2026-11-23T22:00:00Z
 score: 6/6 must-haves verified
-covered_files:
-
-  - .planning/REQUIREMENTS.md
-  - .planning/ROADMAP.md
-  - .planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/01-CONTRATO-API.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-01-PLAN.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-01-SUMMARY.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-02-PLAN.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-02-SUMMARY.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-03-PLAN.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-03-SUMMARY.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-04-PLAN.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-04-SUMMARY.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-05-PLAN.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-05-SUMMARY.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-06-PLAN.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-06-SUMMARY.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-07-PLAN.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-07-SUMMARY.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-08-PLAN.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-08-SUMMARY.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-09-PLAN.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-09-SUMMARY.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-10-PLAN.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-10-SUMMARY.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-11-PLAN.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-11-SUMMARY.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-12-PLAN.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-12-SUMMARY.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-13-PLAN.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-13-SUMMARY.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-14-PLAN.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-14-SUMMARY.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-15-PLAN.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-15-SUMMARY.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-16-PLAN.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-16-SUMMARY.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-17-PLAN.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-17-SUMMARY.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-18-PLAN.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-18-SUMMARY.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-19-PLAN.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-19-SUMMARY.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-20-PLAN.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-20-SUMMARY.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-21-PLAN.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-21-SUMMARY.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-22-PLAN.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-22-SUMMARY.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-REVIEW-FIX.md
-  - .planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-REVIEW.md
-  - lib/data/datasources/cidade_remote_datasource.dart
-  - lib/data/datasources/imovel_detalhe_remote_datasource.dart
-  - lib/data/datasources/imovel_remote_datasource.dart
-  - lib/data/datasources/opcoes_filtro_remote_datasource.dart
-  - lib/data/datasources/parametros_consulta_imoveis.dart
-  - lib/di/injection.config.dart
-  - test/data/imovel_detalhe_repository_impl_test.dart
-  - test/data/imovel_remote_datasource_test.dart
-
-covered_digest: "v1:sha256:2d423385e30bb29105c5c6ea446e43a2d6ece3ca6d1d765cd3ae99c1afd135e5"
+covered_files: [".planning/REQUIREMENTS.md", ".planning/ROADMAP.md", ".planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/01-CONTRATO-API.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-01-PLAN.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-01-SUMMARY.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-02-PLAN.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-02-SUMMARY.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-03-PLAN.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-03-SUMMARY.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-04-PLAN.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-04-SUMMARY.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-05-PLAN.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-05-SUMMARY.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-06-PLAN.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-06-SUMMARY.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-07-PLAN.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-07-SUMMARY.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-08-PLAN.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-08-SUMMARY.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-09-PLAN.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-09-SUMMARY.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-10-PLAN.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-10-SUMMARY.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-11-PLAN.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-11-SUMMARY.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-12-PLAN.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-12-SUMMARY.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-13-PLAN.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-13-SUMMARY.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-14-PLAN.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-14-SUMMARY.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-15-PLAN.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-15-SUMMARY.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-16-PLAN.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-16-SUMMARY.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-17-PLAN.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-17-SUMMARY.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-18-PLAN.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-18-SUMMARY.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-19-PLAN.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-19-SUMMARY.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-20-PLAN.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-20-SUMMARY.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-21-PLAN.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-21-SUMMARY.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-22-PLAN.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-22-SUMMARY.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-REVIEW-FIX.md", ".planning/phases/05-im-veis-real-endpoint-p-blico-e-integra-o-final/05-REVIEW.md", "lib/data/datasources/cidade_remote_datasource.dart", "lib/data/datasources/imovel_detalhe_remote_datasource.dart", "lib/data/datasources/imovel_remote_datasource.dart", "lib/data/datasources/opcoes_filtro_remote_datasource.dart", "lib/data/datasources/parametros_consulta_imoveis.dart", "lib/di/injection.config.dart", "test/data/imovel_detalhe_repository_impl_test.dart", "test/data/imovel_remote_datasource_test.dart"]
+covered_digest: "v1:sha256:e36e6e9a7a24f30c04b28ff72cb07d67abc7d543052e6e6e7b63028ba5aab891"
 behavior_unverified: 0
 overrides_applied: 0
 re_verification:

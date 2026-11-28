@@ -1,55 +1,12 @@
 ---
 phase: 01-localiza-o-escolha-de-cidade-e-contrato-da-api
 verified: 2026-09-22T00:00:00Z
-status: human_needed
+status: passed
+re_verified: 2026-11-23T22:00:00Z
+re_verified_note: "itens human_needed aprovados pelo usuário via UAT"
 score: 12/12 must-haves verified (2 caveated as advisory — see Anti-Patterns)
-covered_files:
-  - ".planning/REQUIREMENTS.md"
-  - ".planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/01-01-PLAN.md"
-  - ".planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/01-01-SUMMARY.md"
-  - ".planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/01-02-PLAN.md"
-  - ".planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/01-02-SUMMARY.md"
-  - ".planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/01-03-PLAN.md"
-  - ".planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/01-03-SUMMARY.md"
-  - ".planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/01-04-PLAN.md"
-  - ".planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/01-04-SUMMARY.md"
-  - ".planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/01-CONTRATO-API.md"
-  - ".planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/01-REVIEW.md"
-  - ".planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/contrato/cidades.example.json"
-  - ".planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/contrato/imoveis.example.json"
-  - "analysis_options.yaml"
-  - "android/app/build.gradle.kts"
-  - "android/app/src/main/AndroidManifest.xml"
-  - "assets/cidades.json"
-  - "ios/Runner/Info.plist"
-  - "lib/app_theme.dart"
-  - "lib/core/result.dart"
-  - "lib/data/constants/uf_lookup.dart"
-  - "lib/data/datasources/cidade_local_datasource.dart"
-  - "lib/data/datasources/cidade_prefs_datasource.dart"
-  - "lib/data/gateways/geocoding_gateway_impl.dart"
-  - "lib/data/gateways/geolocator_gateway_impl.dart"
-  - "lib/data/models/cidade_model.dart"
-  - "lib/data/repositories/cidade_repository_impl.dart"
-  - "lib/di/injection.config.dart"
-  - "lib/di/injection.dart"
-  - "lib/domain/entities/cidade.dart"
-  - "lib/domain/gateways/geocoding_gateway.dart"
-  - "lib/domain/gateways/geolocator_gateway.dart"
-  - "lib/domain/repositories/cidade_repository.dart"
-  - "lib/domain/usecases/detectar_cidade_usecase.dart"
-  - "lib/domain/usecases/obter_cidade_salva_usecase.dart"
-  - "lib/domain/usecases/obter_cidades_atendidas_usecase.dart"
-  - "lib/domain/usecases/salvar_cidade_usecase.dart"
-  - "lib/domain/usecases/validar_cidade_atendida_usecase.dart"
-  - "lib/main.dart"
-  - "lib/presentation/cidade_selecao/cidade_selecao_cubit.dart"
-  - "lib/presentation/cidade_selecao/cidade_selecao_screen.dart"
-  - "lib/presentation/cidade_selecao/cidade_selecao_state.dart"
-  - "lib/presentation/cidade_selecao/widgets/seletor_cidade_topo.dart"
-  - "lib/presentation/priming/priming_screen.dart"
-  - "pubspec.yaml"
-covered_digest: "v1:sha256:c028180a247d0aea9b7cb956319f6a41f2a32e867af92be5f1253f1473313eec"
+covered_files: [".planning/REQUIREMENTS.md", ".planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/01-01-PLAN.md", ".planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/01-01-SUMMARY.md", ".planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/01-02-PLAN.md", ".planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/01-02-SUMMARY.md", ".planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/01-03-PLAN.md", ".planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/01-03-SUMMARY.md", ".planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/01-04-PLAN.md", ".planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/01-04-SUMMARY.md", ".planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/01-CONTRATO-API.md", ".planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/01-REVIEW.md", ".planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/contrato/cidades.example.json", ".planning/phases/01-localiza-o-escolha-de-cidade-e-contrato-da-api/contrato/imoveis.example.json", "analysis_options.yaml", "android/app/build.gradle.kts", "android/app/src/main/AndroidManifest.xml", "ios/Runner/Info.plist", "lib/app_theme.dart", "lib/core/result.dart", "lib/data/constants/uf_lookup.dart", "lib/data/datasources/cidade_prefs_datasource.dart", "lib/data/gateways/geocoding_gateway_impl.dart", "lib/data/gateways/geolocator_gateway_impl.dart", "lib/data/models/cidade_model.dart", "lib/data/repositories/cidade_repository_impl.dart", "lib/di/injection.config.dart", "lib/di/injection.dart", "lib/domain/entities/cidade.dart", "lib/domain/gateways/geocoding_gateway.dart", "lib/domain/gateways/geolocator_gateway.dart", "lib/domain/repositories/cidade_repository.dart", "lib/domain/usecases/detectar_cidade_usecase.dart", "lib/domain/usecases/obter_cidade_salva_usecase.dart", "lib/domain/usecases/obter_cidades_atendidas_usecase.dart", "lib/domain/usecases/salvar_cidade_usecase.dart", "lib/domain/usecases/validar_cidade_atendida_usecase.dart", "lib/main.dart", "lib/presentation/cidade_selecao/cidade_selecao_cubit.dart", "lib/presentation/cidade_selecao/cidade_selecao_screen.dart", "lib/presentation/cidade_selecao/cidade_selecao_state.dart", "lib/presentation/cidade_selecao/widgets/seletor_cidade_topo.dart", "lib/presentation/priming/priming_screen.dart", "pubspec.yaml"]
+covered_digest: "v1:sha256:df99b1f37ee8bd0a0c076c0e2379168522936c01daf5fe0d5851b09023aedb35"
 behavior_unverified: 0
 overrides_applied: 0
 human_verification:
